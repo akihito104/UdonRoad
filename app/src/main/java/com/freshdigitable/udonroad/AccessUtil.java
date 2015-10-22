@@ -56,4 +56,7 @@ public class AccessUtil {
     return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
   }
 
+  public static boolean hasAccessToken(Context context) {
+    return loadAccessToken(context) != null;
+  }
 }

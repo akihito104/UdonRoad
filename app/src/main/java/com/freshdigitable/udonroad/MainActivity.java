@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,6 +20,12 @@ public class MainActivity extends AppCompatActivity {
 
   @AfterViews
   void afterViews() {
+    if (!AccessUtil.hasAccessToken(this)) {
+      Intent intent = new Intent(this, OAuthActivity.class);
+      startActivity(intent);
+      finish();
+    }
+
     timeline.setHasFixedSize(true);
     tlLayoutManager = new LinearLayoutManager(this);
     timeline.setLayoutManager(tlLayoutManager);
