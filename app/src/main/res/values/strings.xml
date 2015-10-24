@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">UdonRoad</string>
-    <string name="consumer_key">dummy</string>
-    <string name="consumer_secret">dummy</string>
     <string name="callback_url">udonr://twitter</string>
 </resources>

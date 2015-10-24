@@ -17,6 +17,7 @@ import org.androidannotations.annotations.res.StringRes;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 /**
@@ -80,7 +81,30 @@ public class OAuthActivity extends AppCompatActivity {
       return;
     }
 
-    //todo: start authentication
+    startAuthentication(uri.getQueryParameter("oauth_verifier"));
+  }
+
+  @Background
+  protected void startAuthentication(String verifier) {
+    AccessToken accessToken = null;
+    try {
+      accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
+    } catch (TwitterException e) {
+      Log.e(TAG, "authentication error: ", e);
+    }
+    checkOAuth(accessToken);
+  }
+
+  @UiThread
+  protected void checkOAuth(AccessToken accessToken) {
+    if (accessToken == null) {
+      Toast.makeText(this, "authentication is failed...", Toast.LENGTH_LONG).show();
+    }
+    AccessUtil.storeAccessToken(this, accessToken);
+    Toast.makeText(this, "authentication is success!", Toast.LENGTH_LONG).show();
+    Intent intent = new Intent(this, MainActivity_.class);
+    startActivity(intent);
+    finish();
   }
 }
 

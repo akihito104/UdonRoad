@@ -2,7 +2,9 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.drawable.shapes.Shape;
+
+import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.res.StringRes;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
@@ -11,6 +13,7 @@ import twitter4j.auth.AccessToken;
 /**
  * Created by akihit on 15/10/20.
  */
+@EBean
 public class AccessUtil {
 
   public static final String TOKEN = "token";
