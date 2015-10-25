@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">UdonRoad</string>
     <string name="callback_url">udonr://twitter</string>
+    <string name="timeline_at">\ \@</string>
 </resources>

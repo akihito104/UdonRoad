@@ -4,8 +4,8 @@
                 android:layout_height="match_parent">
 
     <ImageView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:id="@+id/tl_icon"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
@@ -15,16 +15,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
+        android:text="account"
         android:id="@+id/tl_displayname"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/tl_icon"
-        android:layout_toEndOf="@+id/tl_icon"/>
+        android:layout_toRightOf="@+id/tl_at"
+        android:layout_toEndOf="@+id/tl_at"
+        android:textSize="10sp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
+        android:text="Tweet"
         android:id="@+id/tl_tweet"
         android:layout_below="@+id/tl_displayname"
         android:layout_toRightOf="@+id/tl_icon"
@@ -34,21 +35,31 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
+        android:text="CreatedTime"
         android:id="@+id/tl_time"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentEnd="true"
+        android:textSize="10sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ScreenName"
+        android:id="@+id/tl_account"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/tl_icon"
+        android:layout_toEndOf="@+id/tl_icon"
+        android:textSize="10sp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
-        android:id="@+id/tl_account"
+        android:text="@string/timeline_at"
+        android:id="@+id/tl_at"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/tl_time"
-        android:layout_toStartOf="@+id/tl_time"
-        android:layout_marginRight="12dp"
-        android:layout_marginEnd="31dp"/>
+        android:layout_toRightOf="@+id/tl_account"
+        android:layout_toEndOf="@+id/tl_account"
+        android:textSize="10sp"/>
 </RelativeLayout>

@@ -24,9 +24,10 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.1.0'
-    compile 'com.android.support:cardview-v7:23.1.0'
     compile 'com.android.support:recyclerview-v7:23.1.0'
     compile 'org.twitter4j:twitter4j-core:4.0.4'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
 
     apt "org.androidannotations:androidannotations:$AAver"
     compile "org.androidannotations:androidannotations-api:$AAver"
