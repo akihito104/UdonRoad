@@ -50,7 +50,8 @@
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_icon"
         android:layout_toEndOf="@+id/tl_icon"
-        android:textSize="10sp"/>
+        android:textSize="10sp"
+        android:textStyle="bold"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -61,5 +62,6 @@
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_account"
         android:layout_toEndOf="@+id/tl_account"
-        android:textSize="10sp"/>
+        android:textSize="10sp"
+        android:layout_marginLeft="6dp"/>
 </RelativeLayout>

@@ -1,15 +1,18 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -33,23 +36,43 @@ public class MainActivity extends AppCompatActivity {
 
   private TimelineAdapter tlAdapter;
   private RecyclerView.LayoutManager tlLayoutManager;
-  private final RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
+  private RecyclerView.ItemDecoration itemDecoration;
 
   private static class MyItemDecoration extends RecyclerView.ItemDecoration {
-    MyItemDecoration() {
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final int dividerHeight;
+
+    MyItemDecoration(Resources resources) {
       paint.setColor(Color.GRAY);
-    }
-    @Override
-    public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-      outRect.set(0, 0, 0, 2);
+      this.dividerHeight = 1;
     }
 
-    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    @Override
+    public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+      int position = ((RecyclerView.LayoutParams)view.getLayoutParams()).getViewLayoutPosition();
+      int top = position == 0 ? 0 : dividerHeight;
+      outRect.set(0, top, 0, 0);
+    }
 
     @Override
     public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
       super.onDraw(c, parent, state);
-      c.drawRect(0, 0, 0, 2, paint);
+      final float left = parent.getPaddingLeft();
+      final float right = parent.getWidth() - parent.getPaddingRight();
+      final int childCount = parent.getChildCount();
+      final RecyclerView.LayoutManager manager = parent.getLayoutManager();
+
+      for (int i = 0; i < childCount; i++) {
+        final View child = parent.getChildAt(i);
+        final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
+        if (params.getViewLayoutPosition() == 0) {
+          continue;
+        }
+        final float top = manager.getDecoratedTop(child) - params.topMargin
+            + ViewCompat.getTranslationY(child);
+        final float bottom = top + dividerHeight;
+        c.drawRect(left, top, right, bottom, paint);
+      }
     }
   }
 
@@ -62,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     timeline.setHasFixedSize(true);
+    itemDecoration = new MyItemDecoration(getResources());
     timeline.addItemDecoration(itemDecoration);
     tlLayoutManager = new LinearLayoutManager(this);
     timeline.setLayoutManager(tlLayoutManager);
