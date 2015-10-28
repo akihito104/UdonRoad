@@ -1,6 +1,7 @@
 package com.freshdigitable.udonroad;
 
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,18 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     holder.screenName.setText(user.getScreenName());
     holder.tweet.setText(status.getText());
     holder.time.setText(timeSpanConv.toTimeSpanString(status.getCreatedAt()));
+    holder.clientName.setText(Html.fromHtml(status.getSource()).toString());
+    final int rtCount = status.getRetweetCount();
+    final int favCount = status.getFavoriteCount();
+    if (rtCount == 0 && favCount == 0) {
+      return;
+    }
+    holder.rt.setVisibility(View.VISIBLE);
+    holder.fav.setVisibility(View.VISIBLE);
+    holder.rtCount.setText(String.valueOf(status.getRetweetCount()));
+    holder.rtCount.setVisibility(View.VISIBLE);
+    holder.favCount.setText(String.valueOf(status.getFavoriteCount()));
+    holder.favCount.setVisibility(View.VISIBLE);
   }
 
   @Override
@@ -56,6 +69,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     TextView account;
     TextView tweet;
     TextView time;
+
+    TextView rt;
+    TextView rtCount;
+    TextView fav;
+    TextView favCount;
+    TextView clientName;
+
     public ViewHolder(View itemView) {
       super(itemView);
       this.icon = (ImageView) itemView.findViewById(R.id.tl_icon);
@@ -63,6 +83,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       this.account = (TextView) itemView.findViewById(R.id.tl_account);
       this.tweet = (TextView) itemView.findViewById(R.id.tl_tweet);
       this.time = (TextView) itemView.findViewById(R.id.tl_time);
+
+      this.rt = (TextView) itemView.findViewById(R.id.tl_rt);
+      this.rtCount = (TextView) itemView.findViewById(R.id.tl_rtcount);
+      this.fav = (TextView) itemView.findViewById(R.id.tl_fav);
+      this.favCount = (TextView) itemView.findViewById(R.id.tl_favcount);
+      this.clientName = (TextView) itemView.findViewById(R.id.tl_clientname);
     }
   }
 }

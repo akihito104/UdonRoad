@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int dividerHeight;
 
-    MyItemDecoration(Resources resources) {
+    MyItemDecoration() {
       paint.setColor(Color.GRAY);
       this.dividerHeight = 1;
     }
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     timeline.setHasFixedSize(true);
-    itemDecoration = new MyItemDecoration(getResources());
+    itemDecoration = new MyItemDecoration();
     timeline.addItemDecoration(itemDecoration);
     tlLayoutManager = new LinearLayoutManager(this);
     timeline.setLayoutManager(tlLayoutManager);
