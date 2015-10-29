@@ -17,10 +17,10 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="account"
         android:id="@+id/tl_displayname"
+        android:textSize="10sp"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_at"
-        android:layout_toEndOf="@+id/tl_at"
-        android:textSize="10sp"/>
+        android:layout_toEndOf="@+id/tl_at"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -37,21 +37,21 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="CreatedTime"
         android:id="@+id/tl_time"
+        android:textSize="10sp"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:textSize="10sp"/>
+        android:layout_alignParentEnd="true"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ScreenName"
         android:id="@+id/tl_account"
+        android:textSize="10sp"
+        android:textStyle="bold"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_icon"
-        android:layout_toEndOf="@+id/tl_icon"
-        android:textSize="10sp"
-        android:textStyle="bold"/>
+        android:layout_toEndOf="@+id/tl_icon"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -59,11 +59,11 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="@string/timeline_at"
         android:id="@+id/tl_at"
+        android:textSize="10sp"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_account"
         android:layout_toEndOf="@+id/tl_account"
-        android:textSize="10sp"
-        android:layout_marginLeft="6dp"/>
+        android:layout_marginLeft="4dp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -75,7 +75,7 @@
         android:layout_below="@+id/tl_tweet"
         android:layout_toRightOf="@+id/tl_icon"
         android:layout_toEndOf="@+id/tl_icon"
-        android:visibility="invisible"/>
+        android:visibility="gone"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -88,7 +88,7 @@
         android:layout_toRightOf="@+id/tl_rtcount"
         android:layout_toEndOf="@+id/tl_rtcount"
         android:layout_marginLeft="4dp"
-        android:visibility="invisible"/>
+        android:visibility="gone"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -101,7 +101,7 @@
         android:layout_toEndOf="@+id/tl_rt"
         android:layout_marginLeft="8dp"
         android:textSize="10sp"
-        android:visibility="invisible"/>
+        android:visibility="gone"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -114,7 +114,7 @@
         android:layout_toEndOf="@+id/tl_favcount"
         android:layout_marginLeft="4dp"
         android:textSize="10sp"
-        android:visibility="invisible"/>
+        android:visibility="gone"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -122,10 +122,10 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="client name"
         android:id="@+id/tl_clientname"
-        android:layout_alignTop="@+id/tl_fav"
-        android:layout_alignRight="@+id/tl_time"
-        android:layout_alignEnd="@+id/tl_time"
         android:textSize="10sp"
+        android:layout_below="@+id/tl_tweet"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_marginLeft="8dp"/>
 
     <TextView
