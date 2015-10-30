@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
@@ -34,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
   @ViewById(R.id.timeline)
   protected RecyclerView timeline;
 
+  @ViewById(R.id.fab)
+  protected FloatingActionButton fab;
+
   private TimelineAdapter tlAdapter;
   private RecyclerView.LayoutManager tlLayoutManager;
   private RecyclerView.ItemDecoration itemDecoration;
@@ -49,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-      int position = ((RecyclerView.LayoutParams)view.getLayoutParams()).getViewLayoutPosition();
+      int position = ((RecyclerView.LayoutParams) view.getLayoutParams()).getViewLayoutPosition();
       int top = position == 0 ? 0 : dividerHeight;
       outRect.set(0, top, 0, 0);
     }
@@ -108,6 +113,12 @@ public class MainActivity extends AppCompatActivity {
   protected void updateTimeline(List<Status> statuses) {
     tlAdapter = new TimelineAdapter(statuses);
     timeline.setAdapter(tlAdapter);
+  }
+
+  @Click(R.id.fab)
+  protected void fabClicked() {
+    Intent intent = new Intent(this, TweetActivity_.class);
+    startActivity(intent);
   }
 }
 
