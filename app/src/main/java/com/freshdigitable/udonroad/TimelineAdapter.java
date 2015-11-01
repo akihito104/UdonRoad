@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -40,6 +41,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     User user = status.getUser();
     Picasso.with(holder.icon.getContext())
         .load(user.getOriginalProfileImageURL()).into(holder.icon);
+
+    holder.tweetId = status.getId();
     holder.account.setText(user.getName());
     holder.screenName.setText(user.getScreenName());
     holder.tweet.setText(status.getText());
@@ -64,6 +67,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
+    long tweetId;
+    View view;
     ImageView icon;
     TextView screenName;
     TextView account;
@@ -78,6 +83,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
     public ViewHolder(View itemView) {
       super(itemView);
+      this.view = itemView;
       this.icon = (ImageView) itemView.findViewById(R.id.tl_icon);
       this.screenName = (TextView) itemView.findViewById(R.id.tl_displayname);
       this.account = (TextView) itemView.findViewById(R.id.tl_account);

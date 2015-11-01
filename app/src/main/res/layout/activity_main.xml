@@ -20,6 +20,7 @@
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="32dp"
         android:layout_marginRight="32dp"
-        android:layout_marginEnd="32dp"/>
+        android:layout_marginEnd="32dp"
+        android:src="@drawable/ic_twitterlogo_white"/>
 
 </FrameLayout>
