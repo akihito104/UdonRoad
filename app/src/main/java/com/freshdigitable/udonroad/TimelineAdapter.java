@@ -3,6 +3,7 @@ package com.freshdigitable.udonroad;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,8 @@ import twitter4j.util.TimeSpanConverter;
  * Created by akihit on 15/10/18.
  */
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
+  private static final String TAG = TimelineAdapter.class.getName();
+
   public TimelineAdapter(List<Status> statuses) {
     this.statuses = statuses;
   }
@@ -33,15 +36,33 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   private List<Status> statuses;
+  private long selectedTweetId = -1;
+  private View selectedView = null;
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
 
   @Override
-  public void onBindViewHolder(ViewHolder holder, int position) {
-    Status status = statuses.get(position);
+  public void onBindViewHolder(final ViewHolder holder, int position) {
+    final Status status = statuses.get(position);
     User user = status.getUser();
     Picasso.with(holder.icon.getContext())
         .load(user.getOriginalProfileImageURL()).into(holder.icon);
 
+    holder.view.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        selectedTweetId = status.getId();
+        if (selectedView != null) {
+
+          selectedView.setBackgroundColor(Color.TRANSPARENT);
+        }
+        view.setBackgroundColor(Color.LTGRAY);
+        selectedView = view;
+      }
+    });
+    holder.view.setBackgroundColor(Color.TRANSPARENT);
+    if (status.getId() == selectedTweetId) {
+      holder.view.setBackgroundColor(Color.LTGRAY);
+    }
     holder.tweetId = status.getId();
     holder.account.setText(user.getName());
     holder.screenName.setText(user.getScreenName());

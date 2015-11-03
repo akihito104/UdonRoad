@@ -2,16 +2,20 @@ package com.freshdigitable.udonroad;
 
 import android.content.Intent;
 import android.content.res.Resources;
+import android.gesture.Gesture;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -32,6 +36,8 @@ import twitter4j.TwitterException;
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
+  private static final float SWIPE_MIN_DISTANCE = 120;
+  private static final float SWIPE_THRESH_VER = 200;
 
   @ViewById(R.id.timeline)
   protected RecyclerView timeline;
@@ -88,6 +94,34 @@ public class MainActivity extends AppCompatActivity {
       startActivity(intent);
       finish();
     }
+
+    final GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener(){
+      @Override
+      public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESH_VER) {
+          Log.d(TAG, "fling to left.");
+          return false;
+        } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESH_VER) {
+          Log.d(TAG, "fling to right.");
+          return false;
+        }
+        if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESH_VER) {
+          Log.d(TAG, "fling to up");
+          return false;
+        } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESH_VER) {
+          Log.d(TAG, "fling to down");
+          return false;
+        }
+        return false;
+      }
+    });
+    fab.setOnTouchListener(new View.OnTouchListener() {
+      @Override
+      public boolean onTouch(View view, MotionEvent motionEvent) {
+        gestureDetector.onTouchEvent(motionEvent);
+        return true;
+      }
+    });
 
     timeline.setHasFixedSize(true);
     itemDecoration = new MyItemDecoration();
