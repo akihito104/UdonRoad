@@ -36,18 +36,50 @@ import twitter4j.TwitterException;
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
-  private static final float SWIPE_MIN_DISTANCE = 120;
-  private static final float SWIPE_THRESH_VER = 200;
 
   @ViewById(R.id.timeline)
   protected RecyclerView timeline;
 
-  @ViewById(R.id.fab)
-  protected FloatingActionButton fab;
-
   private TimelineAdapter tlAdapter;
   private RecyclerView.LayoutManager tlLayoutManager;
   private RecyclerView.ItemDecoration itemDecoration;
+  private FlingableFloatingActionButton ffab;
+
+  @AfterViews
+  void afterViews() {
+    if (!AccessUtil.hasAccessToken(this)) {
+      Intent intent = new Intent(this, OAuthActivity_.class);
+      startActivity(intent);
+      finish();
+    }
+
+    ffab = new FlingableFloatingActionButton((FloatingActionButton) findViewById(R.id.fab));
+    timeline.setHasFixedSize(true);
+    itemDecoration = new MyItemDecoration();
+    timeline.addItemDecoration(itemDecoration);
+    tlLayoutManager = new LinearLayoutManager(this);
+    timeline.setLayoutManager(tlLayoutManager);
+
+    fetchTweet();
+  }
+
+  @Background
+  protected void fetchTweet() {
+    Twitter twitter = AccessUtil.getTwitterInstance(this);
+    try {
+      ResponseList<Status> statuses = twitter.getHomeTimeline();
+      updateTimeline(statuses);
+    } catch (TwitterException e) {
+      Log.e(TAG, "home timeline is not downloaded.", e);
+    }
+  }
+
+  @UiThread
+  protected void updateTimeline(List<Status> statuses) {
+    tlAdapter = new TimelineAdapter(statuses);
+    timeline.setAdapter(tlAdapter);
+  }
+
 
   private static class MyItemDecoration extends RecyclerView.ItemDecoration {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -85,73 +117,5 @@ public class MainActivity extends AppCompatActivity {
         c.drawRect(left, top, right, bottom, paint);
       }
     }
-  }
-
-  @AfterViews
-  void afterViews() {
-    if (!AccessUtil.hasAccessToken(this)) {
-      Intent intent = new Intent(this, OAuthActivity_.class);
-      startActivity(intent);
-      finish();
-    }
-
-    final GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener(){
-      @Override
-      public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESH_VER) {
-          Log.d(TAG, "fling to left.");
-          return false;
-        } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESH_VER) {
-          Log.d(TAG, "fling to right.");
-          return false;
-        }
-        if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESH_VER) {
-          Log.d(TAG, "fling to up");
-          return false;
-        } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESH_VER) {
-          Log.d(TAG, "fling to down");
-          return false;
-        }
-        return false;
-      }
-    });
-    fab.setOnTouchListener(new View.OnTouchListener() {
-      @Override
-      public boolean onTouch(View view, MotionEvent motionEvent) {
-        gestureDetector.onTouchEvent(motionEvent);
-        return true;
-      }
-    });
-
-    timeline.setHasFixedSize(true);
-    itemDecoration = new MyItemDecoration();
-    timeline.addItemDecoration(itemDecoration);
-    tlLayoutManager = new LinearLayoutManager(this);
-    timeline.setLayoutManager(tlLayoutManager);
-
-    fetchTweet();
-  }
-
-  @Background
-  protected void fetchTweet() {
-    Twitter twitter = AccessUtil.getTwitterInstance(this);
-    try {
-      ResponseList<Status> statuses = twitter.getHomeTimeline();
-      updateTimeline(statuses);
-    } catch (TwitterException e) {
-      Log.e(TAG, "home timeline is not downloaded.", e);
-    }
-  }
-
-  @UiThread
-  protected void updateTimeline(List<Status> statuses) {
-    tlAdapter = new TimelineAdapter(statuses);
-    timeline.setAdapter(tlAdapter);
-  }
-
-  @Click(R.id.fab)
-  protected void fabClicked() {
-    Intent intent = new Intent(this, TweetActivity_.class);
-    startActivity(intent);
   }
 }
