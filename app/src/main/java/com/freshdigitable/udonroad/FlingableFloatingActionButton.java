@@ -38,22 +38,27 @@ public class FlingableFloatingActionButton {
   private static final float SWIPE_MIN_DISTANCE = 120;
   private static final float SWIPE_THRESH_VER = 200;
 
-  private final GestureDetector.SimpleOnGestureListener gestureListener = new GestureDetector.SimpleOnGestureListener() {
+  private final GestureDetector.SimpleOnGestureListener gestureListener
+      = new GestureDetector.SimpleOnGestureListener() {
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-      if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESH_VER) {
-        Log.d(TAG, "fling to left.");
-        return false;
-      } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESH_VER) {
-        Log.d(TAG, "fling to right.");
-        return false;
+      if (Math.abs(velocityX) > SWIPE_THRESH_VER) {
+        if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
+          Log.d(TAG, "fling to left.");
+          return false;
+        } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) {
+          Log.d(TAG, "fling to right.");
+          return false;
+        }
       }
-      if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESH_VER) {
-        Log.d(TAG, "fling to up");
-        return false;
-      } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESH_VER) {
-        Log.d(TAG, "fling to down");
-        return false;
+      if (Math.abs(velocityY) > SWIPE_THRESH_VER) {
+        if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE) {
+          Log.d(TAG, "fling to up");
+          return false;
+        } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE) {
+          Log.d(TAG, "fling to down");
+          return false;
+        }
       }
       return false;
     }

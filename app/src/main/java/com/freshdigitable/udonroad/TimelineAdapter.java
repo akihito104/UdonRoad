@@ -62,6 +62,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     holder.view.setBackgroundColor(Color.TRANSPARENT);
     if (status.getId() == selectedTweetId) {
       holder.view.setBackgroundColor(Color.LTGRAY);
+      selectedView = holder.view;
     }
     holder.tweetId = status.getId();
     holder.account.setText(user.getName());
