@@ -3,7 +3,6 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,8 +30,6 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
     });
   }
 
-  private static final float SWIPE_MIN_DISTANCE = 120;
-  private static final float SWIPE_THRESH_VER = 200;
   private OnFlingListener flingListener;
 
   public void setOnFlingListener(OnFlingListener listener) {
@@ -46,25 +43,7 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
       if (flingListener == null) {
         return false;
       }
-
-      if (Math.abs(velocityX) > SWIPE_THRESH_VER) {
-        if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
-          flingListener.onFling(Direction.LEFT);
-          return false;
-        } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) {
-          flingListener.onFling(Direction.RIGHT);
-          return false;
-        }
-      }
-      if (Math.abs(velocityY) > SWIPE_THRESH_VER) {
-        if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE) {
-          flingListener.onFling(Direction.UP);
-          return false;
-        } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE) {
-          flingListener.onFling(Direction.DOWN);
-          return false;
-        }
-      }
+      flingListener.onFling(Direction.getDirection(e1, e2, velocityX, velocityY));
       return false;
     }
   };
@@ -74,6 +53,49 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
   }
 
   public enum Direction {
-    UP, UP_RIGHT, RIGHT, DOWN_RIGHT, DOWN, DOWN_LEFT, LEFT, UP_LEFT,
+    UP(7), UP_RIGHT(6), RIGHT(0), DOWN_RIGHT(1), DOWN(2), DOWN_LEFT(3), LEFT(4), UP_LEFT(5), UNDEFINED(-1);
+    final int index;
+
+    Direction(int i) {
+      index = i;
+    }
+
+    private static final float SWIPE_MIN_DISTANCE = 120;
+    private static final float SWIPE_THRESH_VER = 200;
+    private static final double ANGLE_DIVIDE = 2 * Math.PI / 8;
+    static Direction getDirection(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+      double speed = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+      double distX = e2.getX() - e1.getX();
+      double distY = e2.getY() - e1.getY();
+      double dist = Math.sqrt(distX * distX + distY * distY);
+      if (speed < SWIPE_THRESH_VER || dist < SWIPE_MIN_DISTANCE) {
+        return UNDEFINED;
+      }
+      double angle = atan3(velocityY, velocityX);
+      for (Direction d : Direction.values()) {
+        if (UNDEFINED.equals(d)) {
+          continue;
+        }
+        if (RIGHT.equals(d)) {
+          if (angle < ANGLE_DIVIDE / 2 || angle > 2 * Math.PI - ANGLE_DIVIDE / 2) {
+            return d;
+          }
+        }
+        double lowerThresh = d.index * ANGLE_DIVIDE - ANGLE_DIVIDE / 2;
+        double upperThresh = d.index * ANGLE_DIVIDE + ANGLE_DIVIDE / 2;
+        if (angle > lowerThresh && angle < upperThresh) {
+          return d;
+        }
+      }
+      return UNDEFINED;
+    }
+
+    private static double atan3(float y, float x) {
+      double angle = Math.atan2(y, x);
+      if (angle < 0) {
+        return 2 * Math.PI + angle;
+      }
+      return angle;
+    }
   }
 }

@@ -111,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
 
   @Click(R.id.fab)
   protected void onFabClicked() {
-    Log.d(TAG, "onFabClicked");
     Intent intent = new Intent(this, TweetActivity_.class);
     startActivity(intent);
   }
