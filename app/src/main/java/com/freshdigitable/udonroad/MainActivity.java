@@ -1,23 +1,16 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
-import android.content.res.Resources;
-import android.gesture.Gesture;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -43,34 +36,70 @@ public class MainActivity extends AppCompatActivity {
   private TimelineAdapter tlAdapter;
   private RecyclerView.LayoutManager tlLayoutManager;
   private RecyclerView.ItemDecoration itemDecoration;
-  private FlingableFloatingActionButton ffab;
+  private Twitter twitter;
+
+  @ViewById(R.id.fab)
+  protected FlingableFloatingActionButton ffab;
 
   @AfterViews
-  void afterViews() {
+  protected void afterViews() {
     if (!AccessUtil.hasAccessToken(this)) {
       Intent intent = new Intent(this, OAuthActivity_.class);
       startActivity(intent);
       finish();
     }
 
-    ffab = new FlingableFloatingActionButton((FloatingActionButton) findViewById(R.id.fab));
     timeline.setHasFixedSize(true);
     itemDecoration = new MyItemDecoration();
     timeline.addItemDecoration(itemDecoration);
     tlLayoutManager = new LinearLayoutManager(this);
     timeline.setLayoutManager(tlLayoutManager);
 
+    ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+      @Override
+      public void onFling(FlingableFloatingActionButton.Direction direction) {
+        final long tweetId = tlAdapter.getSelectedTweetId();
+        if (tweetId < 0) {
+          return;
+        }
+        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
+          fetchFavorite(tweetId);
+        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
+          fetchRetweet(tweetId);
+        }
+      }
+    });
+
+    twitter = AccessUtil.getTwitterInstance(this);
+
     fetchTweet();
   }
 
   @Background
+  protected void fetchRetweet(long tweetId) {
+    try {
+      twitter.retweetStatus(tweetId);
+    } catch (TwitterException e) {
+      Log.e(TAG, "error: ", e);
+    }
+  }
+
+  @Background
   protected void fetchTweet() {
-    Twitter twitter = AccessUtil.getTwitterInstance(this);
     try {
       ResponseList<Status> statuses = twitter.getHomeTimeline();
       updateTimeline(statuses);
     } catch (TwitterException e) {
       Log.e(TAG, "home timeline is not downloaded.", e);
+    }
+  }
+
+  @Background
+  protected void fetchFavorite(long tweetId) {
+    try {
+      twitter.createFavorite(tweetId);
+    } catch (TwitterException e) {
+      e.printStackTrace();
     }
   }
 
@@ -80,6 +109,12 @@ public class MainActivity extends AppCompatActivity {
     timeline.setAdapter(tlAdapter);
   }
 
+  @Click(R.id.fab)
+  protected void onFabClicked() {
+    Log.d(TAG, "onFabClicked");
+    Intent intent = new Intent(this, TweetActivity_.class);
+    startActivity(intent);
+  }
 
   private static class MyItemDecoration extends RecyclerView.ItemDecoration {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);

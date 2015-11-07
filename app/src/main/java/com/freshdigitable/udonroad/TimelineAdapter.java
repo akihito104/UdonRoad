@@ -37,6 +37,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   private List<Status> statuses;
   private long selectedTweetId = -1;
+
+  public long getSelectedTweetId() {
+    return selectedTweetId;
+  }
+
   private View selectedView = null;
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
 
