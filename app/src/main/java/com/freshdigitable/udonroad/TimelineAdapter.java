@@ -1,6 +1,7 @@
 package com.freshdigitable.udonroad;
 
 import android.graphics.Color;
+import android.support.annotation.MainThread;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import twitter4j.Status;
@@ -24,6 +26,9 @@ import twitter4j.util.TimeSpanConverter;
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
   private static final String TAG = TimelineAdapter.class.getName();
 
+  public TimelineAdapter() {
+    this(new ArrayList<Status>(50));
+  }
   public TimelineAdapter(List<Status> statuses) {
     this.statuses = statuses;
   }
@@ -91,6 +96,19 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public int getItemCount() {
     return this.statuses.size();
+  }
+
+  @MainThread
+  public void addNewStatus(Status status) {
+    Log.d(TAG, "addNewStatus");
+    statuses.add(0, status);
+  }
+
+  @MainThread
+  public void addNewStatuses(List<Status> statuses) {
+    Log.d(TAG, "addNewStatuses");
+    this.statuses.addAll(0, statuses);
+    notifyDataSetChanged();
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {

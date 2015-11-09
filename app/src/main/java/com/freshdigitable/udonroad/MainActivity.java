@@ -12,6 +12,8 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
+import com.squareup.okhttp.internal.http.StatusLine;
+
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Click;
@@ -21,10 +23,17 @@ import org.androidannotations.annotations.ViewById;
 
 import java.util.List;
 
+import twitter4j.FilterQuery;
 import twitter4j.ResponseList;
+import twitter4j.StallWarning;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
+import twitter4j.StatusListener;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterStream;
+import twitter4j.UserStreamAdapter;
+import twitter4j.UserStreamListener;
 
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
@@ -37,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
   private RecyclerView.LayoutManager tlLayoutManager;
   private RecyclerView.ItemDecoration itemDecoration;
   private Twitter twitter;
+  private TwitterStream twitterStream;
 
   @ViewById(R.id.fab)
   protected FlingableFloatingActionButton ffab;
@@ -70,10 +80,59 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    tlAdapter = new TimelineAdapter();
+    timeline.setAdapter(tlAdapter);
     twitter = AccessUtil.getTwitterInstance(this);
-
+    twitterStream = AccessUtil.getTwitterStreamInstance(this);
     fetchTweet();
   }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    twitterStream.addListener(statusListener);
+    twitterStream.user();
+  }
+
+  @Override
+  protected void onPause() {
+    twitterStream.clearListeners();
+    twitterStream.shutdown();
+    super.onPause();
+  }
+
+  private final UserStreamListener statusListener = new UserStreamAdapter() {
+    @Override
+    public void onStatus(Status status) {
+      tlAdapter.addNewStatus(status);
+      notifyUpdateTimeline();
+    }
+
+    @Override
+    public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+      Log.d(TAG, statusDeletionNotice.toString());
+    }
+
+    @Override
+    public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
+      Log.d(TAG, "onTrackLimitationNotice: " + numberOfLimitedStatuses);
+    }
+
+    @Override
+    public void onScrubGeo(long userId, long upToStatusId) {
+      Log.d(TAG, "onScrubGeo: " + userId + ", " + upToStatusId);
+    }
+
+    @Override
+    public void onStallWarning(StallWarning warning) {
+      Log.d(TAG, "onStallWarning: " + warning.toString());
+    }
+
+    @Override
+    public void onException(Exception ex) {
+      Log.d(TAG, "onException: " + ex.toString());
+    }
+  };
 
   @Background
   protected void fetchRetweet(long tweetId) {
@@ -82,6 +141,20 @@ public class MainActivity extends AppCompatActivity {
     } catch (TwitterException e) {
       Log.e(TAG, "error: ", e);
     }
+  }
+
+  @Background
+  protected void fetchFavorite(long tweetId) {
+    try {
+      twitter.createFavorite(tweetId);
+    } catch (TwitterException e) {
+      Log.e(TAG, "error: ", e);
+    }
+  }
+
+  @UiThread
+  protected void notifyUpdateTimeline() {
+    tlAdapter.notifyDataSetChanged();
   }
 
   @Background
@@ -94,19 +167,9 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  @Background
-  protected void fetchFavorite(long tweetId) {
-    try {
-      twitter.createFavorite(tweetId);
-    } catch (TwitterException e) {
-      e.printStackTrace();
-    }
-  }
-
   @UiThread
   protected void updateTimeline(List<Status> statuses) {
-    tlAdapter = new TimelineAdapter(statuses);
-    timeline.setAdapter(tlAdapter);
+    tlAdapter.addNewStatuses(statuses);
   }
 
   @Click(R.id.fab)

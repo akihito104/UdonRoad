@@ -8,6 +8,8 @@ import org.androidannotations.annotations.res.StringRes;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
+import twitter4j.TwitterStream;
+import twitter4j.TwitterStreamFactory;
 import twitter4j.auth.AccessToken;
 
 /**
@@ -19,7 +21,7 @@ public class AccessUtil {
   public static final String TOKEN = "token";
   public static final String TOKEN_SECRET = "token_secret";
 
-  public static Twitter getTwitterInstance(Context context) {
+  public static Twitter getTwitterInstance(final Context context) {
     String consumerKey = context.getString(R.string.consumer_key);
     String consumerSecret = context.getString(R.string.consumer_secret);
     TwitterFactory factory = new TwitterFactory();
@@ -32,6 +34,21 @@ public class AccessUtil {
     }
 
     return twitter;
+  }
+
+  public static TwitterStream getTwitterStreamInstance(final Context context) {
+    String consumerKey = context.getString(R.string.consumer_key);
+    String consumerSecret = context.getString(R.string.consumer_secret);
+    TwitterStreamFactory factory = new TwitterStreamFactory();
+    TwitterStream twitterStream = factory.getInstance();
+    twitterStream.setOAuthConsumer(consumerKey, consumerSecret);
+
+    AccessToken accessToken = loadAccessToken(context);
+    if (accessToken != null) {
+      twitterStream.setOAuthAccessToken(accessToken);
+    }
+
+    return twitterStream;
   }
 
   public static void storeAccessToken(Context context, AccessToken token) {
