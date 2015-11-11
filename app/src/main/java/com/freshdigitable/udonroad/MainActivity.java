@@ -174,8 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
   @Click(R.id.fab)
   protected void onFabClicked() {
-    Intent intent = new Intent(this, TweetActivity_.class);
-    startActivity(intent);
+    MainActivity_.intent(this).start();
   }
 
   private static class MyItemDecoration extends RecyclerView.ItemDecoration {
