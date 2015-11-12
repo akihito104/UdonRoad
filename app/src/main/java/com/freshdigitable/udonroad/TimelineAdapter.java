@@ -60,13 +60,20 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     holder.view.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        selectedTweetId = status.getId();
-        if (selectedView != null) {
-
-          selectedView.setBackgroundColor(Color.TRANSPARENT);
+        if (selectedTweetId != status.getId()) {
+          selectedTweetId = status.getId();
+          if (selectedView != null) {
+            selectedView.setBackgroundColor(Color.TRANSPARENT);
+          }
+          view.setBackgroundColor(Color.LTGRAY);
+          selectedView = view;
+        } else {
+          selectedTweetId = -1;
+          if (selectedView != null) {
+            selectedView.setBackgroundColor(Color.TRANSPARENT);
+            selectedView = null;
+          }
         }
-        view.setBackgroundColor(Color.LTGRAY);
-        selectedView = view;
       }
     });
     holder.view.setBackgroundColor(Color.TRANSPARENT);
