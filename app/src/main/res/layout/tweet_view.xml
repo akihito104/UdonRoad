@@ -88,7 +88,8 @@
         android:layout_alignTop="@+id/tl_rtcount"
         android:layout_toRightOf="@+id/tl_rtcount"
         android:layout_toEndOf="@+id/tl_rtcount"
-        android:layout_marginLeft="4dp"/>
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="8dp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -101,7 +102,7 @@
         android:layout_alignTop="@+id/tl_rt"
         android:layout_toRightOf="@+id/tl_rt"
         android:layout_toEndOf="@+id/tl_rt"
-        android:layout_marginLeft="8dp"/>
+        />
 
     <TextView
         android:layout_width="wrap_content"
