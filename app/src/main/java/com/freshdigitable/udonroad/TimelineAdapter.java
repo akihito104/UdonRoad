@@ -53,6 +53,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     final Status status = statuses.get(position);
+    final long incomingTweetId = status.getId();
+//    if (status.isRetweet()){
+//      holder.rtby.setVisibility(View.VISIBLE);
+//      holder.retweetedUser.setVisibility(View.VISIBLE);
+//      holder.retweetedUser.setText(status.getUser().getScreenName());
+//      status = status.getRetweetedStatus();
+//    }
     User user = status.getUser();
     Picasso.with(holder.icon.getContext())
         .load(user.getOriginalProfileImageURL()).into(holder.icon);
@@ -60,8 +67,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     holder.view.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (selectedTweetId != status.getId()) {
-          selectedTweetId = status.getId();
+        if (selectedTweetId != incomingTweetId) {
+          selectedTweetId = incomingTweetId;
           if (selectedView != null) {
             selectedView.setBackgroundColor(Color.TRANSPARENT);
           }
@@ -90,14 +97,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     final int rtCount = status.getRetweetCount();
     final int favCount = status.getFavoriteCount();
     if (rtCount == 0 && favCount == 0) {
+      holder.setRtCountVisibility(View.GONE);
+      holder.setFavCountVisibility(View.GONE);
       return;
     }
-    holder.rt.setVisibility(View.VISIBLE);
-    holder.fav.setVisibility(View.VISIBLE);
-    holder.rtCount.setText(String.valueOf(status.getRetweetCount()));
-    holder.rtCount.setVisibility(View.VISIBLE);
-    holder.favCount.setText(String.valueOf(status.getFavoriteCount()));
-    holder.favCount.setVisibility(View.VISIBLE);
+    holder.setRtCountVisibility(View.VISIBLE);
+    holder.setFavCountVisibility(View.VISIBLE);
+    holder.rtCount.setText(String.valueOf(rtCount));
+    holder.favCount.setText(String.valueOf(favCount));
   }
 
   @Override
@@ -133,6 +140,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     TextView favCount;
     TextView clientName;
 
+    TextView rtby;
+    TextView retweetedUser;
+
     public ViewHolder(View itemView) {
       super(itemView);
       this.view = itemView;
@@ -147,6 +157,19 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       this.fav = (TextView) itemView.findViewById(R.id.tl_fav);
       this.favCount = (TextView) itemView.findViewById(R.id.tl_favcount);
       this.clientName = (TextView) itemView.findViewById(R.id.tl_clientname);
+
+      this.rtby = (TextView) itemView.findViewById(R.id.tl_rtby);
+      this.retweetedUser = (TextView) itemView.findViewById(R.id.tl_rtuser);
+    }
+
+    public void setRtCountVisibility(int visibility) {
+      this.rt.setVisibility(visibility);
+      this.rtCount.setVisibility(visibility);
+    }
+
+    public void setFavCountVisibility(int visibility) {
+      this.fav.setVisibility(visibility);
+      this.favCount.setVisibility(visibility);
     }
   }
 }
