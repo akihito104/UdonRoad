@@ -54,8 +54,7 @@ public class MainActivity extends AppCompatActivity {
   @AfterViews
   protected void afterViews() {
     if (!AccessUtil.hasAccessToken(this)) {
-      Intent intent = new Intent(this, OAuthActivity_.class);
-      startActivity(intent);
+      OAuthActivity_.intent(this).start();
       finish();
     }
 
