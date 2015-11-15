@@ -120,13 +120,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @MainThread
   public void addNewStatus(Status status) {
-    Log.d(TAG, "addNewStatus");
     statuses.add(0, status);
   }
 
   @MainThread
   public void addNewStatuses(List<Status> statuses) {
-    Log.d(TAG, "addNewStatuses");
     this.statuses.addAll(0, statuses);
     notifyDataSetChanged();
   }

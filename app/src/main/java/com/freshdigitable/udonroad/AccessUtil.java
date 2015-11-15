@@ -2,9 +2,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
-import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.res.StringRes;
+import android.support.annotation.Nullable;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
@@ -15,7 +13,6 @@ import twitter4j.auth.AccessToken;
 /**
  * Created by akihit on 15/10/20.
  */
-@EBean
 public class AccessUtil {
 
   public static final String TOKEN = "token";
@@ -55,9 +52,10 @@ public class AccessUtil {
     SharedPreferences.Editor editor = getAppSharedPrefs(context).edit();
     editor.putString(TOKEN, token.getToken());
     editor.putString(TOKEN_SECRET, token.getTokenSecret());
-    editor.commit();
+    editor.apply();
   }
 
+  @Nullable
   private static AccessToken loadAccessToken(Context context) {
     SharedPreferences sharedPreference = getAppSharedPrefs(context);
     String token = sharedPreference.getString(TOKEN, null);

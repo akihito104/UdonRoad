@@ -1,6 +1,5 @@
 package com.freshdigitable.udonroad;
 
-import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,8 +10,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-
-import com.squareup.okhttp.internal.http.StatusLine;
+import android.view.WindowManager;
+import android.support.v7.widget.Toolbar;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -23,12 +22,10 @@ import org.androidannotations.annotations.ViewById;
 
 import java.util.List;
 
-import twitter4j.FilterQuery;
 import twitter4j.ResponseList;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
-import twitter4j.StatusListener;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
@@ -50,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
 
   @ViewById(R.id.fab)
   protected FlingableFloatingActionButton ffab;
+
+  @ViewById(R.id.toolbar)
+  protected Toolbar toolbar;
 
   @AfterViews
   protected void afterViews() {
@@ -84,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
     twitter = AccessUtil.getTwitterInstance(this);
     twitterStream = AccessUtil.getTwitterStreamInstance(this);
     fetchTweet();
+
+    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    setSupportActionBar(toolbar);
   }
 
   @Override
