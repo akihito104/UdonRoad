@@ -29,5 +29,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="32dp"
-        android:src="@drawable/ic_twitterlogo_white"/>
+        android:src="@drawable/ic_add_white_36dp"/>
 </FrameLayout>

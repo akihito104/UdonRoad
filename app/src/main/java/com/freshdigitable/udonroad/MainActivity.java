@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +18,9 @@ import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.OptionsItem;
+import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
@@ -33,6 +37,7 @@ import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
 @EActivity(R.layout.activity_main)
+@OptionsMenu(R.menu.appbar_menu)
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
 
@@ -101,6 +106,11 @@ public class MainActivity extends AppCompatActivity {
     twitterStream.clearListeners();
     twitterStream.shutdown();
     super.onPause();
+  }
+
+  @OptionsItem(R.id.action_heading)
+  protected void headingSelected() {
+    timeline.smoothScrollToPosition(0);
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {
