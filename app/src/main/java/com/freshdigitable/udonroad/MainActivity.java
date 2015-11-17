@@ -113,6 +113,11 @@ public class MainActivity extends AppCompatActivity {
     timeline.smoothScrollToPosition(0);
   }
 
+  @OptionsItem(R.id.action_write)
+  protected void tweetSelected() {
+   TweetActivity_.intent(this).start();
+  }
+
   private final UserStreamListener statusListener = new UserStreamAdapter() {
     @Override
     public void onStatus(Status status) {
@@ -185,9 +190,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Click(R.id.fab)
-  protected void onFabClicked() {
-    TweetActivity_.intent(this).start();
-  }
+  protected void onFabClicked() {}
 
   private static class MyItemDecoration extends RecyclerView.ItemDecoration {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);

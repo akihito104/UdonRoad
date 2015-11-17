@@ -8,4 +8,10 @@
         android:title="Top"
         app:showAsAction="ifRoom"/>
 
+    <item
+        android:id="@+id/action_write"
+        android:icon="@drawable/ic_create_white_24dp"
+        android:title="Tweet"
+        app:showAsAction="ifRoom"/>
+
 </menu>
