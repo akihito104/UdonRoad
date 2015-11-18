@@ -113,9 +113,17 @@ public class MainActivity extends AppCompatActivity {
     timeline.smoothScrollToPosition(0);
   }
 
+  @ViewById(R.id.tl_inputview)
+  View inputView;
+
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
    TweetActivity_.intent(this).start();
+//    if (inputView.getVisibility() == View.GONE) {
+//      inputView.setVisibility(View.VISIBLE);
+//    } else {
+//      inputView.setVisibility(View.GONE);
+//    }
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {

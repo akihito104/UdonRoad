@@ -4,12 +4,13 @@
                 android:layout_height="match_parent">
 
     <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="@dimen/tweet_user_icon"
+        android:layout_height="@dimen/tweet_user_icon"
         android:id="@+id/tl_icon"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_alignParentStart="true"
+        android:contentDescription="user icon"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -17,7 +18,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="account"
         android:id="@+id/tl_displayname"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_at"
         android:layout_toEndOf="@+id/tl_at"/>
@@ -37,7 +38,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="CreatedTime"
         android:id="@+id/tl_time"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"/>
@@ -47,7 +48,7 @@
         android:layout_height="wrap_content"
         android:text="ScreenName"
         android:id="@+id/tl_account"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:textStyle="bold"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_icon"
@@ -59,7 +60,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="@string/timeline_at"
         android:id="@+id/tl_at"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/tl_account"
         android:layout_toEndOf="@+id/tl_account"
@@ -71,7 +72,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Count"
         android:id="@+id/tl_rtcount"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:visibility="gone"
         android:layout_alignTop="@+id/tl_via"
         android:layout_toRightOf="@+id/tl_icon"
@@ -83,7 +84,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="RT"
         android:id="@+id/tl_rt"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:visibility="gone"
         android:layout_alignTop="@+id/tl_rtcount"
         android:layout_toRightOf="@+id/tl_rtcount"
@@ -97,7 +98,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Count"
         android:id="@+id/tl_favcount"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:visibility="gone"
         android:layout_alignTop="@+id/tl_rt"
         android:layout_toRightOf="@+id/tl_rt"
@@ -114,7 +115,7 @@
         android:layout_toRightOf="@+id/tl_favcount"
         android:layout_toEndOf="@+id/tl_favcount"
         android:layout_marginLeft="4dp"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:visibility="gone"/>
 
     <TextView
@@ -123,7 +124,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="client name"
         android:id="@+id/tl_clientname"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:layout_below="@+id/tl_tweet"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
@@ -158,7 +159,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Retweeting user"
         android:id="@+id/tl_rtuser"
-        android:textSize="10sp"
+        android:textSize="@dimen/tweet_small_fontsize"
         android:layout_below="@+id/tl_rt"
         android:layout_toRightOf="@+id/tl_rtby"
         android:layout_toEndOf="@+id/tl_rtby"
