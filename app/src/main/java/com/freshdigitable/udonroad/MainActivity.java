@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     timeline.setAdapter(tlAdapter);
     twitter = AccessUtil.getTwitterInstance(this);
     twitterStream = AccessUtil.getTwitterStreamInstance(this);
+    timeline.setItemAnimator(new TimelineAnimator());
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
