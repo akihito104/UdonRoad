@@ -88,8 +88,8 @@ public class MainActivity extends AppCompatActivity {
     tlAdapter = new TimelineAdapter();
     timeline.setAdapter(tlAdapter);
     twitter = AccessUtil.getTwitterInstance(this);
-    twitterStream = AccessUtil.getTwitterStreamInstance(this);
     timeline.setItemAnimator(new TimelineAnimator());
+    twitterStream = AccessUtil.getTwitterStreamInstance(this);
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -131,8 +131,7 @@ public class MainActivity extends AppCompatActivity {
   private final UserStreamListener statusListener = new UserStreamAdapter() {
     @Override
     public void onStatus(Status status) {
-      tlAdapter.addNewStatus(status);
-      notifyUpdateTimeline();
+      notifyUpdateTimeline(status);
     }
 
     @Override
@@ -180,8 +179,8 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @UiThread
-  protected void notifyUpdateTimeline() {
-    tlAdapter.notifyDataSetChanged();
+  protected void notifyUpdateTimeline(Status status) {
+    tlAdapter.addNewStatus(status);
   }
 
   @Background

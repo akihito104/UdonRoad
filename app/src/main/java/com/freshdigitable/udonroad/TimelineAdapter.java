@@ -97,20 +97,22 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     holder.clientName.setText(Html.fromHtml(status.getSource()).toString());
 
     final int rtCount = status.getRetweetCount();
-    if (rtCount == 0) {
-      holder.setRtCountVisibility(View.GONE);
-    } else {
+    if (rtCount > 0) {
       holder.setRtCountVisibility(View.VISIBLE);
       holder.rtCount.setText(String.valueOf(rtCount));
     }
 
     final int favCount = status.getFavoriteCount();
-    if (favCount == 0) {
-      holder.setFavCountVisibility(View.GONE);
-    } else {
-    holder.setFavCountVisibility(View.VISIBLE);
-    holder.favCount.setText(String.valueOf(favCount));
+    if (favCount > 0) {
+      holder.setFavCountVisibility(View.VISIBLE);
+      holder.favCount.setText(String.valueOf(favCount));
     }
+  }
+
+  @Override
+  public void onViewRecycled(ViewHolder holder) {
+    holder.setRtCountVisibility(View.GONE);
+    holder.setFavCountVisibility(View.GONE);
   }
 
   @Override
@@ -121,6 +123,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @MainThread
   public void addNewStatus(Status status) {
     statuses.add(0, status);
+//    notifyItemInserted(0);
+    notifyDataSetChanged();
   }
 
   @MainThread
