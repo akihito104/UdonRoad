@@ -54,12 +54,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = statuses.get(position);
     final long incomingTweetId = status.getId();
-    if (!status.isRetweet()){
-      holder.setRetweetedUserVisibility(View.GONE);
-    } else {
+    if (status.isRetweet()) {
       holder.setRetweetedUserVisibility(View.VISIBLE);
       holder.retweetedUser.setText(status.getUser().getScreenName());
       status = status.getRetweetedStatus();
+      holder.setTextColor(Color.argb(255, 64, 192, 64));
     }
     User user = status.getUser();
     Picasso.with(holder.icon.getContext())
@@ -113,6 +112,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onViewRecycled(ViewHolder holder) {
     holder.setRtCountVisibility(View.GONE);
     holder.setFavCountVisibility(View.GONE);
+    holder.setRetweetedUserVisibility(View.GONE);
+    holder.setTextColor(Color.GRAY);
   }
 
   @Override
@@ -138,6 +139,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     View view;
     ImageView icon;
     TextView screenName;
+    TextView at;
     TextView account;
     TextView tweet;
     TextView time;
@@ -156,6 +158,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       this.view = itemView;
       this.icon = (ImageView) itemView.findViewById(R.id.tl_icon);
       this.screenName = (TextView) itemView.findViewById(R.id.tl_displayname);
+      this.at = (TextView) itemView.findViewById(R.id.tl_at);
       this.account = (TextView) itemView.findViewById(R.id.tl_account);
       this.tweet = (TextView) itemView.findViewById(R.id.tl_tweet);
       this.time = (TextView) itemView.findViewById(R.id.tl_time);
@@ -183,6 +186,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     public void setRetweetedUserVisibility(int visibility) {
       this.rtby.setVisibility(visibility);
       this.retweetedUser.setVisibility(visibility);
+    }
+
+    public void setTextColor(int color) {
+      this.screenName.setTextColor(color);
+      this.at.setTextColor(color);
+      this.account.setTextColor(color);
+      this.time.setTextColor(color);
+      this.tweet.setTextColor(color);
     }
   }
 }
