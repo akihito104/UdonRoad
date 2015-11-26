@@ -28,6 +28,10 @@ public class TweetActivity extends AppCompatActivity {
 
   @Click(R.id.tw_tweet)
   protected void tweetClicked() {
+    String tweetText = text.getText().toString();
+    if (tweetText.length() <= 0) {
+      return;
+    }
     tweet.setEnabled(false);
     startUpdatingStatus();
   }
