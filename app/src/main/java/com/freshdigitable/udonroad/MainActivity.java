@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
+import android.widget.Toast;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
       @Override
       public void onFling(FlingableFloatingActionButton.Direction direction) {
+        Log.d(TAG, "fling direction: " + direction.toString());
         final long tweetId = tlAdapter.getSelectedTweetId();
         if (tweetId < 0) {
           return;
@@ -164,8 +166,10 @@ public class MainActivity extends AppCompatActivity {
   protected void fetchRetweet(long tweetId) {
     try {
       twitter.retweetStatus(tweetId);
+      showToast("success to retweet");
     } catch (TwitterException e) {
       Log.e(TAG, "error: ", e);
+      showToast("failed to retweet...");
     }
   }
 
@@ -173,8 +177,10 @@ public class MainActivity extends AppCompatActivity {
   protected void fetchFavorite(long tweetId) {
     try {
       twitter.createFavorite(tweetId);
+      showToast("success to create fav.");
     } catch (TwitterException e) {
       Log.e(TAG, "error: ", e);
+      showToast("failed to create fav...");
     }
   }
 
@@ -188,14 +194,21 @@ public class MainActivity extends AppCompatActivity {
     try {
       ResponseList<Status> statuses = twitter.getHomeTimeline();
       updateTimeline(statuses);
+      showToast("success to send tweet");
     } catch (TwitterException e) {
       Log.e(TAG, "home timeline is not downloaded.", e);
+      showToast("failed to send tweet...");
     }
   }
 
   @UiThread
   protected void updateTimeline(List<Status> statuses) {
     tlAdapter.addNewStatuses(statuses);
+  }
+
+  @UiThread
+  protected void showToast(String text) {
+    Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
   }
 
   @Click(R.id.fab)
