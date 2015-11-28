@@ -53,7 +53,7 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
   }
 
   public enum Direction {
-    UP(7), UP_RIGHT(6), RIGHT(0), DOWN_RIGHT(1), DOWN(2), DOWN_LEFT(3), LEFT(4), UP_LEFT(5), UNDEFINED(-1);
+    UP(6), UP_RIGHT(7), RIGHT(0), DOWN_RIGHT(1), DOWN(2), DOWN_LEFT(3), LEFT(4), UP_LEFT(5), UNDEFINED(-1);
     final int index;
 
     Direction(int i) {
