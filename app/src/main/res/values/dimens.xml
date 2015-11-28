@@ -4,4 +4,5 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="tweet_small_fontsize">10sp</dimen>
     <dimen name="tweet_user_icon">50dp</dimen>
+    <dimen name="tweet_main_size">12sp</dimen>
 </resources>

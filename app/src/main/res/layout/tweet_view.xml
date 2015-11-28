@@ -30,7 +30,8 @@
         android:id="@+id/tl_tweet"
         android:layout_below="@+id/tl_displayname"
         android:layout_toRightOf="@+id/tl_icon"
-        android:layout_toEndOf="@+id/tl_icon"/>
+        android:layout_toEndOf="@+id/tl_icon"
+        android:textSize="@dimen/tweet_main_size"/>
 
     <TextView
         android:layout_width="wrap_content"
