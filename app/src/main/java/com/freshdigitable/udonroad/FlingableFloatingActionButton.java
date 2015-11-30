@@ -11,7 +11,7 @@ import android.view.View;
  * Created by akihit on 15/11/04.
  */
 public class FlingableFloatingActionButton extends FloatingActionButton {
-  private static final String TAG = FlingableFloatingActionButton.class.getName();
+  private static final String TAG = FlingableFloatingActionButton.class.getSimpleName();
 
   private final GestureDetector gestureDetector;
 

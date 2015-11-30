@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.support.annotation.MainThread;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +23,8 @@ import twitter4j.util.TimeSpanConverter;
  * Created by akihit on 15/10/18.
  */
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
-  private static final String TAG = TimelineAdapter.class.getName();
+  @SuppressWarnings("unused")
+  private static final String TAG = TimelineAdapter.class.getSimpleName();
 
   public TimelineAdapter() {
     this(new ArrayList<Status>(50));
@@ -75,11 +75,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           view.setBackgroundColor(Color.LTGRAY);
           selectedView = view;
         } else {
-          selectedTweetId = -1;
-          if (selectedView != null) {
-            selectedView.setBackgroundColor(Color.TRANSPARENT);
-            selectedView = null;
-          }
+          clearSelectedTweet();
         }
       }
     });
@@ -132,6 +128,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void addNewStatuses(List<Status> statuses) {
     this.statuses.addAll(0, statuses);
     notifyDataSetChanged();
+  }
+
+  public void clearSelectedTweet() {
+    selectedTweetId = -1;
+    if (selectedView != null) {
+      selectedView.setBackgroundColor(Color.TRANSPARENT);
+    }
+    selectedView = null;
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {

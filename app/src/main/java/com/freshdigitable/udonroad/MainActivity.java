@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
   @OptionsItem(R.id.action_heading)
   protected void headingSelected() {
     timeline.smoothScrollToPosition(0);
+    tlAdapter.clearSelectedTweet();
   }
 
   @ViewById(R.id.tl_inputview)
@@ -194,10 +195,8 @@ public class MainActivity extends AppCompatActivity {
     try {
       ResponseList<Status> statuses = twitter.getHomeTimeline();
       updateTimeline(statuses);
-      showToast("success to send tweet");
     } catch (TwitterException e) {
       Log.e(TAG, "home timeline is not downloaded.", e);
-      showToast("failed to send tweet...");
     }
   }
 
