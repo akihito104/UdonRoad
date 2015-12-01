@@ -47,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
   protected RecyclerView timeline;
 
   private TimelineAdapter tlAdapter;
-  private RecyclerView.LayoutManager tlLayoutManager;
-  private RecyclerView.ItemDecoration itemDecoration;
   private Twitter twitter;
   private TwitterStream twitterStream;
 
@@ -66,9 +64,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     timeline.setHasFixedSize(true);
-    itemDecoration = new MyItemDecoration();
+    RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
     timeline.addItemDecoration(itemDecoration);
-    tlLayoutManager = new LinearLayoutManager(this);
+    RecyclerView.LayoutManager tlLayoutManager = new LinearLayoutManager(this);
     timeline.setLayoutManager(tlLayoutManager);
 
     ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
