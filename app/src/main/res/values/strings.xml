@@ -3,4 +3,10 @@
     <string name="callback_url">udonr://twitter</string>
     <string name="timeline_at">\@</string>
     <string name="update_status">Tweet</string>
+    <string name="tweet_rtbyat">RT by @</string>
+    <string name="tweet_via">via</string>
+    <string name="tweet_like">like</string>
+    <string name="tweet_rt">RT</string>
+    <string name="desc_icon">user icon</string>
+    <string name="oauth">OAuth</string>
 </resources>

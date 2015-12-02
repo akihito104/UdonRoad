@@ -11,6 +11,7 @@ import android.view.View;
  * Created by akihit on 15/11/04.
  */
 public class FlingableFloatingActionButton extends FloatingActionButton {
+  @SuppressWarnings("unused")
   private static final String TAG = FlingableFloatingActionButton.class.getSimpleName();
 
   private final GestureDetector gestureDetector;
@@ -21,7 +22,17 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
 
   public FlingableFloatingActionButton(Context context, AttributeSet attributeSet) {
     super(context, attributeSet);
-    this.gestureDetector = new GestureDetector(context, this.gestureListener);
+    GestureDetector.SimpleOnGestureListener gestureListener = new GestureDetector.SimpleOnGestureListener() {
+      @Override
+      public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        if (flingListener == null) {
+          return false;
+        }
+        flingListener.onFling(Direction.getDirection(e1, e2, velocityX, velocityY));
+        return false;
+      }
+    };
+    this.gestureDetector = new GestureDetector(context, gestureListener);
     this.setOnTouchListener(new View.OnTouchListener(){
       @Override
       public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -35,18 +46,6 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
   public void setOnFlingListener(OnFlingListener listener) {
     this.flingListener = listener;
   }
-
-  private final GestureDetector.SimpleOnGestureListener gestureListener
-      = new GestureDetector.SimpleOnGestureListener() {
-    @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-      if (flingListener == null) {
-        return false;
-      }
-      flingListener.onFling(Direction.getDirection(e1, e2, velocityX, velocityY));
-      return false;
-    }
-  };
 
   interface OnFlingListener {
     void onFling(Direction direction);
