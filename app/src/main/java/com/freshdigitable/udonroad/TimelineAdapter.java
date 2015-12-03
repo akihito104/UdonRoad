@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import twitter4j.Status;
@@ -27,10 +28,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
   public TimelineAdapter() {
-    this(new ArrayList<Status>(50));
+    this(new LinkedList<Status>());
   }
   public TimelineAdapter(List<Status> statuses) {
-    this.statuses = statuses;
+    this.statuses = new LinkedList<>(statuses);
   }
 
   @Override
@@ -136,6 +137,22 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       selectedView.setBackgroundColor(Color.TRANSPARENT);
     }
     selectedView = null;
+  }
+
+  public void deleteStatus(long statusId) {
+    Status removing = null;
+    for (Status s: statuses){
+      if (s.getId() == statusId) {
+        removing = s;
+        break;
+      }
+    }
+    if (removing == null) {
+      return;
+    }
+    synchronized (statuses) {
+      statuses.remove(removing);
+    }
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {

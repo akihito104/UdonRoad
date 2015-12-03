@@ -138,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
       Log.d(TAG, statusDeletionNotice.toString());
+      tlAdapter.deleteStatus(statusDeletionNotice.getStatusId());
+      updateTimeline();
     }
 
     @Override
@@ -201,6 +203,11 @@ public class MainActivity extends AppCompatActivity {
   @UiThread
   protected void updateTimeline(List<Status> statuses) {
     tlAdapter.addNewStatuses(statuses);
+  }
+
+  @UiThread
+  protected void updateTimeline() {
+    tlAdapter.notifyDataSetChanged();
   }
 
   @UiThread
