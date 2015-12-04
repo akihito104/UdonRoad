@@ -63,7 +63,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
     User user = status.getUser();
     Picasso.with(holder.icon.getContext())
-        .load(user.getProfileImageURLHttps()).into(holder.icon);
+        .load(user.getProfileImageURLHttps()).fit().into(holder.icon);
 
     holder.view.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -152,6 +152,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
     synchronized (statuses) {
       statuses.remove(removing);
+      if (selectedTweetId == statusId) {
+        selectedTweetId = -1;
+        selectedView = null;
+      }
     }
   }
 
