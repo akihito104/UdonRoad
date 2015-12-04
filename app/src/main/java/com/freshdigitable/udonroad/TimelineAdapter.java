@@ -63,7 +63,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
     User user = status.getUser();
     Picasso.with(holder.icon.getContext())
-        .load(user.getOriginalProfileImageURL()).into(holder.icon);
+        .load(user.getProfileImageURLHttps()).into(holder.icon);
 
     holder.view.setOnClickListener(new View.OnClickListener() {
       @Override
