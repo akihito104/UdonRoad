@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,7 +40,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return new ViewHolder(view);
   }
 
-  private List<Status> statuses;
+  private final List<Status> statuses;
   private long selectedTweetId = -1;
 
   public long getSelectedTweetId() {
@@ -121,7 +120,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @MainThread
   public void addNewStatus(Status status) {
     statuses.add(0, status);
-//    notifyItemInserted(0);
     notifyDataSetChanged();
   }
 
