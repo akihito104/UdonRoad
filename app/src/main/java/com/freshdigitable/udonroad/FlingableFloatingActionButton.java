@@ -62,6 +62,7 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
     private static final float SWIPE_MIN_DISTANCE = 120;
     private static final float SWIPE_THRESH_VER = 200;
     private static final double ANGLE_DIVIDE = 2 * Math.PI / 8;
+    private static final double ANGLE_THRESHOLD = ANGLE_DIVIDE / 2;
     static Direction getDirection(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
       double speed = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
       double distX = e2.getX() - e1.getX();
@@ -76,12 +77,12 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
           continue;
         }
         if (RIGHT.equals(d)) {
-          if (angle < ANGLE_DIVIDE / 2 || angle > 2 * Math.PI - ANGLE_DIVIDE / 2) {
+          if (angle < ANGLE_THRESHOLD || angle > 2 * Math.PI - ANGLE_THRESHOLD) {
             return d;
           }
         }
-        double lowerThresh = d.index * ANGLE_DIVIDE - ANGLE_DIVIDE / 2;
-        double upperThresh = d.index * ANGLE_DIVIDE + ANGLE_DIVIDE / 2;
+        double lowerThresh = d.index * ANGLE_DIVIDE - ANGLE_THRESHOLD;
+        double upperThresh = d.index * ANGLE_DIVIDE + ANGLE_THRESHOLD;
         if (angle > lowerThresh && angle < upperThresh) {
           return d;
         }
