@@ -16,15 +16,6 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
-    <include
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        layout="@layout/tweet_input_view"
-        android:layout_gravity="left|top"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:visibility="gone"
-        android:id="@+id/tl_inputview"/>
-
     <android.support.v7.widget.RecyclerView
         android:id="@+id/timeline"
         android:scrollbars="vertical"
