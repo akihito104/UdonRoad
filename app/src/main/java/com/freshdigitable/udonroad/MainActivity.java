@@ -38,7 +38,7 @@ import twitter4j.TwitterStream;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
-@EActivity(R.layout.activity_main)
+@EActivity(R.layout.nav_drawer)
 @OptionsMenu(R.menu.appbar_menu)
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
@@ -115,9 +115,6 @@ public class MainActivity extends AppCompatActivity {
     timeline.smoothScrollToPosition(0);
     tlAdapter.clearSelectedTweet();
   }
-
-  @ViewById(R.id.tl_inputview)
-  View inputView;
 
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
