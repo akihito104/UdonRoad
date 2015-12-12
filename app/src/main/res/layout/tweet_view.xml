@@ -15,7 +15,6 @@
         android:layout_alignParentStart="true"
         android:contentDescription="@string/desc_icon"
         android:layout_marginRight="4dp"
-        android:layout_marginBottom="4dp"
         />
 
     <TextView

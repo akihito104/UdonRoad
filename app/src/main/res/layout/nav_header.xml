@@ -1,9 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="150dp"
-    android:background="@color/colorPrimaryDark">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:background="@color/colorPrimaryDark"
+                android:padding="10dp"
+    >
 
-</LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/timeline_at"
+        android:id="@+id/nav_header_at"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        tools:text="account"
+        android:id="@+id/nav_header_account"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/nav_header_at"
+        />
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:id="@+id/imageView"
+        android:layout_above="@+id/nav_header_at"
+        android:layout_alignStart="@+id/nav_header_at"
+        />
+</RelativeLayout>
