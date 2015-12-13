@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -14,7 +15,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -35,6 +40,7 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
+import twitter4j.User;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
@@ -93,7 +99,28 @@ public class MainActivity extends AppCompatActivity {
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    toolbar.setTitleTextColor(Color.WHITE);
     setSupportActionBar(toolbar);
+    setupNavigationDrawer();
+  }
+
+  @ViewById(R.id.nav_drawer)
+  NavigationView navigationView;
+
+  @Background
+  protected void setupNavigationDrawer() {
+    try {
+      setUserInfos(twitter.verifyCredentials());
+    } catch (TwitterException e) {
+      Log.d(TAG, "twitter exception: " + e.toString());
+    }
+  }
+
+  @UiThread
+  protected void setUserInfos(User user){
+    ((TextView)navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
+    ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
+    Picasso.with(this).load(user.getProfileImageURLHttps()).fit().into(icon);
   }
 
   @Override
@@ -106,8 +133,13 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onPause() {
     twitterStream.clearListeners();
-    twitterStream.shutdown();
+    shutdownStream();
     super.onPause();
+  }
+
+  @Background
+  protected void shutdownStream() {
+    twitterStream.shutdown();
   }
 
   @OptionsItem(R.id.action_heading)

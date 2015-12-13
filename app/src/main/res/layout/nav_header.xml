@@ -8,13 +8,14 @@
     >
 
     <TextView
+        android:id="@+id/nav_header_at"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/timeline_at"
-        android:id="@+id/nav_header_at"
+        android:textColor="#fff"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/nav_header_account"
         />
 
     <TextView
@@ -24,14 +25,15 @@
         tools:text="account"
         android:id="@+id/nav_header_account"
         android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/nav_header_at"
+        android:layout_alignParentEnd="true"
+        android:textColor="#fff"
         />
 
     <ImageView
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:id="@+id/imageView"
-        android:layout_above="@+id/nav_header_at"
-        android:layout_alignStart="@+id/nav_header_at"
+        android:id="@+id/nav_header_icon"
+        android:layout_above="@+id/nav_header_account"
+        android:layout_alignParentEnd="true"
         />
 </RelativeLayout>
