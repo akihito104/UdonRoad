@@ -9,4 +9,6 @@
     <string name="tweet_rt">RT</string>
     <string name="desc_icon">user icon</string>
     <string name="oauth">OAuth</string>
+    <string name="drawer_open">open nav drawer</string>
+    <string name="draver_close">close nav drawer</string>
 </resources>

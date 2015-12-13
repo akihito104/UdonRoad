@@ -1,13 +1,17 @@
 package com.freshdigitable.udonroad;
 
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -27,7 +31,6 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
@@ -61,6 +64,11 @@ public class MainActivity extends AppCompatActivity {
 
   @ViewById(R.id.toolbar)
   protected Toolbar toolbar;
+
+  @ViewById(R.id.nav_drawer_layout)
+  DrawerLayout drawerLayout;
+
+  private ActionBarDrawerToggle actionBarDrawerToggle;
 
   @AfterViews
   protected void afterViews() {
@@ -99,8 +107,18 @@ public class MainActivity extends AppCompatActivity {
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+    actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.draver_close);
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+    drawerLayout.setDrawerListener(actionBarDrawerToggle);
+
     toolbar.setTitleTextColor(Color.WHITE);
     setSupportActionBar(toolbar);
+    if (getSupportActionBar() != null) {
+      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+    actionBarDrawerToggle.syncState();
+
     setupNavigationDrawer();
   }
 
@@ -124,6 +142,12 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
+  public void onPostCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
+    super.onPostCreate(savedInstanceState, persistentState);
+    actionBarDrawerToggle.syncState();
+  }
+
+  @Override
   protected void onResume() {
     super.onResume();
     twitterStream.addListener(statusListener);
@@ -135,6 +159,20 @@ public class MainActivity extends AppCompatActivity {
     twitterStream.clearListeners();
     shutdownStream();
     super.onPause();
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    actionBarDrawerToggle.onConfigurationChanged(newConfig);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   @Background
