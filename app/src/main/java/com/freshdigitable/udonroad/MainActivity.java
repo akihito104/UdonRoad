@@ -107,12 +107,12 @@ public class MainActivity extends AppCompatActivity {
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
+    toolbar.setTitleTextColor(Color.WHITE);
+    
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.draver_close);
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     drawerLayout.setDrawerListener(actionBarDrawerToggle);
 
-    toolbar.setTitleTextColor(Color.WHITE);
     setSupportActionBar(toolbar);
     if (getSupportActionBar() != null) {
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
