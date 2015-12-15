@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     toolbar.setTitleTextColor(Color.WHITE);
-    
+
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.draver_close);
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     drawerLayout.setDrawerListener(actionBarDrawerToggle);
@@ -189,11 +189,6 @@ public class MainActivity extends AppCompatActivity {
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
    TweetActivity_.intent(this).start();
-//    if (inputView.getVisibility() == View.GONE) {
-//      inputView.setVisibility(View.VISIBLE);
-//    } else {
-//      inputView.setVisibility(View.GONE);
-//    }
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {
