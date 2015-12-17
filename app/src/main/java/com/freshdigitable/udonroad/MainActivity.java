@@ -139,6 +139,24 @@ public class MainActivity extends AppCompatActivity {
     ((TextView)navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
     ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
     Picasso.with(this).load(user.getProfileImageURLHttps()).fit().into(icon);
+    navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+      @Override
+      public boolean onNavigationItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+          case R.id.menu_mention:
+            Log.d(TAG, "mention is selected");
+            drawerLayout.closeDrawer(navigationView);
+            break;
+          case R.id.menu_fav:
+            Log.d(TAG, "fav is selected");
+            drawerLayout.closeDrawer(navigationView);
+            break;
+          default:
+            break;
+        }
+        return false;
+      }
+    });
   }
 
   @Override
@@ -156,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onPause() {
-    twitterStream.clearListeners();
     shutdownStream();
     super.onPause();
   }
@@ -178,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
   @Background
   protected void shutdownStream() {
     twitterStream.shutdown();
+    twitterStream.clearListeners();
   }
 
   @OptionsItem(R.id.action_heading)
@@ -188,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
 
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
-   TweetActivity_.intent(this).start();
+    TweetActivity_.intent(this).start();
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {
