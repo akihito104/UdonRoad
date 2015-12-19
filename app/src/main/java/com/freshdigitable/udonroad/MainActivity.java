@@ -143,6 +143,9 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
         switch(item.getItemId()){
+          case R.id.menu_home:
+            Log.d(TAG, "home is selected");
+            drawerLayout.closeDrawer(navigationView);
           case R.id.menu_mention:
             Log.d(TAG, "mention is selected");
             drawerLayout.closeDrawer(navigationView);
