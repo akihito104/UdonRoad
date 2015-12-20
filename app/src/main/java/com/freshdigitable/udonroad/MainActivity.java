@@ -142,20 +142,16 @@ public class MainActivity extends AppCompatActivity {
     navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
-        switch(item.getItemId()){
-          case R.id.menu_home:
-            Log.d(TAG, "home is selected");
-            drawerLayout.closeDrawer(navigationView);
-          case R.id.menu_mention:
-            Log.d(TAG, "mention is selected");
-            drawerLayout.closeDrawer(navigationView);
-            break;
-          case R.id.menu_fav:
-            Log.d(TAG, "fav is selected");
-            drawerLayout.closeDrawer(navigationView);
-            break;
-          default:
-            break;
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_home) {
+          Log.d(TAG, "home is selected");
+          drawerLayout.closeDrawer(navigationView);
+        } else if (itemId == R.id.menu_mention) {
+          Log.d(TAG, "mention is selected");
+          drawerLayout.closeDrawer(navigationView);
+        } else if (itemId == R.id.menu_fav) {
+          Log.d(TAG, "fav is selected");
+          drawerLayout.closeDrawer(navigationView);
         }
         return false;
       }
