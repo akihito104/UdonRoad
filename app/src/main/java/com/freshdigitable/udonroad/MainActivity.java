@@ -36,6 +36,13 @@ import org.androidannotations.annotations.ViewById;
 
 import java.util.List;
 
+import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.observers.Observers;
+import rx.observers.Subscribers;
+import rx.schedulers.Schedulers;
 import twitter4j.ResponseList;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -173,7 +180,17 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onPause() {
-    shutdownStream();
+    twitterStream.clearListeners();
+    Observable
+        .create(new Observable.OnSubscribe<Void>() {
+          @Override
+          public void call(Subscriber<? super Void> subscriber) {
+            twitterStream.shutdown();
+          }
+        })
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe();
     super.onPause();
   }
 
@@ -189,12 +206,6 @@ public class MainActivity extends AppCompatActivity {
       return true;
     }
     return super.onOptionsItemSelected(item);
-  }
-
-  @Background
-  protected void shutdownStream() {
-    twitterStream.shutdown();
-    twitterStream.clearListeners();
   }
 
   @OptionsItem(R.id.action_heading)
@@ -215,10 +226,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+    public void onDeletionNotice(final StatusDeletionNotice statusDeletionNotice) {
       Log.d(TAG, statusDeletionNotice.toString());
-      tlAdapter.deleteStatus(statusDeletionNotice.getStatusId());
-      updateTimeline();
+      Observable
+          .create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+              tlAdapter.deleteStatus(statusDeletionNotice.getStatusId());
+              subscriber.onCompleted();
+            }
+          })
+          .subscribeOn(Schedulers.newThread())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(new Observer<Void>() {
+            @Override
+            public void onCompleted() {
+              tlAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+            }
+
+            @Override
+            public void onNext(Void aVoid) {
+            }
+          });
     }
 
     @Override
@@ -284,10 +317,10 @@ public class MainActivity extends AppCompatActivity {
     tlAdapter.addNewStatuses(statuses);
   }
 
-  @UiThread
-  protected void updateTimeline() {
-    tlAdapter.notifyDataSetChanged();
-  }
+//  @UiThread
+//  protected void updateTimeline() {
+//    tlAdapter.notifyDataSetChanged();
+//  }
 
   @UiThread
   protected void showToast(String text) {

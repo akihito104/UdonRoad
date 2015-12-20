@@ -33,10 +33,16 @@ dependencies {
     compile "com.android.support:appcompat-v7:$supportLibVer"
     compile "com.android.support:recyclerview-v7:$supportLibVer"
     compile "com.android.support:design:$supportLibVer"
+
     compile "org.twitter4j:twitter4j-core:$t4jVer"
     compile "org.twitter4j:twitter4j-stream:$t4jVer"
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.squareup.okhttp:okhttp:2.5.0'
+
+    compile 'io.reactivex:rxandroid:1.1.0'
+    // Because RxAndroid releases are few and far between, it is recommended you also
+    // explicitly depend on RxJava's latest version for bug fixes and new features.
+    compile 'io.reactivex:rxjava:1.1.0'
 
     apt "org.androidannotations:androidannotations:$AAver"
     compile "org.androidannotations:androidannotations-api:$AAver"
