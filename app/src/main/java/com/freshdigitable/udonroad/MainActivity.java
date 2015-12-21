@@ -202,10 +202,8 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
-      return true;
-    }
-    return super.onOptionsItemSelected(item);
+    return actionBarDrawerToggle.onOptionsItemSelected(item)
+        || super.onOptionsItemSelected(item);
   }
 
   @OptionsItem(R.id.action_heading)
