@@ -40,8 +40,6 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.observers.Observers;
-import rx.observers.Subscribers;
 import rx.schedulers.Schedulers;
 import twitter4j.ResponseList;
 import twitter4j.StallWarning;
