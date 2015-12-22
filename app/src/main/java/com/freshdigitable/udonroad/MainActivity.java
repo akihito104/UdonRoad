@@ -313,11 +313,6 @@ public class MainActivity extends AppCompatActivity {
     tlAdapter.addNewStatuses(statuses);
   }
 
-//  @UiThread
-//  protected void updateTimeline() {
-//    tlAdapter.notifyDataSetChanged();
-//  }
-
   @UiThread
   protected void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
