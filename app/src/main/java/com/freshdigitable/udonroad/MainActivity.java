@@ -26,7 +26,6 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
@@ -41,7 +40,6 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-import twitter4j.ResponseList;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -125,25 +123,6 @@ public class MainActivity extends AppCompatActivity {
     actionBarDrawerToggle.syncState();
 
     setupNavigationDrawer();
-  }
-
-  @ViewById(R.id.nav_drawer)
-  NavigationView navigationView;
-
-  @Background
-  protected void setupNavigationDrawer() {
-    try {
-      setUserInfos(twitter.verifyCredentials());
-    } catch (TwitterException e) {
-      Log.d(TAG, "twitter exception: " + e.toString());
-    }
-  }
-
-  @UiThread
-  protected void setUserInfos(User user){
-    ((TextView)navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
-    ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
-    Picasso.with(this).load(user.getProfileImageURLHttps()).fit().into(icon);
     navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
@@ -159,6 +138,40 @@ public class MainActivity extends AppCompatActivity {
           drawerLayout.closeDrawer(navigationView);
         }
         return false;
+      }
+    });
+  }
+
+  @ViewById(R.id.nav_drawer)
+  NavigationView navigationView;
+
+  private void setupNavigationDrawer() {
+    Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          subscriber.onNext(twitter.verifyCredentials());
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.newThread())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new Observer<User>() {
+      @Override
+      public void onCompleted() {
+      }
+
+      @Override
+      public void onError(Throwable e) {
+        Log.d(TAG, "twitter exception: " + e.toString());
+      }
+
+      @Override
+      public void onNext(User user) {
+        ((TextView)navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
+        ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
+        Picasso.with(navigationView.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
       }
     });
   }
@@ -271,26 +284,66 @@ public class MainActivity extends AppCompatActivity {
     }
   };
 
-  @Background
-  protected void fetchRetweet(long tweetId) {
-    try {
-      twitter.retweetStatus(tweetId);
-      showToast("success to retweet");
-    } catch (TwitterException e) {
-      Log.e(TAG, "error: ", e);
-      showToast("failed to retweet...");
-    }
+//  @Background
+  private void fetchRetweet(final long tweetId) {
+    Observable.create(new Observable.OnSubscribe<Status>() {
+      @Override
+      public void call(Subscriber<? super Status> subscriber) {
+        try {
+          subscriber.onNext(twitter.retweetStatus(tweetId));
+        } catch (TwitterException e) {
+          Log.e(TAG, "error: ", e);
+        }
+      }
+    }).subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Subscriber<Status>() {
+          @Override
+          public void onCompleted() {
+            showToast("success to retweet");
+          }
+
+          @Override
+          public void onError(Throwable e) {
+            showToast("failed to retweet...");
+          }
+
+          @Override
+          public void onNext(Status status) {
+          }
+        });
   }
 
-  @Background
-  protected void fetchFavorite(long tweetId) {
-    try {
-      twitter.createFavorite(tweetId);
-      showToast("success to create fav.");
-    } catch (TwitterException e) {
-      Log.e(TAG, "error: ", e);
-      showToast("failed to create fav...");
-    }
+  private void fetchFavorite(final long tweetId) {
+    Observable.create(new Observable.OnSubscribe<Status>() {
+      @Override
+      public void call(Subscriber<? super Status> subscriber) {
+        try {
+          subscriber.onNext(twitter.createFavorite(tweetId));
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    })
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Subscriber<Status>() {
+          @Override
+          public void onCompleted() {
+            showToast("success to create fav.");
+          }
+
+          @Override
+          public void onError(Throwable e) {
+            Log.e(TAG, "error: ", e);
+            showToast("failed to create fav...");
+          }
+
+          @Override
+          public void onNext(Status user) {
+          }
+        });
   }
 
   @UiThread
@@ -298,23 +351,45 @@ public class MainActivity extends AppCompatActivity {
     tlAdapter.addNewStatus(status);
   }
 
-  @Background
-  protected void fetchTweet() {
-    try {
-      ResponseList<Status> statuses = twitter.getHomeTimeline();
-      updateTimeline(statuses);
-    } catch (TwitterException e) {
-      Log.e(TAG, "home timeline is not downloaded.", e);
-    }
+//  @Background
+  private void fetchTweet() {
+    Observable.create(new Observable.OnSubscribe<List<Status>>() {
+      @Override
+      public void call(Subscriber<? super List<Status>> subscriber) {
+        try {
+          subscriber.onNext(twitter.getHomeTimeline());
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    })
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Subscriber<List<Status>>() {
+          @Override
+          public void onCompleted() {
+          }
+
+          @Override
+          public void onError(Throwable e) {
+            Log.e(TAG, "home timeline is not downloaded.", e);
+          }
+
+          @Override
+          public void onNext(List<Status> status) {
+            tlAdapter.addNewStatuses(status);
+          }
+        });
   }
 
-  @UiThread
-  protected void updateTimeline(List<Status> statuses) {
-    tlAdapter.addNewStatuses(statuses);
-  }
+//  @UiThread
+//  protected void updateTimeline(List<Status> statuses) {
+//    tlAdapter.addNewStatuses(statuses);
+//  }
 
-  @UiThread
-  protected void showToast(String text) {
+//  @UiThread
+  private void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
   }
 
