@@ -200,7 +200,6 @@ public class MainActivity extends AppCompatActivity {
           }
         })
         .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
         .subscribe();
     super.onPause();
   }
@@ -284,7 +283,6 @@ public class MainActivity extends AppCompatActivity {
     }
   };
 
-//  @Background
   private void fetchRetweet(final long tweetId) {
     Observable.create(new Observable.OnSubscribe<Status>() {
       @Override
@@ -351,7 +349,6 @@ public class MainActivity extends AppCompatActivity {
     tlAdapter.addNewStatus(status);
   }
 
-//  @Background
   private void fetchTweet() {
     Observable.create(new Observable.OnSubscribe<List<Status>>() {
       @Override
@@ -383,12 +380,6 @@ public class MainActivity extends AppCompatActivity {
         });
   }
 
-//  @UiThread
-//  protected void updateTimeline(List<Status> statuses) {
-//    tlAdapter.addNewStatuses(statuses);
-//  }
-
-//  @UiThread
   private void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
   }
