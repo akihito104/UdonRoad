@@ -230,7 +230,22 @@ public class MainActivity extends AppCompatActivity {
   private final UserStreamListener statusListener = new UserStreamAdapter() {
     @Override
     public void onStatus(Status status) {
-      notifyUpdateTimeline(status);
+      Observable.just(status)
+          .observeOn(AndroidSchedulers.mainThread())
+      .subscribe(new Observer<Status>() {
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Throwable e) {
+        }
+
+        @Override
+        public void onNext(Status status) {
+          tlAdapter.addNewStatus(status);
+        }
+      });
     }
 
     @Override
@@ -342,11 +357,6 @@ public class MainActivity extends AppCompatActivity {
           public void onNext(Status user) {
           }
         });
-  }
-
-  @UiThread
-  protected void notifyUpdateTimeline(Status status) {
-    tlAdapter.addNewStatus(status);
   }
 
   private void fetchTweet() {
