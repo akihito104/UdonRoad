@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -224,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
 
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
-    TweetActivity_.intent(this).start();
+    startActivity(new Intent(this, TweetActivity.class));
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {

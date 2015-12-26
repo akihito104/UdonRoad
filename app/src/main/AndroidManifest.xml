@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".TweetActivity_"
+            android:name=".TweetActivity"
             android:windowSoftInputMode="adjustResize" >
         </activity>
 
