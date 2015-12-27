@@ -117,10 +117,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return this.statuses.size();
   }
 
-  @MainThread
+//  @MainThread
   public void addNewStatus(Status status) {
     statuses.add(0, status);
-    notifyDataSetChanged();
+//    notifyDataSetChanged();
   }
 
   @MainThread

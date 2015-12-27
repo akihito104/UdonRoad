@@ -40,6 +40,7 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
   DrawerLayout drawerLayout;
 
   private ActionBarDrawerToggle actionBarDrawerToggle;
+  private LinearLayoutManager tlLayoutManager;
 
   @AfterViews
   protected void afterViews() {
@@ -84,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
     timeline.setHasFixedSize(true);
     RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
     timeline.addItemDecoration(itemDecoration);
-    RecyclerView.LayoutManager tlLayoutManager = new LinearLayoutManager(this);
+    tlLayoutManager = new LinearLayoutManager(this);
     timeline.setLayoutManager(tlLayoutManager);
 
     ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
@@ -141,6 +143,12 @@ public class MainActivity extends AppCompatActivity {
         return false;
       }
     });
+  }
+
+  private boolean canScrollToAdd() {
+    int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
+    Log.d(TAG, "first visible item: " + firstVisibleItem);
+    return firstVisibleItem == 0 && tlAdapter.getSelectedTweetId() <= 0;
   }
 
   @ViewById(R.id.nav_drawer)
@@ -233,20 +241,15 @@ public class MainActivity extends AppCompatActivity {
     public void onStatus(Status status) {
       Observable.just(status)
           .observeOn(AndroidSchedulers.mainThread())
-      .subscribe(new Observer<Status>() {
-        @Override
-        public void onCompleted() {
-        }
-
-        @Override
-        public void onError(Throwable e) {
-        }
-
-        @Override
-        public void onNext(Status status) {
-          tlAdapter.addNewStatus(status);
-        }
-      });
+          .subscribe(new Action1<Status>() {
+            @Override
+            public void call(Status status) {
+              tlAdapter.addNewStatus(status);
+//          if (canScrollToAdd()) {
+              tlAdapter.notifyDataSetChanged();
+//          }
+            }
+          });
     }
 
     @Override
@@ -257,23 +260,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void call(Subscriber<? super Void> subscriber) {
               tlAdapter.deleteStatus(statusDeletionNotice.getStatusId());
-              subscriber.onCompleted();
             }
           })
           .subscribeOn(Schedulers.newThread())
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Observer<Void>() {
+          .subscribe(new Action1<Void>() {
             @Override
-            public void onCompleted() {
+            public void call(Void aVoid) {
               tlAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onError(Throwable e) {
-            }
-
-            @Override
-            public void onNext(Void aVoid) {
             }
           });
     }
@@ -306,10 +300,11 @@ public class MainActivity extends AppCompatActivity {
         try {
           subscriber.onNext(twitter.retweetStatus(tweetId));
         } catch (TwitterException e) {
-          Log.e(TAG, "error: ", e);
+          subscriber.onError(e);
         }
       }
-    }).subscribeOn(Schedulers.newThread())
+    })
+        .subscribeOn(Schedulers.newThread())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<Status>() {
           @Override
