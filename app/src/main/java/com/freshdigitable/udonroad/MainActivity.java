@@ -145,12 +145,17 @@ public class MainActivity extends AppCompatActivity {
     });
 
     timeline.addOnScrollListener(new RecyclerView.OnScrollListener() {
+      private int oldScrollState = RecyclerView.SCROLL_STATE_IDLE;
       @Override
       public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
-        if (dy < 0) {
+        int scrollState = recyclerView.getScrollState();
+        if (dy < 0
+            && scrollState == RecyclerView.SCROLL_STATE_DRAGGING
+            && scrollState != oldScrollState) {
           tlAdapter.notifyDataSetChanged();
         }
+        oldScrollState = scrollState;
       }
     });
   }
@@ -214,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
         .create(new Observable.OnSubscribe<Void>() {
           @Override
           public void call(Subscriber<? super Void> subscriber) {
-            twitterStream.shutdown();
+            twitterStream.cleanUp();
           }
         })
         .subscribeOn(Schedulers.newThread())
