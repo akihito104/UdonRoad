@@ -143,11 +143,20 @@ public class MainActivity extends AppCompatActivity {
         return false;
       }
     });
+
+    timeline.addOnScrollListener(new RecyclerView.OnScrollListener() {
+      @Override
+      public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        super.onScrolled(recyclerView, dx, dy);
+        if (dy < 0) {
+          tlAdapter.notifyDataSetChanged();
+        }
+      }
+    });
   }
 
   private boolean canScrollToAdd() {
     int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
-    Log.d(TAG, "first visible item: " + firstVisibleItem);
     return firstVisibleItem == 0 && tlAdapter.getSelectedTweetId() <= 0;
   }
 
@@ -227,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
   @OptionsItem(R.id.action_heading)
   protected void headingSelected() {
+    tlAdapter.notifyDataSetChanged();
     timeline.smoothScrollToPosition(0);
     tlAdapter.clearSelectedTweet();
   }
@@ -245,9 +255,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void call(Status status) {
               tlAdapter.addNewStatus(status);
-//          if (canScrollToAdd()) {
-              tlAdapter.notifyDataSetChanged();
-//          }
+              if (canScrollToAdd()) {
+                tlAdapter.notifyDataSetChanged();
+              }
             }
           });
     }
