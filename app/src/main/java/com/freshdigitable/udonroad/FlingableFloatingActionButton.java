@@ -25,10 +25,9 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
     GestureDetector.SimpleOnGestureListener gestureListener = new GestureDetector.SimpleOnGestureListener() {
       @Override
       public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (flingListener == null) {
-          return false;
+        if (flingListener != null) {
+          flingListener.onFling(Direction.getDirection(e1, e2, velocityX, velocityY));
         }
-        flingListener.onFling(Direction.getDirection(e1, e2, velocityX, velocityY));
         return false;
       }
     };
