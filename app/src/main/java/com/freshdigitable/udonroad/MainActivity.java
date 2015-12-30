@@ -17,6 +17,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
@@ -31,7 +32,6 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import java.util.List;
@@ -41,6 +41,7 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
   protected Toolbar toolbar;
 
   @ViewById(R.id.nav_drawer_layout)
-  DrawerLayout drawerLayout;
+  protected DrawerLayout drawerLayout;
 
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private LinearLayoutManager tlLayoutManager;
@@ -141,21 +142,6 @@ public class MainActivity extends AppCompatActivity {
           drawerLayout.closeDrawer(navigationView);
         }
         return false;
-      }
-    });
-
-    timeline.addOnScrollListener(new RecyclerView.OnScrollListener() {
-      private int oldScrollState = RecyclerView.SCROLL_STATE_IDLE;
-      @Override
-      public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        super.onScrolled(recyclerView, dx, dy);
-        int scrollState = recyclerView.getScrollState();
-        if (dy < 0
-            && scrollState == RecyclerView.SCROLL_STATE_DRAGGING
-            && scrollState != oldScrollState) {
-          tlAdapter.notifyDataSetChanged();
-        }
-        oldScrollState = scrollState;
       }
     });
   }
@@ -260,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void call(Status status) {
               tlAdapter.addNewStatus(status);
+              tlAdapter.notifyItemInserted(0);
               if (canScrollToAdd()) {
                 tlAdapter.notifyDataSetChanged();
               }
@@ -271,17 +258,24 @@ public class MainActivity extends AppCompatActivity {
     public void onDeletionNotice(final StatusDeletionNotice statusDeletionNotice) {
       Log.d(TAG, statusDeletionNotice.toString());
       Observable
-          .create(new Observable.OnSubscribe<Void>() {
+          .create(new Observable.OnSubscribe<Integer>() {
             @Override
-            public void call(Subscriber<? super Void> subscriber) {
-              tlAdapter.deleteStatus(statusDeletionNotice.getStatusId());
+            public void call(Subscriber<? super Integer> subscriber) {
+              subscriber.onNext(tlAdapter.deleteStatus(statusDeletionNotice.getStatusId()));
+            }
+          })
+          .filter(new Func1<Integer, Boolean>() {
+            @Override
+            public Boolean call(Integer position) {
+              return position >= 0;
             }
           })
           .subscribeOn(Schedulers.newThread())
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<Void>() {
+          .subscribe(new Action1<Integer>() {
             @Override
-            public void call(Void aVoid) {
+            public void call(Integer position) {
+              tlAdapter.notifyItemRemoved(position);
               tlAdapter.notifyDataSetChanged();
             }
           });
