@@ -146,11 +146,6 @@ public class MainActivity extends AppCompatActivity {
     });
   }
 
-  private boolean canScrollToAdd() {
-    int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
-    return firstVisibleItem == 0 && tlAdapter.getSelectedTweetId() <= 0;
-  }
-
   @ViewById(R.id.nav_drawer)
   NavigationView navigationView;
 
@@ -227,7 +222,6 @@ public class MainActivity extends AppCompatActivity {
 
   @OptionsItem(R.id.action_heading)
   protected void headingSelected() {
-    tlAdapter.notifyDataSetChanged();
     timeline.smoothScrollToPosition(0);
     tlAdapter.clearSelectedTweet();
   }
@@ -237,9 +231,14 @@ public class MainActivity extends AppCompatActivity {
     startActivity(new Intent(this, TweetActivity.class));
   }
 
+  private boolean canScrollToAdd() {
+    int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
+    return firstVisibleItem == 0 && tlAdapter.getSelectedTweetId() <= 0;
+  }
+
   private final UserStreamListener statusListener = new UserStreamAdapter() {
     @Override
-    public void onStatus(Status status) {
+    public void onStatus(final Status status) {
       Observable.just(status)
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(new Action1<Status>() {
@@ -248,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
               tlAdapter.addNewStatus(status);
               tlAdapter.notifyItemInserted(0);
               if (canScrollToAdd()) {
-                tlAdapter.notifyDataSetChanged();
+                timeline.smoothScrollToPosition(0);
               }
             }
           });
@@ -257,20 +256,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDeletionNotice(final StatusDeletionNotice statusDeletionNotice) {
       Log.d(TAG, statusDeletionNotice.toString());
-      Observable
-          .create(new Observable.OnSubscribe<Integer>() {
+      Observable.just(statusDeletionNotice)
+          .map(new Func1<StatusDeletionNotice, Integer>() {
             @Override
-            public void call(Subscriber<? super Integer> subscriber) {
-              subscriber.onNext(tlAdapter.deleteStatus(statusDeletionNotice.getStatusId()));
+            public Integer call(StatusDeletionNotice statusDeletionNotice) {
+              return tlAdapter.deleteStatus(statusDeletionNotice.getStatusId());
             }
           })
-          .filter(new Func1<Integer, Boolean>() {
-            @Override
-            public Boolean call(Integer position) {
-              return position >= 0;
-            }
-          })
-          .subscribeOn(Schedulers.newThread())
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(new Action1<Integer>() {
             @Override
