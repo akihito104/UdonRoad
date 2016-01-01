@@ -119,12 +119,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   public void addNewStatus(Status status) {
     statuses.add(0, status);
+    notifyItemInserted(0);
   }
 
-  @MainThread
   public void addNewStatuses(List<Status> statuses) {
     this.statuses.addAll(0, statuses);
-    notifyDataSetChanged();
+    notifyItemRangeInserted(0, statuses.size());
   }
 
   public void clearSelectedTweet() {
@@ -154,6 +154,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         selectedView = null;
       }
     }
+    notifyItemRemoved(removedItemIndex);
     return removedItemIndex;
   }
 

@@ -244,10 +244,11 @@ public class MainActivity extends AppCompatActivity {
           .subscribe(new Action1<Status>() {
             @Override
             public void call(Status status) {
-              tlAdapter.addNewStatus(status);
-              tlAdapter.notifyItemInserted(0);
               if (canScrollToAdd()) {
+                tlAdapter.addNewStatus(status);
                 timeline.smoothScrollToPosition(0);
+              }else {
+                tlAdapter.addNewStatus(status);
               }
             }
           });
@@ -256,19 +257,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDeletionNotice(final StatusDeletionNotice statusDeletionNotice) {
       Log.d(TAG, statusDeletionNotice.toString());
-      Observable.just(statusDeletionNotice)
-          .map(new Func1<StatusDeletionNotice, Integer>() {
-            @Override
-            public Integer call(StatusDeletionNotice statusDeletionNotice) {
-              return tlAdapter.deleteStatus(statusDeletionNotice.getStatusId());
-            }
-          })
+      Observable.just(statusDeletionNotice.getStatusId())
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<Integer>() {
+          .subscribe(new Action1<Long>() {
             @Override
-            public void call(Integer position) {
-              tlAdapter.notifyItemRemoved(position);
-              tlAdapter.notifyDataSetChanged();
+            public void call(Long deletedStatusId) {
+              if (canScrollToAdd()) {
+                if (tlAdapter.deleteStatus(deletedStatusId) < 0) {
+                  tlAdapter.notifyDataSetChanged();
+                }
+              } else {
+                tlAdapter.deleteStatus(deletedStatusId);
+              }
             }
           });
     }
