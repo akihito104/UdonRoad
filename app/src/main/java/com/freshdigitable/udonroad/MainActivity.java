@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    // android:titleTextColor is required up to API level 23
     toolbar.setTitleTextColor(Color.WHITE);
 
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.draver_close);
@@ -196,15 +197,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onPause() {
     twitterStream.clearListeners();
-    Observable
-        .create(new Observable.OnSubscribe<Void>() {
-          @Override
-          public void call(Subscriber<? super Void> subscriber) {
-            twitterStream.cleanUp();
-          }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .subscribe();
+    twitterStream.shutdown();
     super.onPause();
   }
 
@@ -263,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void call(Long deletedStatusId) {
               if (canScrollToAdd()) {
-                if (tlAdapter.deleteStatus(deletedStatusId) < 0) {
+                if (tlAdapter.deleteStatus(deletedStatusId) > 0) {
                   tlAdapter.notifyDataSetChanged();
                 }
               } else {
