@@ -255,13 +255,8 @@ public class MainActivity extends AppCompatActivity {
           .subscribe(new Action1<Long>() {
             @Override
             public void call(Long deletedStatusId) {
-              if (canScrollToAdd()) {
-                if (tlAdapter.deleteStatus(deletedStatusId) > 0) {
-                  tlAdapter.notifyDataSetChanged();
-                }
-              } else {
-                tlAdapter.deleteStatus(deletedStatusId);
-              }
+              tlAdapter.deleteStatus(deletedStatusId);
+              tlAdapter.notifyDataSetChanged();
             }
           });
     }

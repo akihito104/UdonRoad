@@ -135,7 +135,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     selectedView = null;
   }
 
-  public int deleteStatus(long statusId) {
+  public void deleteStatus(long statusId) {
     Status removing = null;
     for (Status s: statuses){
       if (s.getId() == statusId) {
@@ -144,18 +144,17 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       }
     }
     if (removing == null) {
-      return -1;
+      return;
     }
-    int removedItemIndex = statuses.indexOf(removing);
     synchronized (statuses) {
+      int removedItemIndex = statuses.indexOf(removing);
       statuses.remove(removing);
+      notifyItemRemoved(removedItemIndex);
       if (selectedTweetId == statusId) {
         selectedTweetId = -1;
         selectedView = null;
       }
     }
-    notifyItemRemoved(removedItemIndex);
-    return removedItemIndex;
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
