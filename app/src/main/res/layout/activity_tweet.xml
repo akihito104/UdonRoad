@@ -25,6 +25,7 @@
             android:inputType="textMultiLine"
             android:ems="10"
             android:id="@+id/tw_text"
+            android:labelFor="@id/tw_text"
             android:gravity="start|left|top"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
