@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -16,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
   @AfterViews
   protected void afterViews() {
     if (!AccessUtil.hasAccessToken(this)) {
-      OAuthActivity_.intent(this).start();
+      startActivity(new Intent(this, OAuthActivity_.class));
       finish();
     }
 
@@ -209,6 +211,17 @@ public class MainActivity extends AppCompatActivity {
   public boolean onOptionsItemSelected(MenuItem item) {
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    if (keyCode == KeyEvent.KEYCODE_BACK) {
+      if (drawerLayout.isDrawerOpen(navigationView)) {
+        drawerLayout.closeDrawer(navigationView);
+        return true;
+      }
+    }
+    return super.onKeyDown(keyCode, event);
   }
 
   @OptionsItem(R.id.action_heading)
