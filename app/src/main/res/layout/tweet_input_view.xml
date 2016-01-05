@@ -88,7 +88,6 @@
             android:inputType="none"
             android:textColor="@android:color/primary_text_dark"
             >
-            <requestFocus/>
         </EditText>
     </android.support.design.widget.TextInputLayout>
 </RelativeLayout>

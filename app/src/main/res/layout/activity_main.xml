@@ -31,4 +31,16 @@
         android:layout_marginBottom="32dp"
         android:src="@drawable/ic_add_white_36dp"/>
 
+    <include
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/tweet_input_view"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:id="@+id/tweet_input_view"
+        android:elevation="5dp"
+        />
+
 </FrameLayout>

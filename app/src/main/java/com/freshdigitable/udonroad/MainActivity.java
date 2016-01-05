@@ -220,6 +220,10 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.closeDrawer(navigationView);
         return true;
       }
+      if (tweetInputView.getVisibility() == View.VISIBLE) {
+        tweetInputView.setVisibility(View.GONE);
+        return true;
+      }
     }
     return super.onKeyDown(keyCode, event);
   }
@@ -230,14 +234,20 @@ public class MainActivity extends AppCompatActivity {
     tlAdapter.clearSelectedTweet();
   }
 
+  @ViewById(R.id.tweet_input_view)
+  View tweetInputView;
+
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
-    startActivity(new Intent(this, TweetActivity.class));
+//    startActivity(new Intent(this, TweetActivity.class));
+    tweetInputView.setVisibility(View.VISIBLE);
   }
 
   private boolean canScrollToAdd() {
     int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
-    return firstVisibleItem == 0 && tlAdapter.getSelectedTweetId() <= 0;
+    return firstVisibleItem == 0
+        && tlAdapter.getSelectedTweetId() <= 0
+        && tweetInputView.getVisibility() == View.GONE;
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {
