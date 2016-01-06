@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -22,6 +21,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -94,10 +95,10 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void onFling(FlingableFloatingActionButton.Direction direction) {
         Log.d(TAG, "fling direction: " + direction.toString());
-        final long tweetId = tlAdapter.getSelectedTweetId();
-        if (tweetId < 0) {
+        if (!tlAdapter.isTweetSelected()) {
           return;
         }
+        final long tweetId = tlAdapter.getSelectedTweetId();
         if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
           fetchFavorite(tweetId);
         } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
@@ -173,10 +174,15 @@ public class MainActivity extends AppCompatActivity {
       }
 
       @Override
-      public void onNext(User user) {
-        ((TextView)navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
+      public void onNext(User user) { /* TODO: save profile data to sqlite */
+        ((TextView) navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
         ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
         Picasso.with(navigationView.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
+
+        ((TextView) tweetInputView.findViewById(R.id.tw_name)).setText(user.getName());
+        ((TextView) tweetInputView.findViewById(R.id.tw_account)).setText(user.getScreenName());
+        ImageView ticon = (ImageView) tweetInputView.findViewById(R.id.tw_icon);
+        Picasso.with(tweetInputView.getContext()).load(user.getProfileImageURLHttps()).fit().into(ticon);
       }
     });
   }
@@ -224,6 +230,10 @@ public class MainActivity extends AppCompatActivity {
         tweetInputView.setVisibility(View.GONE);
         return true;
       }
+      if (tlAdapter.isTweetSelected()) {
+        tlAdapter.clearSelectedTweet();
+        return true;
+      }
     }
     return super.onKeyDown(keyCode, event);
   }
@@ -241,6 +251,45 @@ public class MainActivity extends AppCompatActivity {
   protected void tweetSelected() {
 //    startActivity(new Intent(this, TweetActivity.class));
     tweetInputView.setVisibility(View.VISIBLE);
+    tweetInputView.findViewById(R.id.tw_intext).requestFocus();
+    tweetInputView.findViewById(R.id.tw_send_intweet).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        tweetInputView.setClickable(false);
+        final EditText editText = (EditText) tweetInputView.findViewById(R.id.tw_intext);
+        final String sendingText = editText.getText().toString();
+        Observable.create(new Observable.OnSubscribe<Status>() {
+          @Override
+          public void call(Subscriber<? super Status> subscriber) {
+            try {
+              subscriber.onNext(twitter.updateStatus(sendingText));
+            } catch (TwitterException e) {
+              subscriber.onError(e);
+            }
+            subscriber.onCompleted();
+          }
+        })
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Subscriber<Status>() {
+              @Override
+              public void onCompleted() {
+                editText.setText("");
+                tweetInputView.setClickable(true);
+                tweetInputView.setVisibility(View.GONE);
+              }
+
+              @Override
+              public void onError(Throwable e) {
+                Log.e(TAG, "update status: " + e);
+              }
+
+              @Override
+              public void onNext(Status status) {
+              }
+            });
+      }
+    });
   }
 
   private boolean canScrollToAdd() {
