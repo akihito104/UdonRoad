@@ -22,7 +22,9 @@ import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +36,7 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.SystemService;
 import org.androidannotations.annotations.ViewById;
 
 import java.util.List;
@@ -245,19 +248,24 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @ViewById(R.id.tweet_input_view)
-  View tweetInputView;
+  protected View tweetInputView;
+
+  @SystemService
+  InputMethodManager inputMethodManager;
 
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
-//    startActivity(new Intent(this, TweetActivity.class));
     tweetInputView.setVisibility(View.VISIBLE);
-    tweetInputView.findViewById(R.id.tw_intext).requestFocus();
+    final EditText inputTweet = (EditText) tweetInputView.findViewById(R.id.tw_intext);
+    if (inputTweet.requestFocus()) {
+      inputMethodManager.showSoftInput(inputTweet, InputMethodManager.SHOW_FORCED);
+    }
     tweetInputView.findViewById(R.id.tw_send_intweet).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        tweetInputView.setClickable(false);
-        final EditText editText = (EditText) tweetInputView.findViewById(R.id.tw_intext);
-        final String sendingText = editText.getText().toString();
+        final ImageButton sendButton = (ImageButton) tweetInputView.findViewById(R.id.tw_send_intweet);
+        sendButton.setClickable(false);
+        final String sendingText = inputTweet.getText().toString();
         Observable.create(new Observable.OnSubscribe<Status>() {
           @Override
           public void call(Subscriber<? super Status> subscriber) {
@@ -274,18 +282,19 @@ public class MainActivity extends AppCompatActivity {
             .subscribe(new Subscriber<Status>() {
               @Override
               public void onCompleted() {
-                editText.setText("");
                 tweetInputView.setClickable(true);
-                tweetInputView.setVisibility(View.GONE);
               }
 
               @Override
               public void onError(Throwable e) {
+                showToast("send tweet: failure...");
                 Log.e(TAG, "update status: " + e);
               }
 
               @Override
               public void onNext(Status status) {
+                inputTweet.setText("");
+                tweetInputView.setVisibility(View.GONE);
               }
             });
       }
