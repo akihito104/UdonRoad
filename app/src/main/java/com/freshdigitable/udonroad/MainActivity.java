@@ -149,10 +149,22 @@ public class MainActivity extends AppCompatActivity {
         return false;
       }
     });
+
+    editTweet = (EditText) tweetInputView.findViewById(R.id.tw_intext);
+    editTweet.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View v, boolean hasFocus) {
+        if (hasFocus) {
+          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
+        } else {
+          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+      }
+    });
   }
 
   @ViewById(R.id.nav_drawer)
-  NavigationView navigationView;
+  protected NavigationView navigationView;
 
   private void setupNavigationDrawer() {
     Observable.create(new Observable.OnSubscribe<User>() {
@@ -249,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
 
   @ViewById(R.id.tweet_input_view)
   protected View tweetInputView;
+  private EditText editTweet;
 
   @SystemService
   InputMethodManager inputMethodManager;
@@ -256,16 +269,17 @@ public class MainActivity extends AppCompatActivity {
   @OptionsItem(R.id.action_write)
   protected void tweetSelected() {
     tweetInputView.setVisibility(View.VISIBLE);
-    final EditText inputTweet = (EditText) tweetInputView.findViewById(R.id.tw_intext);
-    if (inputTweet.requestFocus()) {
-      inputMethodManager.showSoftInput(inputTweet, InputMethodManager.SHOW_FORCED);
-    }
+    editTweet.requestFocus();
     tweetInputView.findViewById(R.id.tw_send_intweet).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
+        final String sendingText = editTweet.getText().toString();
+        if (sendingText.length() <= 0) {
+          return;
+        }
         final ImageButton sendButton = (ImageButton) tweetInputView.findViewById(R.id.tw_send_intweet);
         sendButton.setClickable(false);
-        final String sendingText = inputTweet.getText().toString();
+//        editTweet.clearFocus();
         Observable.create(new Observable.OnSubscribe<Status>() {
           @Override
           public void call(Subscriber<? super Status> subscriber) {
@@ -282,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
             .subscribe(new Subscriber<Status>() {
               @Override
               public void onCompleted() {
-                tweetInputView.setClickable(true);
+                sendButton.setClickable(true);
               }
 
               @Override
@@ -293,7 +307,8 @@ public class MainActivity extends AppCompatActivity {
 
               @Override
               public void onNext(Status status) {
-                inputTweet.setText("");
+                editTweet.getText().clear();
+                editTweet.clearFocus();
                 tweetInputView.setVisibility(View.GONE);
               }
             });
