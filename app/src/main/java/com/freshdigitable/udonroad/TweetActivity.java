@@ -7,12 +7,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.androidannotations.annotations.Background;
-import org.androidannotations.annotations.Click;
-import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.UiThread;
-import org.androidannotations.annotations.ViewById;
-
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -52,7 +46,7 @@ public class TweetActivity extends AppCompatActivity {
         new Observable.OnSubscribe<Status>() {
           @Override
           public void call(Subscriber<? super Status> subscriber) {
-            Twitter twitter = AccessUtil.getTwitterInstance(TweetActivity.this);
+            Twitter twitter = TwitterApi.getTwitterInstance(TweetActivity.this);
             try {
               subscriber.onNext(twitter.updateStatus(tweetText));
             } catch (TwitterException e) {

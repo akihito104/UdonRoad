@@ -37,7 +37,7 @@ public class OAuthActivity extends AppCompatActivity {
 
   @AfterViews
   protected void afterViews() {
-    twitter = AccessUtil.getTwitterInstance(this);
+    twitter = TwitterApi.getTwitterInstance(this);
   }
 
   @Click(R.id.button_oauth)
@@ -100,7 +100,7 @@ public class OAuthActivity extends AppCompatActivity {
     if (accessToken == null) {
       Toast.makeText(this, "authentication is failed...", Toast.LENGTH_LONG).show();
     }
-    AccessUtil.storeAccessToken(this, accessToken);
+    TwitterApi.storeAccessToken(this, accessToken);
     Toast.makeText(this, "authentication is success!", Toast.LENGTH_LONG).show();
     Intent intent = new Intent(this, MainActivity_.class);
     startActivity(intent);

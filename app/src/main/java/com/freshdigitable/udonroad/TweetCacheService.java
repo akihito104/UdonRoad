@@ -17,8 +17,7 @@ public class TweetCacheService extends Service {
   @Override
   public void onCreate() {
     super.onCreate();
-    twitterInstance = AccessUtil.getTwitterInstance(this);
-    twitterStreamInstance = AccessUtil.getTwitterStreamInstance(this);
+    twitterInstance = TwitterApi.getTwitterInstance(this);
   }
 
   @Override

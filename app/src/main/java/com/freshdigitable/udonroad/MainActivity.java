@@ -22,7 +22,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -46,13 +45,9 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterStream;
 import twitter4j.User;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
@@ -66,8 +61,6 @@ public class MainActivity extends AppCompatActivity {
   protected RecyclerView timeline;
 
   private TimelineAdapter tlAdapter;
-  private Twitter twitter;
-  private TwitterStream twitterStream;
 
   @ViewById(R.id.fab)
   protected FlingableFloatingActionButton ffab;
@@ -80,10 +73,11 @@ public class MainActivity extends AppCompatActivity {
 
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private LinearLayoutManager tlLayoutManager;
+  private TwitterApi twitterApi;
 
   @AfterViews
   protected void afterViews() {
-    if (!AccessUtil.hasAccessToken(this)) {
+    if (!TwitterApi.hasAccessToken(this)) {
       startActivity(new Intent(this, OAuthActivity_.class));
       finish();
     }
@@ -112,9 +106,8 @@ public class MainActivity extends AppCompatActivity {
 
     tlAdapter = new TimelineAdapter();
     timeline.setAdapter(tlAdapter);
-    twitter = AccessUtil.getTwitterInstance(this);
+    twitterApi = TwitterApi.setup(this);
     timeline.setItemAnimator(new TimelineAnimator());
-    twitterStream = AccessUtil.getTwitterStreamInstance(this);
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -167,39 +160,30 @@ public class MainActivity extends AppCompatActivity {
   protected NavigationView navigationView;
 
   private void setupNavigationDrawer() {
-    Observable.create(new Observable.OnSubscribe<User>() {
-      @Override
-      public void call(Subscriber<? super User> subscriber) {
-        try {
-          subscriber.onNext(twitter.verifyCredentials());
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
-      }
-    }).subscribeOn(Schedulers.newThread())
-    .observeOn(AndroidSchedulers.mainThread())
-    .subscribe(new Observer<User>() {
-      @Override
-      public void onCompleted() {
-      }
+    twitterApi.verifyCredentials()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Observer<User>() {
+          @Override
+          public void onCompleted() {
+          }
 
-      @Override
-      public void onError(Throwable e) {
-        Log.d(TAG, "twitter exception: " + e.toString());
-      }
+          @Override
+          public void onError(Throwable e) {
+            Log.d(TAG, "twitter exception: " + e.toString());
+          }
 
-      @Override
-      public void onNext(User user) { /* TODO: save profile data to sqlite */
-        ((TextView) navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
-        ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
-        Picasso.with(navigationView.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
+          @Override
+          public void onNext(User user) { /* TODO: save profile data to sqlite */
+            ((TextView) navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
+            ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
+            Picasso.with(navigationView.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
 
-        ((TextView) tweetInputView.findViewById(R.id.tw_name)).setText(user.getName());
-        ((TextView) tweetInputView.findViewById(R.id.tw_account)).setText(user.getScreenName());
-        ImageView ticon = (ImageView) tweetInputView.findViewById(R.id.tw_icon);
-        Picasso.with(tweetInputView.getContext()).load(user.getProfileImageURLHttps()).fit().into(ticon);
-      }
-    });
+            ((TextView) tweetInputView.findViewById(R.id.tw_name)).setText(user.getName());
+            ((TextView) tweetInputView.findViewById(R.id.tw_account)).setText(user.getScreenName());
+            ImageView ticon = (ImageView) tweetInputView.findViewById(R.id.tw_icon);
+            Picasso.with(tweetInputView.getContext()).load(user.getProfileImageURLHttps()).fit().into(ticon);
+          }
+        });
   }
 
   @Override
@@ -211,14 +195,12 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    twitterStream.addListener(statusListener);
-    twitterStream.user();
+    twitterApi.connectUserStream(statusListener);
   }
 
   @Override
   protected void onPause() {
-    twitterStream.clearListeners();
-    twitterStream.shutdown();
+    twitterApi.disconnectStreamListener();
     super.onPause();
   }
 
@@ -279,19 +261,7 @@ public class MainActivity extends AppCompatActivity {
         }
         final ImageButton sendButton = (ImageButton) tweetInputView.findViewById(R.id.tw_send_intweet);
         sendButton.setClickable(false);
-//        editTweet.clearFocus();
-        Observable.create(new Observable.OnSubscribe<Status>() {
-          @Override
-          public void call(Subscriber<? super Status> subscriber) {
-            try {
-              subscriber.onNext(twitter.updateStatus(sendingText));
-            } catch (TwitterException e) {
-              subscriber.onError(e);
-            }
-            subscriber.onCompleted();
-          }
-        })
-            .subscribeOn(Schedulers.newThread())
+        twitterApi.updateStatus(sendingText)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Subscriber<Status>() {
               @Override
@@ -377,17 +347,7 @@ public class MainActivity extends AppCompatActivity {
   };
 
   private void fetchRetweet(final long tweetId) {
-    Observable.create(new Observable.OnSubscribe<Status>() {
-      @Override
-      public void call(Subscriber<? super Status> subscriber) {
-        try {
-          subscriber.onNext(twitter.retweetStatus(tweetId));
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
-      }
-    })
-        .subscribeOn(Schedulers.newThread())
+    twitterApi.retweetStatus(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<Status>() {
           @Override
@@ -407,18 +367,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void fetchFavorite(final long tweetId) {
-    Observable.create(new Observable.OnSubscribe<Status>() {
-      @Override
-      public void call(Subscriber<? super Status> subscriber) {
-        try {
-          subscriber.onNext(twitter.createFavorite(tweetId));
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
-      }
-    })
-        .subscribeOn(Schedulers.newThread())
+    twitterApi.createFavorite(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<Status>() {
           @Override
@@ -439,18 +388,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void fetchTweet() {
-    Observable.create(new Observable.OnSubscribe<List<Status>>() {
-      @Override
-      public void call(Subscriber<? super List<Status>> subscriber) {
-        try {
-          subscriber.onNext(twitter.getHomeTimeline());
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
-      }
-    })
-        .subscribeOn(Schedulers.newThread())
+    twitterApi.getHomeTimeline()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<List<Status>>() {
           @Override
