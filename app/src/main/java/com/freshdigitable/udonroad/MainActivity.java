@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
       startActivity(new Intent(this, OAuthActivity_.class));
       finish();
     }
+    twitterApi = TwitterApi.setup(this);
 
     timeline.setHasFixedSize(true);
     RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
@@ -106,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
 
     tlAdapter = new TimelineAdapter();
     timeline.setAdapter(tlAdapter);
-    twitterApi = TwitterApi.setup(this);
     timeline.setItemAnimator(new TimelineAnimator());
     fetchTweet();
 

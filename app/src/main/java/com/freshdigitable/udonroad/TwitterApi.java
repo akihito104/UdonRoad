@@ -3,8 +3,11 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
-
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -23,6 +26,8 @@ import twitter4j.auth.AccessToken;
  * Created by akihit on 15/10/20.
  */
 public class TwitterApi {
+  @SuppressWarnings("unused")
+  private static final String TAG = TwitterApi.class.getSimpleName();
   private static final String TOKEN = "token";
   private static final String TOKEN_SECRET = "token_secret";
 
@@ -36,7 +41,7 @@ public class TwitterApi {
     String consumerSecret = context.getString(R.string.consumer_secret);
 
     TwitterFactory factory = new TwitterFactory();
-    Twitter twitter = factory.getInstance();
+    final Twitter twitter = factory.getInstance();
     twitter.setOAuthConsumer(consumerKey, consumerSecret);
     twitter.setOAuthAccessToken(accessToken);
 
@@ -44,6 +49,7 @@ public class TwitterApi {
     TwitterStream twitterStream = streamFactory.getInstance();
     twitterStream.setOAuthConsumer(consumerKey, consumerSecret);
     twitterStream.setOAuthAccessToken(accessToken);
+
     return new TwitterApi(twitter, twitterStream);
   }
 
@@ -60,7 +66,8 @@ public class TwitterApi {
       @Override
       public void call(Subscriber<? super User> subscriber) {
         try {
-          subscriber.onNext(twitter.verifyCredentials());
+          User user = twitter.verifyCredentials();
+          subscriber.onNext(user);
         } catch (TwitterException e) {
           subscriber.onError(e);
         }
@@ -74,8 +81,14 @@ public class TwitterApi {
   }
 
   public void disconnectStreamListener() {
-    twitterStream.shutdown();
-    twitterStream.clearListeners();
+    Observable.create(new Observable.OnSubscribe<Void>() {
+      @Override
+      public void call(Subscriber<? super Void> subscriber) {
+        twitterStream.shutdown();
+        twitterStream.clearListeners();
+      }
+    }).subscribeOn(Schedulers.newThread())
+    .subscribe();
   }
 
   public static Twitter getTwitterInstance(final Context context) {
