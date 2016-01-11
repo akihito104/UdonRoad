@@ -18,6 +18,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
@@ -89,22 +90,6 @@ public class MainActivity extends AppCompatActivity {
     tlLayoutManager = new LinearLayoutManager(this);
     timeline.setLayoutManager(tlLayoutManager);
 
-    ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
-      @Override
-      public void onFling(FlingableFloatingActionButton.Direction direction) {
-        Log.d(TAG, "fling direction: " + direction.toString());
-        if (!tlAdapter.isTweetSelected()) {
-          return;
-        }
-        final long tweetId = tlAdapter.getSelectedTweetId();
-        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
-          fetchFavorite(tweetId);
-        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
-          fetchRetweet(tweetId);
-        }
-      }
-    });
-
     tlAdapter = new TimelineAdapter();
     timeline.setAdapter(tlAdapter);
     timeline.setItemAnimator(new TimelineAnimator());
@@ -151,6 +136,22 @@ public class MainActivity extends AppCompatActivity {
           inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
         } else {
           inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+      }
+    });
+
+    ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+      @Override
+      public void onFling(FlingableFloatingActionButton.Direction direction) {
+        Log.d(TAG, "fling direction: " + direction.toString());
+        if (!tlAdapter.isTweetSelected()) {
+          return;
+        }
+        final long tweetId = tlAdapter.getSelectedTweetId();
+        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
+          fetchFavorite(tweetId);
+        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
+          fetchRetweet(tweetId);
         }
       }
     });
