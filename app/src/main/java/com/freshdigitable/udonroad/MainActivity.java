@@ -18,7 +18,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.support.v7.widget.Toolbar;
@@ -91,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     timeline.setLayoutManager(tlLayoutManager);
 
     tlAdapter = new TimelineAdapter();
+    tlAdapter.setOnSelectedTweetChangeListener(selectedTweetChangeListener);
     timeline.setAdapter(tlAdapter);
     timeline.setItemAnimator(new TimelineAnimator());
     fetchTweet();
@@ -140,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    ffab.setVisibility(View.GONE);
     ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
       @Override
       public void onFling(FlingableFloatingActionButton.Direction direction) {
@@ -156,6 +157,20 @@ public class MainActivity extends AppCompatActivity {
       }
     });
   }
+
+  private final TimelineAdapter.OnSelectedTweetChangeListener selectedTweetChangeListener
+      = new TimelineAdapter.OnSelectedTweetChangeListener() {
+    @Override
+    public void onTweetSelected() {
+      ffab.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onTweetUnselected() {
+      ffab.setVisibility(View.GONE);
+    }
+  };
+
 
   @ViewById(R.id.nav_drawer)
   protected NavigationView navigationView;
