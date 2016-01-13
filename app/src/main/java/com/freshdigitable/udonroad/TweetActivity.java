@@ -18,8 +18,8 @@ import twitter4j.TwitterException;
 public class TweetActivity extends AppCompatActivity {
   private static final String TAG = TweetActivity.class.getName();
 
-  protected Button tweet;
-  protected TextView text;
+  private Button tweet;
+  private TextView text;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

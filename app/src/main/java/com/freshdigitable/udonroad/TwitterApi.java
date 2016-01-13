@@ -3,11 +3,8 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
+
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import rx.Observable;
 import rx.Subscriber;

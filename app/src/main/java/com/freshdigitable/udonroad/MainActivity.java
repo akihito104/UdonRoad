@@ -431,10 +431,11 @@ public class MainActivity extends AppCompatActivity {
   protected void onFabClicked() {}
 
   private static class MyItemDecoration extends RecyclerView.ItemDecoration {
-    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint paint;
     private final int dividerHeight;
 
     MyItemDecoration() {
+      paint = new Paint(Paint.ANTI_ALIAS_FLAG);
       paint.setColor(Color.GRAY);
       this.dividerHeight = 1;
     }

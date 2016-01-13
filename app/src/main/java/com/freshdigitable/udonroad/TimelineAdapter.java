@@ -20,7 +20,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public TimelineAdapter() {
     this(new LinkedList<Status>());
   }
-  public TimelineAdapter(List<Status> statuses) {
+  private TimelineAdapter(List<Status> statuses) {
     this.statuses = new LinkedList<>(statuses);
   }
 
@@ -148,7 +148,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
-    private StatusView statusView;
+    private final StatusView statusView;
 
     public ViewHolder(View itemView) {
       super(itemView);

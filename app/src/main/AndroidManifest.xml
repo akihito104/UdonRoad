@@ -31,16 +31,7 @@
                     android:scheme="udonr" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".TweetActivity"
-            android:windowSoftInputMode="adjustResize" >
-        </activity>
 
-        <service
-            android:name=".TweetCacheService"
-            android:enabled="true"
-            android:exported="true" >
-        </service>
     </application>
 
 </manifest>

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.text.Html;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -22,21 +21,21 @@ import twitter4j.util.TimeSpanConverter;
  */
 public class StatusView extends RelativeLayout {
   private long incomingTweetId;
-  private ImageView icon;
-  private TextView screenName;
-  private TextView at;
-  private TextView account;
-  private TextView tweet;
-  private TextView time;
+  private final ImageView icon;
+  private final TextView screenName;
+  private final TextView at;
+  private final TextView account;
+  private final TextView tweet;
+  private final TextView time;
 
-  private TextView rt;
-  private TextView rtCount;
-  private TextView fav;
-  private TextView favCount;
-  private TextView clientName;
+  private final TextView rt;
+  private final TextView rtCount;
+  private final TextView fav;
+  private final TextView favCount;
+  private final TextView clientName;
 
-  private TextView rtby;
-  private TextView retweetedUser;
+  private final TextView rtby;
+  private final TextView retweetedUser;
 
   public StatusView(Context context) {
     this(context, null);
