@@ -48,7 +48,6 @@ public class StatusView extends RelativeLayout {
   public StatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     LayoutInflater.from(context).inflate(R.layout.tweet_view, this, true);
-//    inflate(context, R.layout.tweet_view, this);
     this.icon = (ImageView) findViewById(R.id.tl_icon);
     this.screenName = (TextView) findViewById(R.id.tl_displayname);
     this.at = (TextView) findViewById(R.id.tl_at);
@@ -109,26 +108,34 @@ public class StatusView extends RelativeLayout {
     return this.incomingTweetId;
   }
 
-  public void setRtCountVisibility(int visibility) {
+  private void setRtCountVisibility(int visibility) {
     this.rt.setVisibility(visibility);
     this.rtCount.setVisibility(visibility);
   }
 
-  public void setFavCountVisibility(int visibility) {
+  private void setFavCountVisibility(int visibility) {
     this.fav.setVisibility(visibility);
     this.favCount.setVisibility(visibility);
   }
 
-  public void setRetweetedUserVisibility(int visibility) {
+  private void setRetweetedUserVisibility(int visibility) {
     this.rtby.setVisibility(visibility);
     this.retweetedUser.setVisibility(visibility);
   }
 
-  public void setTextColor(int color) {
+  private void setTextColor(int color) {
     this.screenName.setTextColor(color);
     this.at.setTextColor(color);
     this.account.setTextColor(color);
     this.time.setTextColor(color);
     this.tweet.setTextColor(color);
+  }
+
+  public void onRecycled() {
+    setBackgroundColor(Color.TRANSPARENT);
+    setRtCountVisibility(View.GONE);
+    setFavCountVisibility(View.GONE);
+    setRetweetedUserVisibility(View.GONE);
+    setTextColor(Color.GRAY);
   }
 }

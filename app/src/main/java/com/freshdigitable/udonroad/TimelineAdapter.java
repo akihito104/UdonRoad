@@ -92,11 +92,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onViewRecycled(ViewHolder holder) {
-    holder.statusView.setBackgroundColor(Color.TRANSPARENT);
-    holder.statusView.setRtCountVisibility(View.GONE);
-    holder.statusView.setFavCountVisibility(View.GONE);
-    holder.statusView.setRetweetedUserVisibility(View.GONE);
-    holder.statusView.setTextColor(Color.GRAY);
+    holder.statusView.onRecycled();
   }
 
   private OnSelectedTweetChangeListener selectedTweetChangeListener;
@@ -141,8 +137,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       statuses.remove(removing);
       notifyItemRemoved(removedItemIndex);
       if (selectedTweetId == statusId) {
-        selectedTweetId = -1;
-        selectedView = null;
+        clearSelectedTweet();
       }
     }
   }
