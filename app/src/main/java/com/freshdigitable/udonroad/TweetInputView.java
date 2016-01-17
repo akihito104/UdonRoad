@@ -53,10 +53,19 @@ public class TweetInputView extends RelativeLayout {
     void sendingStatus(TweetInputViewBinding binding);
   }
 
+  public boolean isVisible() {
+    return getVisibility() == View.VISIBLE;
+  }
+
   public void appearing(OnStatusSending listener) {
     setVisibility(View.VISIBLE);
     binding.twIntext.requestFocus();
     this.onStatusSending = listener;
+  }
+
+  public void disappearing() {
+    setVisibility(View.GONE);
+    this.onStatusSending = null;
   }
 
   public void setOnInputFieldFocusChangeListener(OnFocusChangeListener listener) {

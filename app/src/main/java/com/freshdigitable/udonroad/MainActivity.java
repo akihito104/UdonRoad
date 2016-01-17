@@ -23,8 +23,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -236,8 +234,8 @@ public class MainActivity extends AppCompatActivity {
         navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
         return true;
       }
-      if (activityMainBinding.tweetInputView.getVisibility() == View.VISIBLE) {
-        activityMainBinding.tweetInputView.setVisibility(View.GONE);
+      if (activityMainBinding.tweetInputView.isVisible()) {
+        activityMainBinding.tweetInputView.disappearing();
         return true;
       }
       if (tlAdapter.isTweetSelected()) {
