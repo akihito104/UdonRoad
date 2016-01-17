@@ -6,12 +6,12 @@
         android:id="@+id/action_heading"
         android:icon="@drawable/ic_twitterlogo_white"
         android:title="Top"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
 
     <item
         android:id="@+id/action_write"
         android:icon="@drawable/ic_create_white_24dp"
         android:title="Tweet"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
 
 </menu>

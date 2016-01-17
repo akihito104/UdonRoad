@@ -1,7 +1,9 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.databinding.DataBindingUtil;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,17 +12,16 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.support.v7.widget.Toolbar;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -28,15 +29,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.databinding.NavDrawerBinding;
+import com.freshdigitable.udonroad.databinding.TweetInputViewBinding;
 import com.squareup.picasso.Picasso;
-
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Click;
-import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.SystemService;
-import org.androidannotations.annotations.ViewById;
 
 import java.util.List;
 
@@ -52,84 +48,76 @@ import twitter4j.User;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
-@EActivity(R.layout.nav_drawer)
-@OptionsMenu(R.menu.appbar_menu)
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
-
-  @ViewById(R.id.timeline)
-  protected RecyclerView timeline;
+  private ActivityMainBinding activityMainBinding;
+  private NavDrawerBinding navDrawerBinding;
 
   private TimelineAdapter tlAdapter;
-
-  @ViewById(R.id.fab)
-  protected FlingableFloatingActionButton ffab;
-
-  @ViewById(R.id.toolbar)
-  protected Toolbar toolbar;
-
-  @ViewById(R.id.nav_drawer_layout)
-  protected DrawerLayout drawerLayout;
-
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private LinearLayoutManager tlLayoutManager;
   private TwitterApi twitterApi;
 
-  @AfterViews
-  protected void afterViews() {
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    navDrawerBinding = DataBindingUtil.setContentView(this, R.layout.nav_drawer);
+    activityMainBinding = navDrawerBinding.mainLayout;
+
     if (!TwitterApi.hasAccessToken(this)) {
-      startActivity(new Intent(this, OAuthActivity_.class));
+      startActivity(new Intent(this, OAuthActivity.class));
       finish();
     }
     twitterApi = TwitterApi.setup(this);
+    inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-    timeline.setHasFixedSize(true);
+    activityMainBinding.timeline.setHasFixedSize(true);
     RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
-    timeline.addItemDecoration(itemDecoration);
+    activityMainBinding.timeline.addItemDecoration(itemDecoration);
     tlLayoutManager = new LinearLayoutManager(this);
-    timeline.setLayoutManager(tlLayoutManager);
+    activityMainBinding.timeline.setLayoutManager(tlLayoutManager);
 
     tlAdapter = new TimelineAdapter();
     tlAdapter.setOnSelectedTweetChangeListener(selectedTweetChangeListener);
-    timeline.setAdapter(tlAdapter);
-    timeline.setItemAnimator(new TimelineAnimator());
+    activityMainBinding.timeline.setAdapter(tlAdapter);
+    activityMainBinding.timeline.setItemAnimator(new TimelineAnimator());
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     // android:titleTextColor is required up to API level 23
-    toolbar.setTitleTextColor(Color.WHITE);
+    activityMainBinding.toolbar.setTitleTextColor(Color.WHITE);
 
-    actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.draver_close);
+    actionBarDrawerToggle = new ActionBarDrawerToggle(this,
+        navDrawerBinding.navDrawerLayout, activityMainBinding.toolbar, R.string.drawer_open, R.string.draver_close);
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
-    drawerLayout.setDrawerListener(actionBarDrawerToggle);
+    navDrawerBinding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
 
-    setSupportActionBar(toolbar);
+    setSupportActionBar(activityMainBinding.toolbar);
     if (getSupportActionBar() != null) {
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
     actionBarDrawerToggle.syncState();
 
     setupNavigationDrawer();
-    navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+    navDrawerBinding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_home) {
           Log.d(TAG, "home is selected");
-          drawerLayout.closeDrawer(navigationView);
+          navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
         } else if (itemId == R.id.menu_mention) {
           Log.d(TAG, "mention is selected");
-          drawerLayout.closeDrawer(navigationView);
+          navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
         } else if (itemId == R.id.menu_fav) {
           Log.d(TAG, "fav is selected");
-          drawerLayout.closeDrawer(navigationView);
+          navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
         }
         return false;
       }
     });
 
-    editTweet = (EditText) tweetInputView.findViewById(R.id.tw_intext);
-    editTweet.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+    activityMainBinding.tweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
       @Override
       public void onFocusChange(View v, boolean hasFocus) {
         if (hasFocus) {
@@ -140,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
-    ffab.setVisibility(View.GONE);
-    ffab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+    activityMainBinding.fab.setVisibility(View.GONE);
+    activityMainBinding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
       @Override
       public void onFling(FlingableFloatingActionButton.Direction direction) {
         Log.d(TAG, "fling direction: " + direction.toString());
@@ -156,24 +144,25 @@ public class MainActivity extends AppCompatActivity {
         }
       }
     });
+    activityMainBinding.fab.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+      }
+    });
   }
 
   private final TimelineAdapter.OnSelectedTweetChangeListener selectedTweetChangeListener
       = new TimelineAdapter.OnSelectedTweetChangeListener() {
     @Override
     public void onTweetSelected() {
-      ffab.setVisibility(View.VISIBLE);
+      activityMainBinding.fab.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onTweetUnselected() {
-      ffab.setVisibility(View.GONE);
+      activityMainBinding.fab.setVisibility(View.GONE);
     }
   };
-
-
-  @ViewById(R.id.nav_drawer)
-  protected NavigationView navigationView;
 
   private void setupNavigationDrawer() {
     twitterApi.verifyCredentials()
@@ -190,14 +179,11 @@ public class MainActivity extends AppCompatActivity {
 
           @Override
           public void onNext(User user) { /* TODO: save profile data to sqlite */
-            ((TextView) navigationView.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
-            ImageView icon = (ImageView) navigationView.findViewById(R.id.nav_header_icon);
-            Picasso.with(navigationView.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
+            ((TextView) navDrawerBinding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
+            ImageView icon = (ImageView) navDrawerBinding.navDrawer.findViewById(R.id.nav_header_icon);
+            Picasso.with(navDrawerBinding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
 
-            ((TextView) tweetInputView.findViewById(R.id.tw_name)).setText(user.getName());
-            ((TextView) tweetInputView.findViewById(R.id.tw_account)).setText(user.getScreenName());
-            ImageView ticon = (ImageView) tweetInputView.findViewById(R.id.tw_icon);
-            Picasso.with(tweetInputView.getContext()).load(user.getProfileImageURLHttps()).fit().into(ticon);
+            activityMainBinding.tweetInputView.setUserInfo(user);
           }
         });
   }
@@ -227,7 +213,18 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.appbar_menu, menu);
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.action_heading){
+      headingSelected();
+    } else if (item.getItemId() == R.id.action_write) {
+      tweetSelected();
+    }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
   }
@@ -235,12 +232,12 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     if (keyCode == KeyEvent.KEYCODE_BACK) {
-      if (drawerLayout.isDrawerOpen(navigationView)) {
-        drawerLayout.closeDrawer(navigationView);
+      if (navDrawerBinding.navDrawerLayout.isDrawerOpen(navDrawerBinding.navDrawer)) {
+        navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
         return true;
       }
-      if (tweetInputView.getVisibility() == View.VISIBLE) {
-        tweetInputView.setVisibility(View.GONE);
+      if (activityMainBinding.tweetInputView.getVisibility() == View.VISIBLE) {
+        activityMainBinding.tweetInputView.setVisibility(View.GONE);
         return true;
       }
       if (tlAdapter.isTweetSelected()) {
@@ -251,38 +248,28 @@ public class MainActivity extends AppCompatActivity {
     return super.onKeyDown(keyCode, event);
   }
 
-  @OptionsItem(R.id.action_heading)
-  protected void headingSelected() {
-    timeline.smoothScrollToPosition(0);
+  private void headingSelected() {
+    activityMainBinding.timeline.smoothScrollToPosition(0);
     tlAdapter.clearSelectedTweet();
   }
 
-  @ViewById(R.id.tweet_input_view)
-  protected View tweetInputView;
-  private EditText editTweet;
+  private InputMethodManager inputMethodManager;
 
-  @SystemService
-  InputMethodManager inputMethodManager;
-
-  @OptionsItem(R.id.action_write)
-  protected void tweetSelected() {
-    tweetInputView.setVisibility(View.VISIBLE);
-    editTweet.requestFocus();
-    tweetInputView.findViewById(R.id.tw_send_intweet).setOnClickListener(new View.OnClickListener() {
+  private void tweetSelected() {
+    activityMainBinding.tweetInputView.appearing(new TweetInputView.OnStatusSending() {
       @Override
-      public void onClick(View v) {
-        final String sendingText = editTweet.getText().toString();
-        if (sendingText.length() <= 0) {
+      public void sendingStatus(final TweetInputViewBinding binding) {
+        final String sendingText = binding.twIntext.getText().toString();
+        if (sendingText.isEmpty()) {
           return;
         }
-        final ImageButton sendButton = (ImageButton) tweetInputView.findViewById(R.id.tw_send_intweet);
-        sendButton.setClickable(false);
+        binding.twSendIntweet.setClickable(false);
         twitterApi.updateStatus(sendingText)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Subscriber<Status>() {
               @Override
               public void onCompleted() {
-                sendButton.setClickable(true);
+                binding.twSendIntweet.setClickable(true);
               }
 
               @Override
@@ -293,11 +280,12 @@ public class MainActivity extends AppCompatActivity {
 
               @Override
               public void onNext(Status status) {
-                editTweet.getText().clear();
-                editTweet.clearFocus();
-                tweetInputView.setVisibility(View.GONE);
+                binding.twIntext.getText().clear();
+                binding.twIntext.clearFocus();
+                activityMainBinding.tweetInputView.setVisibility(View.GONE);
               }
             });
+
       }
     });
   }
@@ -306,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
     int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
     return firstVisibleItem == 0
         && tlAdapter.getSelectedTweetId() <= 0
-        && tweetInputView.getVisibility() == View.GONE;
+        && activityMainBinding.tweetInputView.getVisibility() == View.GONE;
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {
@@ -319,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
             public void call(Status status) {
               if (canScrollToAdd()) {
                 tlAdapter.addNewStatus(status);
-                timeline.smoothScrollToPosition(0);
+                activityMainBinding.timeline.smoothScrollToPosition(0);
               }else {
                 tlAdapter.addNewStatus(status);
               }
@@ -426,9 +414,6 @@ public class MainActivity extends AppCompatActivity {
   private void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
   }
-
-  @Click(R.id.fab)
-  protected void onFabClicked() {}
 
   private static class MyItemDecoration extends RecyclerView.ItemDecoration {
     private final Paint paint;
