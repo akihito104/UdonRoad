@@ -45,7 +45,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = statuses.get(position);
-    holder.statusView.setStatus(status);
+    holder.statusView.bindStatus(status);
 
     holder.statusView.setOnClickListener(new View.OnClickListener() {
       @Override

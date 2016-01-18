@@ -39,18 +39,23 @@ public class StatusView extends RelativeLayout {
   private static final int RETWEETED_TEXT_COLOR = Color.argb(255, 64, 192, 64);
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
 
-  public void setStatus(final Status status) {
-    incomingTweetId = status.getId();
-    if (status.isRetweet()) {
-      setRetweetedUserVisibility(View.VISIBLE);
-      binding.tlRtuser.setText(status.getUser().getScreenName());
-      this.setTextColor(RETWEETED_TEXT_COLOR);
-    }
+  public void bindStatus(final Status status) {
     Status bindingStatus;
     if (status.isRetweet()) {
       bindingStatus = status.getRetweetedStatus();
     } else {
       bindingStatus = status;
+    }
+    binding.tlTime.setText(timeSpanConv.toTimeSpanString(bindingStatus.getCreatedAt()));
+    if (Long.compare(incomingTweetId, status.getId()) == 0) {
+      return;
+    }
+
+    incomingTweetId = status.getId();
+    if (status.isRetweet()) {
+      setRetweetedUserVisibility(View.VISIBLE);
+      binding.tlRtuser.setText(status.getUser().getScreenName());
+      this.setTextColor(RETWEETED_TEXT_COLOR);
     }
     User user = bindingStatus.getUser();
     Picasso.with(binding.tlIcon.getContext())
@@ -59,7 +64,6 @@ public class StatusView extends RelativeLayout {
     binding.tlAccount.setText(user.getName());
     binding.tlDisplayname.setText(user.getScreenName());
     binding.tlTweet.setText(bindingStatus.getText());
-    binding.tlTime.setText(timeSpanConv.toTimeSpanString(bindingStatus.getCreatedAt()));
     binding.tlClientname.setText(Html.fromHtml(bindingStatus.getSource()).toString());
 
     final int rtCount = bindingStatus.getRetweetCount();
