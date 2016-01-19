@@ -21,7 +21,7 @@ import twitter4j.util.TimeSpanConverter;
  */
 public class StatusView extends RelativeLayout {
   private long incomingTweetId;
-  private TweetViewBinding binding;
+  private final TweetViewBinding binding;
 
   public StatusView(Context context) {
     this(context, null);
