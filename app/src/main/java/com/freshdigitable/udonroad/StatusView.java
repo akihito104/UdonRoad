@@ -70,12 +70,18 @@ public class StatusView extends RelativeLayout {
     if (rtCount > 0) {
       this.setRtCountVisibility(View.VISIBLE);
       binding.tlRtcount.setText(String.valueOf(rtCount));
+      if (bindingStatus.isRetweetedByMe()) {
+        binding.tlMyrt.setVisibility(VISIBLE);
+      }
     }
 
     final int favCount = bindingStatus.getFavoriteCount();
     if (favCount > 0) {
       this.setFavCountVisibility(View.VISIBLE);
       binding.tlFavcount.setText(String.valueOf(favCount));
+      if (bindingStatus.isFavorited()) {
+        binding.tlMyfav.setVisibility(VISIBLE);
+      }
     }
   }
 
@@ -112,5 +118,7 @@ public class StatusView extends RelativeLayout {
     setFavCountVisibility(View.GONE);
     setRetweetedUserVisibility(View.GONE);
     setTextColor(Color.GRAY);
+    binding.tlMyrt.setVisibility(GONE);
+    binding.tlMyfav.setVisibility(GONE);
   }
 }

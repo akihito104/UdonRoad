@@ -96,16 +96,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="@dimen/tweet_small_fontsize"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:text="@string/plus_one"
+        android:id="@+id/tl_myrt"
+        android:textStyle="bold"
+        android:layout_marginLeft="2dp"
+        android:layout_alignTop="@+id/tl_rtcount"
+        android:layout_toEndOf="@+id/tl_rtcount"
+        android:layout_toRightOf="@+id/tl_rtcount"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="@string/tweet_rt"
         android:id="@+id/tl_rt"
         android:textSize="@dimen/tweet_small_fontsize"
-        android:layout_alignTop="@+id/tl_rtcount"
-        android:layout_toRightOf="@+id/tl_rtcount"
-        android:layout_toEndOf="@+id/tl_rtcount"
         android:layout_marginLeft="4dp"
         android:layout_marginRight="8dp"
         android:visibility="gone"
         tools:visibility="visible"
+        android:layout_alignTop="@+id/tl_myrt"
+        android:layout_toEndOf="@+id/tl_myrt"
+        android:layout_toRightOf="@+id/tl_myrt"
         />
 
     <TextView
@@ -114,12 +130,28 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:id="@+id/tl_favcount"
         android:textSize="@dimen/tweet_small_fontsize"
-        android:layout_alignTop="@+id/tl_rt"
-        android:layout_toRightOf="@+id/tl_rt"
-        android:layout_toEndOf="@+id/tl_rt"
         android:visibility="gone"
         tools:visibility="visible"
         tools:text="Count"
+        android:layout_alignTop="@+id/tl_rt"
+        android:layout_toEndOf="@+id/tl_rt"
+        android:layout_toRightOf="@+id/tl_rt"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="@dimen/tweet_small_fontsize"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:text="@string/plus_one"
+        android:id="@+id/tl_myfav"
+        android:textStyle="bold"
+        android:layout_marginLeft="2dp"
+        android:layout_alignTop="@+id/tl_favcount"
+        android:layout_toEndOf="@+id/tl_favcount"
+        android:layout_toRightOf="@+id/tl_favcount"
         />
 
     <TextView
@@ -128,13 +160,13 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="@string/tweet_like"
         android:id="@+id/tl_fav"
-        android:layout_alignTop="@+id/tl_favcount"
-        android:layout_toRightOf="@+id/tl_favcount"
-        android:layout_toEndOf="@+id/tl_favcount"
         android:layout_marginLeft="4dp"
         android:textSize="@dimen/tweet_small_fontsize"
         android:visibility="gone"
         tools:visibility="visible"
+        android:layout_alignTop="@+id/tl_myfav"
+        android:layout_toEndOf="@+id/tl_myfav"
+        android:layout_toRightOf="@+id/tl_myfav"
         />
 
     <TextView
@@ -182,12 +214,11 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:id="@+id/tl_rtuser"
         android:textSize="@dimen/tweet_small_fontsize"
-        android:layout_below="@+id/tl_rt"
-        android:layout_toRightOf="@+id/tl_rtby"
-        android:layout_toEndOf="@+id/tl_rtby"
         android:visibility="gone"
         tools:visibility="visible"
         tools:text="Retweeting user"
+        android:layout_below="@+id/tl_rt"
+        android:layout_toEndOf="@+id/tl_rtby"
         />
 
 </RelativeLayout>

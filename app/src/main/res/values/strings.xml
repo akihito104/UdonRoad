@@ -11,4 +11,5 @@
     <string name="oauth">OAuth</string>
     <string name="drawer_open">open nav drawer</string>
     <string name="draver_close">close nav drawer</string>
+    <string name="plus_one">+1</string>
 </resources>
