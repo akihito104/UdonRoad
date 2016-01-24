@@ -69,18 +69,22 @@ public class StatusView extends RelativeLayout {
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0) {
       this.setRtCountVisibility(View.VISIBLE);
-      binding.tlRtcount.setText(String.valueOf(rtCount));
       if (bindingStatus.isRetweetedByMe()) {
         binding.tlMyrt.setVisibility(VISIBLE);
+        binding.tlRtcount.setText(String.valueOf(rtCount - 1));
+      } else {
+        binding.tlRtcount.setText(String.valueOf(rtCount));
       }
     }
 
     final int favCount = bindingStatus.getFavoriteCount();
     if (favCount > 0) {
       this.setFavCountVisibility(View.VISIBLE);
-      binding.tlFavcount.setText(String.valueOf(favCount));
       if (bindingStatus.isFavorited()) {
         binding.tlMyfav.setVisibility(VISIBLE);
+        binding.tlFavcount.setText(String.valueOf(favCount - 1));
+      } else {
+        binding.tlFavcount.setText(String.valueOf(favCount));
       }
     }
   }

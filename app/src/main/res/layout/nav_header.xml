@@ -35,6 +35,6 @@
         android:id="@+id/nav_header_icon"
         android:layout_above="@+id/nav_header_account"
         android:layout_alignParentEnd="true"
-        android:contentDescription="user icon"
+        android:contentDescription="@string/desc_icon"
         />
 </RelativeLayout>
