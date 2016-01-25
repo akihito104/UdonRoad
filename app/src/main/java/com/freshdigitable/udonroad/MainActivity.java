@@ -39,6 +39,7 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import twitter4j.Paging;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -74,11 +75,11 @@ public class MainActivity extends AppCompatActivity {
     activityMainBinding.timeline.addItemDecoration(itemDecoration);
     tlLayoutManager = new LinearLayoutManager(this);
     activityMainBinding.timeline.setLayoutManager(tlLayoutManager);
+    activityMainBinding.timeline.setItemAnimator(new TimelineAnimator());
 
     tlAdapter = new TimelineAdapter();
     tlAdapter.setOnSelectedTweetChangeListener(selectedTweetChangeListener);
     activityMainBinding.timeline.setAdapter(tlAdapter);
-    activityMainBinding.timeline.setItemAnimator(new TimelineAnimator());
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -405,6 +406,30 @@ public class MainActivity extends AppCompatActivity {
           @Override
           public void onNext(List<Status> status) {
             tlAdapter.addNewStatuses(status);
+            paging.setMaxId(status.get(status.size()).getId() - 1);
+          }
+        });
+  }
+
+  private Paging paging = new Paging(0, 20);
+
+  private void fetchTweet(Paging paging) {
+    twitterApi.getHomeTimeline(paging)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Subscriber<List<Status>>() {
+          @Override
+          public void onCompleted() {
+          }
+
+          @Override
+          public void onError(Throwable e) {
+            Log.e(TAG, "home timeline is not downloaded.", e);
+          }
+
+          @Override
+          public void onNext(List<Status> status) {
+            tlAdapter.addNewStatuses(status);
+            MainActivity.this.paging.setMaxId(status.get(status.size()).getId() - 1);
           }
         });
   }

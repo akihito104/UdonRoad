@@ -9,6 +9,7 @@ import java.util.List;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -183,6 +184,20 @@ public class TwitterApi {
       public void call(Subscriber<? super List<Status>> subscriber) {
         try {
           subscriber.onNext(twitter.getHomeTimeline());
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.newThread());
+  }
+
+  public Observable<List<Status>> getHomeTimeline(final Paging paging) {
+    return Observable.create(new Observable.OnSubscribe<List<Status>>(){
+      @Override
+      public void call(Subscriber<? super List<Status>> subscriber) {
+        try {
+          subscriber.onNext(twitter.getHomeTimeline(paging));
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
