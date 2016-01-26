@@ -150,4 +150,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       this.statusView = (StatusView) itemView;
     }
   }
+
+  interface LastItemBoundListener {
+    void onLastItemBoundListener();
+  }
 }
