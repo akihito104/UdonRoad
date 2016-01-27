@@ -42,10 +42,23 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   private View selectedView = null;
 
+  interface LastItemBoundListener {
+    void onLastItemBound(long statusId);
+  }
+
+  private LastItemBoundListener lastItemBoundListener;
+
+  public void setLastItemBoundListener(LastItemBoundListener listener) {
+    this.lastItemBoundListener = listener;
+  }
+
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = statuses.get(position);
     holder.statusView.bindStatus(status);
+    if (position == getItemCount() - 1) {
+      lastItemBoundListener.onLastItemBound(status.getId());
+    }
 
     holder.statusView.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -149,9 +162,5 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       super(itemView);
       this.statusView = (StatusView) itemView;
     }
-  }
-
-  interface LastItemBoundListener {
-    void onLastItemBoundListener();
   }
 }

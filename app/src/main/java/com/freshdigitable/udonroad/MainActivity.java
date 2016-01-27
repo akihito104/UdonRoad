@@ -80,6 +80,12 @@ public class MainActivity extends AppCompatActivity {
     tlAdapter = new TimelineAdapter();
     tlAdapter.setOnSelectedTweetChangeListener(selectedTweetChangeListener);
     activityMainBinding.timeline.setAdapter(tlAdapter);
+    tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
+      @Override
+      public void onLastItemBound(long statusId) {
+        fetchTweet(new Paging(1, 20, 1, statusId-1));
+      }
+    });
     fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -406,12 +412,9 @@ public class MainActivity extends AppCompatActivity {
           @Override
           public void onNext(List<Status> status) {
             tlAdapter.addNewStatuses(status);
-            paging.setMaxId(status.get(status.size()).getId() - 1);
           }
         });
   }
-
-  private Paging paging = new Paging(0, 20);
 
   private void fetchTweet(Paging paging) {
     twitterApi.getHomeTimeline(paging)
@@ -429,7 +432,6 @@ public class MainActivity extends AppCompatActivity {
           @Override
           public void onNext(List<Status> status) {
             tlAdapter.addNewStatuses(status);
-            MainActivity.this.paging.setMaxId(status.get(status.size()).getId() - 1);
           }
         });
   }
