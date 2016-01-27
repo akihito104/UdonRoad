@@ -431,7 +431,7 @@ public class MainActivity extends AppCompatActivity {
 
           @Override
           public void onNext(List<Status> status) {
-            tlAdapter.addNewStatuses(status);
+            tlAdapter.addNewStatusesAtLast(status);
           }
         });
   }

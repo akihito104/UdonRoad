@@ -134,6 +134,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     notifyItemRangeInserted(0, statuses.size());
   }
 
+  public void addNewStatusesAtLast(List<Status> statuses) {
+    this.statuses.addAll(statuses);
+    notifyDataSetChanged();
+  }
+
   public void deleteStatus(long statusId) {
     Status removing = null;
     for (Status s: statuses){
