@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:id="@+id/user_banner"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        />
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:id="@+id/user_icon"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="22dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="60dp"
+        />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/user_screan_name"
+        android:layout_below="@+id/user_banner"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/user_icon"
+        android:layout_alignBottom="@+id/user_icon"
+        android:text="screenname"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="\@account"
+        android:id="@+id/user_account"
+        android:layout_alignTop="@+id/user_icon"
+        android:layout_alignStart="@+id/user_screan_name"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="user description"
+        android:id="@+id/user_description"
+        android:layout_below="@+id/user_icon"
+        android:layout_alignStart="@+id/user_icon"
+        />
+</RelativeLayout>
