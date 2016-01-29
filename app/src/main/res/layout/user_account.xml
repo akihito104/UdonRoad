@@ -1,54 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-    <ImageView
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    >
+    
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/user_appbar"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:id="@+id/user_banner"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        />
+        android:layout_height="240dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:fitsSystemWindows="true"
+        >
 
-    <ImageView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:id="@+id/user_icon"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="22dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginTop="60dp"
-        />
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:id="@+id/user_collapsing_toolbar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="?attr/colorPrimary"
+            >
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/user_screan_name"
-        android:layout_below="@+id/user_banner"
-        android:layout_alignParentEnd="true"
-        android:layout_toEndOf="@+id/user_icon"
-        android:layout_alignBottom="@+id/user_icon"
-        android:text="screenname"
-        />
+            <RelativeLayout
+                android:id="@+id/user_relative_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="\@account"
-        android:id="@+id/user_account"
-        android:layout_alignTop="@+id/user_icon"
-        android:layout_alignStart="@+id/user_screan_name"
-        />
+                <ImageView
+                    android:id="@+id/user_banner"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentStart="true"
+                    android:contentDescription="user banner"
+                    />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="user description"
-        android:id="@+id/user_description"
-        android:layout_below="@+id/user_icon"
-        android:layout_alignStart="@+id/user_icon"
-        />
-</RelativeLayout>
+                <ImageView
+                    android:id="@+id/user_icon"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginStart="22dp"
+                    android:layout_marginRight="20dp"
+                    android:layout_marginTop="60dp"
+                    android:contentDescription="@string/desc_icon"
+                    />
+
+                <TextView
+                    android:id="@+id/user_screen_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/user_banner"
+                    android:layout_alignParentEnd="true"
+                    android:layout_toEndOf="@+id/user_icon"
+                    android:textSize="20sp"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    tools:text="screenname"
+                    />
+
+                <TextView
+                    android:id="@+id/user_account"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:layout_alignTop="@+id/user_icon"
+                    android:layout_alignStart="@+id/user_screen_name"
+                    tools:text="\@account"
+                    />
+
+                <TextView
+                    android:id="@+id/user_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/user_screen_name"
+                    android:layout_alignStart="@+id/user_screen_name"
+                    tools:text="user description"
+                    />
+
+            </RelativeLayout>
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/user_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:layout_collapseMode="pin"
+                />
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/user_nested_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        >
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/user_timeline"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+
+    </android.support.v4.widget.NestedScrollView>
+
+</android.support.design.widget.CoordinatorLayout>
