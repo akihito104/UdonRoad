@@ -183,10 +183,16 @@ public class MainActivity extends AppCompatActivity {
           }
 
           @Override
-          public void onNext(User user) { /* TODO: save profile data to sqlite */
+          public void onNext(final User user) { /* TODO: save profile data to sqlite */
             ((TextView) navDrawerBinding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
             ImageView icon = (ImageView) navDrawerBinding.navDrawer.findViewById(R.id.nav_header_icon);
             Picasso.with(navDrawerBinding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
+            icon.setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
+              }
+            });
 
             activityMainBinding.tweetInputView.setUserInfo(user);
           }

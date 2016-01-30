@@ -57,9 +57,15 @@ public class StatusView extends RelativeLayout {
       binding.tlRtuser.setText(status.getUser().getScreenName());
       this.setTextColor(RETWEETED_TEXT_COLOR);
     }
-    User user = bindingStatus.getUser();
+    final User user = bindingStatus.getUser();
     Picasso.with(binding.tlIcon.getContext())
         .load(user.getProfileImageURLHttps()).fit().into(binding.tlIcon);
+    binding.tlIcon.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        getContext().startActivity(UserAccountActivity.createIntent(getContext(), user));
+      }
+    });
 
     binding.tlAccount.setText(user.getName());
     binding.tlDisplayname.setText(user.getScreenName());

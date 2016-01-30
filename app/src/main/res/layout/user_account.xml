@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+    >
+
 <android.support.design.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
@@ -53,7 +55,7 @@
                     />
 
                 <TextView
-                    android:id="@+id/user_screen_name"
+                    android:id="@+id/user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/user_banner"
@@ -65,12 +67,12 @@
                     />
 
                 <TextView
-                    android:id="@+id/user_account"
+                    android:id="@+id/user_screen_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:layout_alignTop="@+id/user_icon"
-                    android:layout_alignStart="@+id/user_screen_name"
+                    android:layout_alignStart="@+id/user_name"
                     tools:text="\@account"
                     />
 
@@ -78,8 +80,8 @@
                     android:id="@+id/user_description"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/user_screen_name"
-                    android:layout_alignStart="@+id/user_screen_name"
+                    android:layout_below="@+id/user_name"
+                    android:layout_alignStart="@+id/user_name"
                     tools:text="user description"
                     />
 
@@ -113,3 +115,4 @@
     </android.support.v4.widget.NestedScrollView>
 
 </android.support.design.widget.CoordinatorLayout>
+</layout>

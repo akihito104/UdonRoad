@@ -31,6 +31,8 @@
                     android:scheme="udonr" />
             </intent-filter>
         </activity>
+        <activity android:name=".UserAccountActivity"
+            android:exported="false"/>
 
     </application>
 
