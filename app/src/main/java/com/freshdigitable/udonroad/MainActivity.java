@@ -28,7 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
-import com.freshdigitable.udonroad.databinding.NavDrawerBinding;
+import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.databinding.TweetInputViewBinding;
 import com.squareup.picasso.Picasso;
 
@@ -49,8 +49,8 @@ import twitter4j.UserStreamListener;
 
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
-  private ActivityMainBinding activityMainBinding;
-  private NavDrawerBinding navDrawerBinding;
+  private FragmentTimelineBinding activityMainBinding;
+  private ActivityMainBinding navDrawerBinding;
 
   private TimelineAdapter tlAdapter;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    navDrawerBinding = DataBindingUtil.setContentView(this, R.layout.nav_drawer);
+    navDrawerBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
     activityMainBinding = navDrawerBinding.mainLayout;
 
     if (!TwitterApi.hasAccessToken(this)) {

@@ -1,45 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <FrameLayout android:layout_width="match_parent"
-                 android:layout_height="wrap_content"
-                 tools:context=".MainActivity">
+<android.support.v4.widget.DrawerLayout
+    android:id="@+id/nav_drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fitsSystemWindows="true"
+    >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_height="?attr/actionBarSize"
-        android:layout_width="match_parent"
-        android:elevation="5dp"
-        android:background="@color/colorPrimaryDark"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+    <include layout="@layout/fragment_timeline"
+        android:id="@+id/main_layout"/>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/timeline"
-        android:scrollbars="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:layout_marginTop="?attr/actionBarSize"/>
-
-    <com.freshdigitable.udonroad.FlingableFloatingActionButton
-        android:id="@+id/fab"
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_drawer"
+        android:layout_height="match_parent"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="32dp"
-        android:src="@drawable/ic_add_white_36dp"/>
+        android:layout_gravity="start"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/nav_menu"
+        />
 
-    <com.freshdigitable.udonroad.TweetInputView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|top"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:visibility="gone"
-        tools:visibility="visible"
-        android:id="@+id/tweet_input_view"
-        android:elevation="5dp" />
-
-</FrameLayout>
+</android.support.v4.widget.DrawerLayout>
 </layout>
