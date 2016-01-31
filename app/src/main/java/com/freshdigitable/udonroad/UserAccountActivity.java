@@ -21,11 +21,14 @@ public class UserAccountActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     binding = DataBindingUtil.setContentView(this, R.layout.user_account);
     User user = parseIntent();
-    binding.userScreenName.setText(user.getScreenName());
+    binding.userScreenName.setText("@" + user.getScreenName());
     binding.userName.setText(user.getName());
     binding.userDescription.setText(user.getDescription());
     Picasso.with(this).load(user.getProfileImageURLHttps()).into(binding.userIcon);
     Picasso.with(this).load(user.getProfileBannerMobileURL()).fit().into(binding.userBanner);
+    binding.userTweetsCount.setText("* " + user.getStatusesCount());
+    binding.userFollowerCount.setText("> " + user.getFollowersCount());
+    binding.userFriendsCount.setText("< " + user.getFriendsCount());
   }
 
   public static Intent createIntent(Context context, User user) {

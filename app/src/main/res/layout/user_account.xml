@@ -36,7 +36,8 @@
                 <ImageView
                     android:id="@+id/user_banner"
                     android:layout_width="match_parent"
-                    android:layout_height="80dp"
+                    android:layout_height="120dp"
+                    android:scaleType="fitCenter"
                     android:layout_alignParentTop="true"
                     android:layout_alignParentStart="true"
                     android:contentDescription="user banner"
@@ -44,26 +45,29 @@
 
                 <ImageView
                     android:id="@+id/user_icon"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
                     android:layout_alignParentTop="true"
                     android:layout_alignParentStart="true"
-                    android:layout_marginStart="22dp"
-                    android:layout_marginRight="20dp"
+                    android:layout_alignParentLeft="true"
                     android:layout_marginTop="60dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="6dp"
                     android:contentDescription="@string/desc_icon"
+                    android:padding="2dp"
+                    android:background="#ffffff"
+                    android:layout_marginBottom="6dp"
                     />
 
                 <TextView
                     android:id="@+id/user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/user_banner"
-                    android:layout_alignParentEnd="true"
-                    android:layout_toEndOf="@+id/user_icon"
                     android:textSize="20sp"
                     android:textAppearance="?android:attr/textAppearanceLarge"
-                    tools:text="screenname"
+                    tools:text="user name"
+                    android:layout_below="@+id/user_screen_name"
+                    android:layout_toEndOf="@+id/user_icon"
                     />
 
                 <TextView
@@ -71,9 +75,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
+                    tools:text="\@screenname"
                     android:layout_alignTop="@+id/user_icon"
-                    android:layout_alignStart="@+id/user_name"
-                    tools:text="\@account"
+                    android:layout_toEndOf="@+id/user_icon"
                     />
 
                 <TextView
@@ -81,8 +85,42 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/user_name"
-                    android:layout_alignStart="@+id/user_name"
+                    android:layout_toEndOf="@+id/user_icon"
+                    android:textSize="@dimen/tweet_main_size"
                     tools:text="user description"
+                    />
+
+                <TextView
+                    android:id="@+id/user_tweets_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:layout_below="@+id/user_icon"
+                    android:layout_alignStart="@+id/user_icon"
+                    android:textSize="@dimen/tweet_main_size"
+                    tools:text="tweets"
+                    />
+
+                <TextView
+                    android:id="@+id/user_follower_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:layout_below="@+id/user_tweets_count"
+                    android:layout_alignStart="@+id/user_tweets_count"
+                    android:textSize="@dimen/tweet_main_size"
+                    tools:text="followers"
+                    />
+
+                <TextView
+                    android:id="@+id/user_friends_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:layout_below="@+id/user_follower_count"
+                    android:layout_alignStart="@+id/user_follower_count"
+                    android:textSize="@dimen/tweet_main_size"
+                    tools:text="friends"
                     />
 
             </RelativeLayout>
