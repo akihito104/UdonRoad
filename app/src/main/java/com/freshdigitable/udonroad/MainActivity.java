@@ -49,8 +49,8 @@ import twitter4j.UserStreamListener;
 
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
-  private FragmentTimelineBinding activityMainBinding;
-  private ActivityMainBinding navDrawerBinding;
+  private FragmentTimelineBinding timelineBinding;
+  private ActivityMainBinding activityMainBinding;
 
   private TimelineAdapter tlAdapter;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -60,8 +60,8 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    navDrawerBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-    activityMainBinding = navDrawerBinding.mainLayout;
+    activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+    timelineBinding = activityMainBinding.mainLayout;
 
     if (!TwitterApi.hasAccessToken(this)) {
       startActivity(new Intent(this, OAuthActivity.class));
@@ -70,16 +70,16 @@ public class MainActivity extends AppCompatActivity {
     twitterApi = TwitterApi.setup(this);
     inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-    activityMainBinding.timeline.setHasFixedSize(true);
+    timelineBinding.timeline.setHasFixedSize(true);
     RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
-    activityMainBinding.timeline.addItemDecoration(itemDecoration);
+    timelineBinding.timeline.addItemDecoration(itemDecoration);
     tlLayoutManager = new LinearLayoutManager(this);
-    activityMainBinding.timeline.setLayoutManager(tlLayoutManager);
-    activityMainBinding.timeline.setItemAnimator(new TimelineAnimator());
+    timelineBinding.timeline.setLayoutManager(tlLayoutManager);
+    timelineBinding.timeline.setItemAnimator(new TimelineAnimator());
 
     tlAdapter = new TimelineAdapter();
     tlAdapter.setOnSelectedTweetChangeListener(selectedTweetChangeListener);
-    activityMainBinding.timeline.setAdapter(tlAdapter);
+    timelineBinding.timeline.setAdapter(tlAdapter);
     tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
       public void onLastItemBound(long statusId) {
@@ -93,9 +93,9 @@ public class MainActivity extends AppCompatActivity {
     activityMainBinding.toolbar.setTitleTextColor(Color.WHITE);
 
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        navDrawerBinding.navDrawerLayout, activityMainBinding.toolbar, R.string.drawer_open, R.string.draver_close);
+        activityMainBinding.navDrawerLayout, activityMainBinding.toolbar, R.string.drawer_open, R.string.draver_close);
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
-    navDrawerBinding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
+    activityMainBinding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
 
     setSupportActionBar(activityMainBinding.toolbar);
     if (getSupportActionBar() != null) {
@@ -104,19 +104,19 @@ public class MainActivity extends AppCompatActivity {
     actionBarDrawerToggle.syncState();
 
     setupNavigationDrawer();
-    navDrawerBinding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+    activityMainBinding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_home) {
           Log.d(TAG, "home is selected");
-          navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
+          activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
         } else if (itemId == R.id.menu_mention) {
           Log.d(TAG, "mention is selected");
-          navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
+          activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
         } else if (itemId == R.id.menu_fav) {
           Log.d(TAG, "fav is selected");
-          navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
+          activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
         }
         return false;
       }
@@ -133,8 +133,8 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
-    activityMainBinding.fab.setVisibility(View.GONE);
-    activityMainBinding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+    timelineBinding.fab.setVisibility(View.GONE);
+    timelineBinding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
       @Override
       public void onFling(FlingableFloatingActionButton.Direction direction) {
         Log.d(TAG, "fling direction: " + direction.toString());
@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
         }
       }
     });
-    activityMainBinding.fab.setOnClickListener(new View.OnClickListener() {
+    timelineBinding.fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
       }
@@ -160,12 +160,12 @@ public class MainActivity extends AppCompatActivity {
       = new TimelineAdapter.OnSelectedTweetChangeListener() {
     @Override
     public void onTweetSelected() {
-      activityMainBinding.fab.setVisibility(View.VISIBLE);
+      timelineBinding.fab.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onTweetUnselected() {
-      activityMainBinding.fab.setVisibility(View.GONE);
+      timelineBinding.fab.setVisibility(View.GONE);
     }
   };
 
@@ -184,9 +184,9 @@ public class MainActivity extends AppCompatActivity {
 
           @Override
           public void onNext(final User user) { /* TODO: save profile data to sqlite */
-            ((TextView) navDrawerBinding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
-            ImageView icon = (ImageView) navDrawerBinding.navDrawer.findViewById(R.id.nav_header_icon);
-            Picasso.with(navDrawerBinding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
+            ((TextView) activityMainBinding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
+            ImageView icon = (ImageView) activityMainBinding.navDrawer.findViewById(R.id.nav_header_icon);
+            Picasso.with(activityMainBinding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
             icon.setOnClickListener(new View.OnClickListener() {
               @Override
               public void onClick(View v) {
@@ -243,8 +243,8 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     if (keyCode == KeyEvent.KEYCODE_BACK) {
-      if (navDrawerBinding.navDrawerLayout.isDrawerOpen(navDrawerBinding.navDrawer)) {
-        navDrawerBinding.navDrawerLayout.closeDrawer(navDrawerBinding.navDrawer);
+      if (activityMainBinding.navDrawerLayout.isDrawerOpen(activityMainBinding.navDrawer)) {
+        activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
         return true;
       }
       if (activityMainBinding.tweetInputView.isVisible()) {
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void headingSelected() {
-    activityMainBinding.timeline.smoothScrollToPosition(0);
+    timelineBinding.timeline.smoothScrollToPosition(0);
     tlAdapter.clearSelectedTweet();
   }
 
@@ -318,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
             public void call(Status status) {
               if (canScrollToAdd()) {
                 tlAdapter.addNewStatus(status);
-                activityMainBinding.timeline.smoothScrollToPosition(0);
+                timelineBinding.timeline.smoothScrollToPosition(0);
               }else {
                 tlAdapter.addNewStatus(status);
               }
