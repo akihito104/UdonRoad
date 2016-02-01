@@ -39,8 +39,11 @@
             />
     </FrameLayout>
 
-    <include layout="@layout/fragment_timeline"
-        android:id="@+id/main_layout"
+    <fragment
+        android:id="@+id/main_timeline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:name="com.freshdigitable.udonroad.TimelineFragment"
         />
 
     <android.support.design.widget.NavigationView

@@ -4,18 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
-import android.support.v4.view.ViewCompat;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -28,7 +23,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
-import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.databinding.TweetInputViewBinding;
 import com.squareup.picasso.Picasso;
 
@@ -48,20 +42,17 @@ import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
 public class MainActivity extends AppCompatActivity {
-  private static final String TAG = MainActivity.class.getName();
-  private FragmentTimelineBinding timelineBinding;
+  private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding activityMainBinding;
-
-  private TimelineAdapter tlAdapter;
   private ActionBarDrawerToggle actionBarDrawerToggle;
-  private LinearLayoutManager tlLayoutManager;
+  private TimelineFragment tlFragment;
+
   private TwitterApi twitterApi;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-    timelineBinding = activityMainBinding.mainLayout;
 
     if (!TwitterApi.hasAccessToken(this)) {
       startActivity(new Intent(this, OAuthActivity.class));
@@ -69,24 +60,6 @@ public class MainActivity extends AppCompatActivity {
     }
     twitterApi = TwitterApi.setup(this);
     inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-    timelineBinding.timeline.setHasFixedSize(true);
-    RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
-    timelineBinding.timeline.addItemDecoration(itemDecoration);
-    tlLayoutManager = new LinearLayoutManager(this);
-    timelineBinding.timeline.setLayoutManager(tlLayoutManager);
-    timelineBinding.timeline.setItemAnimator(new TimelineAnimator());
-
-    tlAdapter = new TimelineAdapter();
-    tlAdapter.setOnSelectedTweetChangeListener(selectedTweetChangeListener);
-    timelineBinding.timeline.setAdapter(tlAdapter);
-    tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
-      @Override
-      public void onLastItemBound(long statusId) {
-        fetchTweet(new Paging(1, 20, 1, statusId-1));
-      }
-    });
-    fetchTweet();
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     // android:titleTextColor is required up to API level 23
@@ -133,41 +106,14 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
-    timelineBinding.fab.setVisibility(View.GONE);
-    timelineBinding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+    tlFragment = (TimelineFragment)getSupportFragmentManager().findFragmentById(R.id.main_timeline);
+    tlFragment.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
-      public void onFling(FlingableFloatingActionButton.Direction direction) {
-        Log.d(TAG, "fling direction: " + direction.toString());
-        if (!tlAdapter.isTweetSelected()) {
-          return;
-        }
-        final long tweetId = tlAdapter.getSelectedTweetId();
-        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
-          fetchFavorite(tweetId);
-        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
-          fetchRetweet(tweetId);
-        }
-      }
-    });
-    timelineBinding.fab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
+      public void onLastItemBound(long statusId) {
+        fetchTweet(new Paging(1, 20, 1, statusId - 1));
       }
     });
   }
-
-  private final TimelineAdapter.OnSelectedTweetChangeListener selectedTweetChangeListener
-      = new TimelineAdapter.OnSelectedTweetChangeListener() {
-    @Override
-    public void onTweetSelected() {
-      timelineBinding.fab.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void onTweetUnselected() {
-      timelineBinding.fab.setVisibility(View.GONE);
-    }
-  };
 
   private void setupNavigationDrawer() {
     twitterApi.verifyCredentials()
@@ -208,6 +154,22 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    tlFragment.getFab().setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+      @Override
+      public void onFling(FlingableFloatingActionButton.Direction direction) {
+        Log.d(TAG, "fling direction: " + direction.toString());
+        if (!tlFragment.isTweetSelected()) {
+          return;
+        }
+        final long tweetId = tlFragment.getSelectedTweetId();
+        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
+          fetchFavorite(tweetId);
+        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
+          fetchRetweet(tweetId);
+        }
+      }
+    });
+    fetchTweet();
     twitterApi.connectUserStream(statusListener);
   }
 
@@ -240,6 +202,11 @@ public class MainActivity extends AppCompatActivity {
         || super.onOptionsItemSelected(item);
   }
 
+  private void headingSelected() {
+    tlFragment.scrollTo(0);
+    tlFragment.clearSelectedTweet();
+  }
+
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -251,17 +218,12 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.tweetInputView.disappearing();
         return true;
       }
-      if (tlAdapter.isTweetSelected()) {
-        tlAdapter.clearSelectedTweet();
+      if (tlFragment.isTweetSelected()) {
+        tlFragment.clearSelectedTweet();
         return true;
       }
     }
     return super.onKeyDown(keyCode, event);
-  }
-
-  private void headingSelected() {
-    timelineBinding.timeline.smoothScrollToPosition(0);
-    tlAdapter.clearSelectedTweet();
   }
 
   private InputMethodManager inputMethodManager;
@@ -301,13 +263,6 @@ public class MainActivity extends AppCompatActivity {
     });
   }
 
-  private boolean canScrollToAdd() {
-    int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
-    return firstVisibleItem == 0
-        && tlAdapter.getSelectedTweetId() <= 0
-        && activityMainBinding.tweetInputView.getVisibility() == View.GONE;
-  }
-
   private final UserStreamListener statusListener = new UserStreamAdapter() {
     @Override
     public void onStatus(final Status status) {
@@ -316,12 +271,7 @@ public class MainActivity extends AppCompatActivity {
           .subscribe(new Action1<Status>() {
             @Override
             public void call(Status status) {
-              if (canScrollToAdd()) {
-                tlAdapter.addNewStatus(status);
-                timelineBinding.timeline.smoothScrollToPosition(0);
-              }else {
-                tlAdapter.addNewStatus(status);
-              }
+              tlFragment.addNewStatus(status);
             }
           });
     }
@@ -334,8 +284,7 @@ public class MainActivity extends AppCompatActivity {
           .subscribe(new Action1<Long>() {
             @Override
             public void call(Long deletedStatusId) {
-              tlAdapter.deleteStatus(deletedStatusId);
-              tlAdapter.notifyDataSetChanged();
+              tlFragment.deleteStatus(deletedStatusId);
             }
           });
     }
@@ -417,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
 
           @Override
           public void onNext(List<Status> status) {
-            tlAdapter.addNewStatuses(status);
+            tlFragment.addNewStatuses(status);
           }
         });
   }
@@ -437,51 +386,12 @@ public class MainActivity extends AppCompatActivity {
 
           @Override
           public void onNext(List<Status> status) {
-            tlAdapter.addNewStatusesAtLast(status);
+            tlFragment.addStatusesAtLast(status);
           }
         });
   }
 
   private void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
-  }
-
-  private static class MyItemDecoration extends RecyclerView.ItemDecoration {
-    private final Paint paint;
-    private final int dividerHeight;
-
-    MyItemDecoration() {
-      paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-      paint.setColor(Color.GRAY);
-      this.dividerHeight = 1;
-    }
-
-    @Override
-    public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-      int position = ((RecyclerView.LayoutParams) view.getLayoutParams()).getViewLayoutPosition();
-      int top = position == 0 ? 0 : dividerHeight;
-      outRect.set(0, top, 0, 0);
-    }
-
-    @Override
-    public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-      super.onDraw(c, parent, state);
-      final float left = parent.getPaddingLeft();
-      final float right = parent.getWidth() - parent.getPaddingRight();
-      final int childCount = parent.getChildCount();
-      final RecyclerView.LayoutManager manager = parent.getLayoutManager();
-
-      for (int i = 0; i < childCount; i++) {
-        final View child = parent.getChildAt(i);
-        final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
-        if (params.getViewLayoutPosition() == 0) {
-          continue;
-        }
-        final float top = manager.getDecoratedTop(child) - params.topMargin
-            + ViewCompat.getTranslationY(child);
-        final float bottom = top + dividerHeight;
-        c.drawRect(left, top, right, bottom, paint);
-      }
-    }
   }
 }
