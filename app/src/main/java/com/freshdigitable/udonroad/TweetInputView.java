@@ -28,6 +28,9 @@ public class TweetInputView extends RelativeLayout {
 
   public TweetInputView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
+    if (isInEditMode()) {
+      return;
+    }
     binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.tweet_input_view, this, true);
 
     binding.twSendIntweet.setOnClickListener(new OnClickListener() {

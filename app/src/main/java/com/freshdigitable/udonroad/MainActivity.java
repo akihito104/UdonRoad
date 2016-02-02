@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -66,7 +65,19 @@ public class MainActivity extends AppCompatActivity {
     activityMainBinding.toolbar.setTitleTextColor(Color.WHITE);
 
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        activityMainBinding.navDrawerLayout, activityMainBinding.toolbar, R.string.drawer_open, R.string.draver_close);
+        activityMainBinding.navDrawerLayout, activityMainBinding.toolbar, R.string.drawer_open, R.string.draver_close) {
+      @Override
+      public void onDrawerOpened(View drawerView) {
+        super.onDrawerOpened(drawerView);
+        tlFragment.setStopScroll(true);
+      }
+
+      @Override
+      public void onDrawerClosed(View drawerView) {
+        super.onDrawerClosed(drawerView);
+        tlFragment.setStopScroll(false);
+      }
+    };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     activityMainBinding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
 
@@ -94,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
       }
     });
+
 
     activityMainBinding.tweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
       @Override
@@ -216,6 +228,7 @@ public class MainActivity extends AppCompatActivity {
       }
       if (activityMainBinding.tweetInputView.isVisible()) {
         activityMainBinding.tweetInputView.disappearing();
+        tlFragment.setStopScroll(false);
         return true;
       }
       if (tlFragment.isTweetSelected()) {
@@ -229,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
   private InputMethodManager inputMethodManager;
 
   private void tweetSelected() {
+    tlFragment.setStopScroll(true);
     activityMainBinding.tweetInputView.appearing(new TweetInputView.OnStatusSending() {
       @Override
       public void sendingStatus(final TweetInputViewBinding binding) {
@@ -256,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
                 binding.twIntext.getText().clear();
                 binding.twIntext.clearFocus();
                 activityMainBinding.tweetInputView.setVisibility(View.GONE);
+                tlFragment.setStopScroll(false);
               }
             });
 

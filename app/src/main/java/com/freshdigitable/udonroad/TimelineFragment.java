@@ -67,10 +67,17 @@ public class TimelineFragment extends Fragment {
     this.lastItemBoundListener = lastItemBoundListener;
   }
 
+  private boolean stopScroll = false;
+
+  public void setStopScroll(boolean isStopScroll) {
+    stopScroll = isStopScroll;
+  }
+
   private boolean canScrollToAdd() {
     int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
     return firstVisibleItem == 0
-        && !tlAdapter.isTweetSelected();
+        && !tlAdapter.isTweetSelected()
+        && !stopScroll;
   }
 
   public void addNewStatus(Status status) {
@@ -97,6 +104,7 @@ public class TimelineFragment extends Fragment {
 
   public void scrollTo(int position) {
     binding.timeline.smoothScrollToPosition(position);
+    stopScroll = false;
   }
 
   public void clearSelectedTweet() {
