@@ -10,6 +10,10 @@ import android.widget.RelativeLayout;
 import com.freshdigitable.udonroad.databinding.TweetInputViewBinding;
 import com.squareup.picasso.Picasso;
 
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import twitter4j.Status;
 import twitter4j.User;
 
 /**
@@ -40,7 +44,27 @@ public class TweetInputView extends RelativeLayout {
         if (sendingText.isEmpty()) {
           return;
         }
-        onStatusSending.sendingStatus(binding);
+        binding.twSendIntweet.setClickable(false);
+        onStatusSending.sendStatus(sendingText)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Subscriber<Status>() {
+              @Override
+              public void onNext(Status status) {
+                binding.twIntext.getText().clear();
+                binding.twIntext.clearFocus();
+                onStatusSending.onSuccess(status);
+              }
+
+              @Override
+              public void onError(Throwable e) {
+                onStatusSending.onFailure(e);
+              }
+
+              @Override
+              public void onCompleted() {
+                binding.twSendIntweet.setClickable(true);
+              }
+            });
       }
     });
   }
@@ -53,7 +77,11 @@ public class TweetInputView extends RelativeLayout {
   private OnStatusSending onStatusSending;
 
   interface OnStatusSending {
-    void sendingStatus(TweetInputViewBinding binding);
+    Observable<Status> sendStatus(String text);
+
+    void onSuccess(Status status);
+
+    void onFailure(Throwable e);
   }
 
   public boolean isVisible() {

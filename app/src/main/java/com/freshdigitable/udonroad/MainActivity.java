@@ -245,35 +245,20 @@ public class MainActivity extends AppCompatActivity {
     tlFragment.setStopScroll(true);
     activityMainBinding.tweetInputView.appearing(new TweetInputView.OnStatusSending() {
       @Override
-      public void sendingStatus(final TweetInputViewBinding binding) {
-        final String sendingText = binding.twIntext.getText().toString();
-        if (sendingText.isEmpty()) {
-          return;
-        }
-        binding.twSendIntweet.setClickable(false);
-        twitterApi.updateStatus(sendingText)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Subscriber<Status>() {
-              @Override
-              public void onCompleted() {
-                binding.twSendIntweet.setClickable(true);
-              }
+      public Observable<Status> sendStatus(String status) {
+        return twitterApi.updateStatus(status);
+      }
 
-              @Override
-              public void onError(Throwable e) {
-                showToast("send tweet: failure...");
-                Log.e(TAG, "update status: " + e);
-              }
+      @Override
+      public void onSuccess(Status status) {
+        activityMainBinding.tweetInputView.setVisibility(View.GONE);
+        tlFragment.setStopScroll(false);
+      }
 
-              @Override
-              public void onNext(Status status) {
-                binding.twIntext.getText().clear();
-                binding.twIntext.clearFocus();
-                activityMainBinding.tweetInputView.setVisibility(View.GONE);
-                tlFragment.setStopScroll(false);
-              }
-            });
-
+      @Override
+      public void onFailure(Throwable e) {
+        showToast("send tweet: failure...");
+        Log.e(TAG, "update status: " + e);
       }
     });
   }
