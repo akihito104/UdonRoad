@@ -22,7 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
-import com.freshdigitable.udonroad.databinding.TweetInputViewBinding;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -58,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
       finish();
     }
     twitterApi = TwitterApi.setup(this);
-    inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     // android:titleTextColor is required up to API level 23
@@ -106,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
-
+    final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
     activityMainBinding.tweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
       @Override
       public void onFocusChange(View v, boolean hasFocus) {
@@ -239,8 +237,6 @@ public class MainActivity extends AppCompatActivity {
     return super.onKeyDown(keyCode, event);
   }
 
-  private InputMethodManager inputMethodManager;
-
   private void tweetSelected() {
     tlFragment.setStopScroll(true);
     activityMainBinding.tweetInputView.appearing(new TweetInputView.OnStatusSending() {
@@ -251,7 +247,6 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       public void onSuccess(Status status) {
-        activityMainBinding.tweetInputView.setVisibility(View.GONE);
         tlFragment.setStopScroll(false);
       }
 

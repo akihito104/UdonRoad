@@ -53,6 +53,7 @@ public class TweetInputView extends RelativeLayout {
                 binding.twIntext.getText().clear();
                 binding.twIntext.clearFocus();
                 onStatusSending.onSuccess(status);
+                disappearing();
               }
 
               @Override
@@ -69,26 +70,22 @@ public class TweetInputView extends RelativeLayout {
     });
   }
 
+  private User user;
+
   public void setUserInfo(User user) {
-    binding.twName.setText(user.getName());
-    binding.twAccount.setText(user.getScreenName());
-    Picasso.with(this.getContext()).load(user.getProfileImageURLHttps()).fit().into(binding.twIcon);
+    this.user = user;
   }
+
   private OnStatusSending onStatusSending;
-
-  interface OnStatusSending {
-    Observable<Status> sendStatus(String text);
-
-    void onSuccess(Status status);
-
-    void onFailure(Throwable e);
-  }
 
   public boolean isVisible() {
     return getVisibility() == View.VISIBLE;
   }
 
   public void appearing(OnStatusSending listener) {
+    binding.twName.setText(user.getName());
+    binding.twAccount.setText(user.getScreenName());
+    Picasso.with(this.getContext()).load(user.getProfileImageURLHttps()).fit().into(binding.twIcon);
     setVisibility(View.VISIBLE);
     binding.twIntext.requestFocus();
     this.onStatusSending = listener;
@@ -101,5 +98,13 @@ public class TweetInputView extends RelativeLayout {
 
   public void setOnInputFieldFocusChangeListener(OnFocusChangeListener listener) {
     binding.twIntext.setOnFocusChangeListener(listener);
+  }
+
+  interface OnStatusSending {
+    Observable<Status> sendStatus(String text);
+
+    void onSuccess(Status status);
+
+    void onFailure(Throwable e);
   }
 }
