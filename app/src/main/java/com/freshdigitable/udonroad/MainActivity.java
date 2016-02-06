@@ -4,12 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
   private ActivityMainBinding activityMainBinding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment tlFragment;
-
+  private MainAppbarFragment appbarFragment;
   private TwitterApi twitterApi;
 
   @Override
@@ -59,31 +59,13 @@ public class MainActivity extends AppCompatActivity {
     twitterApi = TwitterApi.setup(this);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    // android:titleTextColor is required up to API level 23
-    activityMainBinding.toolbar.setTitleTextColor(Color.WHITE);
 
-    actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        activityMainBinding.navDrawerLayout, activityMainBinding.toolbar, R.string.drawer_open, R.string.draver_close) {
-      @Override
-      public void onDrawerOpened(View drawerView) {
-        super.onDrawerOpened(drawerView);
-        tlFragment.setStopScroll(true);
-      }
+    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
+    final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+    appbarFragment.setInputMethodManager(inputMethodManager);
+    appbarFragment.setUserObservable(twitterApi.verifyCredentials());
+    attacheToolbar(appbarFragment.getToolbar());
 
-      @Override
-      public void onDrawerClosed(View drawerView) {
-        super.onDrawerClosed(drawerView);
-        tlFragment.setStopScroll(false);
-      }
-    };
-    actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
-    activityMainBinding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
-
-    setSupportActionBar(activityMainBinding.toolbar);
-    if (getSupportActionBar() != null) {
-      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    }
-    actionBarDrawerToggle.syncState();
 
     setupNavigationDrawer();
     activityMainBinding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -104,18 +86,6 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
-    final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-    activityMainBinding.tweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
-      @Override
-      public void onFocusChange(View v, boolean hasFocus) {
-        if (hasFocus) {
-          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-        } else {
-          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
-      }
-    });
-
     tlFragment = (TimelineFragment)getSupportFragmentManager().findFragmentById(R.id.main_timeline);
     tlFragment.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
@@ -123,6 +93,46 @@ public class MainActivity extends AppCompatActivity {
         fetchTweet(new Paging(1, 20, 1, statusId - 1));
       }
     });
+    tlFragment.getFab().setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+      @Override
+      public void onFling(FlingableFloatingActionButton.Direction direction) {
+        Log.d(TAG, "fling direction: " + direction.toString());
+        if (!tlFragment.isTweetSelected()) {
+          return;
+        }
+        final long tweetId = tlFragment.getSelectedTweetId();
+        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
+          fetchFavorite(tweetId);
+        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
+          fetchRetweet(tweetId);
+        }
+      }
+    });
+  }
+
+  private void attacheToolbar(Toolbar toolbar) {
+    actionBarDrawerToggle = new ActionBarDrawerToggle(this,
+        activityMainBinding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.draver_close) {
+      @Override
+      public void onDrawerOpened(View drawerView) {
+        super.onDrawerOpened(drawerView);
+        tlFragment.setStopScroll(true);
+      }
+
+      @Override
+      public void onDrawerClosed(View drawerView) {
+        super.onDrawerClosed(drawerView);
+        tlFragment.setStopScroll(false);
+      }
+    };
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+    activityMainBinding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
+
+    setSupportActionBar(toolbar);
+    if (getSupportActionBar() != null) {
+      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+    actionBarDrawerToggle.syncState();
   }
 
   private void setupNavigationDrawer() {
@@ -149,8 +159,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
               }
             });
-
-            activityMainBinding.tweetInputView.setUserInfo(user);
           }
         });
   }
@@ -164,21 +172,6 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    tlFragment.getFab().setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
-      @Override
-      public void onFling(FlingableFloatingActionButton.Direction direction) {
-        Log.d(TAG, "fling direction: " + direction.toString());
-        if (!tlFragment.isTweetSelected()) {
-          return;
-        }
-        final long tweetId = tlFragment.getSelectedTweetId();
-        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
-          fetchFavorite(tweetId);
-        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
-          fetchRetweet(tweetId);
-        }
-      }
-    });
     fetchTweet();
     twitterApi.connectUserStream(statusListener);
   }
@@ -224,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
         return true;
       }
-      if (activityMainBinding.tweetInputView.isVisible()) {
-        activityMainBinding.tweetInputView.disappearing();
+      if (appbarFragment.isStatusInputViewVisible()) {
+        appbarFragment.collapseStatusInputView();
         tlFragment.setStopScroll(false);
         return true;
       }
@@ -239,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void tweetSelected() {
     tlFragment.setStopScroll(true);
-    activityMainBinding.tweetInputView.appearing(new TweetInputView.OnStatusSending() {
+    appbarFragment.stretchStatusInputView(new TweetInputView.OnStatusSending() {
       @Override
       public Observable<Status> sendStatus(String status) {
         return twitterApi.updateStatus(status);

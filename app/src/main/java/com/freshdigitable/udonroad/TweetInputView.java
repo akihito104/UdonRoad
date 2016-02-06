@@ -13,6 +13,7 @@ import com.squareup.picasso.Picasso;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -70,10 +71,10 @@ public class TweetInputView extends RelativeLayout {
     });
   }
 
-  private User user;
+  private Observable<User> userObservable;
 
-  public void setUserInfo(User user) {
-    this.user = user;
+  public void setUserObservable(Observable<User> observable) {
+    this.userObservable = observable;
   }
 
   private OnStatusSending onStatusSending;
@@ -83,9 +84,16 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public void appearing(OnStatusSending listener) {
-    binding.twName.setText(user.getName());
-    binding.twAccount.setText(user.getScreenName());
-    Picasso.with(this.getContext()).load(user.getProfileImageURLHttps()).fit().into(binding.twIcon);
+    userObservable.observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User user) {
+            binding.twName.setText(user.getName());
+            binding.twAccount.setText(user.getScreenName());
+            Picasso.with(TweetInputView.this.getContext()).load(
+                user.getProfileImageURLHttps()).fit().into(binding.twIcon);
+          }
+        });
     setVisibility(View.VISIBLE);
     binding.twIntext.requestFocus();
     this.onStatusSending = listener;

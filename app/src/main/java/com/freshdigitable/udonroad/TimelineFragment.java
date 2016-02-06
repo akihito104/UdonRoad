@@ -11,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +25,7 @@ import twitter4j.Status;
  * Created by akihit on 2016/01/31.
  */
 public class TimelineFragment extends Fragment {
+  @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
   private TimelineAdapter tlAdapter;
@@ -34,14 +34,14 @@ public class TimelineFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.fragment_timeline, container, false);
+    View view = inflater.inflate(R.layout.fragment_timeline, container, false);
+    binding = DataBindingUtil.bind(view);
+    return view;
   }
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onActivityCreated");
     super.onActivityCreated(savedInstanceState);
-    binding = DataBindingUtil.bind(getView());
     binding.timeline.setHasFixedSize(true);
     RecyclerView.ItemDecoration itemDecoration = new MyItemDecoration();
     binding.timeline.addItemDecoration(itemDecoration);
