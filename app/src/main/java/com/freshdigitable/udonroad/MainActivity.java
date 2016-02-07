@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
     appbarFragment.setInputMethodManager(inputMethodManager);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
-    attacheToolbar(appbarFragment.getToolbar());
+    attachToolbar(appbarFragment.getToolbar());
 
 
     setupNavigationDrawer();
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     });
   }
 
-  private void attacheToolbar(Toolbar toolbar) {
+  private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
         activityMainBinding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.draver_close) {
       @Override
