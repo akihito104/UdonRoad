@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 
 import com.freshdigitable.udonroad.databinding.UserAccountBinding;
@@ -21,14 +22,8 @@ public class UserAccountActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     binding = DataBindingUtil.setContentView(this, R.layout.user_account);
     User user = parseIntent();
-    binding.userScreenName.setText("@" + user.getScreenName());
-    binding.userName.setText(user.getName());
-    binding.userDescription.setText(user.getDescription());
-    Picasso.with(this).load(user.getProfileImageURLHttps()).into(binding.userIcon);
-    Picasso.with(this).load(user.getProfileBannerMobileURL()).fit().into(binding.userBanner);
-    binding.userTweetsCount.setText("* " + user.getStatusesCount());
-    binding.userFollowerCount.setText("> " + user.getFollowersCount());
-    binding.userFriendsCount.setText("< " + user.getFriendsCount());
+    UserInfoHeaderFragment headerFragment = (UserInfoHeaderFragment) getSupportFragmentManager().findFragmentById(R.id.user_header_fragment);
+    headerFragment.bindUserInfo(user);
   }
 
   public static Intent createIntent(Context context, User user) {
