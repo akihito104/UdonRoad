@@ -60,13 +60,6 @@ public class MainActivity extends AppCompatActivity {
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
-    final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-    appbarFragment.setInputMethodManager(inputMethodManager);
-    appbarFragment.setUserObservable(twitterApi.verifyCredentials());
-    attachToolbar(appbarFragment.getToolbar());
-
-
     setupNavigationDrawer();
     activityMainBinding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
       @Override
@@ -85,6 +78,16 @@ public class MainActivity extends AppCompatActivity {
         return false;
       }
     });
+
+    setupUserTimeline();
+  }
+
+  private void setupUserTimeline() {
+    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
+    final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+    appbarFragment.setInputMethodManager(inputMethodManager);
+    appbarFragment.setUserObservable(twitterApi.verifyCredentials());
+    attachToolbar(appbarFragment.getToolbar());
 
     tlFragment = (TimelineFragment)getSupportFragmentManager().findFragmentById(R.id.main_timeline);
     tlFragment.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
@@ -109,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
       }
     });
   }
+
 
   private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
