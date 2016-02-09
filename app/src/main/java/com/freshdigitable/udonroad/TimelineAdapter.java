@@ -55,12 +55,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = statuses.get(position);
-    holder.statusView.bindStatus(status);
+    holder.bindStatus(status);
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound(status.getId());
     }
 
-    holder.statusView.setOnClickListener(new View.OnClickListener() {
+    holder.itemView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         if (!(view instanceof StatusView)) {
@@ -75,8 +75,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       }
     });
     if (status.getId() == selectedTweetId) {
-      holder.statusView.setBackgroundColor(Color.LTGRAY);
-      selectedView = holder.statusView;
+      holder.itemView.setBackgroundColor(Color.LTGRAY);
+      selectedView = holder.itemView;
     }
   }
 
@@ -105,7 +105,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onViewRecycled(ViewHolder holder) {
-    holder.statusView.onRecycled();
+    holder.onRecycled();
   }
 
   private OnSelectedTweetChangeListener selectedTweetChangeListener;
@@ -161,11 +161,21 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
-    private final StatusView statusView;
+    private Status status;
 
     public ViewHolder(View itemView) {
       super(itemView);
-      this.statusView = (StatusView) itemView;
+    }
+
+    void bindStatus(final Status status) {
+      this.status = status;
+      StatusView v = (StatusView) itemView;
+      v.bindStatus(status);
+    }
+
+    void onRecycled() {
+      ((StatusView)itemView).onRecycled();
+      this.status = null;
     }
   }
 }
