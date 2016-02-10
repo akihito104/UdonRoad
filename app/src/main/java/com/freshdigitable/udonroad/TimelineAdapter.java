@@ -30,17 +30,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   private final List<Status> statuses;
-  private long selectedTweetId = -1;
 
   public long getSelectedTweetId() {
-    return selectedTweetId;
+    return isStatusViewSelected() ? selectedViewHolder.status.getId() : -1;
   }
 
-  public boolean isTweetSelected() {
-    return selectedTweetId > 0;
+  public boolean isStatusViewSelected() {
+    return selectedViewHolder != null;
   }
-
-  private View selectedView = null;
 
   interface LastItemBoundListener {
     void onLastItemBound(long statusId);
@@ -60,44 +57,41 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       lastItemBoundListener.onLastItemBound(status.getId());
     }
 
-    holder.itemView.setOnClickListener(new View.OnClickListener() {
+    holder.itemViewClicked = new ViewHolder.OnItemViewClickListener() {
       @Override
-      public void onClick(View view) {
-        if (!(view instanceof StatusView)) {
-          return;
-        }
-        StatusView sv = (StatusView) view;
-        if (selectedTweetId != sv.getIncomingTweetId()) {
-          fixSelectedTweet(sv);
-        } else {
+      public void onItemViewClicked(final ViewHolder viewHolder) {
+        if (viewHolder.hasSameStatusId(selectedViewHolder)) {
           clearSelectedTweet();
+        } else {
+          fixSelectedTweet(viewHolder);
         }
       }
-    });
-    if (status.getId() == selectedTweetId) {
+    };
+
+    if (status.getId() == getSelectedTweetId()) {
       holder.itemView.setBackgroundColor(Color.LTGRAY);
-      selectedView = holder.itemView;
+      selectedViewHolder = new SelectedStatus(holder);
     }
   }
 
-  private void fixSelectedTweet(StatusView sv) {
-    selectedTweetId = sv.getIncomingTweetId();
-    if (selectedView != null) {
-      selectedView.setBackgroundColor(Color.TRANSPARENT);
+  private SelectedStatus selectedViewHolder = null;
+
+  private void fixSelectedTweet(ViewHolder vh) {
+    if (isStatusViewSelected()) {
+      selectedViewHolder.view.setBackgroundColor(Color.TRANSPARENT);
     }
-    selectedView = sv;
-    selectedView.setBackgroundColor(Color.LTGRAY);
+    selectedViewHolder = new SelectedStatus(vh);
+    selectedViewHolder.view.setBackgroundColor(Color.LTGRAY);
     if (selectedTweetChangeListener != null) {
       selectedTweetChangeListener.onTweetSelected();
     }
   }
 
   public void clearSelectedTweet() {
-    selectedTweetId = -1;
-    if (selectedView != null) {
-      selectedView.setBackgroundColor(Color.TRANSPARENT);
+    if (isStatusViewSelected()) {
+      selectedViewHolder.view.setBackgroundColor(Color.TRANSPARENT);
     }
-    selectedView = null;
+    selectedViewHolder = null;
     if (selectedTweetChangeListener != null) {
       selectedTweetChangeListener.onTweetUnselected();
     }
@@ -154,7 +148,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       int removedItemIndex = statuses.indexOf(removing);
       statuses.remove(removing);
       notifyItemRemoved(removedItemIndex);
-      if (selectedTweetId == statusId) {
+      if (getSelectedTweetId() == statusId) {
         clearSelectedTweet();
       }
     }
@@ -171,11 +165,37 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       this.status = status;
       StatusView v = (StatusView) itemView;
       v.bindStatus(status);
+      itemView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          itemViewClicked.onItemViewClicked(ViewHolder.this);
+        }
+      });
+    }
+
+    boolean hasSameStatusId(SelectedStatus other) {
+      return other != null && this.status.getId() == other.status.getId();
+    }
+
+    private OnItemViewClickListener itemViewClicked;
+
+    interface OnItemViewClickListener {
+      void onItemViewClicked(ViewHolder viewHolder);
     }
 
     void onRecycled() {
       ((StatusView)itemView).onRecycled();
       this.status = null;
+    }
+  }
+
+  private static class SelectedStatus {
+    private final Status status;
+    private final View view;
+
+    private SelectedStatus(ViewHolder viewHolder) {
+      this.status = viewHolder.status;
+      this.view = viewHolder.itemView;
     }
   }
 }

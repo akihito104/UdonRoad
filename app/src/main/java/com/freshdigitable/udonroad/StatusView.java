@@ -20,7 +20,6 @@ import twitter4j.util.TimeSpanConverter;
  * Created by akihit on 2016/01/11.
  */
 public class StatusView extends RelativeLayout {
-  private long incomingTweetId;
   private final TweetViewBinding binding;
 
   public StatusView(Context context) {
@@ -47,11 +46,6 @@ public class StatusView extends RelativeLayout {
       bindingStatus = status;
     }
     binding.tlTime.setText(timeSpanConv.toTimeSpanString(bindingStatus.getCreatedAt()));
-    if (Long.compare(incomingTweetId, status.getId()) == 0) {
-      return;
-    }
-
-    incomingTweetId = status.getId();
     if (status.isRetweet()) {
       setRetweetedUserVisibility(View.VISIBLE);
       binding.tlRtuser.setText(status.getUser().getScreenName());
@@ -93,10 +87,6 @@ public class StatusView extends RelativeLayout {
         binding.tlFavcount.setText(String.valueOf(favCount));
       }
     }
-  }
-
-  public long getIncomingTweetId() {
-    return this.incomingTweetId;
   }
 
   private void setRtCountVisibility(int visibility) {

@@ -76,7 +76,7 @@ public class TimelineFragment extends Fragment {
   private boolean canScrollToAdd() {
     int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
     return firstVisibleItem == 0
-        && !tlAdapter.isTweetSelected()
+        && !tlAdapter.isStatusViewSelected()
         && !stopScroll;
   }
 
@@ -112,7 +112,7 @@ public class TimelineFragment extends Fragment {
   }
 
   public boolean isTweetSelected() {
-    return tlAdapter.isTweetSelected();
+    return tlAdapter.isStatusViewSelected();
   }
 
   public long getSelectedTweetId() {
