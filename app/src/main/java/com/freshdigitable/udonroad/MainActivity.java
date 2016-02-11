@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     setupUserTimeline();
+    fetchTweet();
   }
 
   private void setupUserTimeline() {
@@ -176,7 +177,6 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    fetchTweet();
     twitterApi.connectUserStream(statusListener);
   }
 
