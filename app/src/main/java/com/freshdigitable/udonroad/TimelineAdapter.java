@@ -32,11 +32,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   private final List<Status> statuses;
 
   public long getSelectedTweetId() {
-    return isStatusViewSelected() ? selectedViewHolder.status.getId() : -1;
+    return isStatusViewSelected() ? selectedStatusHolder.status.getId() : -1;
   }
 
   public boolean isStatusViewSelected() {
-    return selectedViewHolder != null;
+    return selectedStatusHolder != null;
+  }
+
+  public Status getSelectedStatus() {
+    return isStatusViewSelected() ? selectedStatusHolder.status : null;
   }
 
   interface LastItemBoundListener {
@@ -60,7 +64,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     holder.itemViewClicked = new ViewHolder.OnItemViewClickListener() {
       @Override
       public void onItemViewClicked(final ViewHolder viewHolder) {
-        if (viewHolder.hasSameStatusId(selectedViewHolder)) {
+        if (viewHolder.hasSameStatusId(selectedStatusHolder)) {
           clearSelectedTweet();
         } else {
           fixSelectedTweet(viewHolder);
@@ -70,18 +74,18 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
     if (status.getId() == getSelectedTweetId()) {
       holder.itemView.setBackgroundColor(Color.LTGRAY);
-      selectedViewHolder = new SelectedStatus(holder);
+      selectedStatusHolder = new SelectedStatus(holder);
     }
   }
 
-  private SelectedStatus selectedViewHolder = null;
+  private SelectedStatus selectedStatusHolder = null;
 
   private void fixSelectedTweet(ViewHolder vh) {
     if (isStatusViewSelected()) {
-      selectedViewHolder.view.setBackgroundColor(Color.TRANSPARENT);
+      selectedStatusHolder.view.setBackgroundColor(Color.TRANSPARENT);
     }
-    selectedViewHolder = new SelectedStatus(vh);
-    selectedViewHolder.view.setBackgroundColor(Color.LTGRAY);
+    selectedStatusHolder = new SelectedStatus(vh);
+    selectedStatusHolder.view.setBackgroundColor(Color.LTGRAY);
     if (selectedTweetChangeListener != null) {
       selectedTweetChangeListener.onTweetSelected();
     }
@@ -89,9 +93,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   public void clearSelectedTweet() {
     if (isStatusViewSelected()) {
-      selectedViewHolder.view.setBackgroundColor(Color.TRANSPARENT);
+      selectedStatusHolder.view.setBackgroundColor(Color.TRANSPARENT);
     }
-    selectedViewHolder = null;
+    selectedStatusHolder = null;
     if (selectedTweetChangeListener != null) {
       selectedTweetChangeListener.onTweetUnselected();
     }

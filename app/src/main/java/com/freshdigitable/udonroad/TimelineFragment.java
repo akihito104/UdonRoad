@@ -59,6 +59,15 @@ public class TimelineFragment extends Fragment {
       public void onClick(View v) {
       }
     });
+    binding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+      @Override
+      public void onFling(FlingableFloatingActionButton.Direction direction) {
+        if (flingListener == null || !isTweetSelected()) {
+          return;
+        }
+        flingListener.onFling(direction, tlAdapter.getSelectedStatus());
+      }
+    });
   }
 
   private TimelineAdapter.LastItemBoundListener lastItemBoundListener;
@@ -115,12 +124,22 @@ public class TimelineFragment extends Fragment {
     return tlAdapter.isStatusViewSelected();
   }
 
-  public long getSelectedTweetId() {
-    return tlAdapter.getSelectedTweetId();
+//  public long getSelectedTweetId() {
+//    return tlAdapter.getSelectedTweetId();
+//  }
+
+//  public FlingableFloatingActionButton getFab() {
+//    return binding.fab;
+//  }
+
+  interface OnFlingForSelectedStatusListener {
+    void onFling(FlingableFloatingActionButton.Direction direction, Status status);
   }
 
-  public FlingableFloatingActionButton getFab() {
-    return binding.fab;
+  private OnFlingForSelectedStatusListener flingListener;
+
+  public void setOnFlingForSelectedStatusListener(OnFlingForSelectedStatusListener listener) {
+    this.flingListener = listener;
   }
 
   private final TimelineAdapter.OnSelectedTweetChangeListener selectedTweetChangeListener

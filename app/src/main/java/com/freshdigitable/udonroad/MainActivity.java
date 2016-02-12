@@ -97,18 +97,13 @@ public class MainActivity extends AppCompatActivity {
         fetchTweet(new Paging(1, 20, 1, statusId - 1));
       }
     });
-    tlFragment.getFab().setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+    tlFragment.setOnFlingForSelectedStatusListener(new TimelineFragment.OnFlingForSelectedStatusListener() {
       @Override
-      public void onFling(FlingableFloatingActionButton.Direction direction) {
-        Log.d(TAG, "fling direction: " + direction.toString());
-        if (!tlFragment.isTweetSelected()) {
-          return;
-        }
-        final long tweetId = tlFragment.getSelectedTweetId();
+      public void onFling(FlingableFloatingActionButton.Direction direction, Status status) {
         if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
-          fetchFavorite(tweetId);
-        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
-          fetchRetweet(tweetId);
+          fetchFavorite(status.getId());
+        } else if (FlingableFloatingActionButton.Direction.RIGHT.equals(direction)) {
+          fetchRetweet(status.getId());
         }
       }
     });
