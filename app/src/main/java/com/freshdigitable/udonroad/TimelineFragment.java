@@ -124,14 +124,6 @@ public class TimelineFragment extends Fragment {
     return tlAdapter.isStatusViewSelected();
   }
 
-//  public long getSelectedTweetId() {
-//    return tlAdapter.getSelectedTweetId();
-//  }
-
-//  public FlingableFloatingActionButton getFab() {
-//    return binding.fab;
-//  }
-
   interface OnFlingForSelectedStatusListener {
     void onFling(FlingableFloatingActionButton.Direction direction, Status status);
   }
