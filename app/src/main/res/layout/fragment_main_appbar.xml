@@ -19,12 +19,13 @@
 
         <com.freshdigitable.udonroad.TweetInputView
             android:id="@+id/main_tweet_input_view"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|top"
             android:visibility="gone"
             tools:visibility="visible"
             android:elevation="5dp"
+            android:background="?attr/colorPrimaryDark"
             />
     </android.support.design.widget.AppBarLayout>
 </layout>
