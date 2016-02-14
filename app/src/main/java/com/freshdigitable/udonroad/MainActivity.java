@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
           }
 
           @Override
-          public void onNext(final User user) { /* TODO: save profile data to sqlite */
+          public void onNext(final User user) {
             ((TextView) activityMainBinding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
             ImageView icon = (ImageView) activityMainBinding.navDrawer.findViewById(R.id.nav_header_icon);
             Picasso.with(activityMainBinding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
