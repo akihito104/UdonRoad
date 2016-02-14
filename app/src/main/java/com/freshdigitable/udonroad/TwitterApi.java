@@ -64,7 +64,7 @@ public class TwitterApi {
       @Override
       public void call(Subscriber<? super User> subscriber) {
         try {
-          User user = twitter.verifyCredentials();
+          User user = twitter.users().showUser(twitter.getId());
           subscriber.onNext(user);
         } catch (TwitterException e) {
           subscriber.onError(e);

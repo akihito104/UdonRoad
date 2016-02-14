@@ -3,6 +3,7 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -21,6 +22,7 @@ import twitter4j.User;
  * Created by akihit on 2016/01/17.
  */
 public class TweetInputView extends RelativeLayout {
+  private static final String TAG = TweetInputView.class.getSimpleName();
   private TweetInputViewBinding binding;
 
   public TweetInputView(Context context) {
@@ -92,6 +94,11 @@ public class TweetInputView extends RelativeLayout {
             binding.twAccount.setText(user.getScreenName());
             Picasso.with(TweetInputView.this.getContext()).load(
                 user.getProfileImageURLHttps()).fit().into(binding.twIcon);
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.d(TAG, throwable.getMessage(), throwable);
           }
         });
     setVisibility(View.VISIBLE);

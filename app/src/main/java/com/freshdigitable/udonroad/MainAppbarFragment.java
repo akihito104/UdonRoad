@@ -34,6 +34,17 @@ public class MainAppbarFragment extends Fragment {
     super.onActivityCreated(savedInstanceState);
     // android:titleTextColor is required up to API level 23
     binding.mainToolbar.setTitleTextColor(Color.WHITE);
+    binding.mainTweetInputView.setUserObservable(userObservable);
+    binding.mainTweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View v, boolean hasFocus) {
+        if (hasFocus) {
+          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
+        } else {
+          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+      }
+    });
   }
 
   public void stretchStatusInputView(TweetInputView.OnStatusSending statusSending) {
@@ -48,21 +59,16 @@ public class MainAppbarFragment extends Fragment {
     return binding.mainTweetInputView.isVisible();
   }
 
+  private Observable<User> userObservable;
+
   public void setUserObservable(Observable<User> user) {
-    binding.mainTweetInputView.setUserObservable(user);
+    this.userObservable = user;
   }
 
+  private InputMethodManager inputMethodManager;
+
   public void setInputMethodManager(final InputMethodManager inputMethodManager) {
-    binding.mainTweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
-      @Override
-      public void onFocusChange(View v, boolean hasFocus) {
-        if (hasFocus) {
-          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-        } else {
-          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
-      }
-    });
+    this.inputMethodManager = inputMethodManager;
   }
 
   public Toolbar getToolbar() {
