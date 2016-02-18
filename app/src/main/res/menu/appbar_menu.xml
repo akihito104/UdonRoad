@@ -5,13 +5,18 @@
     <item
         android:id="@+id/action_heading"
         android:icon="@drawable/ic_twitterlogo_white"
-        android:title="Top"
+        android:title="@string/action_totop"
         app:showAsAction="always"/>
 
     <item
         android:id="@+id/action_write"
         android:icon="@drawable/ic_create_white_24dp"
-        android:title="Tweet"
+        android:title="@string/action_send_status"
         app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_cancel_send"
+        android:title="@string/action_cancel"
+        app:showAsAction="never"/>
 
 </menu>

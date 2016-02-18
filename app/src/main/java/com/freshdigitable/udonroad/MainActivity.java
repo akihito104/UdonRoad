@@ -195,9 +195,10 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == R.id.action_heading){
+    int itemId = item.getItemId();
+    if (itemId == R.id.action_heading){
       headingSelected();
-    } else if (item.getItemId() == R.id.action_write) {
+    } else if (itemId == R.id.action_write) {
       tweetSelected();
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
