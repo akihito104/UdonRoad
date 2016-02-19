@@ -187,9 +187,12 @@ public class MainActivity extends AppCompatActivity {
     actionBarDrawerToggle.onConfigurationChanged(newConfig);
   }
 
+  private MenuItem sendStatusMenuItem;
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.appbar_menu, menu);
+    sendStatusMenuItem = menu.findItem(R.id.action_write);
     return super.onCreateOptionsMenu(menu);
   }
 
@@ -199,7 +202,11 @@ public class MainActivity extends AppCompatActivity {
     if (itemId == R.id.action_heading){
       headingSelected();
     } else if (itemId == R.id.action_write) {
-      tweetSelected();
+      if (!appbarFragment.isStatusInputViewVisible()) {
+        sendStatusSelected();
+      } else {
+        cancelWritingSelected();
+      }
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
@@ -230,7 +237,8 @@ public class MainActivity extends AppCompatActivity {
     return super.onKeyDown(keyCode, event);
   }
 
-  private void tweetSelected() {
+  private void sendStatusSelected() {
+    sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
     appbarFragment.stretchStatusInputView(new TweetInputView.OnStatusSending() {
       @Override
@@ -240,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       public void onSuccess(Status status) {
-        tlFragment.setStopScroll(false);
+        cancelWritingSelected();
       }
 
       @Override
@@ -249,6 +257,12 @@ public class MainActivity extends AppCompatActivity {
         Log.e(TAG, "update status: " + e);
       }
     });
+  }
+
+  private void cancelWritingSelected() {
+    sendStatusMenuItem.setIcon(R.drawable.ic_create_white_24dp);
+    tlFragment.setStopScroll(false);
+    appbarFragment.collapseStatusInputView();
   }
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {

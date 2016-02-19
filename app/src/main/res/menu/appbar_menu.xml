@@ -14,9 +14,4 @@
         android:title="@string/action_send_status"
         app:showAsAction="always"/>
 
-    <item
-        android:id="@+id/action_cancel_send"
-        android:title="@string/action_cancel"
-        app:showAsAction="never"/>
-
 </menu>
