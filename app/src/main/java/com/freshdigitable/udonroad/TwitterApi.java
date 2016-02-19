@@ -70,7 +70,7 @@ public class TwitterApi {
           subscriber.onError(e);
         }
       }
-    }).subscribeOn(Schedulers.newThread());
+    }).subscribeOn(Schedulers.io());
   }
 
   public void connectUserStream(UserStreamListener listener) {
@@ -85,7 +85,7 @@ public class TwitterApi {
         twitterStream.shutdown();
         twitterStream.clearListeners();
       }
-    }).subscribeOn(Schedulers.newThread())
+    }).subscribeOn(Schedulers.io())
     .subscribe();
   }
 
@@ -145,7 +145,7 @@ public class TwitterApi {
         }
         subscriber.onCompleted();
       }
-    }).subscribeOn(Schedulers.newThread());
+    }).subscribeOn(Schedulers.io());
 
   }
 
@@ -159,7 +159,7 @@ public class TwitterApi {
           subscriber.onError(e);
         }
       }
-    }).subscribeOn(Schedulers.newThread());
+    }).subscribeOn(Schedulers.io());
 
   }
 
@@ -174,7 +174,7 @@ public class TwitterApi {
           subscriber.onError(e);
         }
       }
-    }).subscribeOn(Schedulers.newThread());
+    }).subscribeOn(Schedulers.io());
 
   }
 
@@ -189,7 +189,7 @@ public class TwitterApi {
           subscriber.onError(e);
         }
       }
-    }).subscribeOn(Schedulers.newThread());
+    }).subscribeOn(Schedulers.io());
   }
 
   public Observable<List<Status>> getHomeTimeline(final Paging paging) {
@@ -203,6 +203,6 @@ public class TwitterApi {
           subscriber.onError(e);
         }
       }
-    }).subscribeOn(Schedulers.newThread());
+    }).subscribeOn(Schedulers.io());
   }
 }

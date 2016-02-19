@@ -56,7 +56,7 @@ public class TweetActivity extends AppCompatActivity {
           }
         }
     )
-        .subscribeOn(Schedulers.newThread())
+        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<Status>() {
           @Override

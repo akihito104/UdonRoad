@@ -54,7 +54,7 @@ public class OAuthActivity extends AppCompatActivity {
         }
       }
     })
-        .subscribeOn(Schedulers.newThread())
+        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<String>() {
           @Override
@@ -109,7 +109,7 @@ public class OAuthActivity extends AppCompatActivity {
         }
       }
     })
-        .subscribeOn(Schedulers.newThread())
+        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<AccessToken>() {
           @Override
