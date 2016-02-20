@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+ */
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
@@ -50,17 +53,15 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-
     if (!TwitterApi.hasAccessToken(this)) {
       startActivity(new Intent(this, OAuthActivity.class));
       finish();
     }
+    activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
     twitterApi = TwitterApi.setup(this);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    setupNavigationDrawer();
     activityMainBinding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
@@ -116,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
+        setupNavigationDrawer();
         tlFragment.setStopScroll(true);
       }
 
