@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     if (!TwitterApi.hasAccessToken(this)) {
       startActivity(new Intent(this, OAuthActivity.class));
       finish();
+      return;
     }
     activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
     twitterApi = TwitterApi.setup(this);
@@ -184,6 +185,26 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    if (keyCode == KeyEvent.KEYCODE_BACK) {
+      if (activityMainBinding.navDrawerLayout.isDrawerOpen(activityMainBinding.navDrawer)) {
+        activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
+        return true;
+      }
+      if (appbarFragment.isStatusInputViewVisible()) {
+        appbarFragment.collapseStatusInputView();
+        tlFragment.setStopScroll(false);
+        return true;
+      }
+      if (tlFragment.isTweetSelected()) {
+        tlFragment.clearSelectedTweet();
+        return true;
+      }
+    }
+    return super.onKeyDown(keyCode, event);
+  }
+
+  @Override
   public void onConfigurationChanged(Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
     actionBarDrawerToggle.onConfigurationChanged(newConfig);
@@ -217,26 +238,6 @@ public class MainActivity extends AppCompatActivity {
   private void headingSelected() {
     tlFragment.scrollTo(0);
     tlFragment.clearSelectedTweet();
-  }
-
-  @Override
-  public boolean onKeyDown(int keyCode, KeyEvent event) {
-    if (keyCode == KeyEvent.KEYCODE_BACK) {
-      if (activityMainBinding.navDrawerLayout.isDrawerOpen(activityMainBinding.navDrawer)) {
-        activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
-        return true;
-      }
-      if (appbarFragment.isStatusInputViewVisible()) {
-        appbarFragment.collapseStatusInputView();
-        tlFragment.setStopScroll(false);
-        return true;
-      }
-      if (tlFragment.isTweetSelected()) {
-        tlFragment.clearSelectedTweet();
-        return true;
-      }
-    }
-    return super.onKeyDown(keyCode, event);
   }
 
   private void sendStatusSelected() {
