@@ -190,6 +190,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     void onRecycled() {
       ((StatusView)itemView).onRecycled();
       this.status = null;
+      this.itemViewClicked = null;
     }
   }
 

@@ -120,5 +120,7 @@ public class StatusView extends RelativeLayout {
     setTextColor(Color.GRAY);
     binding.tlMyrt.setVisibility(GONE);
     binding.tlMyfav.setVisibility(GONE);
+    binding.tlIcon.setOnClickListener(null);
+    setOnClickListener(null);
   }
 }
