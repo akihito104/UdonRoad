@@ -10,11 +10,13 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -83,6 +85,22 @@ public class MainActivity extends AppCompatActivity {
 
     setupUserTimeline();
     fetchTweet();
+    final ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), tlFragment);
+    activityMainBinding.mainViewPager.setAdapter(viewPagerAdapter);
+    tlFragment.setOnSelectedTweetChangeListener(
+        new TimelineAdapter.OnSelectedTweetChangeListener() {
+          @Override
+          public void onTweetSelected() {
+            viewPagerAdapter.notifyDataSetChanged();
+          }
+
+          @Override
+          public void onTweetUnselected() {
+            viewPagerAdapter.notifyDataSetChanged();
+          }
+        }
+
+    );
   }
 
   private void setupUserTimeline() {
@@ -92,7 +110,8 @@ public class MainActivity extends AppCompatActivity {
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
     attachToolbar(appbarFragment.getToolbar());
 
-    tlFragment = (TimelineFragment)getSupportFragmentManager().findFragmentById(R.id.main_timeline);
+//    tlFragment = (TimelineFragment)getSupportFragmentManager().findFragmentById(R.id.main_timeline);
+    tlFragment = new TimelineFragment();
     tlFragment.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
       public void onLastItemBound(long statusId) {
@@ -185,23 +204,25 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
-  public boolean onKeyDown(int keyCode, KeyEvent event) {
-    if (keyCode == KeyEvent.KEYCODE_BACK) {
-      if (activityMainBinding.navDrawerLayout.isDrawerOpen(activityMainBinding.navDrawer)) {
-        activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
-        return true;
-      }
-      if (appbarFragment.isStatusInputViewVisible()) {
-        appbarFragment.collapseStatusInputView();
-        tlFragment.setStopScroll(false);
-        return true;
-      }
-      if (tlFragment.isTweetSelected()) {
-        tlFragment.clearSelectedTweet();
-        return true;
-      }
+  public void onBackPressed() {
+    if (activityMainBinding.mainViewPager.getCurrentItem() == 1) {
+      activityMainBinding.mainViewPager.setCurrentItem(0);
+      return;
     }
-    return super.onKeyDown(keyCode, event);
+    if (activityMainBinding.navDrawerLayout.isDrawerOpen(activityMainBinding.navDrawer)) {
+      activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
+      return;
+    }
+    if (appbarFragment.isStatusInputViewVisible()) {
+      appbarFragment.collapseStatusInputView();
+      tlFragment.setStopScroll(false);
+      return;
+    }
+    if (tlFragment.isTweetSelected()) {
+      tlFragment.clearSelectedTweet();
+      return;
+    }
+    super.onBackPressed();
   }
 
   @Override
@@ -398,5 +419,27 @@ public class MainActivity extends AppCompatActivity {
 
   private void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+  }
+
+  private static class ViewPagerAdapter extends FragmentStatePagerAdapter {
+    private final TimelineFragment tlFragment;
+
+    public ViewPagerAdapter(FragmentManager fragmentManager, TimelineFragment tlFragment) {
+      super(fragmentManager);
+      this.tlFragment = tlFragment;
+    }
+
+    @Override
+    public Fragment getItem(int position) {
+      if (position == 1) {
+        return tlFragment.getDetailFragment();
+      }
+      return tlFragment;
+    }
+
+    @Override
+    public int getCount() {
+      return tlFragment.hasDetailFragment() ? 2 : 1;
+    }
   }
 }

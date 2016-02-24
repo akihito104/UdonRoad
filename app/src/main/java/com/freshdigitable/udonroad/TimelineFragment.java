@@ -23,7 +23,7 @@ public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
-  private TimelineAdapter tlAdapter;
+  private final TimelineAdapter tlAdapter = new TimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
 
   @Nullable
@@ -43,8 +43,24 @@ public class TimelineFragment extends Fragment {
     tlLayoutManager = new LinearLayoutManager(getActivity());
     binding.timeline.setLayoutManager(tlLayoutManager);
     binding.timeline.setItemAnimator(new TimelineAnimator());
-    tlAdapter = new TimelineAdapter();
-    tlAdapter.setOnSelectedTweetChangeListener(selectedTweetChangeListener);
+    tlAdapter.setOnSelectedTweetChangeListener(
+        new TimelineAdapter.OnSelectedTweetChangeListener() {
+          @Override
+          public void onTweetSelected() {
+            if (selectedTweetChangeListener != null) {
+              selectedTweetChangeListener.onTweetSelected();
+            }
+            binding.fab.setVisibility(View.VISIBLE);
+          }
+
+          @Override
+          public void onTweetUnselected() {
+            if (selectedTweetChangeListener != null) {
+              selectedTweetChangeListener.onTweetUnselected();
+            }
+            binding.fab.setVisibility(View.GONE);
+          }
+        });
     tlAdapter.setLastItemBoundListener(lastItemBoundListener);
     binding.timeline.setAdapter(tlAdapter);
 
@@ -129,16 +145,20 @@ public class TimelineFragment extends Fragment {
     this.flingListener = listener;
   }
 
-  private final TimelineAdapter.OnSelectedTweetChangeListener selectedTweetChangeListener
-      = new TimelineAdapter.OnSelectedTweetChangeListener() {
-    @Override
-    public void onTweetSelected() {
-      binding.fab.setVisibility(View.VISIBLE);
-    }
+  private TimelineAdapter.OnSelectedTweetChangeListener selectedTweetChangeListener;
 
-    @Override
-    public void onTweetUnselected() {
-      binding.fab.setVisibility(View.GONE);
+  public void setOnSelectedTweetChangeListener(TimelineAdapter.OnSelectedTweetChangeListener listener) {
+    this.selectedTweetChangeListener = listener;
+  }
+
+  public Fragment getDetailFragment() {
+    if (!tlAdapter.isStatusViewSelected()) {
+      return null;
     }
-  };
+    return StatusDetailFragment.getInstance(tlAdapter.getSelectedStatus());
+  }
+
+  public boolean hasDetailFragment() {
+    return tlAdapter.isStatusViewSelected();
+  }
 }
