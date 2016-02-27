@@ -46,9 +46,9 @@ public class TimelineFragment extends Fragment {
     tlAdapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
-          public void onTweetSelected() {
+          public void onTweetSelected(Status status) {
             if (selectedTweetChangeListener != null) {
-              selectedTweetChangeListener.onTweetSelected();
+              selectedTweetChangeListener.onTweetSelected(status);
             }
             binding.fab.setVisibility(View.VISIBLE);
           }
@@ -149,16 +149,5 @@ public class TimelineFragment extends Fragment {
 
   public void setOnSelectedTweetChangeListener(TimelineAdapter.OnSelectedTweetChangeListener listener) {
     this.selectedTweetChangeListener = listener;
-  }
-
-  public Fragment getDetailFragment() {
-    if (!tlAdapter.isStatusViewSelected()) {
-      return null;
-    }
-    return StatusDetailFragment.getInstance(tlAdapter.getSelectedStatus());
-  }
-
-  public boolean hasDetailFragment() {
-    return tlAdapter.isStatusViewSelected();
   }
 }

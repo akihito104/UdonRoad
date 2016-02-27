@@ -89,7 +89,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     selectedStatusHolder = new SelectedStatus(vh);
     selectedStatusHolder.view.setBackgroundColor(Color.LTGRAY);
     if (selectedTweetChangeListener != null) {
-      selectedTweetChangeListener.onTweetSelected();
+      selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.status);
     }
   }
 
@@ -115,7 +115,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   interface OnSelectedTweetChangeListener {
-    void onTweetSelected();
+    void onTweetSelected(Status status);
     void onTweetUnselected();
   }
 

@@ -18,6 +18,7 @@ import twitter4j.Status;
 
 public class StatusDetailFragment extends Fragment {
   private FragmentStatusDetailBinding binding;
+  private Status status;
 
   @Nullable
   @Override
@@ -30,14 +31,15 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
-    binding.statusView.bindStatus((Status) getArguments().get("status"));
+    this.status = (Status) getArguments().get("status");
+    binding.statusView.bindStatus(this.status);
   }
 
-  public static Fragment getInstance(Status status) {
-    StatusDetailFragment fragment = new StatusDetailFragment();
+  public static StatusDetailFragment getInstance(final Status status) {
     Bundle args = new Bundle();
     args.putSerializable("status", status);
-    fragment.setArguments(args);
-    return fragment;
+    final StatusDetailFragment statusDetailFragment = new StatusDetailFragment();
+    statusDetailFragment.setArguments(args);
+    return statusDetailFragment;
   }
 }
