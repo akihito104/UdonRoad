@@ -17,5 +17,13 @@
             android:layout_height="wrap_content"
             tools:layout="@layout/tweet_view"
             />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/detail_menu"
+            android:layout_gravity="center_horizontal"
+            />
+
     </LinearLayout>
 </layout>
