@@ -15,4 +15,10 @@
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>
     <string name="action_cancel">cancel</string>
+    <string name="detail_rt_create">RT</string>
+    <string name="detail_rt_delete">cancel RT</string>
+    <string name="detail_fav_create">fav</string>
+    <string name="detail_fav_delete">cancel fav</string>
+    <string name="detail_reply">reply</string>
+    <string name="detail_quote">quote</string>
 </resources>

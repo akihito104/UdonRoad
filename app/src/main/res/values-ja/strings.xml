@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+  -->
+
+<resources>
+    <string name="detail_rt_create">RT</string>
+    <string name="detail_rt_delete">RTを取り消す</string>
+    <string name="detail_fav_create">fav</string>
+    <string name="detail_fav_delete">favを取り消す</string>
+    <string name="detail_reply">リプライ</string>
+    <string name="detail_quote">引用してRT</string>
+    <string name="action_send_status">ツイートする</string>
+    <string name="action_totop">先頭へ</string>
+    <string name="app_name">UdonRoad</string>
+</resources>
