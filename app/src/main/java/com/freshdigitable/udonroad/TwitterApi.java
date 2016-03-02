@@ -205,4 +205,34 @@ public class TwitterApi {
       }
     }).subscribeOn(Schedulers.io());
   }
+
+  public Observable<Status> destroyStatus(final long id) {
+    return Observable.create(new Observable.OnSubscribe<Status>() {
+      @Override
+      public void call(Subscriber<? super Status> subscriber) {
+        try {
+          final Status status = twitter.destroyStatus(id);
+          subscriber.onNext(status);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<Status> destroyFavorite(final long id) {
+    return Observable.create(new Observable.OnSubscribe<Status>() {
+      @Override
+      public void call(Subscriber<? super Status> subscriber) {
+        try {
+          final Status status = twitter.destroyFavorite(id);
+          subscriber.onNext(status);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
 }

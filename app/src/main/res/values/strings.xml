@@ -21,4 +21,12 @@
     <string name="detail_fav_delete">cancel fav</string>
     <string name="detail_reply">reply</string>
     <string name="detail_quote">quote</string>
+    <string name="detail_rt_create_failed">RT failure…</string>
+    <string name="detail_rt_create_success">RT successed</string>
+    <string name="detail_rt_delete_success">RT destroyed</string>
+    <string name="detail_rt_delete_failed">RT destroy failed…</string>
+    <string name="detail_fav_create_success">like successed</string>
+    <string name="detail_fav_create_failed">like failure…</string>
+    <string name="detail_fav_delete_failed">like delete failure…</string>
+    <string name="detail_fav_delete_success">like destroy successed</string>
 </resources>

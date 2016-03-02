@@ -4,6 +4,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -18,7 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
-import com.google.repacked.kotlin.jvm.functions.Function1;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -65,7 +65,7 @@ public class StatusDetailFragment extends Fragment {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final DetailMenu menu = (DetailMenu) parent.getItemAtPosition(position);
-        menu.action(twitterApi, status);
+        menu.action(twitterApi, status, getContext());
       }
     });
   }
@@ -92,69 +92,105 @@ public class StatusDetailFragment extends Fragment {
       }
 
       @Override
-      public void action(TwitterApi api, Status status) {
-        api.retweetStatus(status.getId())
-            .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Status>() {
-          @Override
-          public void call(Status status) {
-
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-
-          }
-        }, new Action0() {
-          @Override
-          public void call() {
-          }
-        });
+      public void action(TwitterApi api, Status status, Context context) {
+        doAction(api.retweetStatus(status.getId()), context,
+            R.string.detail_rt_create_failed, R.string.detail_rt_create_success);
       }
     }, RT_DELETE {
       @Override
       public int getStringRes() {
         return R.string.detail_rt_delete;
       }
+
+      @Override
+      public void action(TwitterApi api, Status status, Context context) {
+        doAction(api.destroyStatus(status.getId()), context,
+            R.string.detail_rt_delete_failed, R.string.detail_rt_delete_success);
+
+      }
     }, FAV_CREATE {
       @Override
       public int getStringRes() {
         return R.string.detail_fav_create;
+      }
+
+      @Override
+      public void action(TwitterApi api, Status status, Context context) {
+        doAction(api.createFavorite(status.getId()), context,
+            R.string.detail_fav_create_failed, R.string.detail_fav_create_success);
       }
     }, FAV_DELETE {
       @Override
       public int getStringRes() {
         return R.string.detail_fav_delete;
       }
+
+      @Override
+      public void action(TwitterApi api, Status status, Context context) {
+        doAction(api.destroyFavorite(status.getId()), context,
+            R.string.detail_fav_delete_failed, R.string.detail_fav_delete_success);
+      }
     }, REPLY {
       @Override
       public int getStringRes() {
         return R.string.detail_reply;
+      }
+
+      @Override
+      public void action(TwitterApi api, Status status, Context context) {
+        //TODO
       }
     }, QUOTE {
       @Override
       public int getStringRes() {
         return R.string.detail_quote;
       }
+
+      @Override
+      public void action(TwitterApi api, Status status, Context context) {
+        //TODO
+      }
     },;
+
+    void doAction(Observable<Status> observable, Context context,
+                  @StringRes int onErrorMessage, @StringRes int onCompleteMessage) {
+      observable.observeOn(AndroidSchedulers.mainThread())
+          .subscribe(onNext(),
+              onErrorToast(context, onErrorMessage),
+              onCompleteToast(context, onCompleteMessage));
+    }
+
+    private Action0 onCompleteToast(final Context context, final @StringRes int res) {
+      return new Action0() {
+        @Override
+        public void call() {
+          Toast.makeText(context, res, Toast.LENGTH_SHORT).show();
+        }
+      };
+    }
+
+    private Action1<Throwable> onErrorToast(final Context context, final @StringRes int res) {
+      return new Action1<Throwable>() {
+        @Override
+        public void call(Throwable o) {
+          Toast.makeText(context, res, Toast.LENGTH_SHORT).show();
+        }
+      };
+    }
+
+    private Action1<Status> onNext() {
+      return new Action1<Status>() {
+        @Override
+        public void call(Status o) {
+        }
+      };
+    }
   }
 
   interface DetailMenuInterface {
     @StringRes
     int getStringRes();
 
-    void action(TwitterApi api, Status status);
-  }
-
-  final Function1<String, Action0> toastAction = new Function1<String, Action0>() {
-    @Override
-    public Action0 invoke(String s) {
-      return new Action1<String>() {
-        @Override
-        public void call(String s) {
-
-        }
-      };
-    }
+    void action(TwitterApi api, Status status, Context context);
   }
 }
