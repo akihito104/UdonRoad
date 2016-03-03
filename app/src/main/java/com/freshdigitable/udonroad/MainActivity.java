@@ -80,17 +80,20 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    setupAppBar();
     setupUserTimeline();
     fetchTweet();
   }
 
-  private void setupUserTimeline() {
+  private void setupAppBar() {
     appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
     final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
     appbarFragment.setInputMethodManager(inputMethodManager);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
     attachToolbar(appbarFragment.getToolbar());
+  }
 
+  private void setupUserTimeline() {
     tlFragment = (TimelineFragment)getSupportFragmentManager().findFragmentById(R.id.main_timeline);
     tlFragment.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
@@ -109,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
       }
     });
   }
-
 
   private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
