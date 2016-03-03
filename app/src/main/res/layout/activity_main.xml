@@ -24,12 +24,10 @@
                 tools:layout="@layout/fragment_main_appbar"
                 />
 
-            <fragment
+            <FrameLayout
                 android:id="@+id/main_timeline"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:name="com.freshdigitable.udonroad.TimelineFragment"
-                tools:layout="@layout/fragment_timeline"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 />
 

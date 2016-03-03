@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import rx.functions.Action1;
 import twitter4j.Status;
 
 public class StatusDetailFragment extends Fragment {
+  private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   private Status status;
 
@@ -48,19 +50,20 @@ public class StatusDetailFragment extends Fragment {
         = new ArrayAdapter<DetailMenu>(getContext(), android.R.layout.simple_list_item_1){
       @Override
       public View getView(int position, View convertView, ViewGroup parent) {
+        Log.d(TAG, "ArrayAdapter.getView: " + getCount());
         View v = super.getView(position, convertView, parent);
         final DetailMenu item = getItem(position);
         final int strres = item.getStringRes();
-        ((TextView)v).setText(strres);
+        ((TextView) v).setText(strres);
         return v;
       }
     };
-
-    binding.detailMenu.setAdapter(arrayAdapter);
     arrayAdapter.add(status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
     arrayAdapter.add(status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
     arrayAdapter.add(DetailMenu.REPLY);
     arrayAdapter.add(DetailMenu.QUOTE);
+
+    binding.detailMenu.setAdapter(arrayAdapter);
     binding.detailMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -68,6 +71,13 @@ public class StatusDetailFragment extends Fragment {
         menu.action(twitterApi, status, getContext());
       }
     });
+  }
+
+  @Override
+  public void onDestroyView() {
+    twitterApi = null;
+    status = null;
+    super.onDestroyView();
   }
 
   private TwitterApi twitterApi;

@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupUserTimeline() {
-    tlFragment = (TimelineFragment)getSupportFragmentManager().findFragmentById(R.id.main_timeline);
+    tlFragment = new TimelineFragment();
     tlFragment.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
       public void onLastItemBound(long statusId) {
@@ -108,9 +108,34 @@ public class MainActivity extends AppCompatActivity {
           fetchFavorite(status.getId());
         } else if (FlingableFloatingActionButton.Direction.RIGHT.equals(direction)) {
           fetchRetweet(status.getId());
+        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
+          showStatusDetail(status);
         }
       }
     });
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_timeline, tlFragment)
+        .commit();
+  }
+
+  private StatusDetailFragment statusDetail;
+
+  private void showStatusDetail(Status status) {
+    statusDetail = StatusDetailFragment.getInstance(status);
+    statusDetail.setTwitterApi(twitterApi);
+    getSupportFragmentManager().beginTransaction()
+        .hide(tlFragment)
+        .add(R.id.main_timeline, statusDetail)
+        .commit();
+    tlFragment.setStopScroll(true);
+  }
+
+  private void hideStatusDetail() {
+    getSupportFragmentManager().beginTransaction()
+        .remove(statusDetail)
+        .show(tlFragment)
+        .commit();
+    tlFragment.setStopScroll(false);
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -187,6 +212,10 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public void onBackPressed() {
+    if (statusDetail != null && statusDetail.isVisible()) {
+      hideStatusDetail();
+      return;
+    }
     if (activityMainBinding.navDrawerLayout.isDrawerOpen(activityMainBinding.navDrawer)) {
       activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
       return;
