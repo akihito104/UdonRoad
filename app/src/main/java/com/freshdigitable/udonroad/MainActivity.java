@@ -87,9 +87,13 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupAppBar() {
     appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
+//    appbarFragment = new MainAppbarFragment();
     final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
     appbarFragment.setInputMethodManager(inputMethodManager);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_appbar_fragment, appbarFragment)
+        .commit();
     attachToolbar(appbarFragment.getToolbar());
   }
 
@@ -111,6 +115,13 @@ public class MainActivity extends AppCompatActivity {
         } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
           showStatusDetail(status);
         }
+      }
+    });
+    tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
+      @Override
+      public void onClicked(User user) {
+        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
+//        showUserInfo(user);
       }
     });
     getSupportFragmentManager().beginTransaction()
@@ -136,6 +147,13 @@ public class MainActivity extends AppCompatActivity {
         .show(tlFragment)
         .commit();
     tlFragment.setStopScroll(false);
+  }
+
+  private void showUserInfo(User user) {
+    final UserInfoHeaderFragment userInfoHeader = UserInfoHeaderFragment.getInstance(user);
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_appbar_fragment, userInfoHeader)
+        .commit();
   }
 
   private void attachToolbar(Toolbar toolbar) {

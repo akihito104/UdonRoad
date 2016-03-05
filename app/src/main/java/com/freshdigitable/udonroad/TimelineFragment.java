@@ -150,4 +150,8 @@ public class TimelineFragment extends Fragment {
   public void setOnSelectedTweetChangeListener(TimelineAdapter.OnSelectedTweetChangeListener listener) {
     this.selectedTweetChangeListener = listener;
   }
+
+  public void setUserIconClickedListener(TimelineAdapter.OnUserIconClickedListener listener) {
+    tlAdapter.setOnUserIconClickedListener(listener);
+  }
 }

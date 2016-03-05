@@ -21,6 +21,7 @@ import twitter4j.util.TimeSpanConverter;
  */
 public class StatusView extends RelativeLayout {
   private final TweetViewBinding binding;
+  private OnClickListener userIconClickListener;
 
   public StatusView(Context context) {
     this(context, null);
@@ -54,12 +55,7 @@ public class StatusView extends RelativeLayout {
     final User user = bindingStatus.getUser();
     Picasso.with(binding.tlIcon.getContext())
         .load(user.getProfileImageURLHttps()).fit().into(binding.tlIcon);
-    binding.tlIcon.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        getContext().startActivity(UserAccountActivity.createIntent(getContext(), user));
-      }
-    });
+    binding.tlIcon.setOnClickListener(userIconClickListener);
 
     binding.tlAccount.setText(user.getName());
     binding.tlDisplayname.setText(user.getScreenName());
@@ -122,5 +118,9 @@ public class StatusView extends RelativeLayout {
     binding.tlMyfav.setVisibility(GONE);
     binding.tlIcon.setOnClickListener(null);
     setOnClickListener(null);
+  }
+
+  public void setUserIconClickListener(OnClickListener userIconClickListener) {
+    this.userIconClickListener = userIconClickListener;
   }
 }

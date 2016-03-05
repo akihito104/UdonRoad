@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import twitter4j.Status;
+import twitter4j.User;
 
 /**
  * Created by akihit on 15/10/18.
@@ -63,7 +64,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       lastItemBoundListener.onLastItemBound(status.getId());
     }
 
-    holder.itemViewClicked = new ViewHolder.OnItemViewClickListener() {
+    holder.itemViewClicked = new OnItemViewClickListener() {
       @Override
       public void onItemViewClicked(final ViewHolder viewHolder) {
         if (viewHolder.hasSameStatusId(selectedStatusHolder)) {
@@ -73,6 +74,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         }
       }
     };
+    holder.userIconClickedListener = userIconClickedListener;
 
     if (status.getId() == getSelectedTweetId()) {
       holder.itemView.setBackgroundColor(Color.LTGRAY);
@@ -170,6 +172,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     void bindStatus(final Status status) {
       this.status = status;
       StatusView v = (StatusView) itemView;
+      v.setUserIconClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          userIconClickedListener.onClicked(
+              status.isRetweet() ?
+                  status.getRetweetedStatus().getUser() : status.getUser());
+          itemViewClicked.onItemViewClicked(ViewHolder.this);
+        }
+      });
       v.bindStatus(status);
       itemView.setOnClickListener(new View.OnClickListener() {
         @Override
@@ -184,10 +195,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
 
     private OnItemViewClickListener itemViewClicked;
-
-    interface OnItemViewClickListener {
-      void onItemViewClicked(ViewHolder viewHolder);
-    }
+    private OnUserIconClickedListener userIconClickedListener;
 
     void onRecycled() {
       ((StatusView)itemView).onRecycled();
@@ -204,5 +212,19 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       this.status = viewHolder.status;
       this.view = viewHolder.itemView;
     }
+  }
+
+  interface OnUserIconClickedListener {
+    void onClicked(User user);
+  }
+
+  private OnUserIconClickedListener userIconClickedListener;
+
+  public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {
+    this.userIconClickedListener = listener;
+  }
+
+  interface OnItemViewClickListener {
+    void onItemViewClicked(ViewHolder viewHolder);
   }
 }
