@@ -4,34 +4,34 @@
         xmlns:tools="http://schemas.android.com/tools"
     >
 
-<android.support.design.widget.CoordinatorLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    >
-
-    <fragment
-        android:id="@+id/user_header_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:name="com.freshdigitable.udonroad.UserInfoHeaderFragment"
-        tools:layout="@layout/fragment_user_info"
-        />
-
-    <android.support.v4.widget.NestedScrollView
-        android:id="@+id/user_nested_scroll_view"
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fitsSystemWindows="true"
         >
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/user_timeline"
+        <fragment
+            android:id="@+id/user_header_fragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:name="com.freshdigitable.udonroad.UserInfoHeaderFragment"
+            tools:layout="@layout/fragment_user_info"
             />
 
-    </android.support.v4.widget.NestedScrollView>
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/user_nested_scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            >
 
-</android.support.design.widget.CoordinatorLayout>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/user_timeline"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
+        </android.support.v4.widget.NestedScrollView>
+
+    </android.support.design.widget.CoordinatorLayout>
 </layout>
