@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -35,6 +36,8 @@ public class MainAppbarFragment extends Fragment {
     // android:titleTextColor is required up to API level 23
     binding.mainToolbar.setTitleTextColor(Color.WHITE);
     binding.mainTweetInputView.setUserObservable(userObservable);
+    final InputMethodManager inputMethodManager
+        = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     binding.mainTweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
       @Override
       public void onFocusChange(View v, boolean hasFocus) {
@@ -63,12 +66,6 @@ public class MainAppbarFragment extends Fragment {
 
   public void setUserObservable(Observable<User> user) {
     this.userObservable = user;
-  }
-
-  private InputMethodManager inputMethodManager;
-
-  public void setInputMethodManager(final InputMethodManager inputMethodManager) {
-    this.inputMethodManager = inputMethodManager;
   }
 
   public Toolbar getToolbar() {

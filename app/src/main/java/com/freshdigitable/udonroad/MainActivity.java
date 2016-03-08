@@ -3,7 +3,6 @@
  */
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
@@ -18,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -88,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
   private void setupAppBar() {
     appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
 //    appbarFragment = new MainAppbarFragment();
-    final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-    appbarFragment.setInputMethodManager(inputMethodManager);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_appbar_fragment, appbarFragment)
@@ -239,8 +235,7 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
     if (appbarFragment.isStatusInputViewVisible()) {
-      appbarFragment.collapseStatusInputView();
-      tlFragment.setStopScroll(false);
+      cancelWritingSelected();
       return;
     }
     if (tlFragment.isTweetSelected()) {
