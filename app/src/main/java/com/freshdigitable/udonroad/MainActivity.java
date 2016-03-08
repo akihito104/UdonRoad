@@ -41,7 +41,7 @@ import twitter4j.UserStreamListener;
 
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getSimpleName();
-  private ActivityMainBinding activityMainBinding;
+  private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment tlFragment;
   private MainAppbarFragment appbarFragment;
@@ -55,24 +55,24 @@ public class MainActivity extends AppCompatActivity {
       finish();
       return;
     }
-    activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+    binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
     twitterApi = TwitterApi.setup(this);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    activityMainBinding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+    binding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_home) {
           Log.d(TAG, "home is selected");
-          activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
         } else if (itemId == R.id.menu_mention) {
           Log.d(TAG, "mention is selected");
-          activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
         } else if (itemId == R.id.menu_fav) {
           Log.d(TAG, "fav is selected");
-          activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
         }
         return false;
       }
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        activityMainBinding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.draver_close) {
+        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.draver_close) {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
       }
     };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
-    activityMainBinding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
+    binding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
 
     setSupportActionBar(toolbar);
     if (getSupportActionBar() != null) {
@@ -193,9 +193,9 @@ public class MainActivity extends AppCompatActivity {
 
           @Override
           public void onNext(final User user) {
-            ((TextView) activityMainBinding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
-            ImageView icon = (ImageView) activityMainBinding.navDrawer.findViewById(R.id.nav_header_icon);
-            Picasso.with(activityMainBinding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
+            ((TextView) binding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
+            ImageView icon = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
+            Picasso.with(binding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
             icon.setOnClickListener(new View.OnClickListener() {
               @Override
               public void onClick(View v) {
@@ -230,8 +230,8 @@ public class MainActivity extends AppCompatActivity {
       hideStatusDetail();
       return;
     }
-    if (activityMainBinding.navDrawerLayout.isDrawerOpen(activityMainBinding.navDrawer)) {
-      activityMainBinding.navDrawerLayout.closeDrawer(activityMainBinding.navDrawer);
+    if (binding.navDrawerLayout.isDrawerOpen(binding.navDrawer)) {
+      binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       return;
     }
     if (appbarFragment.isStatusInputViewVisible()) {
