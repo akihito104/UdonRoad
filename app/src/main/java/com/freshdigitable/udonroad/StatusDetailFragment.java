@@ -53,7 +53,7 @@ public class StatusDetailFragment extends Fragment {
         Log.d(TAG, "ArrayAdapter.getView: " + getCount());
         View v = super.getView(position, convertView, parent);
         final DetailMenu item = getItem(position);
-        final int strres = item.getStringRes();
+        final int strres = item.getMenuText();
         ((TextView) v).setText(strres);
         return v;
       }
@@ -95,76 +95,81 @@ public class StatusDetailFragment extends Fragment {
   }
 
   enum DetailMenu implements DetailMenuInterface {
-    RT_CREATE(R.string.detail_rt_create) {
+    RT_CREATE(R.string.detail_rt_create,
+        R.string.detail_rt_create_success, R.string.detail_rt_create_failed) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.retweetStatus(status.getId()), context,
-            R.string.detail_rt_create_failed, R.string.detail_rt_create_success);
+        doAction(api.retweetStatus(status.getId()), context);
       }
-    }, RT_DELETE(R.string.detail_rt_delete) {
+    }, RT_DELETE(R.string.detail_rt_delete,
+        R.string.detail_rt_delete_success, R.string.detail_rt_delete_failed) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.destroyStatus(status.getId()), context,
-            R.string.detail_rt_delete_failed, R.string.detail_rt_delete_success);
+        doAction(api.destroyStatus(status.getId()), context);
 
       }
-    }, FAV_CREATE(R.string.detail_fav_create) {
+    }, FAV_CREATE(R.string.detail_fav_create,
+        R.string.detail_fav_create_success, R.string.detail_fav_create_failed) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.createFavorite(status.getId()), context,
-            R.string.detail_fav_create_failed, R.string.detail_fav_create_success);
+        doAction(api.createFavorite(status.getId()), context);
       }
-    }, FAV_DELETE(R.string.detail_fav_delete){
+    }, FAV_DELETE(R.string.detail_fav_delete,
+        R.string.detail_fav_delete_success, R.string.detail_fav_delete_failed) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.destroyFavorite(status.getId()), context,
-            R.string.detail_fav_delete_failed, R.string.detail_fav_delete_success);
+        doAction(api.destroyFavorite(status.getId()), context);
       }
-    }, REPLY(R.string.detail_reply) {
+    }, REPLY(R.string.detail_reply, 0, 0) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         //TODO
       }
-    }, QUOTE(R.string.detail_quote) {
+    }, QUOTE(R.string.detail_quote, 0, 0) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         //TODO
       }
-    };
+    },;
 
-    final int stringRes;
+    final private int menuText;
+    final private int messageOnSuccess;
+    final private int messageOnFailed;
 
-    DetailMenu(@StringRes int stringRes) {
-      this.stringRes = stringRes;
+    DetailMenu(@StringRes int menu,
+               @StringRes int messageOnSuccess,
+               @StringRes int messageOnFailed) {
+      this.menuText = menu;
+      this.messageOnSuccess = messageOnSuccess;
+      this.messageOnFailed = messageOnFailed;
     }
 
     @StringRes
-    public int getStringRes() {
-      return stringRes;
+    public int getMenuText() {
+      return menuText;
     }
 
-    void doAction(Observable<Status> observable, Context context,
-                  @StringRes int onErrorMessage, @StringRes int onCompleteMessage) {
+    protected void doAction(Observable<Status> observable, Context context) {
       observable.observeOn(AndroidSchedulers.mainThread())
           .subscribe(onNext(),
-              onErrorToast(context, onErrorMessage),
-              onCompleteToast(context, onCompleteMessage));
+              onErrorToast(context),
+              onCompleteToast(context));
     }
 
-    private Action0 onCompleteToast(final Context context, final @StringRes int res) {
+    private Action0 onCompleteToast(final Context context) {
       return new Action0() {
         @Override
         public void call() {
-          Toast.makeText(context, res, Toast.LENGTH_SHORT).show();
+          Toast.makeText(context, messageOnSuccess, Toast.LENGTH_SHORT).show();
         }
       };
     }
 
-    private Action1<Throwable> onErrorToast(final Context context, final @StringRes int res) {
+    private Action1<Throwable> onErrorToast(final Context context) {
       return new Action1<Throwable>() {
         @Override
         public void call(Throwable o) {
-          Toast.makeText(context, res, Toast.LENGTH_SHORT).show();
+          Toast.makeText(context, messageOnFailed, Toast.LENGTH_SHORT).show();
         }
       };
     }
