@@ -95,72 +95,53 @@ public class StatusDetailFragment extends Fragment {
   }
 
   enum DetailMenu implements DetailMenuInterface {
-    RT_CREATE {
-      @Override
-      public int getStringRes() {
-        return R.string.detail_rt_create;
-      }
-
+    RT_CREATE(R.string.detail_rt_create) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         doAction(api.retweetStatus(status.getId()), context,
             R.string.detail_rt_create_failed, R.string.detail_rt_create_success);
       }
-    }, RT_DELETE {
-      @Override
-      public int getStringRes() {
-        return R.string.detail_rt_delete;
-      }
-
+    }, RT_DELETE(R.string.detail_rt_delete) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         doAction(api.destroyStatus(status.getId()), context,
             R.string.detail_rt_delete_failed, R.string.detail_rt_delete_success);
 
       }
-    }, FAV_CREATE {
-      @Override
-      public int getStringRes() {
-        return R.string.detail_fav_create;
-      }
-
+    }, FAV_CREATE(R.string.detail_fav_create) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         doAction(api.createFavorite(status.getId()), context,
             R.string.detail_fav_create_failed, R.string.detail_fav_create_success);
       }
-    }, FAV_DELETE {
-      @Override
-      public int getStringRes() {
-        return R.string.detail_fav_delete;
-      }
-
+    }, FAV_DELETE(R.string.detail_fav_delete){
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         doAction(api.destroyFavorite(status.getId()), context,
             R.string.detail_fav_delete_failed, R.string.detail_fav_delete_success);
       }
-    }, REPLY {
-      @Override
-      public int getStringRes() {
-        return R.string.detail_reply;
-      }
-
+    }, REPLY(R.string.detail_reply) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         //TODO
       }
-    }, QUOTE {
-      @Override
-      public int getStringRes() {
-        return R.string.detail_quote;
-      }
-
+    }, QUOTE(R.string.detail_quote) {
       @Override
       public void action(TwitterApi api, Status status, Context context) {
         //TODO
       }
-    },;
+    };
+
+    final int stringRes;
+
+    DetailMenu(@StringRes int stringRes) {
+      this.stringRes = stringRes;
+    }
+
+    @StringRes
+    public int getStringRes() {
+      return stringRes;
+    }
 
     void doAction(Observable<Status> observable, Context context,
                   @StringRes int onErrorMessage, @StringRes int onCompleteMessage) {
@@ -198,9 +179,6 @@ public class StatusDetailFragment extends Fragment {
   }
 
   interface DetailMenuInterface {
-    @StringRes
-    int getStringRes();
-
     void action(TwitterApi api, Status status, Context context);
   }
 }
