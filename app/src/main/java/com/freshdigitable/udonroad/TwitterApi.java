@@ -66,6 +66,7 @@ public class TwitterApi {
         try {
           User user = twitter.users().showUser(twitter.getId());
           subscriber.onNext(user);
+          subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
         }
@@ -140,10 +141,10 @@ public class TwitterApi {
       public void call(Subscriber<? super Status> subscriber) {
         try {
           subscriber.onNext(twitter.updateStatus(sendingText));
+          subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
         }
-        subscriber.onCompleted();
       }
     }).subscribeOn(Schedulers.io());
 
@@ -155,6 +156,7 @@ public class TwitterApi {
       public void call(Subscriber<? super Status> subscriber) {
         try {
           subscriber.onNext(twitter.retweetStatus(tweetId));
+          subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
         }
