@@ -1,7 +1,6 @@
 package com.freshdigitable.udonroad;
 
 import android.graphics.Color;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +40,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return selectedStatusHolder != null;
   }
 
-  @Nullable
   public Status getSelectedStatus() {
     return isStatusViewSelected() ? selectedStatusHolder.status : null;
   }

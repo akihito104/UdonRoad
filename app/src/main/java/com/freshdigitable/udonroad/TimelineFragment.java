@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.FlingableFloatingActionButton.Direction;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 
 import java.util.List;
@@ -83,16 +84,20 @@ public class TimelineFragment extends Fragment {
     });
     binding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
       @Override
-      public void onFling(FlingableFloatingActionButton.Direction direction) {
+      public void onFling(Direction direction) {
         if (!isTweetSelected()) {
           return;
         }
         final Status status = tlAdapter.getSelectedStatus();
-        if (FlingableFloatingActionButton.Direction.UP.equals(direction)) {
-          fetchFavorite(status.getId());
-        } else if (FlingableFloatingActionButton.Direction.RIGHT.equals(direction)) {
-          fetchRetweet(status.getId());
-        } else if (FlingableFloatingActionButton.Direction.LEFT.equals(direction)) {
+        final long id = status.getId();
+        if (Direction.UP.equals(direction)) {
+          fetchFavorite(id);
+        } else if (Direction.RIGHT.equals(direction)) {
+          fetchRetweet(id);
+        } else if (Direction.UP_RIGHT.equals(direction)) {
+          fetchFavorite(id);
+          fetchRetweet(id);
+        } else if (Direction.LEFT.equals(direction)) {
           showStatusDetail(status);
         }
       }
