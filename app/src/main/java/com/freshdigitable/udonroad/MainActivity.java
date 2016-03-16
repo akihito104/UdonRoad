@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
       }
     };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
-    binding.navDrawerLayout.setDrawerListener(actionBarDrawerToggle);
+    binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
 
     setSupportActionBar(toolbar);
     if (getSupportActionBar() != null) {
