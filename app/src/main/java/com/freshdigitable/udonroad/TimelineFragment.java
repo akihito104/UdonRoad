@@ -78,11 +78,6 @@ public class TimelineFragment extends Fragment {
     binding.timeline.setAdapter(tlAdapter);
 
     binding.fab.setVisibility(View.GONE);
-    binding.fab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-      }
-    });
     binding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
       @Override
       public void onFling(Direction direction) {
