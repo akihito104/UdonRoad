@@ -54,6 +54,7 @@ public class TimelineFragment extends Fragment {
     RecyclerView.ItemDecoration itemDecoration = new TimelineDecoration();
     binding.timeline.addItemDecoration(itemDecoration);
     tlLayoutManager = new LinearLayoutManager(getContext());
+    tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
     binding.timeline.setItemAnimator(new TimelineAnimator());
     tlAdapter.setOnSelectedTweetChangeListener(

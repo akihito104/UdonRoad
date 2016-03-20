@@ -77,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
     appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
 //    appbarFragment = new MainAppbarFragment();
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
-    getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_appbar_fragment, appbarFragment)
-        .commit();
+//    getSupportFragmentManager().beginTransaction()
+//        .replace(R.id.main_appbar_fragment, appbarFragment)
+//        .commit();
     attachToolbar(appbarFragment.getToolbar());
   }
 
