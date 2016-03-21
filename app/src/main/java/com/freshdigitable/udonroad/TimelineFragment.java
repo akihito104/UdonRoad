@@ -15,8 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.freshdigitable.udonroad.FlingableFloatingActionButton.Direction;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
+import com.freshdigitable.udonroad.fab.OnFlingListener;
 
 import java.util.List;
 
@@ -78,7 +78,7 @@ public class TimelineFragment extends Fragment {
     binding.timeline.setAdapter(tlAdapter);
 
     binding.fab.setVisibility(View.GONE);
-    binding.fab.setOnFlingListener(new FlingableFloatingActionButton.OnFlingListener() {
+    binding.fab.setOnFlingListener(new OnFlingListener() {
       @Override
       public void onFling(Direction direction) {
         if (!isTweetSelected()) {
