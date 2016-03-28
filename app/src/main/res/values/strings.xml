@@ -29,4 +29,5 @@
     <string name="detail_fav_create_failed">like failure…</string>
     <string name="detail_fav_delete_failed">like delete failure…</string>
     <string name="detail_fav_delete_success">like destroy successed</string>
+    <string name="desc_fling_indicator">action indicator</string>
 </resources>

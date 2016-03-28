@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
     >
-    <FrameLayout
+    <RelativeLayout
         android:id="@+id/timeline_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -13,35 +13,30 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             />
-
-        <RelativeLayout
+        <ImageView
+            android:id="@+id/fab_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/fab"
+            android:layout_marginBottom="32dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_alignLeft="@+id/fab"
+            android:layout_alignRight="@+id/fab"
+            android:src="@drawable/ic_add_white_36dp"
+            android:background="#cccc"
+            android:contentDescription="@string/desc_fling_indicator"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        <com.freshdigitable.udonroad.fab.FlingableFloatingActionButton
+            android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            >
-            <com.freshdigitable.udonroad.fab.FlingableFloatingActionButton
-                android:id="@+id/fab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:src="@drawable/ic_add_white_36dp"
-                />
-            <ImageView
-                android:id="@+id/fab_indicator"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_above="@id/fab"
-                android:layout_marginBottom="32dp"
-                android:layout_alignLeft="@id/fab"
-                android:layout_alignRight="@id/fab"
-                android:src="@drawable/ic_add_white_36dp"
-                android:tint="#000"
-                android:background="#000000"
-                android:contentDescription="@string/desc_fling_indicator"
-                android:visibility="gone"
-                tools:visibility="visible"
-                />
-        </RelativeLayout>
-
-    </FrameLayout>
+            android:src="@drawable/ic_add_white_36dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="32dp"
+            />
+    </RelativeLayout>
 </layout>

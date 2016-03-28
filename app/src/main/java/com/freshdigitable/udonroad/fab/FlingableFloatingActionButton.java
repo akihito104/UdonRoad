@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
 
@@ -37,12 +38,22 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
         final int action = motionEvent.getAction();
         if (action == MotionEvent.ACTION_DOWN) {
           old = MotionEvent.obtain(motionEvent);
-        } else if (action == MotionEvent.ACTION_MOVE) {
-          Log.d(TAG, "onTouch: " + Direction.getDirection(old, motionEvent));
+          if (actionIndicator != null) {
+            actionIndicator.setVisibility(VISIBLE);
+          }
+          return false;
+        }
+        final Direction direction = Direction.getDirection(old, motionEvent);
+        if (action == MotionEvent.ACTION_MOVE) {
+          Log.d(TAG, "onTouch: " + direction);
           //TODO update UI
+          return false;
         } else if (action == MotionEvent.ACTION_UP) {
-          flingListener.onFling(Direction.getDirection(old, motionEvent));
+          flingListener.onFling(direction);
           old.recycle();
+          if (actionIndicator != null) {
+            actionIndicator.setVisibility(INVISIBLE);
+          }
           return true;
         }
         return false;
@@ -59,5 +70,11 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
 
   public void setOnFlingListener(OnFlingListener listener) {
     this.flingListener = listener;
+  }
+
+  private ImageView actionIndicator;
+
+  public void setActionIndicator(ImageView actionIndicator) {
+    this.actionIndicator = actionIndicator;
   }
 }

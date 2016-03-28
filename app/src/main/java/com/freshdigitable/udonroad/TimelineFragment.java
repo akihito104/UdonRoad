@@ -98,6 +98,8 @@ public class TimelineFragment extends Fragment {
         }
       }
     });
+    binding.fabIndicator.setImageResource(R.drawable.ic_add_white_36dp);
+    binding.fab.setActionIndicator(binding.fabIndicator);
     fetchTweet();
   }
 
