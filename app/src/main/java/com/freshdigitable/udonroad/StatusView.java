@@ -66,8 +66,8 @@ public class StatusView extends RelativeLayout {
     if (rtCount > 0) {
       this.setRtCountVisibility(View.VISIBLE);
       if (bindingStatus.isRetweetedByMe()) {
-        binding.tlMyrt.setVisibility(VISIBLE);
-        binding.tlRtcount.setText(String.valueOf(rtCount - 1));
+//        binding.tlMyrt.setVisibility(VISIBLE);
+        binding.tlRtcount.setText(String.valueOf(rtCount));
       } else {
         binding.tlRtcount.setText(String.valueOf(rtCount));
       }
@@ -77,8 +77,8 @@ public class StatusView extends RelativeLayout {
     if (favCount > 0) {
       this.setFavCountVisibility(View.VISIBLE);
       if (bindingStatus.isFavorited()) {
-        binding.tlMyfav.setVisibility(VISIBLE);
-        binding.tlFavcount.setText(String.valueOf(favCount - 1));
+//        binding.tlMyfav.setVisibility(VISIBLE);
+        binding.tlFavcount.setText(String.valueOf(favCount));
       } else {
         binding.tlFavcount.setText(String.valueOf(favCount));
       }
@@ -86,12 +86,14 @@ public class StatusView extends RelativeLayout {
   }
 
   private void setRtCountVisibility(int visibility) {
-    binding.tlRt.setVisibility(visibility);
+//    binding.tlRt.setVisibility(visibility);
+    binding.tlRtIcon.setVisibility(visibility);
     binding.tlRtcount.setVisibility(visibility);
   }
 
   private void setFavCountVisibility(int visibility) {
-    binding.tlFav.setVisibility(visibility);
+//    binding.tlFav.setVisibility(visibility);
+    binding.tlFavIcon.setVisibility(visibility);
     binding.tlFavcount.setVisibility(visibility);
   }
 
@@ -114,8 +116,10 @@ public class StatusView extends RelativeLayout {
     setFavCountVisibility(View.GONE);
     setRetweetedUserVisibility(View.GONE);
     setTextColor(Color.GRAY);
-    binding.tlMyrt.setVisibility(GONE);
-    binding.tlMyfav.setVisibility(GONE);
+//    binding.tlMyrt.setVisibility(GONE);
+//    binding.tlMyfav.setVisibility(GONE);
+    binding.tlRtIcon.setVisibility(GONE);
+    binding.tlFavIcon.setVisibility(GONE);
     binding.tlIcon.setOnClickListener(null);
     setOnClickListener(null);
   }
