@@ -53,7 +53,7 @@ public class StatusView extends RelativeLayout {
     if (status.isRetweet()) {
       setRetweetedUserVisibility(VISIBLE);
       binding.tlRtuser.setText(status.getUser().getScreenName());
-      this.setTextColor(R.color.colorTwitterActionRetweeted);
+      this.setTextColor(ContextCompat.getColor(getContext(), R.color.colorTwitterActionRetweeted));
     }
     final User user = bindingStatus.getUser();
     Picasso.with(binding.tlIcon.getContext())
