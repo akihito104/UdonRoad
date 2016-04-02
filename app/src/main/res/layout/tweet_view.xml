@@ -93,38 +93,6 @@
         tools:text="Count"
         />
 
-    <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
-        <!--android:textSize="@dimen/tweet_small_fontsize"-->
-        <!--android:visibility="gone"-->
-        <!--tools:visibility="visible"-->
-        <!--android:text="@string/plus_one"-->
-        <!--android:id="@+id/tl_myrt"-->
-        <!--android:textStyle="bold"-->
-        <!--android:layout_marginLeft="2dp"-->
-        <!--android:layout_alignTop="@+id/tl_rtcount"-->
-        <!--android:layout_toEndOf="@+id/tl_rtcount"-->
-        <!--android:layout_toRightOf="@+id/tl_rtcount"-->
-        <!--/>-->
-
-    <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
-        <!--android:text="@string/tweet_rt"-->
-        <!--android:id="@+id/tl_rt"-->
-        <!--android:textSize="@dimen/tweet_small_fontsize"-->
-        <!--android:layout_marginLeft="4dp"-->
-        <!--android:layout_marginRight="8dp"-->
-        <!--android:visibility="gone"-->
-        <!--tools:visibility="visible"-->
-        <!--android:layout_alignTop="@+id/tl_myrt"-->
-        <!--android:layout_toEndOf="@+id/tl_myrt"-->
-        <!--android:layout_toRightOf="@+id/tl_myrt"-->
-        <!--/>-->
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -139,37 +107,6 @@
         android:layout_toEndOf="@+id/tl_fav_icon"
         android:layout_toRightOf="@+id/tl_fav_icon"
         />
-
-    <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
-        <!--android:textSize="@dimen/tweet_small_fontsize"-->
-        <!--android:visibility="gone"-->
-        <!--tools:visibility="visible"-->
-        <!--android:text="@string/plus_one"-->
-        <!--android:id="@+id/tl_myfav"-->
-        <!--android:textStyle="bold"-->
-        <!--android:layout_marginLeft="2dp"-->
-        <!--android:layout_alignTop="@+id/tl_favcount"-->
-        <!--android:layout_toEndOf="@+id/tl_favcount"-->
-        <!--android:layout_toRightOf="@+id/tl_favcount"-->
-        <!--/>-->
-
-    <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
-        <!--android:text="@string/tweet_like"-->
-        <!--android:id="@+id/tl_fav"-->
-        <!--android:layout_marginLeft="4dp"-->
-        <!--android:textSize="@dimen/tweet_small_fontsize"-->
-        <!--android:visibility="gone"-->
-        <!--tools:visibility="visible"-->
-        <!--android:layout_alignTop="@+id/tl_myfav"-->
-        <!--android:layout_toEndOf="@+id/tl_myfav"-->
-        <!--android:layout_toRightOf="@+id/tl_myfav"-->
-        <!--/>-->
 
     <TextView
         android:layout_width="wrap_content"
@@ -234,6 +171,7 @@
         android:layout_alignTop="@+id/tl_rtcount"
         android:layout_alignBottom="@+id/tl_rtcount"
         android:src="@drawable/ic_retweet"
+        android:tint="@color/colorTwitterActionNormal"
         android:contentDescription="Retweet"
         android:visibility="gone"
         tools:visibility="visible"
@@ -243,11 +181,12 @@
         android:id="@+id/tl_fav_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
         android:layout_toRightOf="@+id/tl_rtcount"
         android:layout_alignBottom="@+id/tl_favcount"
         android:layout_alignTop="@+id/tl_favcount"
         android:src="@drawable/ic_like"
+        android:tint="@color/colorTwitterActionNormal"
+        android:contentDescription="Favorite"
         android:visibility="gone"
         tools:visibility="visible"
         />

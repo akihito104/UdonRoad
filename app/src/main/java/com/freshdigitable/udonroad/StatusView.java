@@ -3,10 +3,13 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
+import android.support.annotation.ColorRes;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Html;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
-import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.freshdigitable.udonroad.databinding.TweetViewBinding;
@@ -20,6 +23,7 @@ import twitter4j.util.TimeSpanConverter;
  * Created by akihit on 2016/01/11.
  */
 public class StatusView extends RelativeLayout {
+  private static final String TAG = StatusView.class.getSimpleName();
   private final TweetViewBinding binding;
   private OnClickListener userIconClickListener;
 
@@ -40,7 +44,7 @@ public class StatusView extends RelativeLayout {
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
 
   public void bindStatus(final Status status) {
-    Status bindingStatus;
+    final Status bindingStatus;
     if (status.isRetweet()) {
       bindingStatus = status.getRetweetedStatus();
     } else {
@@ -48,7 +52,7 @@ public class StatusView extends RelativeLayout {
     }
     binding.tlTime.setText(timeSpanConv.toTimeSpanString(bindingStatus.getCreatedAt()));
     if (status.isRetweet()) {
-      setRetweetedUserVisibility(View.VISIBLE);
+      setRetweetedUserVisibility(VISIBLE);
       binding.tlRtuser.setText(status.getUser().getScreenName());
       this.setTextColor(RETWEETED_TEXT_COLOR);
     }
@@ -64,35 +68,34 @@ public class StatusView extends RelativeLayout {
 
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0) {
-      this.setRtCountVisibility(View.VISIBLE);
-      if (bindingStatus.isRetweetedByMe()) {
-//        binding.tlMyrt.setVisibility(VISIBLE);
-        binding.tlRtcount.setText(String.valueOf(rtCount));
-      } else {
-        binding.tlRtcount.setText(String.valueOf(rtCount));
-      }
+      this.setRtCountVisibility(VISIBLE);
+      setTint(binding.tlRtIcon, bindingStatus.isRetweetedByMe() ?
+          R.color.colorTwitterActionRetweeted
+          : R.color.colorTwitterActionNormal);
+      binding.tlRtcount.setText(String.valueOf(rtCount));
     }
 
     final int favCount = bindingStatus.getFavoriteCount();
     if (favCount > 0) {
-      this.setFavCountVisibility(View.VISIBLE);
-      if (bindingStatus.isFavorited()) {
-//        binding.tlMyfav.setVisibility(VISIBLE);
-        binding.tlFavcount.setText(String.valueOf(favCount));
-      } else {
-        binding.tlFavcount.setText(String.valueOf(favCount));
-      }
+      this.setFavCountVisibility(VISIBLE);
+      setTint(binding.tlFavIcon, bindingStatus.isFavorited() ?
+          R.color.colorTwitterActionFaved
+          : R.color.colorTwitterActionNormal);
+      binding.tlFavcount.setText(String.valueOf(favCount));
     }
   }
 
+  private void setTint(ImageView view, @ColorRes int color) {
+//    Log.d(TAG, "setTint: " + color);
+    DrawableCompat.setTint(view.getDrawable(), ContextCompat.getColor(getContext(), color));
+  }
+
   private void setRtCountVisibility(int visibility) {
-//    binding.tlRt.setVisibility(visibility);
     binding.tlRtIcon.setVisibility(visibility);
     binding.tlRtcount.setVisibility(visibility);
   }
 
   private void setFavCountVisibility(int visibility) {
-//    binding.tlFav.setVisibility(visibility);
     binding.tlFavIcon.setVisibility(visibility);
     binding.tlFavcount.setVisibility(visibility);
   }
@@ -110,18 +113,25 @@ public class StatusView extends RelativeLayout {
     binding.tlTweet.setTextColor(color);
   }
 
-  public void onRecycled() {
+  public void recycle() {
     setBackgroundColor(Color.TRANSPARENT);
-    setRtCountVisibility(View.GONE);
-    setFavCountVisibility(View.GONE);
-    setRetweetedUserVisibility(View.GONE);
+    setRtCountVisibility(GONE);
+    setFavCountVisibility(GONE);
+    setRetweetedUserVisibility(GONE);
     setTextColor(Color.GRAY);
-//    binding.tlMyrt.setVisibility(GONE);
-//    binding.tlMyfav.setVisibility(GONE);
+
     binding.tlRtIcon.setVisibility(GONE);
     binding.tlFavIcon.setVisibility(GONE);
+
+//    final int normalColor = ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal);
+//    DrawableCompat.setTint(binding.tlRtIcon.getDrawable(), normalColor);
+//    DrawableCompat.setTint(binding.tlFavIcon.getDrawable(), normalColor);
+    setTint(binding.tlRtIcon, R.color.colorTwitterActionNormal);
+    setTint(binding.tlFavIcon, R.color.colorTwitterActionNormal);
+
     binding.tlIcon.setOnClickListener(null);
     setOnClickListener(null);
+    setUserIconClickListener(null);
   }
 
   public void setUserIconClickListener(OnClickListener userIconClickListener) {

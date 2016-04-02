@@ -105,6 +105,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onViewRecycled(ViewHolder holder) {
+//    Log.d(TAG, "onViewRecycled: ");
     holder.onRecycled();
   }
 
@@ -196,7 +197,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     private OnUserIconClickedListener userIconClickedListener;
 
     void onRecycled() {
-      ((StatusView)itemView).onRecycled();
+      ((StatusView)itemView).recycle();
       this.status = null;
       this.itemViewClicked = null;
     }
