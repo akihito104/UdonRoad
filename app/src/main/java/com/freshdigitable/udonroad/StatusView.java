@@ -40,7 +40,6 @@ public class StatusView extends RelativeLayout {
     binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.tweet_view, this, true);
   }
 
-  private static final int RETWEETED_TEXT_COLOR = Color.argb(255, 64, 192, 64);
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
 
   public void bindStatus(final Status status) {
@@ -54,7 +53,7 @@ public class StatusView extends RelativeLayout {
     if (status.isRetweet()) {
       setRetweetedUserVisibility(VISIBLE);
       binding.tlRtuser.setText(status.getUser().getScreenName());
-      this.setTextColor(RETWEETED_TEXT_COLOR);
+      this.setTextColor(R.color.colorTwitterActionRetweeted);
     }
     final User user = bindingStatus.getUser();
     Picasso.with(binding.tlIcon.getContext())
@@ -123,9 +122,6 @@ public class StatusView extends RelativeLayout {
     binding.tlRtIcon.setVisibility(GONE);
     binding.tlFavIcon.setVisibility(GONE);
 
-//    final int normalColor = ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal);
-//    DrawableCompat.setTint(binding.tlRtIcon.getDrawable(), normalColor);
-//    DrawableCompat.setTint(binding.tlFavIcon.getDrawable(), normalColor);
     setTint(binding.tlRtIcon, R.color.colorTwitterActionNormal);
     setTint(binding.tlFavIcon, R.color.colorTwitterActionNormal);
 

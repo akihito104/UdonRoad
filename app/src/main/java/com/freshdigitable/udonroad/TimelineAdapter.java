@@ -1,6 +1,7 @@
 package com.freshdigitable.udonroad;
 
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public TimelineAdapter() {
     this(new LinkedList<Status>());
   }
+
   private TimelineAdapter(List<Status> statuses) {
     this.statuses = new LinkedList<>(statuses);
   }
@@ -75,9 +77,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     holder.userIconClickedListener = userIconClickedListener;
 
     if (status.getId() == getSelectedTweetId()) {
-      holder.itemView.setBackgroundColor(Color.LTGRAY);
+      setSelectedBackground(holder.itemView);
       selectedStatusHolder = new SelectedStatus(holder);
     }
+  }
+
+  private void setSelectedBackground(View v) {
+    final int color = ContextCompat.getColor(v.getContext(),
+        R.color.colorTwitterActionNormalTransparent);
+    v.setBackgroundColor(color);
   }
 
   private SelectedStatus selectedStatusHolder = null;
@@ -87,7 +95,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       selectedStatusHolder.view.setBackgroundColor(Color.TRANSPARENT);
     }
     selectedStatusHolder = new SelectedStatus(vh);
-    selectedStatusHolder.view.setBackgroundColor(Color.LTGRAY);
+    setSelectedBackground(selectedStatusHolder.view);
     if (selectedTweetChangeListener != null) {
       selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.status);
     }
