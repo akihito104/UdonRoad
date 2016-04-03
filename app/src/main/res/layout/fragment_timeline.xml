@@ -16,9 +16,9 @@
         <ImageView
             android:id="@+id/fab_indicator"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="32dp"
             android:layout_above="@+id/fab"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="64dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
             android:layout_alignLeft="@+id/fab"

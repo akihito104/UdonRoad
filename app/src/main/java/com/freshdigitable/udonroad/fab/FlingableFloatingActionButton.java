@@ -30,6 +30,7 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
 
     this.setOnTouchListener(new View.OnTouchListener() {
       private MotionEvent old;
+
       @Override
       public boolean onTouch(View view, MotionEvent motionEvent) {
         if (flingListener == null) {
@@ -46,7 +47,9 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
         final Direction direction = Direction.getDirection(old, motionEvent);
         if (action == MotionEvent.ACTION_MOVE) {
           Log.d(TAG, "onTouch: " + direction);
-          //TODO update UI
+          if (actionIndicatorHelper != null) {
+            actionIndicatorHelper.onFling(direction);
+          }
           return false;
         } else if (action == MotionEvent.ACTION_UP) {
           flingListener.onFling(direction);
@@ -74,7 +77,10 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
 
   private ImageView actionIndicator;
 
+  private OnFlingListener actionIndicatorHelper;
+
   public void setActionIndicator(ImageView actionIndicator) {
     this.actionIndicator = actionIndicator;
+    this.actionIndicatorHelper = new ActionIndicatorHelper(actionIndicator);
   }
 }
