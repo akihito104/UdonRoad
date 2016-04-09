@@ -10,10 +10,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-        generatedDensities = []
-    }
-    aaptOptions {
-        additionalParameters "--no-version-vectors"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         debug {
@@ -34,7 +31,7 @@ android {
     }
 }
 
-def supportLibVer = '23.2.1'
+def supportLibVer = '23.3.0'
 def t4jVer = '4.0.4'
 def rxVer = '1.1.0'
 
