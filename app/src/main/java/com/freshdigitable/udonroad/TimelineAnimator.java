@@ -26,7 +26,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
 
   @Override
   public boolean animateMove(RecyclerView.ViewHolder holder, int fromX, int fromY, int toX, int toY) {
-    Log.d(TAG, "animateMove");
+//    Log.d(TAG, "animateMove");
     final View v = holder.itemView;
     ViewCompat.animate(v)
         .translationY(toY - fromY - ViewCompat.getTranslationY(v))

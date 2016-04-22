@@ -1,8 +1,10 @@
 apply plugin: 'com.android.application'
+//apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.freshdigitable.udonroad"
@@ -52,8 +54,4 @@ dependencies {
     compile "io.reactivex:rxjava:$rxVer"
 
     testCompile 'junit:junit:4.12'
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
 }

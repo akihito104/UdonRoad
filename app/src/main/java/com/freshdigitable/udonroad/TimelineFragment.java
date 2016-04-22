@@ -17,9 +17,15 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.fab.OnFlingListener;
+import com.freshdigitable.udonroad.realmdata.StatusRealm;
 
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -38,6 +44,7 @@ public class TimelineFragment extends Fragment {
   private final TimelineAdapter tlAdapter = new TimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
   private TwitterApi twitterApi;
+  private Realm realm;
 
   @Nullable
   @Override
@@ -104,15 +111,43 @@ public class TimelineFragment extends Fragment {
   }
 
   @Override
+  public void onStart() {
+    super.onStart();
+    realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).build());
+    cleanOldStatuses();
+    twitterApi.connectUserStream(statusListener);
+//    Log.d(TAG, "onStart: Realm.path: " + realm.getPath());
+  }
+
+  @Override
   public void onResume() {
     super.onResume();
-    twitterApi.connectUserStream(statusListener);
   }
 
   @Override
   public void onPause() {
-    twitterApi.disconnectStreamListener();
     super.onPause();
+  }
+
+  @Override
+  public void onStop() {
+    Log.d(TAG, "onStop: ");
+    twitterApi.disconnectStreamListener();
+    cleanOldStatuses();
+    realm.close();
+    super.onStop();
+  }
+
+  private void cleanOldStatuses() {
+    final long now = System.currentTimeMillis();
+    final Date date = new Date(now - TimeUnit.HOURS.toMillis(3));
+    final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
+        .lessThanOrEqualTo("createdAt", date)
+        .findAll();
+    Log.d(TAG, "cleanOldStatuses: clear:" + res.size());
+    realm.beginTransaction();
+    res.clear();
+    realm.commitTransaction();
   }
 
   private StatusDetailFragment statusDetail;
@@ -205,6 +240,9 @@ public class TimelineFragment extends Fragment {
             @Override
             public void call(Status status) {
               addNewStatus(status);
+              realm.beginTransaction();
+              realm.copyToRealmOrUpdate(new StatusRealm(status));
+              realm.commitTransaction();
             }
           });
     }
