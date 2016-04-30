@@ -263,9 +263,11 @@ public class TimelineFragment extends Fragment {
 
               final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
                   .equalTo("id", deletedStatusId).findAll();
-              realm.beginTransaction();
-              res.deleteAllFromRealm();
-              realm.commitTransaction();
+              if (res.size() > 0) {
+                realm.beginTransaction();
+                res.deleteAllFromRealm();
+                realm.commitTransaction();
+              }
             }
           });
     }
