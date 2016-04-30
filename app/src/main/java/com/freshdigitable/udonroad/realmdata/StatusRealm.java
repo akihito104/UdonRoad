@@ -23,7 +23,7 @@ import twitter4j.UserMentionEntity;
 
 public class StatusRealm extends RealmObject {
   @PrimaryKey
-  private long statusId;
+  private long id;
   private Date createdAt;
   private StatusRealm retweetedStatus;
   private String text;
@@ -37,7 +37,7 @@ public class StatusRealm extends RealmObject {
   }
 
   public StatusRealm(Status status) {
-    this.statusId = status.getId();
+    this.id = status.getId();
     this.createdAt = status.getCreatedAt();
     this.retweetedStatus = status.isRetweet() ?
         new StatusRealm(status.getRetweetedStatus()) : null;
@@ -54,11 +54,11 @@ public class StatusRealm extends RealmObject {
   }
 
   public long getId() {
-    return statusId;
+    return id;
   }
 
   public void setId(long id) {
-    this.statusId = id;
+    this.id = id;
   }
 
   public String getText() {

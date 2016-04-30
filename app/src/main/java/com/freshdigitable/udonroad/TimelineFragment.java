@@ -34,6 +34,7 @@ import twitter4j.Paging;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.TwitterException;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
@@ -113,7 +114,9 @@ public class TimelineFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).build());
+    final RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build();
+//    Realm.deleteRealm(config);
+    realm = Realm.getInstance(config);
     cleanOldStatuses();
     twitterApi.connectUserStream(statusListener);
 //    Log.d(TAG, "onStart: Realm.path: " + realm.getPath());
@@ -146,7 +149,7 @@ public class TimelineFragment extends Fragment {
         .findAll();
     Log.d(TAG, "cleanOldStatuses: clear:" + res.size());
     realm.beginTransaction();
-    res.clear();
+    res.deleteAllFromRealm();
     realm.commitTransaction();
   }
 
@@ -240,6 +243,7 @@ public class TimelineFragment extends Fragment {
             @Override
             public void call(Status status) {
               addNewStatus(status);
+
               realm.beginTransaction();
               realm.copyToRealmOrUpdate(new StatusRealm(status));
               realm.commitTransaction();
@@ -256,6 +260,12 @@ public class TimelineFragment extends Fragment {
             @Override
             public void call(Long deletedStatusId) {
               deleteStatus(deletedStatusId);
+
+              final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
+                  .equalTo("id", deletedStatusId).findAll();
+              realm.beginTransaction();
+              res.deleteAllFromRealm();
+              realm.commitTransaction();
             }
           });
     }
@@ -316,8 +326,18 @@ public class TimelineFragment extends Fragment {
 
           @Override
           public void onError(Throwable e) {
-            Log.e(TAG, "error: ", e);
-            showToast("failed to create fav...");
+            if (e instanceof TwitterException) {
+              final int statusCode = ((TwitterException) e).getStatusCode();
+              if (statusCode == 403) {
+                showToast("already faved");
+              } else {
+                Log.e(TAG, "error: ", e);
+                showToast("failed to create fav...");
+              }
+            } else {
+              Log.e(TAG, "error: ", e);
+              showToast("failed to create fav...");
+            }
           }
         });
   }
