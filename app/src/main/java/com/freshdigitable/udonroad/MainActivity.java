@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     });
 
     setupAppBar();
-    setupUserTimeline();
   }
 
   private void setupAppBar() {
@@ -85,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupUserTimeline() {
     tlFragment = new TimelineFragment();
-    tlFragment.setTwitterApi(twitterApi);
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {
@@ -169,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    setupUserTimeline();
   }
 
   @Override

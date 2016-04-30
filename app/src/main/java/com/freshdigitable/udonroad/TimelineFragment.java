@@ -108,8 +108,12 @@ public class TimelineFragment extends Fragment {
     });
     binding.fabIndicator.setImageResource(R.drawable.ic_add_white_36dp);
     binding.fab.setActionIndicator(binding.fabIndicator);
+
+    twitterApi = TwitterApi.setup(getContext());
     fetchTweet();
+    streamApi = TwitterStreamApi.setup(getContext());
   }
+  private TwitterStreamApi streamApi;
 
   @Override
   public void onStart() {
@@ -118,7 +122,7 @@ public class TimelineFragment extends Fragment {
 //    Realm.deleteRealm(config);
     realm = Realm.getInstance(config);
     cleanOldStatuses();
-    twitterApi.connectUserStream(statusListener);
+    streamApi.connectUserStream(statusListener);
 //    Log.d(TAG, "onStart: Realm.path: " + realm.getPath());
   }
 
@@ -135,7 +139,7 @@ public class TimelineFragment extends Fragment {
   @Override
   public void onStop() {
     Log.d(TAG, "onStop: ");
-    twitterApi.disconnectStreamListener();
+    streamApi.disconnectStreamListener();
     cleanOldStatuses();
     realm.close();
     super.onStop();
