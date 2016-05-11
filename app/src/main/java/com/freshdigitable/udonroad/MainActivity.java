@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {
-        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
+        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));//TODO user -> user.id
 //        showUserInfo(user);
       }
     });

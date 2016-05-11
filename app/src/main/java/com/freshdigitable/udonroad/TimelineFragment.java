@@ -17,15 +17,10 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.fab.OnFlingListener;
-import com.freshdigitable.udonroad.realmdata.StatusRealm;
+import com.freshdigitable.udonroad.realmdata.RealmTimelineAdapter;
 
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
-import io.realm.RealmResults;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -42,10 +37,9 @@ public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
-  private final TimelineAdapter tlAdapter = new TimelineAdapter();
+  private final RealmTimelineAdapter tlAdapter = new RealmTimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
   private TwitterApi twitterApi;
-  private Realm realm;
 
   @Nullable
   @Override
@@ -65,6 +59,7 @@ public class TimelineFragment extends Fragment {
     tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
     binding.timeline.setItemAnimator(new TimelineAnimator());
+
     tlAdapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
@@ -108,20 +103,20 @@ public class TimelineFragment extends Fragment {
     });
     binding.fabIndicator.setImageResource(R.drawable.ic_add_white_36dp);
     binding.fab.setActionIndicator(binding.fabIndicator);
-
-    twitterApi = TwitterApi.setup(getContext());
-    fetchTweet();
-    streamApi = TwitterStreamApi.setup(getContext());
   }
+
   private TwitterStreamApi streamApi;
 
   @Override
   public void onStart() {
     super.onStart();
-    final RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build();
-//    Realm.deleteRealm(config);
-    realm = Realm.getInstance(config);
-    cleanOldStatuses();
+    tlAdapter.openRealm(getContext());
+    twitterApi = TwitterApi.setup(getContext());
+    fetchTweet();
+    streamApi = TwitterStreamApi.setup(getContext());
+    if (streamApi == null) {
+      return;
+    }
     streamApi.connectUserStream(statusListener);
 //    Log.d(TAG, "onStart: Realm.path: " + realm.getPath());
   }
@@ -140,21 +135,8 @@ public class TimelineFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     streamApi.disconnectStreamListener();
-    cleanOldStatuses();
-    realm.close();
+    tlAdapter.closeRealm();
     super.onStop();
-  }
-
-  private void cleanOldStatuses() {
-    final long now = System.currentTimeMillis();
-    final Date date = new Date(now - TimeUnit.HOURS.toMillis(3));
-    final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
-        .lessThanOrEqualTo("createdAt", date)
-        .findAll();
-    Log.d(TAG, "cleanOldStatuses: clear:" + res.size());
-    realm.beginTransaction();
-    res.deleteAllFromRealm();
-    realm.commitTransaction();
   }
 
   private StatusDetailFragment statusDetail;
@@ -195,7 +177,7 @@ public class TimelineFragment extends Fragment {
         && !stopScroll;
   }
 
-  public void addNewStatus(Status status) {
+  private void addNewStatus(Status status) {
     if (canScrollToAdd()) {
       tlAdapter.addNewStatus(status);
       scrollTo(0);
@@ -204,17 +186,16 @@ public class TimelineFragment extends Fragment {
     }
   }
 
-  public void addNewStatuses(List<Status> statuses) {
+  private void addNewStatuses(List<Status> statuses) {
     tlAdapter.addNewStatuses(statuses);
   }
 
-  public void addStatusesAtLast(List<Status> statuses) {
+  private void addStatusesAtLast(List<Status> statuses) {
     tlAdapter.addNewStatusesAtLast(statuses);
   }
 
-  public void deleteStatus(long id) {
+  private void deleteStatus(long id) {
     tlAdapter.deleteStatus(id);
-    tlAdapter.notifyDataSetChanged();
   }
 
   public void scrollTo(int position) {
@@ -230,10 +211,6 @@ public class TimelineFragment extends Fragment {
     return tlAdapter.isStatusViewSelected();
   }
 
-  public void setTwitterApi(TwitterApi twitterApi) {
-    this.twitterApi = twitterApi;
-  }
-
   public void setUserIconClickedListener(TimelineAdapter.OnUserIconClickedListener listener) {
     tlAdapter.setOnUserIconClickedListener(listener);
   }
@@ -247,10 +224,6 @@ public class TimelineFragment extends Fragment {
             @Override
             public void call(Status status) {
               addNewStatus(status);
-
-              realm.beginTransaction();
-              realm.copyToRealmOrUpdate(new StatusRealm(status));
-              realm.commitTransaction();
             }
           });
     }
@@ -264,14 +237,6 @@ public class TimelineFragment extends Fragment {
             @Override
             public void call(Long deletedStatusId) {
               deleteStatus(deletedStatusId);
-
-              final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
-                  .equalTo("id", deletedStatusId).findAll();
-              if (res.size() > 0) {
-                realm.beginTransaction();
-                res.deleteAllFromRealm();
-                realm.commitTransaction();
-              }
             }
           });
     }
@@ -336,14 +301,11 @@ public class TimelineFragment extends Fragment {
               final int statusCode = ((TwitterException) e).getStatusCode();
               if (statusCode == 403) {
                 showToast("already faved");
-              } else {
-                Log.e(TAG, "error: ", e);
-                showToast("failed to create fav...");
+                return;
               }
-            } else {
-              Log.e(TAG, "error: ", e);
-              showToast("failed to create fav...");
             }
+            Log.e(TAG, "error: ", e);
+            showToast("failed to create fav...");
           }
         });
   }
@@ -374,6 +336,7 @@ public class TimelineFragment extends Fragment {
         .subscribe(new Subscriber<List<Status>>() {
           @Override
           public void onNext(List<Status> status) {
+            Log.d(TAG, "onNext: " + status.size());
             addStatusesAtLast(status);
           }
 
