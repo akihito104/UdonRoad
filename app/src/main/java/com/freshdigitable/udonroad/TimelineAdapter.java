@@ -58,7 +58,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
-    Status status = statuses.get(position);
+    Status status = get(position);
     holder.bindStatus(status);
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound(status.getId());
@@ -126,6 +126,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   interface OnSelectedTweetChangeListener {
     void onTweetSelected(Status status);
     void onTweetUnselected();
+  }
+
+  protected Status get(int position) {
+    return statuses.get(position);
   }
 
   @Override
@@ -208,6 +212,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       ((StatusView)itemView).recycle();
       this.status = null;
       this.itemViewClicked = null;
+      this.userIconClickedListener = null;
     }
   }
 

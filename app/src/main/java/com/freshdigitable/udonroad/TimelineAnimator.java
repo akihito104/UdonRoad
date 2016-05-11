@@ -1,10 +1,9 @@
 package com.freshdigitable.udonroad;
 
-import android.support.v4.view.ViewCompat;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.util.Log;
-import android.view.View;
 
 /**
  * Created by akihit on 2015/11/21.
@@ -27,10 +26,10 @@ public class TimelineAnimator extends SimpleItemAnimator {
   @Override
   public boolean animateMove(RecyclerView.ViewHolder holder, int fromX, int fromY, int toX, int toY) {
     Log.d(TAG, "animateMove");
-    final View v = holder.itemView;
-    ViewCompat.animate(v)
-        .translationY(toY - fromY - ViewCompat.getTranslationY(v))
-        .start();
+//    final View v = holder.itemView;
+//    ViewCompat.animate(v)
+//        .translationY(toY - fromY - ViewCompat.getTranslationY(v))
+//        .start();
     return false;
   }
 
@@ -58,6 +57,11 @@ public class TimelineAnimator extends SimpleItemAnimator {
   @Override
   public boolean isRunning() {
     // Log.d(TAG, "isRunning"); called when view moved
+    return false;
+  }
+
+  @Override
+  public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
     return false;
   }
 }

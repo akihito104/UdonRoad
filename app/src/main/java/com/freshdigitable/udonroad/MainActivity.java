@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     });
 
     setupAppBar();
-    setupUserTimeline();
   }
 
   private void setupAppBar() {
@@ -85,11 +84,10 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupUserTimeline() {
     tlFragment = new TimelineFragment();
-    tlFragment.setTwitterApi(twitterApi);
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {
-        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
+        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));//TODO user -> user.id
 //        showUserInfo(user);
       }
     });
@@ -169,11 +167,17 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    setupUserTimeline();
   }
 
   @Override
   protected void onPause() {
     super.onPause();
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
   }
 
   @Override

@@ -14,10 +14,7 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
-import twitter4j.UserStreamListener;
 import twitter4j.auth.AccessToken;
 
 /**
@@ -43,20 +40,13 @@ public class TwitterApi {
     twitter.setOAuthConsumer(consumerKey, consumerSecret);
     twitter.setOAuthAccessToken(accessToken);
 
-    TwitterStreamFactory streamFactory = new TwitterStreamFactory();
-    TwitterStream twitterStream = streamFactory.getInstance();
-    twitterStream.setOAuthConsumer(consumerKey, consumerSecret);
-    twitterStream.setOAuthAccessToken(accessToken);
-
-    return new TwitterApi(twitter, twitterStream);
+    return new TwitterApi(twitter);
   }
 
   private final Twitter twitter;
-  private final TwitterStream twitterStream;
 
-  private TwitterApi(Twitter twitter, TwitterStream twitterStream) {
+  private TwitterApi(Twitter twitter) {
     this.twitter = twitter;
-    this.twitterStream = twitterStream;
   }
 
   public Observable<User> verifyCredentials() {
@@ -72,22 +62,6 @@ public class TwitterApi {
         }
       }
     }).subscribeOn(Schedulers.io());
-  }
-
-  public void connectUserStream(UserStreamListener listener) {
-    twitterStream.addListener(listener);
-    twitterStream.user();
-  }
-
-  public void disconnectStreamListener() {
-    Observable.create(new Observable.OnSubscribe<Void>() {
-      @Override
-      public void call(Subscriber<? super Void> subscriber) {
-        twitterStream.shutdown();
-        twitterStream.clearListeners();
-      }
-    }).subscribeOn(Schedulers.io())
-    .subscribe();
   }
 
   public static Twitter getTwitterInstance(final Context context) {
@@ -113,7 +87,7 @@ public class TwitterApi {
   }
 
   @Nullable
-  private static AccessToken loadAccessToken(Context context) {
+  static AccessToken loadAccessToken(Context context) {
     SharedPreferences sharedPreference = getAppSharedPrefs(context);
     String token = sharedPreference.getString(TOKEN, null);
     if (token == null) {

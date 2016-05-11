@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.fab.OnFlingListener;
+import com.freshdigitable.udonroad.realmdata.RealmTimelineAdapter;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import twitter4j.Paging;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.TwitterException;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
@@ -35,7 +37,7 @@ public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
-  private final TimelineAdapter tlAdapter = new TimelineAdapter();
+  private final RealmTimelineAdapter tlAdapter = new RealmTimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
   private TwitterApi twitterApi;
 
@@ -57,6 +59,7 @@ public class TimelineFragment extends Fragment {
     tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
     binding.timeline.setItemAnimator(new TimelineAnimator());
+
     tlAdapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
@@ -100,19 +103,40 @@ public class TimelineFragment extends Fragment {
     });
     binding.fabIndicator.setImageResource(R.drawable.ic_add_white_36dp);
     binding.fab.setActionIndicator(binding.fabIndicator);
+  }
+
+  private TwitterStreamApi streamApi;
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    tlAdapter.openRealm(getContext());
+    twitterApi = TwitterApi.setup(getContext());
     fetchTweet();
+    streamApi = TwitterStreamApi.setup(getContext());
+    if (streamApi == null) {
+      return;
+    }
+    streamApi.connectUserStream(statusListener);
+//    Log.d(TAG, "onStart: Realm.path: " + realm.getPath());
   }
 
   @Override
   public void onResume() {
     super.onResume();
-    twitterApi.connectUserStream(statusListener);
   }
 
   @Override
   public void onPause() {
-    twitterApi.disconnectStreamListener();
     super.onPause();
+  }
+
+  @Override
+  public void onStop() {
+    Log.d(TAG, "onStop: ");
+    streamApi.disconnectStreamListener();
+    tlAdapter.closeRealm();
+    super.onStop();
   }
 
   private StatusDetailFragment statusDetail;
@@ -153,7 +177,7 @@ public class TimelineFragment extends Fragment {
         && !stopScroll;
   }
 
-  public void addNewStatus(Status status) {
+  private void addNewStatus(Status status) {
     if (canScrollToAdd()) {
       tlAdapter.addNewStatus(status);
       scrollTo(0);
@@ -162,17 +186,16 @@ public class TimelineFragment extends Fragment {
     }
   }
 
-  public void addNewStatuses(List<Status> statuses) {
+  private void addNewStatuses(List<Status> statuses) {
     tlAdapter.addNewStatuses(statuses);
   }
 
-  public void addStatusesAtLast(List<Status> statuses) {
+  private void addStatusesAtLast(List<Status> statuses) {
     tlAdapter.addNewStatusesAtLast(statuses);
   }
 
-  public void deleteStatus(long id) {
+  private void deleteStatus(long id) {
     tlAdapter.deleteStatus(id);
-    tlAdapter.notifyDataSetChanged();
   }
 
   public void scrollTo(int position) {
@@ -186,10 +209,6 @@ public class TimelineFragment extends Fragment {
 
   public boolean isTweetSelected() {
     return tlAdapter.isStatusViewSelected();
-  }
-
-  public void setTwitterApi(TwitterApi twitterApi) {
-    this.twitterApi = twitterApi;
   }
 
   public void setUserIconClickedListener(TimelineAdapter.OnUserIconClickedListener listener) {
@@ -278,6 +297,13 @@ public class TimelineFragment extends Fragment {
 
           @Override
           public void onError(Throwable e) {
+            if (e instanceof TwitterException) {
+              final int statusCode = ((TwitterException) e).getStatusCode();
+              if (statusCode == 403) {
+                showToast("already faved");
+                return;
+              }
+            }
             Log.e(TAG, "error: ", e);
             showToast("failed to create fav...");
           }
@@ -310,6 +336,7 @@ public class TimelineFragment extends Fragment {
         .subscribe(new Subscriber<List<Status>>() {
           @Override
           public void onNext(List<Status> status) {
+            Log.d(TAG, "onNext: " + status.size());
             addStatusesAtLast(status);
           }
 
