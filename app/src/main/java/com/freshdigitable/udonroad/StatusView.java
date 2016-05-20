@@ -133,4 +133,13 @@ public class StatusView extends RelativeLayout {
   public void setUserIconClickListener(OnClickListener userIconClickListener) {
     this.userIconClickListener = userIconClickListener;
   }
+
+  @Override
+  public String toString() {
+    final CharSequence text = binding.tlTweet.getText();
+    final CharSequence cs = text.length() > 10 ? text.subSequence(0, 9) : text;
+    return "height: " + getHeight()
+        + ", user: " + binding.tlDisplayname.getText()
+        + ", text: " + cs;
+  }
 }

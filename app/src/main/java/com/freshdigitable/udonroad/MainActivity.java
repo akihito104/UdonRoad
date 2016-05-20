@@ -232,8 +232,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void headingSelected() {
-    tlFragment.scrollTo(0);
-    tlFragment.clearSelectedTweet();
+    tlFragment.scrollToTop();
   }
 
   private void sendStatusSelected() {

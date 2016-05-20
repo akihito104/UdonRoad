@@ -26,7 +26,7 @@ class TimelineDecoration extends RecyclerView.ItemDecoration {
   @Override
   public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
     int position = ((RecyclerView.LayoutParams) view.getLayoutParams()).getViewLayoutPosition();
-    int top = position == 0 ? 0 : dividerHeight;
+    int top = position == 0 ? dividerHeight : 0;
     outRect.set(0, top, 0, 0);
   }
 
@@ -36,8 +36,8 @@ class TimelineDecoration extends RecyclerView.ItemDecoration {
     final float left = parent.getPaddingLeft();
     final float right = parent.getWidth() - parent.getPaddingRight();
     final int childCount = parent.getChildCount();
-    final RecyclerView.LayoutManager manager = parent.getLayoutManager();
 
+    final RecyclerView.LayoutManager manager = parent.getLayoutManager();
     for (int i = 0; i < childCount; i++) {
       final View child = parent.getChildAt(i);
       final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
@@ -45,7 +45,7 @@ class TimelineDecoration extends RecyclerView.ItemDecoration {
         continue;
       }
       final float top = manager.getDecoratedTop(child) - params.topMargin
-          + ViewCompat.getTranslationY(child);
+          + Math.round(ViewCompat.getTranslationY(child));
       final float bottom = top + dividerHeight;
       c.drawRect(left, top, right, bottom, paint);
     }

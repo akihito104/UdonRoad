@@ -19,7 +19,6 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
-import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -77,33 +76,27 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         .doOnNext(new Action1<RealmResults<StatusRealm>>() {
           @Override
           public void call(final RealmResults<StatusRealm> results) {
-            Observable.from(copied)
-                .map(new Func1<StatusRealm, Integer>() {
-                  @Override
-                  public Integer call(StatusRealm statusRealm) {
-                    return results.indexOf(statusRealm);
-                  }
-                })
-                .filter(new Func1<Integer, Boolean>() {
-                  @Override
-                  public Boolean call(Integer integer) {
-                    return integer >= 0;
-                  }
-                })
-                .toSortedList()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<Integer>>() {
-                  @Override
-                  public void call(List<Integer> integers) {
-                    if (integers.size() < 1) {
-                      return;
-                    }
-                    notifyItemRangeInserted(integers.get(0), integers.size());
-                  }
-                });
+            notifyInserted(copied, results);
           }
         })
         .subscribe();
+  }
+
+  private void notifyInserted(List<StatusRealm> copied, RealmResults<StatusRealm> results) {
+    Log.d(TAG, "notifyInserted:");
+    List<Integer> res = new ArrayList<>();
+    for (StatusRealm s : copied) {
+      int index = results.indexOf(s);
+      if (index >= 0) {
+        res.add(index);
+      }
+    }
+    Collections.sort(res);
+    if (res.size() < 1) {
+      return;
+    }
+    Log.d(TAG, "notifyInserted> index: " + res.get(0) + ", size: " + res.size());
+    notifyItemRangeInserted(res.get(0), res.size());
   }
 
   @Override
@@ -147,7 +140,6 @@ public class RealmTimelineAdapter extends TimelineAdapter {
             for (int d : deleted) {
               notifyItemRemoved(d);
             }
-            notifyDataSetChanged();
           }
         });
   }

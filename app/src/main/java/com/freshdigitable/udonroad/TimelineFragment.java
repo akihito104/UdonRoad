@@ -11,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -49,6 +50,8 @@ public class TimelineFragment extends Fragment {
     return view;
   }
 
+  private boolean isScrolledByUser = false;
+
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
@@ -59,6 +62,18 @@ public class TimelineFragment extends Fragment {
     tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
     binding.timeline.setItemAnimator(new TimelineAnimator());
+    binding.timeline.setOnTouchListener(new View.OnTouchListener() {
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        Log.d(TAG, "onTouch: " + event.getAction());
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+          final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
+          isScrolledByUser = firstVisibleItemPosition != 0;
+          addedUntilStopped = firstVisibleItemPosition != 0;
+        }
+        return false;
+      }
+    });
 
     tlAdapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
@@ -148,7 +163,6 @@ public class TimelineFragment extends Fragment {
         .hide(this)
         .add(R.id.main_timeline, statusDetail)
         .commit();
-    setStopScroll(true);
   }
 
   public boolean hideStatusDetail() {
@@ -159,30 +173,31 @@ public class TimelineFragment extends Fragment {
         .remove(statusDetail)
         .show(this)
         .commit();
-    setStopScroll(false);
     statusDetail = null;
     return true;
   }
 
   private boolean stopScroll = false;
+  private boolean addedUntilStopped = false;
 
   public void setStopScroll(boolean isStopScroll) {
     stopScroll = isStopScroll;
   }
 
-  private boolean canScrollToAdd() {
-    int firstVisibleItem = tlLayoutManager.findFirstVisibleItemPosition();
-    return firstVisibleItem == 0
-        && !tlAdapter.isStatusViewSelected()
-        && !stopScroll;
+  private boolean canScroll() {
+    return !tlAdapter.isStatusViewSelected()
+        && statusDetail == null
+        && !stopScroll
+        && !isScrolledByUser
+        && !addedUntilStopped;
   }
 
   private void addNewStatus(Status status) {
-    if (canScrollToAdd()) {
-      tlAdapter.addNewStatus(status);
+    tlAdapter.addNewStatus(status);
+    if (canScroll()) {
       scrollTo(0);
     } else {
-      tlAdapter.addNewStatus(status);
+      addedUntilStopped = true;
     }
   }
 
@@ -198,9 +213,17 @@ public class TimelineFragment extends Fragment {
     tlAdapter.deleteStatus(id);
   }
 
-  public void scrollTo(int position) {
+  public void scrollToTop() {
+    clearSelectedTweet();
+    binding.timeline.setLayoutFrozen(false);
+    isScrolledByUser = false;
+    addedUntilStopped = false;
+    scrollTo(0);
+  }
+
+  private void scrollTo(int position) {
+    Log.d(TAG, "scrollTo: ");
     binding.timeline.smoothScrollToPosition(position);
-    stopScroll = false;
   }
 
   public void clearSelectedTweet() {
