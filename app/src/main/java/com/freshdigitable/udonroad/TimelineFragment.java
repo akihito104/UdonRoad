@@ -56,8 +56,7 @@ public class TimelineFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     binding.timeline.setHasFixedSize(true);
-    RecyclerView.ItemDecoration itemDecoration = new TimelineDecoration();
-    binding.timeline.addItemDecoration(itemDecoration);
+    binding.timeline.addItemDecoration(new TimelineDecoration());
     tlLayoutManager = new LinearLayoutManager(getContext());
     tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
@@ -65,7 +64,7 @@ public class TimelineFragment extends Fragment {
     binding.timeline.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
-        Log.d(TAG, "onTouch: " + event.getAction());
+//        Log.d(TAG, "onTouch: " + event.getAction());
         if (event.getAction() == MotionEvent.ACTION_UP) {
           final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
           isScrolledByUser = firstVisibleItemPosition != 0;
@@ -121,10 +120,24 @@ public class TimelineFragment extends Fragment {
   }
 
   private TwitterStreamApi streamApi;
+  private final RecyclerView.AdapterDataObserver itemInsertedObserver
+      = new RecyclerView.AdapterDataObserver() {
+    @Override
+    public void onItemRangeInserted(int positionStart, int itemCount) {
+      super.onItemRangeInserted(positionStart, itemCount);
+      if (canScroll()) {
+        Log.d(TAG, "onItemRangeInserted: ");
+        scrollTo(0);
+      } else {
+        addedUntilStopped = true;
+      }
+    }
+  };
 
   @Override
   public void onStart() {
     super.onStart();
+    tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.openRealm(getContext());
     twitterApi = TwitterApi.setup(getContext());
     fetchTweet();
@@ -151,6 +164,7 @@ public class TimelineFragment extends Fragment {
     Log.d(TAG, "onStop: ");
     streamApi.disconnectStreamListener();
     tlAdapter.closeRealm();
+    tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     super.onStop();
   }
 
@@ -194,11 +208,6 @@ public class TimelineFragment extends Fragment {
 
   private void addNewStatus(Status status) {
     tlAdapter.addNewStatus(status);
-    if (canScroll()) {
-      scrollTo(0);
-    } else {
-      addedUntilStopped = true;
-    }
   }
 
   private void addNewStatuses(List<Status> statuses) {
