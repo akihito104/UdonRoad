@@ -76,6 +76,14 @@ public class TimelineAnimator extends SimpleItemAnimator {
       this.toX = toX;
       this.toY = toY;
     }
+
+    private int deltaX() {
+      return toX - fromX;
+    }
+
+    private int deltaY() {
+      return toY - fromY;
+    }
   }
 
   @Override
@@ -106,12 +114,10 @@ public class TimelineAnimator extends SimpleItemAnimator {
 //    Log.d(TAG, "animateMoveImpl: " + debugString(move.holder));
     moveAnimations.add(move.holder);
     final ViewPropertyAnimatorCompat animate = ViewCompat.animate(move.holder.itemView);
-    final int dX = move.toX - move.fromX;
-    if (dX != 0) {
+    if (move.deltaX() != 0) {
       animate.translationX(0);
     }
-    final int dY = move.toY - move.fromY;
-    if (dY != 0) {
+    if (move.deltaY() != 0) {
       animate.translationY(0);
     }
     animate.setDuration(getMoveDuration())
@@ -131,10 +137,10 @@ public class TimelineAnimator extends SimpleItemAnimator {
 
           @Override
           public void onAnimationCancel(View view) {
-            if (dX != 0) {
+            if (move.deltaX() != 0) {
               ViewCompat.setTranslationX(view, 0);
             }
-            if (dY != 0) {
+            if (move.deltaY() != 0) {
               ViewCompat.setTranslationY(view, 0);
             }
           }
