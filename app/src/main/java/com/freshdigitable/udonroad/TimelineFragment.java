@@ -25,12 +25,14 @@ import java.util.List;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
+import twitter4j.User;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
@@ -385,5 +387,49 @@ public class TimelineFragment extends Fragment {
 
   private void showToast(String text) {
     Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
+  }
+
+  private static final int TIMELINE_DEFAULT = 0;
+  private static final int TIMELINE_USER = 1;
+
+  private int timelineMode = TIMELINE_DEFAULT;
+
+  public boolean onBackPressed() {
+    if (isTweetSelected()) {
+      clearSelectedTweet();
+      return true;
+    }
+    if (timelineMode == TIMELINE_USER) {
+      tlAdapter.defaultTimeline();
+      timelineMode = TIMELINE_DEFAULT;
+      return true;
+    }
+    return false;
+  }
+
+  public void displayUserTimeline(final User user) {
+    twitterApi.getUserTimeline(user)
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnNext(new Action1<List<Status>>() {
+          @Override
+          public void call(List<Status> statuses) {
+            tlAdapter.addNewStatuses(statuses);
+          }
+        })
+        .doOnCompleted(new Action0() {
+          @Override
+          public void call() {
+            tlAdapter.userTimeline(user);
+            timelineMode = TIMELINE_USER;
+          }
+        })
+        .doOnError(new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Toast.makeText(getContext(), "failed to download...", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "displayUserTimeline: ", throwable);
+          }
+        })
+        .subscribe();
   }
 }

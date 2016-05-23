@@ -87,8 +87,9 @@ public class MainActivity extends AppCompatActivity {
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {
-        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));//TODO user -> user.id
+//        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));//TODO user -> user.id
 //        showUserInfo(user);
+        tlFragment.displayUserTimeline(user);
       }
     });
     getSupportFragmentManager().beginTransaction()
@@ -193,8 +194,7 @@ public class MainActivity extends AppCompatActivity {
       cancelWritingSelected();
       return;
     }
-    if (tlFragment.isTweetSelected()) {
-      tlFragment.clearSelectedTweet();
+    if (tlFragment.onBackPressed()) {
       return;
     }
     super.onBackPressed();

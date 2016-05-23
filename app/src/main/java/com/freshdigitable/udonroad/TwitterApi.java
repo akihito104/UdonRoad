@@ -18,6 +18,8 @@ import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
 /**
+ * Wrapper for Twitter API
+ *
  * Created by akihit on 15/10/20.
  */
 public class TwitterApi {
@@ -204,6 +206,21 @@ public class TwitterApi {
         try {
           final Status status = twitter.destroyFavorite(id);
           subscriber.onNext(status);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<List<Status>> getUserTimeline(final User user) {
+    final long userId = user.getId();
+    return Observable.create(new Observable.OnSubscribe<List<Status>>() {
+      @Override
+      public void call(Subscriber<? super List<Status>> subscriber) {
+        try {
+          subscriber.onNext(twitter.getUserTimeline(userId));
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);

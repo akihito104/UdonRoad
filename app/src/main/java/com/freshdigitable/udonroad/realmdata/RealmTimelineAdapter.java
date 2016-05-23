@@ -23,6 +23,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import twitter4j.Status;
+import twitter4j.User;
 
 /**
  * RecyclerView adapter for RealmResult
@@ -39,7 +40,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
     Realm.deleteRealm(config);
     realm = Realm.getInstance(config);
-    timeline = realm.where(StatusRealm.class).findAllSorted("createdAt", Sort.DESCENDING);
+    defaultTimeline();
     cleanOldStatuses();
   }
 
@@ -173,5 +174,20 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     realm.beginTransaction();
     res.deleteAllFromRealm();
     realm.commitTransaction();
+  }
+
+  public void defaultTimeline() {
+    timeline = realm
+        .where(StatusRealm.class)
+        .findAllSorted("createdAt", Sort.DESCENDING);
+    notifyDataSetChanged();
+  }
+
+  public void userTimeline(User user) {
+    timeline = realm
+        .where(StatusRealm.class)
+        .equalTo("user.id", user.getId())
+        .findAllSorted("createdAt", Sort.DESCENDING);
+    notifyDataSetChanged();
   }
 }
