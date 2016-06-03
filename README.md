@@ -1,5 +1,5 @@
 # UdonRoad
 
-UdonRoad is an Android twitter clinet of me, by me, for me.
+UdonRoad is an Android twitter client of me, by me, for me.
 
-powered by twitter4j
+powered by http://twitter4j.org
