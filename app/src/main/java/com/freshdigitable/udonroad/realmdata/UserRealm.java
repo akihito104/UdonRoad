@@ -26,6 +26,11 @@ public class UserRealm extends RealmObject implements User {
   private String profileImageURLHttps;
   private String name;
   private String screenName;
+  private String description;
+  private String profileBannerMobileURL;
+  private int statusesCount;
+  private int followersCount;
+  private int friendsCount;
 
   public UserRealm() {
   }
@@ -35,6 +40,11 @@ public class UserRealm extends RealmObject implements User {
     this.profileImageURLHttps = user.getProfileImageURLHttps();
     this.name = user.getName();
     this.screenName = user.getScreenName();
+    this.description = user.getDescription();
+    this.profileBannerMobileURL = user.getProfileBannerMobileURL();
+    this.statusesCount = user.getStatusesCount();
+    this.followersCount = user.getFollowersCount();
+    this.friendsCount = user.getFriendsCount();
   }
 
   @Override
@@ -71,7 +81,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getDescription() {
-    throw new RuntimeException("not implement yet.");
+    return this.description;
   }
 
   @Override
@@ -140,7 +150,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public int getFollowersCount() {
-    throw new RuntimeException("not implement yet.");
+    return this.followersCount;
   }
 
   @Override
@@ -190,7 +200,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public int getFriendsCount() {
-    throw new RuntimeException("not implement yet.");
+    return this.friendsCount;
   }
 
   @Override
@@ -245,7 +255,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getProfileBannerMobileURL() {
-    throw new RuntimeException("not implement yet.");
+    return this.profileBannerMobileURL;
   }
 
   @Override
@@ -265,7 +275,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public int getStatusesCount() {
-    throw new RuntimeException("not implement yet.");
+    return this.statusesCount;
   }
 
   @Override

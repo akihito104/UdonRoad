@@ -6,7 +6,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,10 +24,12 @@ import twitter4j.User;
  * Created by akihit on 2016/02/06.
  */
 public class MainAppbarFragment extends Fragment {
+  private static final String TAG = MainAppbarFragment.class.getSimpleName();
   private FragmentMainAppbarBinding binding;
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    Log.d(TAG, "onCreateView: ");
     View view = inflater.inflate(R.layout.fragment_main_appbar, container, false);
     binding = DataBindingUtil.bind(view);
     return view;
@@ -32,6 +37,7 @@ public class MainAppbarFragment extends Fragment {
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    Log.d(TAG, "onActivityCreated: ");
     super.onActivityCreated(savedInstanceState);
     // android:titleTextColor is required up to API level 23
     binding.mainToolbar.setTitleTextColor(Color.WHITE);
@@ -48,6 +54,19 @@ public class MainAppbarFragment extends Fragment {
         }
       }
     });
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+
+    final AppCompatActivity activity = (AppCompatActivity) getActivity();
+    activity.setSupportActionBar(binding.mainToolbar);
+    final ActionBar supportActionBar = activity.getSupportActionBar();
+    if (supportActionBar != null) {
+      supportActionBar.setDisplayHomeAsUpEnabled(true);
+      supportActionBar.setHomeButtonEnabled(true);
+    }
   }
 
   public void stretchStatusInputView(TweetInputView.OnStatusSending statusSending) {

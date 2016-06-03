@@ -407,7 +407,12 @@ public class TimelineFragment extends Fragment {
     return false;
   }
 
-  public void displayUserTimeline(final User user) {
+  public void showDefaultTimeline() {
+    tlAdapter.defaultTimeline();
+    timelineMode = TIMELINE_DEFAULT;
+  }
+
+  public void showUserTimeline(final User user) {
     twitterApi.getUserTimeline(user)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(new Action1<List<Status>>() {
@@ -427,7 +432,7 @@ public class TimelineFragment extends Fragment {
           @Override
           public void call(Throwable throwable) {
             Toast.makeText(getContext(), "failed to download...", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "displayUserTimeline: ", throwable);
+            Log.e(TAG, "showUserTimeline: ", throwable);
           }
         })
         .subscribe();
