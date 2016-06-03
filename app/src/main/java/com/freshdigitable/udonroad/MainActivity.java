@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void onClicked(User user) {
         showUserInfo(user);
-        tlFragment.showUserTimeline(user);
+        tlFragment.showUserTimeline(user); // XXX: WTF
       }
     });
   }
@@ -112,6 +112,9 @@ public class MainActivity extends AppCompatActivity {
   private void showUserInfo(User user) {
     binding.mainUserInfoView.setVisibility(View.VISIBLE);
     binding.mainCollapsingToolbar.setTitleEnabled(true);
+    binding.mainCollapsingToolbar.setCollapsedTitleTextColor(Color.WHITE);
+    binding.mainCollapsingToolbar.setExpandedTitleColor(Color.TRANSPARENT);
+    binding.mainCollapsingToolbar.setTitle("@" + user.getScreenName());
     binding.mainUserInfoView.bindData(user);
   }
 
@@ -140,11 +143,11 @@ public class MainActivity extends AppCompatActivity {
     binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
 
+    binding.mainToolbar.setTitleTextColor(Color.WHITE);
     setSupportActionBar(binding.mainToolbar);
     if (getSupportActionBar() != null) {
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
-    binding.mainToolbar.setTitleTextColor(Color.WHITE);
   }
 
   private void setupNavigationDrawer() {
@@ -185,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
   protected void onResume() {
     Log.d(TAG, "onResume: ");
     super.onResume();
+    setTitle("Home");
     attachToolbar();
     setupUserTimeline();
   }
