@@ -1,6 +1,5 @@
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -13,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 
 import com.freshdigitable.udonroad.databinding.FragmentMainAppbarBinding;
 
@@ -21,6 +19,8 @@ import rx.Observable;
 import twitter4j.User;
 
 /**
+ * MainAppbarFragment integrates Appbar parts.
+ *
  * Created by akihit on 2016/02/06.
  */
 public class MainAppbarFragment extends Fragment {
@@ -42,18 +42,6 @@ public class MainAppbarFragment extends Fragment {
     // android:titleTextColor is required up to API level 23
     binding.mainToolbar.setTitleTextColor(Color.WHITE);
     binding.mainTweetInputView.setUserObservable(userObservable);
-    final InputMethodManager inputMethodManager
-        = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-    binding.mainTweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
-      @Override
-      public void onFocusChange(View v, boolean hasFocus) {
-        if (hasFocus) {
-          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-        } else {
-          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
-      }
-    });
   }
 
   @Override
@@ -89,5 +77,23 @@ public class MainAppbarFragment extends Fragment {
 
   public Toolbar getToolbar() {
     return binding.mainToolbar;
+  }
+
+  public boolean isUserInfoVisible() {
+    return binding.mainUserInfoView.getVisibility() == View.VISIBLE;
+  }
+
+  public void showUserInfo(User user) {
+    binding.mainUserInfoView.setVisibility(View.VISIBLE);
+    binding.mainCollapsingToolbar.setTitleEnabled(true);
+    binding.mainCollapsingToolbar.setCollapsedTitleTextColor(Color.WHITE);
+    binding.mainCollapsingToolbar.setExpandedTitleColor(Color.TRANSPARENT);
+    binding.mainCollapsingToolbar.setTitle("@" + user.getScreenName());
+    binding.mainUserInfoView.bindData(user);
+  }
+
+  public void dismissUserInfo() {
+    binding.mainUserInfoView.setVisibility(View.GONE);
+    binding.mainCollapsingToolbar.setTitleEnabled(false);
   }
 }

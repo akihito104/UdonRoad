@@ -3,22 +3,20 @@
  */
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment tlFragment;
-//  private MainAppbarFragment appbarFragment;
+  private MainAppbarFragment appbarFragment;
   private TwitterApi twitterApi;
 
   @Override
@@ -75,27 +73,8 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupAppBar() {
-//    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
-//    appbarFragment = new MainAppbarFragment();
-//    appbarFragment.setUserObservable(twitterApi.verifyCredentials());
-//    getSupportFragmentManager().beginTransaction()
-//        .replace(R.id.main_appbar_fragment, appbarFragment)
-//        .commit();
-//    attachToolbar(appbarFragment.getToolbar());
-    binding.mainTweetInputView.setUserObservable(twitterApi.verifyCredentials());
-    final InputMethodManager inputMethodManager
-        = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-    binding.mainTweetInputView.setOnInputFieldFocusChangeListener(new View.OnFocusChangeListener() {
-      @Override
-      public void onFocusChange(View v, boolean hasFocus) {
-        if (hasFocus) {
-          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-        } else {
-          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
-      }
-    });
-
+    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar);
+    appbarFragment.setUserObservable(twitterApi.verifyCredentials());
   }
 
   private void setupUserTimeline() {
@@ -103,29 +82,15 @@ public class MainActivity extends AppCompatActivity {
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {
-        showUserInfo(user);
+        appbarFragment.showUserInfo(user);
         tlFragment.showUserTimeline(user); // XXX: WTF
       }
     });
   }
 
-  private void showUserInfo(User user) {
-    binding.mainUserInfoView.setVisibility(View.VISIBLE);
-    binding.mainCollapsingToolbar.setTitleEnabled(true);
-    binding.mainCollapsingToolbar.setCollapsedTitleTextColor(Color.WHITE);
-    binding.mainCollapsingToolbar.setExpandedTitleColor(Color.TRANSPARENT);
-    binding.mainCollapsingToolbar.setTitle("@" + user.getScreenName());
-    binding.mainUserInfoView.bindData(user);
-  }
-
-  private void dismissUserInfo() {
-    binding.mainUserInfoView.setVisibility(View.GONE);
-    binding.mainCollapsingToolbar.setTitleEnabled(false);
-  }
-
-  private void attachToolbar() {
+  private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        binding.navDrawerLayout, binding.mainToolbar, R.string.drawer_open, R.string.draver_close) {
+        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.draver_close) {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
@@ -142,12 +107,6 @@ public class MainActivity extends AppCompatActivity {
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
-
-    binding.mainToolbar.setTitleTextColor(Color.WHITE);
-    setSupportActionBar(binding.mainToolbar);
-    if (getSupportActionBar() != null) {
-      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    }
   }
 
   private void setupNavigationDrawer() {
@@ -189,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
     Log.d(TAG, "onResume: ");
     super.onResume();
     setTitle("Home");
-    attachToolbar();
+    attachToolbar(appbarFragment.getToolbar());
     setupUserTimeline();
   }
 
@@ -212,8 +171,7 @@ public class MainActivity extends AppCompatActivity {
       binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       return;
     }
-//    if (appbarFragment.isStatusInputViewVisible()) {
-    if (binding.mainTweetInputView.isVisible()) {
+    if (appbarFragment.isStatusInputViewVisible()) {
       cancelWritingSelected();
       return;
     }
@@ -221,8 +179,8 @@ public class MainActivity extends AppCompatActivity {
       tlFragment.clearSelectedTweet();
       return;
     }
-    if (binding.mainUserInfoView.getVisibility() == View.VISIBLE) {
-      dismissUserInfo();
+    if (appbarFragment.isUserInfoVisible()) {
+      appbarFragment.dismissUserInfo();
       tlFragment.showDefaultTimeline();
       return;
     }
@@ -250,8 +208,7 @@ public class MainActivity extends AppCompatActivity {
     if (itemId == R.id.action_heading){
       headingSelected();
     } else if (itemId == R.id.action_write) {
-//      if (!appbarFragment.isStatusInputViewVisible()) {
-      if (!binding.mainTweetInputView.isVisible()) {
+      if (!appbarFragment.isStatusInputViewVisible()) {
         sendStatusSelected();
       } else {
         cancelWritingSelected();
@@ -268,8 +225,7 @@ public class MainActivity extends AppCompatActivity {
   private void sendStatusSelected() {
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-//    appbarFragment.stretchStatusInputView(new TweetInputView.OnStatusSending() {
-    binding.mainTweetInputView.appearing(new TweetInputView.OnStatusSending() {
+    appbarFragment.stretchStatusInputView(new TweetInputView.OnStatusSending() {
       @Override
       public Observable<Status> sendStatus(String status) {
         return twitterApi.updateStatus(status);
@@ -291,8 +247,7 @@ public class MainActivity extends AppCompatActivity {
   private void cancelWritingSelected() {
     sendStatusMenuItem.setIcon(R.drawable.ic_create_white_24dp);
     tlFragment.setStopScroll(false);
-//    appbarFragment.collapseStatusInputView();
-    binding.mainTweetInputView.disappearing();
+    appbarFragment.collapseStatusInputView();
   }
 
   private void showToast(String text) {
