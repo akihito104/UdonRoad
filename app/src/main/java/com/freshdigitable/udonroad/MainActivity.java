@@ -147,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
   protected void onResume() {
     Log.d(TAG, "onResume: ");
     super.onResume();
-    setTitle("Home");
     attachToolbar(appbarFragment.getToolbar());
     setupUserTimeline();
   }

@@ -4,6 +4,7 @@ import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.FragmentMainAppbarBinding;
 
@@ -42,6 +45,41 @@ public class MainAppbarFragment extends Fragment {
     // android:titleTextColor is required up to API level 23
     binding.mainToolbar.setTitleTextColor(Color.WHITE);
     binding.mainTweetInputView.setUserObservable(userObservable);
+    binding.mainToolbar.setTitle("Home");
+//    binding.mainToolbarTitle.setText("Home");
+
+    final TextView toolbarTitle = binding.mainToolbarTitle;
+    binding.mainAppbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+      private boolean isTitleVisible;
+
+      @Override
+      public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+        final int totalScrollRange = appBarLayout.getTotalScrollRange();
+        final float percent = (float) Math.abs(verticalOffset) / (float) totalScrollRange;
+        Log.d(TAG, "onOffsetChanged: percent: " + percent);
+
+        if (percent > 0.9) {
+          if (!isTitleVisible) {
+            startAnimation(toolbarTitle, View.VISIBLE);
+            isTitleVisible = true;
+          }
+        } else {
+          if (isTitleVisible) {
+            startAnimation(toolbarTitle, View.INVISIBLE);
+            isTitleVisible = false;
+          }
+        }
+      }
+
+      private void startAnimation(View v, int visibility) {
+        AlphaAnimation animation = (visibility == View.VISIBLE)
+            ? new AlphaAnimation(0f, 1f)
+            : new AlphaAnimation(1f, 0f);
+        animation.setDuration(200);
+        animation.setFillAfter(true);
+        v.startAnimation(animation);
+      }
+    });
   }
 
   @Override
@@ -85,15 +123,15 @@ public class MainAppbarFragment extends Fragment {
 
   public void showUserInfo(User user) {
     binding.mainUserInfoView.setVisibility(View.VISIBLE);
-    binding.mainCollapsingToolbar.setTitleEnabled(true);
-    binding.mainCollapsingToolbar.setCollapsedTitleTextColor(Color.WHITE);
-    binding.mainCollapsingToolbar.setExpandedTitleColor(Color.TRANSPARENT);
-    binding.mainCollapsingToolbar.setTitle("@" + user.getScreenName());
+    binding.mainToolbar.setTitle("");
+    binding.mainToolbarTitle.setText("@" + user.getScreenName());
     binding.mainUserInfoView.bindData(user);
   }
 
   public void dismissUserInfo() {
     binding.mainUserInfoView.setVisibility(View.GONE);
+    binding.mainToolbarTitle.setText("");
+    binding.mainToolbar.setTitle("Home");
     binding.mainCollapsingToolbar.setTitleEnabled(false);
   }
 }
