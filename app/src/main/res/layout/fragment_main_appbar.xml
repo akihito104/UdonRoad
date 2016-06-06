@@ -29,7 +29,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
-                app:layout_anchor="@id/main_user_info_view"
                 >
                 <TextView
                     android:id="@+id/main_toolbar_title"

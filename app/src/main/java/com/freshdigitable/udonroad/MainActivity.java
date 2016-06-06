@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     setupAppBar();
+    setupUserTimeline();
   }
 
   private void setupAppBar() {
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         tlFragment.showUserTimeline(user); // XXX: WTF
       }
     });
+    tlFragment.setFAB(binding.ffab);
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -148,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
     Log.d(TAG, "onResume: ");
     super.onResume();
     attachToolbar(appbarFragment.getToolbar());
-    setupUserTimeline();
   }
 
   @Override

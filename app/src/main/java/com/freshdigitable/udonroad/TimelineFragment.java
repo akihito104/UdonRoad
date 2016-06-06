@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
+import com.freshdigitable.udonroad.fab.FlingableFloatingActionButton;
 import com.freshdigitable.udonroad.fab.OnFlingListener;
 import com.freshdigitable.udonroad.realmdata.RealmTimelineAdapter;
 
@@ -80,12 +81,12 @@ public class TimelineFragment extends Fragment {
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
           public void onTweetSelected(Status status) {
-            binding.fab.show();
+            fab.getFab().show();
           }
 
           @Override
           public void onTweetUnselected() {
-            binding.fab.hide();
+            fab.getFab().hide();
           }
         });
     tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
@@ -96,8 +97,7 @@ public class TimelineFragment extends Fragment {
     });
     binding.timeline.setAdapter(tlAdapter);
 
-    binding.fab.hide();
-    binding.fab.setOnFlingListener(new OnFlingListener() {
+    fab.setOnFlingListener(new OnFlingListener() {
       @Override
       public void onFling(Direction direction) {
         if (!isTweetSelected()) {
@@ -105,7 +105,7 @@ public class TimelineFragment extends Fragment {
         }
         final Status status = tlAdapter.getSelectedStatus();
         final long id = status.getId();
-        if (Direction.UP.equals(direction)) {
+        if (OnFlingListener.Direction.UP.equals(direction)) {
           fetchFavorite(id);
         } else if (Direction.RIGHT.equals(direction)) {
           fetchRetweet(id);
@@ -117,8 +117,6 @@ public class TimelineFragment extends Fragment {
         }
       }
     });
-    binding.fabIndicator.setImageResource(R.drawable.ic_add_white_36dp);
-    binding.fab.setActionIndicator(binding.fabIndicator);
   }
 
   private TwitterStreamApi streamApi;
@@ -148,7 +146,6 @@ public class TimelineFragment extends Fragment {
       return;
     }
     streamApi.connectUserStream(statusListener);
-//    Log.d(TAG, "onStart: Realm.path: " + realm.getPath());
   }
 
   @Override
@@ -436,5 +433,11 @@ public class TimelineFragment extends Fragment {
           }
         })
         .subscribe();
+  }
+
+  private FlingableFloatingActionButton fab;
+
+  public void setFAB(FlingableFloatingActionButton fab) {
+    this.fab = fab;
   }
 }

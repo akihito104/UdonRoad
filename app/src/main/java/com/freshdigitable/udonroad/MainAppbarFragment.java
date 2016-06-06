@@ -50,14 +50,13 @@ public class MainAppbarFragment extends Fragment {
 
     final TextView toolbarTitle = binding.mainToolbarTitle;
     binding.mainAppbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-      private boolean isTitleVisible;
+      // it is visible (alpha=1.0) at initial state.
+      private boolean isTitleVisible = true;
 
       @Override
       public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
         final int totalScrollRange = appBarLayout.getTotalScrollRange();
         final float percent = (float) Math.abs(verticalOffset) / (float) totalScrollRange;
-        Log.d(TAG, "onOffsetChanged: percent: " + percent);
-
         if (percent > 0.9) {
           if (!isTitleVisible) {
             startAnimation(toolbarTitle, View.VISIBLE);
