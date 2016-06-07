@@ -12,9 +12,7 @@ import com.freshdigitable.udonroad.TimelineAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -24,7 +22,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import twitter4j.Status;
-import twitter4j.User;
 
 /**
  * RecyclerView adapter for RealmResult
@@ -39,15 +36,23 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   public void openRealm(Context context) {
     Log.d(TAG, "openRealm: ");
     final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
+    openRealm(config);
+  }
+
+  public void openRealm(RealmConfiguration config) {
     Realm.deleteRealm(config);
     realm = Realm.getInstance(config);
     defaultTimeline();
-    cleanOldStatuses();
   }
 
   public void closeRealm() {
     Log.d(TAG, "closeRealm: ");
-    cleanOldStatuses();
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.deleteAll();
+      }
+    });
     realm.close();
   }
 
@@ -101,6 +106,12 @@ public class RealmTimelineAdapter extends TimelineAdapter {
             notifyInserted(inserts, results);
           }
         })
+        .doOnError(new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "addNewStatuses: ", throwable);
+          }
+        })
         .subscribe();
   }
 
@@ -149,7 +160,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<RealmResults<StatusRealm>>() {
+        .doOnNext(new Action1<RealmResults<StatusRealm>>() {
           @Override
           public void call(RealmResults<StatusRealm> statusRealms) {
             Log.d(TAG, "call: deletedStatus");
@@ -157,7 +168,15 @@ public class RealmTimelineAdapter extends TimelineAdapter {
               notifyItemRemoved(d);
             }
           }
-        });
+        })
+        .doOnError(new Action1<Throwable>(){
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "deleteStatus: ", throwable);
+          }
+        })
+        .subscribe();
+
   }
 
   @NonNull
@@ -196,29 +215,9 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     return timeline.size();
   }
 
-  private void cleanOldStatuses() {
-    final long now = System.currentTimeMillis();
-    final Date date = new Date(now - TimeUnit.HOURS.toMillis(3));
-    final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
-        .lessThanOrEqualTo("createdAt", date)
-        .findAll();
-    Log.d(TAG, "cleanOldStatuses: clear:" + res.size());
-    realm.beginTransaction();
-    res.deleteAllFromRealm();
-    realm.commitTransaction();
-  }
-
   public void defaultTimeline() {
     timeline = realm
         .where(StatusRealm.class)
-        .findAllSorted("createdAt", Sort.DESCENDING);
-    notifyDataSetChanged();
-  }
-
-  public void userTimeline(User user) {
-    timeline = realm
-        .where(StatusRealm.class)
-        .equalTo("user.id", user.getId())
         .findAllSorted("createdAt", Sort.DESCENDING);
     notifyDataSetChanged();
   }

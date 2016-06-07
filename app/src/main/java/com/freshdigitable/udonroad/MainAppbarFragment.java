@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -46,7 +47,6 @@ public class MainAppbarFragment extends Fragment {
     binding.mainToolbar.setTitleTextColor(Color.WHITE);
     binding.mainTweetInputView.setUserObservable(userObservable);
     binding.mainToolbar.setTitle("Home");
-//    binding.mainToolbarTitle.setText("Home");
 
     final TextView toolbarTitle = binding.mainToolbarTitle;
     binding.mainAppbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
@@ -132,5 +132,11 @@ public class MainAppbarFragment extends Fragment {
     binding.mainToolbarTitle.setText("");
     binding.mainToolbar.setTitle("Home");
     binding.mainCollapsingToolbar.setTitleEnabled(false);
+    binding.mainTabs.setVisibility(View.GONE);
+    binding.mainTabs.removeAllTabs();
+  }
+
+  public TabLayout getTabLayout() {
+    return binding.mainTabs;
   }
 }

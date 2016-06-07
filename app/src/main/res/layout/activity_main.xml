@@ -23,13 +23,12 @@
                 tools:layout="@layout/fragment_main_appbar"
                 />
 
-            <fragment
-                android:id="@+id/main_timeline"
+            <FrameLayout
+                android:id="@+id/main_timeline_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:name="com.freshdigitable.udonroad.TimelineFragment"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                tools:layout="@layout/fragment_timeline"/>
+                />
 
             <com.freshdigitable.udonroad.fab.FlingableFloatingActionButton
                 android:id="@+id/ffab"

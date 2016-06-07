@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.realmdata.RealmHomeTimelineFragment;
 import com.squareup.picasso.Picasso;
 
 import rx.Observable;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     setupAppBar();
-    setupUserTimeline();
+    setupHomeTimeline();
   }
 
   private void setupAppBar() {
@@ -78,16 +79,40 @@ public class MainActivity extends AppCompatActivity {
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
   }
 
-  private void setupUserTimeline() {
-    tlFragment = (TimelineFragment) getSupportFragmentManager().findFragmentById(R.id.main_timeline);
+  private void setupHomeTimeline() {
+    tlFragment = new RealmHomeTimelineFragment();
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {
-        appbarFragment.showUserInfo(user);
-        tlFragment.showUserTimeline(user); // XXX: WTF
+        showUserInfo(user);
       }
     });
     tlFragment.setFAB(binding.ffab);
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_timeline_container, tlFragment)
+        .commit();
+  }
+
+  private UserInfoPagerFragment userInfoPager;
+
+  private void showUserInfo(User user) {
+    binding.ffab.getFab().hide();
+    appbarFragment.showUserInfo(user);
+    userInfoPager = UserInfoPagerFragment.getInstance(user);
+    userInfoPager.setFAB(binding.ffab);
+    userInfoPager.setTabLayout(appbarFragment.getTabLayout());
+    getSupportFragmentManager().beginTransaction()
+        .hide(tlFragment)
+        .add(R.id.main_timeline_container, userInfoPager)
+        .commit();
+  }
+
+  private void dismissUserInfo() {
+    appbarFragment.dismissUserInfo();
+    getSupportFragmentManager().beginTransaction()
+        .remove(userInfoPager)
+        .show(tlFragment)
+        .commit();
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -175,13 +200,17 @@ public class MainActivity extends AppCompatActivity {
       cancelWritingSelected();
       return;
     }
-    if (tlFragment.isTweetSelected()) {
-      tlFragment.clearSelectedTweet();
+    if (appbarFragment.isUserInfoVisible()) {
+      if (binding.ffab.getFab().getVisibility() == View.VISIBLE) {
+        userInfoPager.clearSelectedTweet();
+        binding.ffab.getFab().hide();
+        return;
+      }
+      dismissUserInfo();
       return;
     }
-    if (appbarFragment.isUserInfoVisible()) {
-      appbarFragment.dismissUserInfo();
-      tlFragment.showDefaultTimeline();
+    if (tlFragment.isTweetSelected()) {
+      tlFragment.clearSelectedTweet();
       return;
     }
     super.onBackPressed();
