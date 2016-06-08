@@ -1,14 +1,16 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
+import android.support.design.widget.TextInputEditText;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
-import com.freshdigitable.udonroad.databinding.TweetInputViewBinding;
 import com.squareup.picasso.Picasso;
 
 import rx.Observable;
@@ -19,11 +21,16 @@ import twitter4j.Status;
 import twitter4j.User;
 
 /**
+ * TweetInputView accepts user input tweet and send it.
+ *
  * Created by akihit on 2016/01/17.
  */
 public class TweetInputView extends RelativeLayout {
   private static final String TAG = TweetInputView.class.getSimpleName();
-  private TweetInputViewBinding binding;
+  private TextInputEditText inputText;
+  private TextView name;
+  private TextView account;
+  private ImageView icon;
 
   public TweetInputView(Context context) {
     this(context, null);
@@ -35,26 +42,39 @@ public class TweetInputView extends RelativeLayout {
 
   public TweetInputView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    if (isInEditMode()) {
-      return;
-    }
-    binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.tweet_input_view, this, true);
 
-    binding.twSendIntweet.setOnClickListener(new OnClickListener() {
+    final View v = View.inflate(context, R.layout.tweet_input_view, this);
+    inputText = (TextInputEditText) v.findViewById(R.id.tw_intext);
+    final InputMethodManager inputMethodManager
+        = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+    inputText.setOnFocusChangeListener(new OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View v, boolean hasFocus) {
+        if (hasFocus) {
+          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
+        } else {
+          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+
+      }
+    });
+
+    final ImageButton tweetSendButton = (ImageButton) v.findViewById(R.id.tw_send_intweet);
+    tweetSendButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        String sendingText = binding.twIntext.getText().toString();
+        String sendingText = inputText.getText().toString();
         if (sendingText.isEmpty()) {
           return;
         }
-        binding.twSendIntweet.setClickable(false);
+        tweetSendButton.setClickable(false);
         onStatusSending.sendStatus(sendingText)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Subscriber<Status>() {
               @Override
               public void onNext(Status status) {
-                binding.twIntext.getText().clear();
-                binding.twIntext.clearFocus();
+                inputText.getText().clear();
+                inputText.clearFocus();
                 onStatusSending.onSuccess(status);
                 disappearing();
               }
@@ -66,11 +86,15 @@ public class TweetInputView extends RelativeLayout {
 
               @Override
               public void onCompleted() {
-                binding.twSendIntweet.setClickable(true);
+                tweetSendButton.setClickable(true);
               }
             });
       }
     });
+
+    name = (TextView) v.findViewById(R.id.tw_name);
+    account = (TextView) v.findViewById(R.id.tw_account);
+    icon = (ImageView) v.findViewById(R.id.tw_icon);
   }
 
   private Observable<User> userObservable;
@@ -90,10 +114,10 @@ public class TweetInputView extends RelativeLayout {
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
-            binding.twName.setText(user.getName());
-            binding.twAccount.setText(user.getScreenName());
+            name.setText(user.getName());
+            account.setText(user.getScreenName());
             Picasso.with(TweetInputView.this.getContext()).load(
-                user.getProfileImageURLHttps()).fit().into(binding.twIcon);
+                user.getProfileImageURLHttps()).fit().into(icon);
           }
         }, new Action1<Throwable>() {
           @Override
@@ -102,17 +126,13 @@ public class TweetInputView extends RelativeLayout {
           }
         });
     setVisibility(View.VISIBLE);
-    binding.twIntext.requestFocus();
+    inputText.requestFocus();
     this.onStatusSending = listener;
   }
 
   public void disappearing() {
     setVisibility(View.GONE);
     this.onStatusSending = null;
-  }
-
-  public void setOnInputFieldFocusChangeListener(OnFocusChangeListener listener) {
-    binding.twIntext.setOnFocusChangeListener(listener);
   }
 
   interface OnStatusSending {

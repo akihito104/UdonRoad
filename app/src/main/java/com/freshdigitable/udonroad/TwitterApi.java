@@ -228,4 +228,8 @@ public class TwitterApi {
       }
     }).subscribeOn(Schedulers.io());
   }
+
+  public Twitter getTwitter() {
+    return twitter;
+  }
 }

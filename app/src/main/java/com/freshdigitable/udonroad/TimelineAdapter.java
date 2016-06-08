@@ -46,7 +46,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return isStatusViewSelected() ? selectedStatusHolder.status : null;
   }
 
-  interface LastItemBoundListener {
+  public interface LastItemBoundListener {
     void onLastItemBound(long statusId);
   }
 
@@ -189,7 +189,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           userIconClickedListener.onClicked(
               status.isRetweet() ?
                   status.getRetweetedStatus().getUser() : status.getUser());
-          itemViewClicked.onItemViewClicked(ViewHolder.this);
         }
       });
       v.bindStatus(status);

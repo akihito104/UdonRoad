@@ -5,15 +5,14 @@
 package com.freshdigitable.udonroad.realmdata;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.TimelineAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -23,7 +22,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import twitter4j.Status;
-import twitter4j.User;
 
 /**
  * RecyclerView adapter for RealmResult
@@ -38,15 +36,23 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   public void openRealm(Context context) {
     Log.d(TAG, "openRealm: ");
     final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
+    openRealm(config);
+  }
+
+  public void openRealm(RealmConfiguration config) {
     Realm.deleteRealm(config);
     realm = Realm.getInstance(config);
     defaultTimeline();
-    cleanOldStatuses();
   }
 
   public void closeRealm() {
     Log.d(TAG, "closeRealm: ");
-    cleanOldStatuses();
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.deleteAll();
+      }
+    });
     realm.close();
   }
 
@@ -61,9 +67,29 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     for (Status s : statuses) {
       sr.add(new StatusRealm(s));
     }
+
+    final List<StatusRealm> updates = new ArrayList<>();
+    for (Status s : statuses) {
+      final StatusRealm update = timeline.where().equalTo("id", s.getId())
+          .findFirst();
+      if (update != null) {
+        updates.add(update);
+      }
+    }
+
     realm.beginTransaction();
-    final List<StatusRealm> copied = realm.copyToRealmOrUpdate(sr);
+    final List<StatusRealm> inserts = realm.copyToRealmOrUpdate(sr);
     realm.commitTransaction();
+
+    for (StatusRealm u : updates) {
+      for (int i = inserts.size() - 1; i >= 0; i--) {
+        StatusRealm c = inserts.get(i);
+        if (u.getId() == c.getId()) {
+          inserts.remove(c);
+          break;
+        }
+      }
+    }
 
     timeline.asObservable()
         .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
@@ -77,7 +103,13 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         .doOnNext(new Action1<RealmResults<StatusRealm>>() {
           @Override
           public void call(final RealmResults<StatusRealm> results) {
-            notifyInserted(copied, results);
+            notifyInserted(inserts, results);
+          }
+        })
+        .doOnError(new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "addNewStatuses: ", throwable);
           }
         })
         .subscribe();
@@ -85,17 +117,11 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
   private void notifyInserted(List<StatusRealm> copied, RealmResults<StatusRealm> results) {
     Log.d(TAG, "notifyInserted:");
-    List<Integer> res = new ArrayList<>();
-    for (StatusRealm s : copied) {
-      int index = results.indexOf(s);
-      if (index >= 0) {
-        res.add(index);
-      }
-    }
-    Collections.sort(res);
+    final List<Integer> res = searchTimeline(copied, results);
     if (res.size() < 1) {
       return;
     }
+    Collections.sort(res);
     Log.d(TAG, "notifyInserted> index: " + res.get(0) + ", size: " + res.size());
     notifyItemRangeInserted(res.get(0), res.size());
   }
@@ -112,19 +138,19 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
         .equalTo("id", statusId)
         .findAll();
-    if (res.size() <= 0) {
+    if (res.size() < 1) {
       return;
     }
 
-    final List<Integer> deleted = new ArrayList<>(res.size());
-    for (StatusRealm sr : res) {
-      deleted.add(timeline.indexOf(sr));
-    }
+    final List<Integer> deleted = searchTimeline(res);
 
     realm.beginTransaction();
     res.deleteAllFromRealm();
     realm.commitTransaction();
 
+    if (deleted.size() <= 0) {
+      return;
+    }
     timeline.asObservable()
         .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
           @Override
@@ -134,7 +160,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<RealmResults<StatusRealm>>() {
+        .doOnNext(new Action1<RealmResults<StatusRealm>>() {
           @Override
           public void call(RealmResults<StatusRealm> statusRealms) {
             Log.d(TAG, "call: deletedStatus");
@@ -142,7 +168,32 @@ public class RealmTimelineAdapter extends TimelineAdapter {
               notifyItemRemoved(d);
             }
           }
-        });
+        })
+        .doOnError(new Action1<Throwable>(){
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "deleteStatus: ", throwable);
+          }
+        })
+        .subscribe();
+
+  }
+
+  @NonNull
+  private List<Integer> searchTimeline(List<StatusRealm> items) {
+    return searchTimeline(items, timeline);
+  }
+
+  @NonNull
+  private List<Integer> searchTimeline(List<StatusRealm> items, RealmResults<StatusRealm> timeline) {
+    final List<Integer> res = new ArrayList<>(items.size());
+    for (StatusRealm sr : items) {
+      final int index = timeline.indexOf(sr);
+      if (index >= 0) {
+        res.add(index);
+      }
+    }
+    return res;
   }
 
   private void deleteRetweetedStatus(long statusId) {
@@ -164,29 +215,9 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     return timeline.size();
   }
 
-  private void cleanOldStatuses() {
-    final long now = System.currentTimeMillis();
-    final Date date = new Date(now - TimeUnit.HOURS.toMillis(3));
-    final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
-        .lessThanOrEqualTo("createdAt", date)
-        .findAll();
-    Log.d(TAG, "cleanOldStatuses: clear:" + res.size());
-    realm.beginTransaction();
-    res.deleteAllFromRealm();
-    realm.commitTransaction();
-  }
-
   public void defaultTimeline() {
     timeline = realm
         .where(StatusRealm.class)
-        .findAllSorted("createdAt", Sort.DESCENDING);
-    notifyDataSetChanged();
-  }
-
-  public void userTimeline(User user) {
-    timeline = realm
-        .where(StatusRealm.class)
-        .equalTo("user.id", user.getId())
         .findAllSorted("createdAt", Sort.DESCENDING);
     notifyDataSetChanged();
   }

@@ -17,30 +17,23 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
+import com.freshdigitable.udonroad.fab.FlingableFloatingActionButton;
 import com.freshdigitable.udonroad.fab.OnFlingListener;
 import com.freshdigitable.udonroad.realmdata.RealmTimelineAdapter;
 
 import java.util.List;
 
-import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
 import twitter4j.Paging;
-import twitter4j.StallWarning;
 import twitter4j.Status;
-import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
-import twitter4j.User;
-import twitter4j.UserStreamAdapter;
-import twitter4j.UserStreamListener;
 
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
-  private final RealmTimelineAdapter tlAdapter = new RealmTimelineAdapter();
+  private final TimelineAdapter tlAdapter = new RealmTimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
   private TwitterApi twitterApi;
 
@@ -76,36 +69,36 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    tlAdapter.setOnSelectedTweetChangeListener(
+    final TimelineAdapter adapter = getTimelineAdapter();
+    adapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
           public void onTweetSelected(Status status) {
-            binding.fab.show();
+            fab.getFab().show();
           }
 
           @Override
           public void onTweetUnselected() {
-            binding.fab.hide();
+            fab.getFab().hide();
           }
         });
-    tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
+    adapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
       public void onLastItemBound(long statusId) {
         fetchTweet(new Paging(1, 20, 1, statusId - 1));
       }
     });
-    binding.timeline.setAdapter(tlAdapter);
+    binding.timeline.setAdapter(adapter);
 
-    binding.fab.hide();
-    binding.fab.setOnFlingListener(new OnFlingListener() {
+    fab.setOnFlingListener(new OnFlingListener() {
       @Override
       public void onFling(Direction direction) {
         if (!isTweetSelected()) {
           return;
         }
-        final Status status = tlAdapter.getSelectedStatus();
+        final Status status = adapter.getSelectedStatus();
         final long id = status.getId();
-        if (Direction.UP.equals(direction)) {
+        if (OnFlingListener.Direction.UP.equals(direction)) {
           fetchFavorite(id);
         } else if (Direction.RIGHT.equals(direction)) {
           fetchRetweet(id);
@@ -117,11 +110,8 @@ public class TimelineFragment extends Fragment {
         }
       }
     });
-    binding.fabIndicator.setImageResource(R.drawable.ic_add_white_36dp);
-    binding.fab.setActionIndicator(binding.fabIndicator);
   }
 
-  private TwitterStreamApi streamApi;
   private final RecyclerView.AdapterDataObserver itemInsertedObserver
       = new RecyclerView.AdapterDataObserver() {
     @Override
@@ -139,16 +129,9 @@ public class TimelineFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
-    tlAdapter.openRealm(getContext());
+    getTimelineAdapter().registerAdapterDataObserver(itemInsertedObserver);
     twitterApi = TwitterApi.setup(getContext());
     fetchTweet();
-    streamApi = TwitterStreamApi.setup(getContext());
-    if (streamApi == null) {
-      return;
-    }
-    streamApi.connectUserStream(statusListener);
-//    Log.d(TAG, "onStart: Realm.path: " + realm.getPath());
   }
 
   @Override
@@ -163,11 +146,9 @@ public class TimelineFragment extends Fragment {
 
   @Override
   public void onStop() {
-    Log.d(TAG, "onStop: ");
-    streamApi.disconnectStreamListener();
-    tlAdapter.closeRealm();
-    tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     super.onStop();
+    Log.d(TAG, "onStop: ");
+    getTimelineAdapter().unregisterAdapterDataObserver(itemInsertedObserver);
   }
 
   private StatusDetailFragment statusDetail;
@@ -177,7 +158,7 @@ public class TimelineFragment extends Fragment {
     statusDetail.setTwitterApi(twitterApi);
     getActivity().getSupportFragmentManager().beginTransaction()
         .hide(this)
-        .add(R.id.main_timeline, statusDetail)
+        .add(R.id.main_timeline_container, statusDetail)
         .commit();
   }
 
@@ -201,27 +182,19 @@ public class TimelineFragment extends Fragment {
   }
 
   private boolean canScroll() {
-    return !tlAdapter.isStatusViewSelected()
+    return !getTimelineAdapter().isStatusViewSelected()
         && statusDetail == null
         && !stopScroll
         && !isScrolledByUser
         && !addedUntilStopped;
   }
 
-  private void addNewStatus(Status status) {
-    tlAdapter.addNewStatus(status);
-  }
-
   private void addNewStatuses(List<Status> statuses) {
-    tlAdapter.addNewStatuses(statuses);
+    getTimelineAdapter().addNewStatuses(statuses);
   }
 
   private void addStatusesAtLast(List<Status> statuses) {
-    tlAdapter.addNewStatusesAtLast(statuses);
-  }
-
-  private void deleteStatus(long id) {
-    tlAdapter.deleteStatus(id);
+    getTimelineAdapter().addNewStatusesAtLast(statuses);
   }
 
   public void scrollToTop() {
@@ -238,63 +211,16 @@ public class TimelineFragment extends Fragment {
   }
 
   public void clearSelectedTweet() {
-    tlAdapter.clearSelectedTweet();
+    getTimelineAdapter().clearSelectedTweet();
   }
 
   public boolean isTweetSelected() {
-    return tlAdapter.isStatusViewSelected();
+    return getTimelineAdapter().isStatusViewSelected();
   }
 
   public void setUserIconClickedListener(TimelineAdapter.OnUserIconClickedListener listener) {
-    tlAdapter.setOnUserIconClickedListener(listener);
+    getTimelineAdapter().setOnUserIconClickedListener(listener);
   }
-
-  private final UserStreamListener statusListener = new UserStreamAdapter() {
-    @Override
-    public void onStatus(final Status status) {
-      Observable.just(status)
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<Status>() {
-            @Override
-            public void call(Status status) {
-              addNewStatus(status);
-            }
-          });
-    }
-
-    @Override
-    public void onDeletionNotice(final StatusDeletionNotice statusDeletionNotice) {
-      Log.d(TAG, statusDeletionNotice.toString());
-      Observable.just(statusDeletionNotice.getStatusId())
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<Long>() {
-            @Override
-            public void call(Long deletedStatusId) {
-              deleteStatus(deletedStatusId);
-            }
-          });
-    }
-
-    @Override
-    public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-      Log.d(TAG, "onTrackLimitationNotice: " + numberOfLimitedStatuses);
-    }
-
-    @Override
-    public void onScrubGeo(long userId, long upToStatusId) {
-      Log.d(TAG, "onScrubGeo: " + userId + ", " + upToStatusId);
-    }
-
-    @Override
-    public void onStallWarning(StallWarning warning) {
-      Log.d(TAG, "onStallWarning: " + warning.toString());
-    }
-
-    @Override
-    public void onException(Exception ex) {
-      Log.d(TAG, "onException: " + ex.toString());
-    }
-  };
 
   private void fetchRetweet(final long tweetId) {
     twitterApi.retweetStatus(tweetId)
@@ -344,7 +270,7 @@ public class TimelineFragment extends Fragment {
         });
   }
 
-  private void fetchTweet() {
+  protected void fetchTweet() {
     twitterApi.getHomeTimeline()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<List<Status>>() {
@@ -364,7 +290,7 @@ public class TimelineFragment extends Fragment {
         });
   }
 
-  private void fetchTweet(Paging paging) {
+  protected void fetchTweet(Paging paging) {
     twitterApi.getHomeTimeline(paging)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Subscriber<List<Status>>() {
@@ -389,47 +315,37 @@ public class TimelineFragment extends Fragment {
     Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
   }
 
-  private static final int TIMELINE_DEFAULT = 0;
-  private static final int TIMELINE_USER = 1;
+  private FlingableFloatingActionButton fab;
 
-  private int timelineMode = TIMELINE_DEFAULT;
-
-  public boolean onBackPressed() {
-    if (isTweetSelected()) {
-      clearSelectedTweet();
-      return true;
-    }
-    if (timelineMode == TIMELINE_USER) {
-      tlAdapter.defaultTimeline();
-      timelineMode = TIMELINE_DEFAULT;
-      return true;
-    }
-    return false;
+  public void setFAB(FlingableFloatingActionButton fab) {
+    this.fab = fab;
   }
 
-  public void displayUserTimeline(final User user) {
-    twitterApi.getUserTimeline(user)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<List<Status>>() {
-          @Override
-          public void call(List<Status> statuses) {
-            tlAdapter.addNewStatuses(statuses);
-          }
-        })
-        .doOnCompleted(new Action0() {
-          @Override
-          public void call() {
-            tlAdapter.userTimeline(user);
-            timelineMode = TIMELINE_USER;
-          }
-        })
-        .doOnError(new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Toast.makeText(getContext(), "failed to download...", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "displayUserTimeline: ", throwable);
-          }
-        })
-        .subscribe();
+  protected TwitterApi getTwitterApi() {
+    return twitterApi;
+  }
+
+  protected TimelineAdapter getTimelineAdapter() {
+    return tlAdapter;
+  }
+
+  @Override
+  public void onHiddenChanged(boolean hidden) {
+    super.onHiddenChanged(hidden);
+    setFabVisibility(hidden);
+  }
+
+  public void setFabVisibility(boolean hidden) {
+    if (hidden) {
+      if (fab.getFab().getVisibility() == View.VISIBLE) {
+        Log.d(TAG, "setFabVisibility: hide");
+        fab.getFab().hide();
+      }
+    } else if (isTweetSelected()) {
+      if (fab.getFab().getVisibility() != View.VISIBLE) {
+        Log.d(TAG, "setFabVisibility: show");
+        fab.getFab().show();
+      }
+    }
   }
 }

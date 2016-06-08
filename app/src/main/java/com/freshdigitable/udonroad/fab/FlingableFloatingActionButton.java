@@ -7,15 +7,21 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
 
 /**
+ * FlingibleFloatingActionButton accepts only fling action.<br>
+ * It indicates action icon on succeeding user's fling action.
+ *
  * Created by akihit on 15/11/04.
  */
-public class FlingableFloatingActionButton extends FloatingActionButton {
+public class FlingableFloatingActionButton extends LinearLayout {
   @SuppressWarnings("unused")
   private static final String TAG = FlingableFloatingActionButton.class.getSimpleName();
+  private FloatingActionButton fab;
 
   public FlingableFloatingActionButton(Context context) {
     this(context, null);
@@ -27,8 +33,13 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
 
   public FlingableFloatingActionButton(Context context, AttributeSet attributeSet, int defStyleAttr) {
     super(context, attributeSet, defStyleAttr);
+    final View v = View.inflate(context, R.layout.view_fling_fab, this);
+    actionIndicator = (ImageView) v.findViewById(R.id.fab_indicator);
+    this.actionIndicatorHelper = new ActionIndicatorHelper(actionIndicator);
 
-    this.setOnTouchListener(new View.OnTouchListener() {
+    fab = (FloatingActionButton) v.findViewById(R.id.fab);
+    fab.hide();
+    fab.setOnTouchListener(new View.OnTouchListener() {
       private MotionEvent old;
 
       @Override
@@ -62,7 +73,7 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
         return false;
       }
     });
-    this.setOnClickListener(new OnClickListener() {
+    fab.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
       }
@@ -79,8 +90,7 @@ public class FlingableFloatingActionButton extends FloatingActionButton {
 
   private OnFlingListener actionIndicatorHelper;
 
-  public void setActionIndicator(ImageView actionIndicator) {
-    this.actionIndicator = actionIndicator;
-    this.actionIndicatorHelper = new ActionIndicatorHelper(actionIndicator);
+  public FloatingActionButton getFab() {
+    return fab;
   }
 }

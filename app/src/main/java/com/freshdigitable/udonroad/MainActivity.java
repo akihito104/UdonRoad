@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.realmdata.RealmHomeTimelineFragment;
 import com.squareup.picasso.Picasso;
 
 import rx.Observable;
@@ -70,38 +71,49 @@ public class MainActivity extends AppCompatActivity {
     });
 
     setupAppBar();
+    setupHomeTimeline();
   }
 
   private void setupAppBar() {
-    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar_fragment);
-//    appbarFragment = new MainAppbarFragment();
+    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
-//    getSupportFragmentManager().beginTransaction()
-//        .replace(R.id.main_appbar_fragment, appbarFragment)
-//        .commit();
-    attachToolbar(appbarFragment.getToolbar());
   }
 
-  private void setupUserTimeline() {
-    tlFragment = new TimelineFragment();
+  private void setupHomeTimeline() {
+    tlFragment = new RealmHomeTimelineFragment();
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {
-//        startActivity(UserAccountActivity.createIntent(MainActivity.this, user));//TODO user -> user.id
-//        showUserInfo(user);
-        tlFragment.displayUserTimeline(user);
+        showUserInfo(user);
       }
     });
+    tlFragment.setFAB(binding.ffab);
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_timeline, tlFragment)
+        .replace(R.id.main_timeline_container, tlFragment)
         .commit();
   }
 
+  private UserInfoPagerFragment userInfoPager;
 
   private void showUserInfo(User user) {
-    final UserInfoHeaderFragment userInfoHeader = UserInfoHeaderFragment.getInstance(user);
+    binding.ffab.getFab().hide();
+    appbarFragment.showUserInfo(user);
+    userInfoPager = UserInfoPagerFragment.getInstance(user);
+    userInfoPager.setFAB(binding.ffab);
+    userInfoPager.setTabLayout(appbarFragment.getTabLayout());
+    sendStatusMenuItem.setVisible(false);
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_appbar_fragment, userInfoHeader)
+        .hide(tlFragment)
+        .add(R.id.main_timeline_container, userInfoPager)
+        .commit();
+  }
+
+  private void dismissUserInfo() {
+    appbarFragment.dismissUserInfo();
+    sendStatusMenuItem.setVisible(true);
+    getSupportFragmentManager().beginTransaction()
+        .remove(userInfoPager)
+        .show(tlFragment)
         .commit();
   }
 
@@ -123,11 +135,6 @@ public class MainActivity extends AppCompatActivity {
     };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
-
-    setSupportActionBar(toolbar);
-    if (getSupportActionBar() != null) {
-      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    }
     actionBarDrawerToggle.syncState();
   }
 
@@ -167,8 +174,9 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onResume() {
+    Log.d(TAG, "onResume: ");
     super.onResume();
-    setupUserTimeline();
+    attachToolbar(appbarFragment.getToolbar());
   }
 
   @Override
@@ -194,7 +202,17 @@ public class MainActivity extends AppCompatActivity {
       cancelWritingSelected();
       return;
     }
-    if (tlFragment.onBackPressed()) {
+    if (appbarFragment.isUserInfoVisible()) {
+      if (binding.ffab.getFab().getVisibility() == View.VISIBLE) {
+        userInfoPager.clearSelectedTweet();
+        binding.ffab.getFab().hide();
+        return;
+      }
+      dismissUserInfo();
+      return;
+    }
+    if (tlFragment.isTweetSelected()) {
+      tlFragment.clearSelectedTweet();
       return;
     }
     super.onBackPressed();
@@ -232,7 +250,11 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void headingSelected() {
-    tlFragment.scrollToTop();
+    if (tlFragment.isVisible()) {
+      tlFragment.scrollToTop();
+    } else if (userInfoPager.isVisible()) {
+      userInfoPager.scrollToTop();
+    }
   }
 
   private void sendStatusSelected() {
