@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
     userInfoPager = UserInfoPagerFragment.getInstance(user);
     userInfoPager.setFAB(binding.ffab);
     userInfoPager.setTabLayout(appbarFragment.getTabLayout());
+    sendStatusMenuItem.setVisible(false);
     getSupportFragmentManager().beginTransaction()
         .hide(tlFragment)
         .add(R.id.main_timeline_container, userInfoPager)
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void dismissUserInfo() {
     appbarFragment.dismissUserInfo();
+    sendStatusMenuItem.setVisible(true);
     getSupportFragmentManager().beginTransaction()
         .remove(userInfoPager)
         .show(tlFragment)
