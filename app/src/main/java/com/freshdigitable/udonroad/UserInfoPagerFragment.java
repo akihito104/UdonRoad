@@ -128,6 +128,14 @@ public class UserInfoPagerFragment extends Fragment {
     this.ffab = ffab;
   }
 
+  public void scrollToTop() {
+    final int currentItem = viewPager.getCurrentItem();
+    final Fragment item = pagerAdapter.getItem(currentItem);
+    if (item instanceof TimelineFragment) {
+      ((TimelineFragment) item).scrollToTop();
+    }
+  }
+
   private static class PagerAdapter extends FragmentPagerAdapter {
     private final List<String> fragmentsTitle = new ArrayList<>();
     private final List<Fragment> fragments = new ArrayList<>();

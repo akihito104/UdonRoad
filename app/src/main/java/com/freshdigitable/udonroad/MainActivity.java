@@ -250,7 +250,11 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void headingSelected() {
-    tlFragment.scrollToTop();
+    if (tlFragment.isVisible()) {
+      tlFragment.scrollToTop();
+    } else if (userInfoPager.isVisible()) {
+      userInfoPager.scrollToTop();
+    }
   }
 
   private void sendStatusSelected() {
