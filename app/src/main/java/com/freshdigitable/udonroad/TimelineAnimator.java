@@ -155,8 +155,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
   public boolean animateAdd(ViewHolder holder) {
 //    Log.d(TAG, "animateAdd: " + debugString(holder));
     resetAnimation(holder);
-    ViewCompat.setTranslationY(holder.itemView, -holder.itemView.getHeight());
-    ViewCompat.setAlpha(holder.itemView, 0);
+    ViewCompat.setTranslationY(holder.itemView, 0);
     pendingAdd.add(holder);
     return true;
   }
@@ -165,9 +164,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
 //    Log.d(TAG, "animateAddImpl: " + debugString(holder));
     addAnimations.add(holder);
     ViewCompat.animate(holder.itemView)
-        .translationY(0)
-        .alpha(1)
-        .setDuration(getAddDuration())
+        .setDuration(0)
         .setListener(new ViewPropertyAnimatorListenerAdapter() {
           @Override
           public void onAnimationStart(View view) {
