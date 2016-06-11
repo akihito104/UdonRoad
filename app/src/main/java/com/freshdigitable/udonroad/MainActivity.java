@@ -26,8 +26,8 @@ import com.freshdigitable.udonroad.realmdata.RealmHomeTimelineFragment;
 import com.squareup.picasso.Picasso;
 
 import rx.Observable;
-import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -141,21 +141,15 @@ public class MainActivity extends AppCompatActivity {
   private void setupNavigationDrawer() {
     twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Observer<User>() {
+        .doOnNext(new Action1<User>() {
           @Override
-          public void onCompleted() {
-          }
-
-          @Override
-          public void onError(Throwable e) {
-            Log.d(TAG, "twitter exception: " + e.toString());
-          }
-
-          @Override
-          public void onNext(final User user) {
-            ((TextView) binding.navDrawer.findViewById(R.id.nav_header_account)).setText(user.getScreenName());
-            ImageView icon = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
-            Picasso.with(binding.navDrawer.getContext()).load(user.getProfileImageURLHttps()).fit().into(icon);
+          public void call(final User user) {
+            final TextView account = (TextView) binding.navDrawer.findViewById(R.id.nav_header_account);
+            account.setText(user.getScreenName());
+            final ImageView icon = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
+            Picasso.with(binding.navDrawer.getContext())
+                .load(user.getProfileImageURLHttps()).fit()
+                .into(icon);
             icon.setOnClickListener(new View.OnClickListener() {
               @Override
               public void onClick(View v) {
@@ -163,7 +157,14 @@ public class MainActivity extends AppCompatActivity {
               }
             });
           }
-        });
+        })
+        .doOnError(new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.d(TAG, "twitter exception: " + throwable.toString());
+          }
+        })
+        .subscribe();
   }
 
   @Override

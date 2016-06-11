@@ -23,8 +23,9 @@ import com.freshdigitable.udonroad.realmdata.RealmTimelineAdapter;
 
 import java.util.List;
 
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -225,38 +226,33 @@ public class TimelineFragment extends Fragment {
   private void fetchRetweet(final long tweetId) {
     twitterApi.retweetStatus(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Subscriber<Status>() {
+        .doOnCompleted(new Action0() {
           @Override
-          public void onNext(Status status) {
-          }
-
-          @Override
-          public void onCompleted() {
+          public void call() {
             showToast("success to retweet");
           }
-
+        })
+        .doOnError(new Action1<Throwable>() {
           @Override
-          public void onError(Throwable e) {
+          public void call(Throwable throwable) {
             showToast("failed to retweet...");
           }
-        });
+        })
+        .subscribe();
   }
 
   private void fetchFavorite(final long tweetId) {
     twitterApi.createFavorite(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Subscriber<Status>() {
+        .doOnCompleted(new Action0() {
           @Override
-          public void onNext(Status user) {
-          }
-
-          @Override
-          public void onCompleted() {
+          public void call() {
             showToast("success to create fav.");
           }
-
+        })
+        .doOnError(new Action1<Throwable>() {
           @Override
-          public void onError(Throwable e) {
+          public void call(Throwable e) {
             if (e instanceof TwitterException) {
               final int statusCode = ((TwitterException) e).getStatusCode();
               if (statusCode == 403) {
@@ -267,48 +263,45 @@ public class TimelineFragment extends Fragment {
             Log.e(TAG, "error: ", e);
             showToast("failed to create fav...");
           }
-        });
+        })
+        .subscribe();
   }
 
   protected void fetchTweet() {
     twitterApi.getHomeTimeline()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Subscriber<List<Status>>() {
+        .doOnNext(new Action1<List<Status>>() {
           @Override
-          public void onNext(List<Status> status) {
-            addNewStatuses(status);
+          public void call(List<Status> statuses) {
+            addNewStatuses(statuses);
           }
-
+        })
+        .doOnError(new Action1<Throwable>() {
           @Override
-          public void onCompleted() {
-          }
-
-          @Override
-          public void onError(Throwable e) {
+          public void call(Throwable e) {
             Log.e(TAG, "home timeline is not downloaded.", e);
           }
-        });
+        })
+        .subscribe();
   }
 
   protected void fetchTweet(Paging paging) {
     twitterApi.getHomeTimeline(paging)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Subscriber<List<Status>>() {
+        .doOnNext(new Action1<List<Status>>() {
           @Override
-          public void onNext(List<Status> status) {
-            Log.d(TAG, "onNext: " + status.size());
-            addStatusesAtLast(status);
+          public void call(List<Status> statuses) {
+            Log.d(TAG, "onNext: " + statuses.size());
+            addStatusesAtLast(statuses);
           }
-
+        })
+        .doOnError(new Action1<Throwable>() {
           @Override
-          public void onCompleted() {
-          }
-
-          @Override
-          public void onError(Throwable e) {
+          public void call(Throwable e) {
             Log.e(TAG, "home timeline is not downloaded.", e);
           }
-        });
+        })
+        .subscribe();
   }
 
   private void showToast(String text) {
