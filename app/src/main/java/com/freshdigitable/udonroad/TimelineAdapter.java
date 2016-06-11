@@ -6,6 +6,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -183,15 +185,18 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     void bindStatus(final Status status) {
       this.status = status;
       StatusView v = (StatusView) itemView;
+      final User user = status.isRetweet()
+          ? status.getRetweetedStatus().getUser()
+          : status.getUser();
       v.setUserIconClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-          userIconClickedListener.onClicked(
-              status.isRetweet() ?
-                  status.getRetweetedStatus().getUser() : status.getUser());
+          userIconClickedListener.onClicked(user);
         }
       });
       v.bindStatus(status);
+      Picasso.with(v.getContext())
+          .load(user.getProfileImageURLHttps()).fit().into(v.getIcon());
       itemView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -208,7 +213,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     private OnUserIconClickedListener userIconClickedListener;
 
     void onRecycled() {
-      ((StatusView)itemView).recycle();
+      ((StatusView)itemView).reset();
       this.status = null;
       this.itemViewClicked = null;
       this.userIconClickedListener = null;

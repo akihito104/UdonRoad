@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
     >
 
-    <RelativeLayout android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="4dp"
-        >
+    <!--<RelativeLayout android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:padding="4dp"-->
+        <!--&gt;-->
 
         <ImageView
             android:layout_width="@dimen/tweet_user_icon"
@@ -192,5 +192,5 @@
             tools:visibility="visible"
             />
 
-    </RelativeLayout>
-</layout>
+    <!--</RelativeLayout>-->
+</merge>

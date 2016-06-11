@@ -15,7 +15,7 @@
             android:id="@+id/status_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:layout="@layout/tweet_view"
+            tools:layout="@layout/view_status"
             android:layout_weight="1"
             />
 
