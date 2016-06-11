@@ -24,6 +24,7 @@ public class UserRealm extends RealmObject implements User {
   @PrimaryKey
   private long id;
   private String profileImageURLHttps;
+  private String miniProfileImageURLHttps;
   private String name;
   private String screenName;
   private String description;
@@ -38,6 +39,7 @@ public class UserRealm extends RealmObject implements User {
   public UserRealm(final User user) {
     this.id = user.getId();
     this.profileImageURLHttps = user.getProfileImageURLHttps();
+    this.miniProfileImageURLHttps = user.getMiniProfileImageURLHttps();
     this.name = user.getName();
     this.screenName = user.getScreenName();
     this.description = user.getDescription();
@@ -121,7 +123,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getMiniProfileImageURLHttps() {
-    throw new RuntimeException("not implement yet.");
+    return miniProfileImageURLHttps;
   }
 
   @Override

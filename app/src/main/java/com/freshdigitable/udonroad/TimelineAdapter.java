@@ -197,6 +197,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       v.bindStatus(status);
       Picasso.with(v.getContext())
           .load(user.getProfileImageURLHttps()).fit().into(v.getIcon());
+      if (status.isRetweet()) {
+        Picasso.with(v.getContext())
+            .load(status.getUser().getMiniProfileImageURLHttps()).fit()
+            .into(v.getRtUserIcon());
+      }
       itemView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {

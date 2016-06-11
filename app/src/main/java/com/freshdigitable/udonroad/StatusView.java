@@ -10,6 +10,7 @@ import android.text.Html;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -34,6 +35,8 @@ public class StatusView extends RelativeLayout {
   private ImageView favIcon;
   private TextView favCount;
   private TextView rtUser;
+  private ImageView rtUserIcon;
+  private LinearLayout rtUserContainer;
 
   public StatusView(Context context) {
     this(context, null);
@@ -59,7 +62,9 @@ public class StatusView extends RelativeLayout {
     rtCount = (TextView) v.findViewById(R.id.tl_rtcount);
     favIcon = (ImageView) v.findViewById(R.id.tl_fav_icon);
     favCount = (TextView) v.findViewById(R.id.tl_favcount);
+    rtUserContainer = (LinearLayout) v.findViewById(R.id.tl_rt_user_container);
     rtUser = (TextView) v.findViewById(R.id.tl_rt_user);
+    rtUserIcon = (ImageView) v.findViewById(R.id.tl_rt_user_icon);
     reset();
   }
 
@@ -116,6 +121,10 @@ public class StatusView extends RelativeLayout {
     return icon;
   }
 
+  public ImageView getRtUserIcon() {
+    return rtUserIcon;
+  }
+
   private void setTint(ImageView view, @ColorRes int color) {
 //    Log.d(TAG, "setTint: " + color);
     DrawableCompat.setTint(view.getDrawable(), ContextCompat.getColor(getContext(), color));
@@ -132,7 +141,7 @@ public class StatusView extends RelativeLayout {
   }
 
   private void setRetweetedUserVisibility(int visibility) {
-    rtUser.setVisibility(visibility);
+    rtUserContainer.setVisibility(visibility);
   }
 
   private void setTextColor(int color) {
