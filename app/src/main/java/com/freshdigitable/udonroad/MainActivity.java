@@ -141,30 +141,33 @@ public class MainActivity extends AppCompatActivity {
   private void setupNavigationDrawer() {
     twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<User>() {
-          @Override
-          public void call(final User user) {
-            final TextView account = (TextView) binding.navDrawer.findViewById(R.id.nav_header_account);
-            account.setText(user.getScreenName());
-            final ImageView icon = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
-            Picasso.with(binding.navDrawer.getContext())
-                .load(user.getProfileImageURLHttps()).fit()
-                .into(icon);
-            icon.setOnClickListener(new View.OnClickListener() {
+        .subscribe(
+            new Action1<User>() {
               @Override
-              public void onClick(View v) {
-                startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
+              public void call(final User user) {
+                final TextView account
+                    = (TextView) binding.navDrawer.findViewById(R.id.nav_header_account);
+                account.setText(user.getScreenName());
+                final ImageView icon
+                    = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
+                Picasso.with(binding.navDrawer.getContext())
+                    .load(user.getProfileImageURLHttps()).fit()
+                    .into(icon);
+                icon.setOnClickListener(new View.OnClickListener() {
+                  @Override
+                  public void onClick(View v) {
+                    startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
+                  }
+                });
               }
-            });
-          }
-        })
-        .doOnError(new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.d(TAG, "twitter exception: " + throwable.toString());
-          }
-        })
-        .subscribe();
+            },
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                Log.d(TAG, "twitter exception: " + throwable.toString());
+              }
+            }
+        );
   }
 
   @Override
