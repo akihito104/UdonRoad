@@ -6,6 +6,7 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.text.Html;
 import android.widget.TextView;
 
 import org.junit.Before;
@@ -43,8 +44,12 @@ public class StatusViewInstTest {
   public void bindStatus_normal_0RT_0fav() throws Exception {
     Status status = create();
     sut.bindStatus(status);
-    final TextView account = (TextView) sut.findViewById(R.id.tl_displayname);
-    assertThat(account.getText().toString(), is(status.getUser().getScreenName()));
+    final TextView account = (TextView) sut.findViewById(R.id.tl_names);
+    final User user = status.getUser();
+    final String format = String.format(account.getResources().getString(
+        R.string.tweet_name_screenName),
+        user.getName(), user.getScreenName());
+    assertThat(account.getText().toString(), is(Html.fromHtml(format).toString()));
   }
 
   protected Status create() {

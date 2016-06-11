@@ -8,7 +8,9 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.support.annotation.ColorInt;
 import android.support.annotation.IdRes;
+import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
+import android.text.Html;
 import android.view.View;
 import android.widget.TextView;
 
@@ -67,6 +69,17 @@ public class StatusViewTest {
       final TextView v = findTextView(id);
       final ColorStateList textColors = v.getTextColors();
       return textColors.getColorForState(v.getDrawableState(), 0);
+    }
+
+    protected String fromFormattingResource(@StringRes int id, Object... item) {
+      final String format = RuntimeEnvironment.application.getString(id);
+      return String.format(format, item);
+    }
+
+    protected String makeNames(User user) {
+      final String s = fromFormattingResource(R.string.tweet_name_screenName,
+          user.getName(), user.getScreenName());
+      return Html.fromHtml(s).toString();
     }
 
     protected void assertTextColor(@IdRes int id, @ColorInt int expected) {
@@ -152,13 +165,12 @@ public class StatusViewTest {
     private void commonAsserts() {
       final User user = status.getUser();
       assertThat(getStringFrom(R.id.tl_tweet), is(status.getText()));
-      assertThat(getStringFrom(R.id.tl_clientname), is("Udonroad"));
-      assertThat(getStringFrom(R.id.tl_displayname), is(user.getScreenName()));
-      assertThat(getStringFrom(R.id.tl_account), is(user.getName()));
+      assertThat(getStringFrom(R.id.tl_via),
+          is(fromFormattingResource(R.string.tweet_via, "Udonroad")));
+      assertThat(getStringFrom(R.id.tl_names), is(makeNames(user)));
       assertTextColor(R.id.tl_tweet, Color.GRAY);
-      assertTextColor(R.id.tl_displayname, Color.GRAY);
-      assertTextColor(R.id.tl_account, Color.GRAY);
-      assertTextColor(R.id.tl_time, Color.GRAY);
+      assertTextColor(R.id.tl_names, Color.GRAY);
+      assertTextColor(R.id.tl_create_at, Color.GRAY);
     }
   }
 
@@ -187,13 +199,11 @@ public class StatusViewTest {
       sut.bindStatus(status);
 
       final User retweetedStatusUser = retweetedStatus.getUser();
-      assertThat(getStringFrom(R.id.tl_displayname), is(retweetedStatusUser.getScreenName()));
-      assertThat(getStringFrom(R.id.tl_account), is(retweetedStatusUser.getName()));
+      assertThat(getStringFrom(R.id.tl_names), is(makeNames(retweetedStatusUser)));
       assertThat(getStringFrom(R.id.tl_tweet), is(retweetedStatus.getText()));
       assertTextColor(R.id.tl_tweet, rtColor);
-      assertTextColor(R.id.tl_displayname, rtColor);
-      assertTextColor(R.id.tl_time, rtColor);
-      assertTextColor(R.id.tl_account, rtColor);
+      assertTextColor(R.id.tl_create_at, rtColor);
+      assertTextColor(R.id.tl_names, rtColor);
 
       assertThat(getVisibilityFrom(R.id.tl_rt_icon), is(View.VISIBLE));
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.VISIBLE));
