@@ -13,6 +13,7 @@ android {
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
@@ -30,6 +31,10 @@ android {
 
     dataBinding {
         enabled = true
+    }
+
+    lintOptions {
+        abortOnError false
     }
 }
 
@@ -54,4 +59,11 @@ dependencies {
     compile "io.reactivex:rxjava:$rxVer"
 
     testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+    testCompile 'org.robolectric:robolectric:3.1'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile "com.android.support:support-annotations:$supportLibVer"
+    androidTestCompile 'com.android.support.test:runner:0.4.1'
+    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
 }

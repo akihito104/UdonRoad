@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+    >
+
+    <!--<RelativeLayout android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:padding="@dimen/grid_margin"-->
+        <!--&gt;-->
+        <LinearLayout
+            android:id="@+id/tl_rt_user_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="@dimen/grid_margin"
+            android:visibility="gone"
+            tools:visibility="visible"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginRight="@dimen/grid_margin"
+                android:layout_marginEnd="@dimen/grid_margin"
+                android:text="@string/tweet_rtby"
+                android:textSize="@dimen/tweet_small_fontsize"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:layout_gravity="center_vertical"
+                />
+            <ImageView
+                android:id="@+id/tl_rt_user_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginRight="@dimen/grid_margin"
+                android:layout_marginEnd="@dimen/grid_margin"
+                android:contentDescription="@string/desc_rt_user_icon"
+                />
+            <TextView
+                android:id="@+id/tl_rt_user"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textSize="@dimen/tweet_small_fontsize"
+                android:layout_gravity="center_vertical"
+                tools:text="\@name"
+                />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/tl_icon"
+            android:layout_width="@dimen/tweet_user_icon"
+            android:layout_height="@dimen/tweet_user_icon"
+            android:layout_below="@+id/tl_rt_user_container"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:contentDescription="@string/desc_icon"
+            android:layout_marginRight="@dimen/grid_margin"
+            />
+
+        <TextView
+            android:id="@+id/tl_tweet"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tl_names"
+            android:layout_toRightOf="@+id/tl_icon"
+            android:layout_toEndOf="@+id/tl_icon"
+            android:textSize="@dimen/tweet_main_size"
+            tools:text="Tweet"
+            />
+
+        <TextView
+            android:id="@+id/tl_create_at"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="@dimen/tweet_small_fontsize"
+            android:layout_alignTop="@+id/tl_names"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            tools:text="CreatedTime"
+            />
+
+        <TextView
+            android:id="@+id/tl_names"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/tweet_small_fontsize"
+            android:layout_alignTop="@+id/tl_icon"
+            android:layout_below="@+id/tl_rt_user"
+            android:layout_alignLeft="@+id/tl_tweet"
+            android:layout_alignStart="@+id/tl_tweet"
+            tools:text="ScreenName @name"
+            />
+
+        <TextView
+            android:id="@+id/tl_rtcount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="@dimen/grid_margin"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="@dimen/tweet_small_fontsize"
+            android:layout_alignTop="@+id/tl_via"
+            android:layout_toRightOf="@+id/tl_rt_icon"
+            android:layout_toEndOf="@+id/tl_rt_icon"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="Count"
+            />
+
+        <TextView
+            android:id="@+id/tl_favcount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="@dimen/tweet_small_fontsize"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="Count"
+            android:layout_alignTop="@+id/tl_rtcount"
+            android:layout_alignBottom="@+id/tl_rtcount"
+            android:layout_toEndOf="@+id/tl_fav_icon"
+            android:layout_toRightOf="@+id/tl_fav_icon"
+            />
+
+        <TextView
+            android:id="@+id/tl_via"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_below="@+id/tl_tweet"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:textSize="@dimen/tweet_small_fontsize"
+            tools:text="via clientName"
+            />
+
+        <ImageView
+            android:id="@+id/tl_rt_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tl_tweet"
+            android:layout_toRightOf="@+id/tl_icon"
+            android:layout_toEndOf="@+id/tl_icon"
+            android:layout_alignTop="@+id/tl_rtcount"
+            android:layout_alignBottom="@+id/tl_rtcount"
+            android:src="@drawable/ic_retweet"
+            android:tint="@color/colorTwitterActionNormal"
+            android:contentDescription="@string/desc_tweet_retweet_icon"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+
+        <ImageView
+            android:id="@+id/tl_fav_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/tl_rtcount"
+            android:layout_alignBottom="@+id/tl_favcount"
+            android:layout_alignTop="@+id/tl_favcount"
+            android:src="@drawable/ic_like"
+            android:tint="@color/colorTwitterActionNormal"
+            android:contentDescription="@string/desc_tweet_favorite_icon"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+
+    <!--</RelativeLayout>-->
+</merge>

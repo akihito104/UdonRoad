@@ -1,19 +1,18 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.support.annotation.ColorRes;
+import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Html;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-
-import com.freshdigitable.udonroad.databinding.TweetViewBinding;
-import com.squareup.picasso.Picasso;
+import android.widget.TextView;
 
 import twitter4j.Status;
 import twitter4j.User;
@@ -23,9 +22,21 @@ import twitter4j.util.TimeSpanConverter;
  * Created by akihit on 2016/01/11.
  */
 public class StatusView extends RelativeLayout {
+  @SuppressWarnings("unused")
   private static final String TAG = StatusView.class.getSimpleName();
-  private final TweetViewBinding binding;
   private OnClickListener userIconClickListener;
+  private TextView createdAt;
+  private ImageView icon;
+  private TextView names;
+  private TextView tweet;
+  private TextView clientName;
+  private ImageView rtIcon;
+  private TextView rtCount;
+  private ImageView favIcon;
+  private TextView favCount;
+  private TextView rtUser;
+  private ImageView rtUserIcon;
+  private LinearLayout rtUserContainer;
 
   public StatusView(Context context) {
     this(context, null);
@@ -37,7 +48,24 @@ public class StatusView extends RelativeLayout {
 
   public StatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.tweet_view, this, true);
+
+    int padding = (int) (4 * getResources().getDisplayMetrics().density + 0.5f);
+    setPadding(padding, padding, padding, padding);
+
+    final View v = View.inflate(context, R.layout.view_status, this);
+    createdAt = (TextView) v.findViewById(R.id.tl_create_at);
+    icon = (ImageView) v.findViewById(R.id.tl_icon);
+    names = (TextView) v.findViewById(R.id.tl_names);
+    tweet = (TextView) v.findViewById(R.id.tl_tweet);
+    clientName = (TextView) v.findViewById(R.id.tl_via);
+    rtIcon = (ImageView) v.findViewById(R.id.tl_rt_icon);
+    rtCount = (TextView) v.findViewById(R.id.tl_rtcount);
+    favIcon = (ImageView) v.findViewById(R.id.tl_fav_icon);
+    favCount = (TextView) v.findViewById(R.id.tl_favcount);
+    rtUserContainer = (LinearLayout) v.findViewById(R.id.tl_rt_user_container);
+    rtUser = (TextView) v.findViewById(R.id.tl_rt_user);
+    rtUserIcon = (ImageView) v.findViewById(R.id.tl_rt_user_icon);
+    reset();
   }
 
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
@@ -49,39 +77,52 @@ public class StatusView extends RelativeLayout {
     } else {
       bindingStatus = status;
     }
-    binding.tlTime.setText(timeSpanConv.toTimeSpanString(bindingStatus.getCreatedAt()));
+    createdAt.setText(timeSpanConv.toTimeSpanString(bindingStatus.getCreatedAt()));
     if (status.isRetweet()) {
       setRetweetedUserVisibility(VISIBLE);
-      binding.tlRtuser.setText(status.getUser().getScreenName());
+      final String formattedRtUser = formatString(R.string.tweet_retweeting_user,
+          status.getUser().getScreenName());
+      rtUser.setText(formattedRtUser);
       this.setTextColor(ContextCompat.getColor(getContext(), R.color.colorTwitterActionRetweeted));
     }
     final User user = bindingStatus.getUser();
-    Picasso.with(binding.tlIcon.getContext())
-        .load(user.getProfileImageURLHttps()).fit().into(binding.tlIcon);
-    binding.tlIcon.setOnClickListener(userIconClickListener);
+    icon.setOnClickListener(userIconClickListener);
 
-    binding.tlAccount.setText(user.getName());
-    binding.tlDisplayname.setText(user.getScreenName());
-    binding.tlTweet.setText(bindingStatus.getText());
-    binding.tlClientname.setText(Html.fromHtml(bindingStatus.getSource()).toString());
+    final String formattedNames = formatString(R.string.tweet_name_screenName,
+        user.getName(), user.getScreenName());
+    names.setText(Html.fromHtml(formattedNames));
+
+    tweet.setText(bindingStatus.getText());
+
+    final String formattedVia = formatString(R.string.tweet_via,
+        Html.fromHtml(bindingStatus.getSource()).toString());
+    clientName.setText(formattedVia);
 
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0) {
       this.setRtCountVisibility(VISIBLE);
-      setTint(binding.tlRtIcon, bindingStatus.isRetweetedByMe() ?
-          R.color.colorTwitterActionRetweeted
+      setTint(rtIcon, bindingStatus.isRetweetedByMe()
+          ? R.color.colorTwitterActionRetweeted
           : R.color.colorTwitterActionNormal);
-      binding.tlRtcount.setText(String.valueOf(rtCount));
+      this.rtCount.setText(String.valueOf(rtCount));
     }
 
     final int favCount = bindingStatus.getFavoriteCount();
     if (favCount > 0) {
       this.setFavCountVisibility(VISIBLE);
-      setTint(binding.tlFavIcon, bindingStatus.isFavorited() ?
-          R.color.colorTwitterActionFaved
+      setTint(favIcon, bindingStatus.isFavorited()
+          ? R.color.colorTwitterActionFaved
           : R.color.colorTwitterActionNormal);
-      binding.tlFavcount.setText(String.valueOf(favCount));
+      this.favCount.setText(String.valueOf(favCount));
     }
+  }
+
+  public ImageView getIcon() {
+    return icon;
+  }
+
+  public ImageView getRtUserIcon() {
+    return rtUserIcon;
   }
 
   private void setTint(ImageView view, @ColorRes int color) {
@@ -90,42 +131,39 @@ public class StatusView extends RelativeLayout {
   }
 
   private void setRtCountVisibility(int visibility) {
-    binding.tlRtIcon.setVisibility(visibility);
-    binding.tlRtcount.setVisibility(visibility);
+    rtIcon.setVisibility(visibility);
+    rtCount.setVisibility(visibility);
   }
 
   private void setFavCountVisibility(int visibility) {
-    binding.tlFavIcon.setVisibility(visibility);
-    binding.tlFavcount.setVisibility(visibility);
+    favIcon.setVisibility(visibility);
+    favCount.setVisibility(visibility);
   }
 
   private void setRetweetedUserVisibility(int visibility) {
-    binding.tlRtby.setVisibility(visibility);
-    binding.tlRtuser.setVisibility(visibility);
+    rtUserContainer.setVisibility(visibility);
   }
 
   private void setTextColor(int color) {
-    binding.tlDisplayname.setTextColor(color);
-    binding.tlAt.setTextColor(color);
-    binding.tlAccount.setTextColor(color);
-    binding.tlTime.setTextColor(color);
-    binding.tlTweet.setTextColor(color);
+    names.setTextColor(color);
+    createdAt.setTextColor(color);
+    tweet.setTextColor(color);
   }
 
-  public void recycle() {
+  public void reset() {
     setBackgroundColor(Color.TRANSPARENT);
     setRtCountVisibility(GONE);
     setFavCountVisibility(GONE);
     setRetweetedUserVisibility(GONE);
     setTextColor(Color.GRAY);
 
-    binding.tlRtIcon.setVisibility(GONE);
-    binding.tlFavIcon.setVisibility(GONE);
+    rtIcon.setVisibility(GONE);
+    favIcon.setVisibility(GONE);
 
-    setTint(binding.tlRtIcon, R.color.colorTwitterActionNormal);
-    setTint(binding.tlFavIcon, R.color.colorTwitterActionNormal);
+    setTint(rtIcon, R.color.colorTwitterActionNormal);
+    setTint(favIcon, R.color.colorTwitterActionNormal);
 
-    binding.tlIcon.setOnClickListener(null);
+    icon.setOnClickListener(null);
     setOnClickListener(null);
     setUserIconClickListener(null);
   }
@@ -134,12 +172,16 @@ public class StatusView extends RelativeLayout {
     this.userIconClickListener = userIconClickListener;
   }
 
+  private String formatString(@StringRes int id, Object... items) {
+    final String format = getResources().getString(id);
+    return String.format(format, items);
+  }
+
   @Override
   public String toString() {
-    final CharSequence text = binding.tlTweet.getText();
+    final CharSequence text = tweet.getText();
     final CharSequence cs = text.length() > 10 ? text.subSequence(0, 9) : text;
     return "height: " + getHeight()
-        + ", user: " + binding.tlDisplayname.getText()
         + ", text: " + cs;
   }
 }
