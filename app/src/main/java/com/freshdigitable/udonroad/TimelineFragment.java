@@ -90,27 +90,6 @@ public class TimelineFragment extends Fragment {
       }
     });
     binding.timeline.setAdapter(adapter);
-
-    fab.setOnFlingListener(new OnFlingListener() {
-      @Override
-      public void onFling(Direction direction) {
-        if (!isTweetSelected()) {
-          return;
-        }
-        final Status status = adapter.getSelectedStatus();
-        final long id = status.getId();
-        if (OnFlingListener.Direction.UP.equals(direction)) {
-          fetchFavorite(id);
-        } else if (Direction.RIGHT.equals(direction)) {
-          fetchRetweet(id);
-        } else if (Direction.UP_RIGHT.equals(direction)) {
-          fetchFavorite(id);
-          fetchRetweet(id);
-        } else if (Direction.LEFT.equals(direction)) {
-          showStatusDetail(status);
-        }
-      }
-    });
   }
 
   private final RecyclerView.AdapterDataObserver itemInsertedObserver
@@ -130,9 +109,38 @@ public class TimelineFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    getTimelineAdapter().registerAdapterDataObserver(itemInsertedObserver);
+    final TimelineAdapter adapter = getTimelineAdapter();
+    adapter.registerAdapterDataObserver(itemInsertedObserver);
     twitterApi = TwitterApi.setup(getContext());
     fetchTweet();
+  }
+
+  public void setupOnFlingListener() {
+    final TimelineAdapter adapter = getTimelineAdapter();
+    fab.setOnFlingListener(new OnFlingListener() {
+      @Override
+      public void onFling(Direction direction) {
+        if (!isTweetSelected()) {
+          return;
+        }
+        final Status status = adapter.getSelectedStatus();
+        final long id = status.getId();
+        if (Direction.UP.equals(direction)) {
+          fetchFavorite(id);
+        } else if (Direction.RIGHT.equals(direction)) {
+          fetchRetweet(id);
+        } else if (Direction.UP_RIGHT.equals(direction)) {
+          fetchFavorite(id);
+          fetchRetweet(id);
+        } else if (Direction.LEFT.equals(direction)) {
+          showStatusDetail(status);
+        }
+      }
+    });
+  }
+
+  public void tearDownOnFlingListener() {
+    fab.setOnFlingListener(null);
   }
 
   @Override
@@ -150,6 +158,8 @@ public class TimelineFragment extends Fragment {
     super.onStop();
     Log.d(TAG, "onStop: ");
     getTimelineAdapter().unregisterAdapterDataObserver(itemInsertedObserver);
+    tearDownOnFlingListener();
+    fab = null;
   }
 
   private StatusDetailFragment statusDetail;
@@ -332,6 +342,9 @@ public class TimelineFragment extends Fragment {
   public void onHiddenChanged(boolean hidden) {
     super.onHiddenChanged(hidden);
     setFabVisibility(hidden);
+    if (!hidden) {
+      setupOnFlingListener();
+    }
   }
 
   public void setFabVisibility(boolean hidden) {

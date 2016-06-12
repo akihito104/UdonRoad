@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
       }
     });
     tlFragment.setFAB(binding.ffab);
+    tlFragment.setupOnFlingListener();
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
@@ -209,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
     if (appbarFragment.isUserInfoVisible()) {
       if (binding.ffab.getFab().getVisibility() == View.VISIBLE) {
         userInfoPager.clearSelectedTweet();
-        binding.ffab.getFab().hide();
         return;
       }
       dismissUserInfo();

@@ -60,6 +60,7 @@ public class UserInfoPagerFragment extends Fragment {
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
     final RealmUserHomeTimelineFragment home = RealmUserHomeTimelineFragment.getInstance(user);
     home.setFAB(ffab);
+    home.setupOnFlingListener();
     pagerAdapter.putFragment(home, "Tweets");
     final RealmUserFavsFragment favs = RealmUserFavsFragment.getInstance(user);
     favs.setFAB(ffab);
@@ -70,14 +71,15 @@ public class UserInfoPagerFragment extends Fragment {
       public void onPageSelected(int position) {
         Log.d(TAG, "onPageSelected: " + position);
         final Fragment item = pagerAdapter.getItem(position);
-        if (!(item instanceof TimelineFragment)) {
-          return;
-        }
-        TimelineFragment fragment = (TimelineFragment) item;
-        if (fragment.isTweetSelected()) {
-          ffab.getFab().show();
-        } else {
-          ffab.getFab().hide();
+        if (item instanceof TimelineFragment) {
+          ffab.setOnFlingListener(null);
+          TimelineFragment fragment = (TimelineFragment) item;
+          fragment.setupOnFlingListener();
+          if (fragment.isTweetSelected()) {
+            ffab.getFab().show();
+          } else {
+            ffab.getFab().hide();
+          }
         }
       }
     });
@@ -90,7 +92,6 @@ public class UserInfoPagerFragment extends Fragment {
     viewPager.clearOnPageChangeListeners();
     tab.setVisibility(View.GONE);
     tab.removeAllTabs();
-    ffab.getFab().hide();
     super.onStop();
   }
 
@@ -120,6 +121,7 @@ public class UserInfoPagerFragment extends Fragment {
         ((TimelineFragment) f).clearSelectedTweet();
       }
     }
+    ffab.getFab().hide();
   }
 
   private FlingableFloatingActionButton ffab;
