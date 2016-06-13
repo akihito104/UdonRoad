@@ -218,7 +218,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   public void defaultTimeline() {
     timeline = realm
         .where(StatusRealm.class)
-        .findAllSorted("createdAt", Sort.DESCENDING);
+        .findAllSorted("createdAt", Sort.DESCENDING, "arrivalAt", Sort.DESCENDING);
     notifyDataSetChanged();
   }
 }

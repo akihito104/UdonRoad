@@ -35,11 +35,13 @@ public class StatusRealm extends RealmObject implements Status {
   private boolean retweetByMe;
   private boolean favorited;
   private UserRealm user;
+  private long arrivalAt;
 
   public StatusRealm() {
   }
 
   public StatusRealm(Status status) {
+    this.arrivalAt = System.nanoTime();
     this.id = status.getId();
     this.createdAt = status.getCreatedAt();
     this.retweetedStatus = status.isRetweet() ?
@@ -227,5 +229,9 @@ public class StatusRealm extends RealmObject implements Status {
 
   public int getAccessLevel() {
     throw new RuntimeException("not implement yet.");
+  }
+
+  public long getArrivalAt() {
+    return arrivalAt;
   }
 }
