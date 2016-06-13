@@ -98,7 +98,7 @@ public class TimelineFragment extends Fragment {
     public void onItemRangeInserted(int positionStart, int itemCount) {
       super.onItemRangeInserted(positionStart, itemCount);
       if (canScroll()) {
-        Log.d(TAG, "onItemRangeInserted: ");
+//        Log.d(TAG, "onItemRangeInserted: ");
         scrollTo(0);
       } else {
         addedUntilStopped = true;
@@ -218,7 +218,7 @@ public class TimelineFragment extends Fragment {
   }
 
   private void scrollTo(int position) {
-    Log.d(TAG, "scrollTo: ");
+//    Log.d(TAG, "scrollTo: ");
     binding.timeline.smoothScrollToPosition(position);
   }
 
