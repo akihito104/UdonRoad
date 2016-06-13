@@ -100,19 +100,20 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<RealmResults<StatusRealm>>() {
-          @Override
-          public void call(final RealmResults<StatusRealm> results) {
-            notifyInserted(inserts, results);
-          }
-        })
-        .doOnError(new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "addNewStatuses: ", throwable);
-          }
-        })
-        .subscribe();
+        .subscribe(
+            new Action1<RealmResults<StatusRealm>>() {
+              @Override
+              public void call(final RealmResults<StatusRealm> results) {
+                notifyInserted(inserts, results);
+              }
+            },
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                Log.e(TAG, "addNewStatuses: ", throwable);
+              }
+            }
+        );
   }
 
   private void notifyInserted(List<StatusRealm> copied, RealmResults<StatusRealm> results) {
@@ -159,23 +160,22 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<RealmResults<StatusRealm>>() {
-          @Override
-          public void call(RealmResults<StatusRealm> statusRealms) {
-            Log.d(TAG, "call: deletedStatus");
-            for (int d : deleted) {
-              notifyItemRemoved(d);
-            }
-          }
-        })
-        .doOnError(new Action1<Throwable>(){
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "deleteStatus: ", throwable);
-          }
-        })
-        .subscribe();
-
+        .subscribe(
+            new Action1<RealmResults<StatusRealm>>() {
+              @Override
+              public void call(RealmResults<StatusRealm> statusRealms) {
+                Log.d(TAG, "call: deletedStatus");
+                for (int d : deleted) {
+                  notifyItemRemoved(d);
+                }
+              }
+            },
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                Log.e(TAG, "deleteStatus: ", throwable);
+              }
+            });
   }
 
   @NonNull
