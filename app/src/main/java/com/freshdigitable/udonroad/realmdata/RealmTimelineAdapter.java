@@ -116,13 +116,12 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   }
 
   private void notifyInserted(List<StatusRealm> copied, RealmResults<StatusRealm> results) {
-    Log.d(TAG, "notifyInserted:");
+//    Log.d(TAG, "notifyInserted:");
     final List<Integer> res = searchTimeline(copied, results);
     if (res.size() < 1) {
       return;
     }
     Collections.sort(res);
-    Log.d(TAG, "notifyInserted> index: " + res.get(0) + ", size: " + res.size());
     notifyItemRangeInserted(res.get(0), res.size());
   }
 
