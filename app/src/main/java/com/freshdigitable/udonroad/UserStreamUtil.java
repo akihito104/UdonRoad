@@ -7,9 +7,14 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.util.Log;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -43,19 +48,34 @@ public class UserStreamUtil {
 
   public void disconnect() {
     streamApi.disconnectStreamListener();
+    statusPublishSubject.onCompleted();
+    if (subscription != null && subscription.isUnsubscribed()) {
+      subscription.unsubscribe();
+    }
   }
 
+  private final PublishSubject<Status> statusPublishSubject = PublishSubject.create();
+
+  private final Subscription subscription = statusPublishSubject
+      .buffer(500, TimeUnit.MILLISECONDS)
+      .observeOn(AndroidSchedulers.mainThread())
+      .subscribe(new Action1<List<Status>>() {
+        @Override
+        public void call(List<Status> statuses) {
+          adapter.addNewStatuses(statuses);
+        }
+      }, new Action1<Throwable>() {
+        @Override
+        public void call(Throwable throwable) {
+          Log.d(TAG, "error: " + throwable);
+        }
+      });
+
   private final UserStreamListener statusListener = new UserStreamAdapter() {
+
     @Override
     public void onStatus(final Status status) {
-      Observable.just(status)
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<Status>() {
-            @Override
-            public void call(Status status) {
-              adapter.addNewStatus(status);
-            }
-          });
+      statusPublishSubject.onNext(status);
     }
 
     @Override

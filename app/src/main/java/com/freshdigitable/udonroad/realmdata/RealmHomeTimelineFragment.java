@@ -4,6 +4,8 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
+import android.util.Log;
+
 import com.freshdigitable.udonroad.UserStreamUtil;
 
 import java.util.List;
@@ -43,6 +45,7 @@ public class RealmHomeTimelineFragment extends RealmTimelineFragment {
 
   @Override
   public void onStop() {
+    Log.d(TAG, "onStop: ");
     userStream.disconnect();
     super.onStop();
   }

@@ -19,7 +19,6 @@ import android.widget.Toast;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.fab.FlingableFloatingActionButton;
 import com.freshdigitable.udonroad.fab.OnFlingListener;
-import com.freshdigitable.udonroad.realmdata.RealmTimelineAdapter;
 
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
-  private final TimelineAdapter tlAdapter = new RealmTimelineAdapter();
+  private final TimelineAdapter tlAdapter = new TimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
   private TwitterApi twitterApi;
 
@@ -97,6 +96,9 @@ public class TimelineFragment extends Fragment {
     @Override
     public void onItemRangeInserted(int positionStart, int itemCount) {
       super.onItemRangeInserted(positionStart, itemCount);
+      if (positionStart != 0) {
+        return;
+      }
       if (canScroll()) {
 //        Log.d(TAG, "onItemRangeInserted: ");
         scrollTo(0);
@@ -140,6 +142,9 @@ public class TimelineFragment extends Fragment {
   }
 
   public void tearDownOnFlingListener() {
+    if (fab == null) {
+      return;
+    }
     fab.setOnFlingListener(null);
   }
 
@@ -155,8 +160,8 @@ public class TimelineFragment extends Fragment {
 
   @Override
   public void onStop() {
-    super.onStop();
     Log.d(TAG, "onStop: ");
+    super.onStop();
     getTimelineAdapter().unregisterAdapterDataObserver(itemInsertedObserver);
     tearDownOnFlingListener();
     fab = null;

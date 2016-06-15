@@ -228,4 +228,16 @@ public class StatusRealm extends RealmObject implements Status {
   public int getAccessLevel() {
     throw new RuntimeException("not implement yet.");
   }
+
+  @Override
+  public String toString() {
+    final String s = text.replaceAll("\n", "");
+    final String sub = s.length() > 8
+        ? s.substring(0, 8)
+        : s;
+    return "id:" + id +
+        ", date:" + createdAt.getTime() +
+        ", @" + user.getScreenName() +
+        ", text:" + sub;
+  }
 }

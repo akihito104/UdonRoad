@@ -34,12 +34,12 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   private RealmResults<StatusRealm> timeline;
 
   public void openRealm(Context context) {
-    Log.d(TAG, "openRealm: ");
     final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
     openRealm(config);
   }
 
   public void openRealm(RealmConfiguration config) {
+    Log.d(TAG, "openRealm: ");
     Realm.deleteRealm(config);
     realm = Realm.getInstance(config);
     defaultTimeline();
@@ -91,6 +91,10 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       }
     }
 
+    if (inserts.size() < 1) {
+      return;
+    }
+
     timeline.asObservable()
         .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
           @Override
@@ -106,14 +110,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
               public void call(final RealmResults<StatusRealm> results) {
                 notifyInserted(inserts, results);
               }
-            },
-            new Action1<Throwable>() {
-              @Override
-              public void call(Throwable throwable) {
-                Log.e(TAG, "addNewStatuses: ", throwable);
-              }
-            }
-        );
+            });
   }
 
   private void notifyInserted(List<StatusRealm> copied, RealmResults<StatusRealm> results) {
@@ -123,7 +120,10 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       return;
     }
     Collections.sort(res);
-    notifyItemRangeInserted(res.get(0), res.size());
+    final Integer index = res.get(0);
+    final StatusRealm statusRealm = results.get(index);
+    Log.d(TAG, "notifyInserted: index:" + index + ", " + statusRealm.toString());
+    notifyItemRangeInserted(index, res.size());
   }
 
   @Override
@@ -168,12 +168,6 @@ public class RealmTimelineAdapter extends TimelineAdapter {
                 for (int d : deleted) {
                   notifyItemRemoved(d);
                 }
-              }
-            },
-            new Action1<Throwable>() {
-              @Override
-              public void call(Throwable throwable) {
-                Log.e(TAG, "deleteStatus: ", throwable);
               }
             });
   }
