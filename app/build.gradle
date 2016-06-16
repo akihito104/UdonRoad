@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-//apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'realm-android'
 
 android {
@@ -47,6 +47,8 @@ android {
 def supportLibVer = '23.4.0'
 def t4jVer = '4.0.4'
 def rxVer = '1.1.0'
+def daggerVer = "2.5"
+def supportTestVer = "0.4.1"
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -64,12 +66,15 @@ dependencies {
     // explicitly depend on RxJava's latest version for bug fixes and new features.
     compile "io.reactivex:rxjava:$rxVer"
 
+    compile "com.google.dagger:dagger:$daggerVer"
+    apt "com.google.dagger:dagger-compiler:$daggerVer"
+
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.10.19'
     testCompile 'org.robolectric:robolectric:3.1'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestCompile "com.android.support:support-annotations:$supportLibVer"
-    androidTestCompile 'com.android.support.test:runner:0.4.1'
-    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile "com.android.support.test:runner:$supportTestVer"
+    androidTestCompile "com.android.support.test:rules:$supportTestVer"
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
 }

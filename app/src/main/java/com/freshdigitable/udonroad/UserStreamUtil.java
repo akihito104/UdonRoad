@@ -4,11 +4,12 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.util.Log;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
@@ -26,23 +27,18 @@ import twitter4j.UserStreamListener;
  */
 public class UserStreamUtil {
   private static final String TAG = UserStreamUtil.class.getSimpleName();
-  private TwitterStreamApi streamApi;
+
+  @Inject
+  TwitterStreamApi streamApi;
   private TimelineAdapter adapter;
 
-  private UserStreamUtil(TwitterStreamApi streamApi, TimelineAdapter adapter) {
-    this.streamApi = streamApi;
+  public UserStreamUtil(MainApplication app, TimelineAdapter adapter) {
+    app.getTwitterApiComponent().inject(this);
     this.adapter = adapter;
   }
 
-  public static UserStreamUtil setup(Context context, TimelineAdapter adapter) {
-    TwitterStreamApi streamApi = TwitterStreamApi.setup(context);
-    if (streamApi == null) {
-      throw new RuntimeException();
-    }
-    return new UserStreamUtil(streamApi, adapter);
-  }
-
   public void connect() {
+    streamApi.loadAccessToken();
     streamApi.connectUserStream(statusListener);
   }
 

@@ -4,8 +4,14 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
+import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.UserStreamUtil;
 
 import java.util.List;
@@ -36,10 +42,18 @@ public class RealmHomeTimelineFragment extends RealmTimelineFragment {
 
   private UserStreamUtil userStream;
 
+  @Nullable
+  @Override
+  public View onCreateView(
+      LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    final MainApplication application = (MainApplication) getActivity().getApplication();
+    userStream = new UserStreamUtil(application, adapter);
+    return super.onCreateView(inflater, container, savedInstanceState);
+  }
+
   @Override
   public void onStart() {
     super.onStart();
-    userStream = UserStreamUtil.setup(getContext(), adapter);
     userStream.connect();
   }
 

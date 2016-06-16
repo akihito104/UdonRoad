@@ -22,6 +22,8 @@ import com.freshdigitable.udonroad.fab.OnFlingListener;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -35,13 +37,16 @@ public class TimelineFragment extends Fragment {
   private FragmentTimelineBinding binding;
   private final TimelineAdapter tlAdapter = new TimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
-  private TwitterApi twitterApi;
+  @Inject
+  TwitterApi twitterApi;
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     binding = DataBindingUtil.bind(view);
+    final MainApplication application = (MainApplication) getActivity().getApplication();
+    application.getTwitterApiComponent().inject(this);
     return view;
   }
 
@@ -113,7 +118,6 @@ public class TimelineFragment extends Fragment {
     super.onStart();
     final TimelineAdapter adapter = getTimelineAdapter();
     adapter.registerAdapterDataObserver(itemInsertedObserver);
-    twitterApi = TwitterApi.setup(getContext());
     fetchTweet();
   }
 
