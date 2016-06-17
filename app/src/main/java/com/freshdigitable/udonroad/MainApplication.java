@@ -16,7 +16,11 @@ public class MainApplication extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
-    twitterApiComponent = DaggerTwitterApiComponent.builder()
+    twitterApiComponent = createTwitterApiComponent();
+  }
+
+  protected TwitterApiComponent createTwitterApiComponent() {
+    return DaggerTwitterApiComponent.builder()
         .twitterApiModule(new TwitterApiModule(getApplicationContext()))
         .build();
   }
