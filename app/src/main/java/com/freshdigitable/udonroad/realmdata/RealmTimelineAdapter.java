@@ -120,10 +120,9 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       return;
     }
     Collections.sort(res);
-    final Integer index = res.get(0);
-    final StatusRealm statusRealm = results.get(index);
-    Log.d(TAG, "notifyInserted: index:" + index + ", " + statusRealm.toString());
-    notifyItemRangeInserted(index, res.size());
+    for (int i : res) {
+      notifyItemInserted(i);
+    }
   }
 
   @Override

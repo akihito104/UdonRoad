@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import rx.Observable;
+import rx.Subscriber;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import twitter4j.RateLimitStatus;
@@ -56,6 +58,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,21 +92,64 @@ public class MainActivityInstTest {
     assertThat(responseList.size(), is(20));
     when(twitter.getHomeTimeline()).thenReturn(responseList);
     when(twitterApi.getTwitter()).thenReturn(twitter);
-  }
 
-  @Test
-  public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
     rule.launchActivity(new Intent());
     verify(twitter, times(1)).getHomeTimeline();
     final UserStreamListener userStreamListener = app.getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
-    userStreamListener.onStatus(createStatus(25));
-    Thread.sleep(500);
+    onView(withId(R.id.timeline)).check(matches(isDisplayed()));
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    reset(twitter);
+    rule.getActivity().finish();
+    Thread.sleep(1000);
+  }
+
+  @Test
+  public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
+    receiveStatuses(25);
     onView(withTextInStatusView("tweet body 25"))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
 
+    receiveStatuses(29, 27);
+    onView(withTextInStatusView("tweet body 25"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
+    onView(withTextInStatusView("tweet body 29"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+    onView(withTextInStatusView("tweet body 27"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
+  }
+
+  @Test
+  public void receiveDelayed2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder()
+      throws Exception {
+    receiveStatuses(25);
+    onView(withTextInStatusView("tweet body 25"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+
+    receiveStatuses(29, 23);
+    onView(withTextInStatusView("tweet body 25"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
+    onView(withTextInStatusView("tweet body 29"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+    onView(withTextInStatusView("tweet body 23"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
+  }
+
+  private void receiveStatuses(final long... statusId) throws InterruptedException {
+    final UserStreamListener userStreamListener = app.getUserStreamListener();
     Observable
-        .just(createStatus(29), createStatus(27))
+        .create(new Observable.OnSubscribe<Status>() {
+          @Override
+          public void call(Subscriber<? super Status> subscriber) {
+            for (long s : statusId) {
+              subscriber.onNext(createStatus(s));
+            }
+            subscriber.onCompleted();
+          }
+        })
         .observeOn(Schedulers.io())
         .subscribe(new Action1<Status>() {
           @Override
@@ -112,13 +158,6 @@ public class MainActivityInstTest {
           }
         });
     Thread.sleep(500); // buffering tweets in 500ms
-    onView(withId(R.id.timeline)).check(matches(isDisplayed()));
-    onView(withTextInStatusView("tweet body 25"))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
-    onView(withTextInStatusView("tweet body 29"))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(withTextInStatusView("tweet body 27"))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
   }
 
   private Matcher<View> withTextInStatusView(String text) {
@@ -140,7 +179,6 @@ public class MainActivityInstTest {
 
       @Override
       public void describeTo(Description description) {
-        description.appendText("with text: ");
         viewMatcher.describeTo(description);
       }
     };
@@ -173,7 +211,8 @@ public class MainActivityInstTest {
     when(status.getCreatedAt()).thenReturn(new Date());
     when(status.getText()).thenReturn("tweet body " + id);
     when(status.isRetweet()).thenReturn(false);
-    when(status.getSource()).thenReturn("Udonroad"); // not set
+    when(status.getSource())
+        .thenReturn("<a href=\"https://twitter.com/akihito104\">Udonroad</a>");
     final User user = mock(User.class);
     when(user.getId()).thenReturn(2000L);
     when(user.getScreenName()).thenReturn("akihito matsuda");
