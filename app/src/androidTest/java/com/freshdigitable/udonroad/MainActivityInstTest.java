@@ -17,7 +17,6 @@ import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.TextView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -110,15 +109,15 @@ public class MainActivityInstTest {
   @Test
   public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
     receiveStatuses(25);
-    onView(withTextInStatusView("tweet body 25"))
+    onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
 
     receiveStatuses(29, 27);
-    onView(withTextInStatusView("tweet body 25"))
+    onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
-    onView(withTextInStatusView("tweet body 29"))
+    onView(ofStatusView(withText("tweet body 29")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(withTextInStatusView("tweet body 27"))
+    onView(ofStatusView(withText("tweet body 27")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
   }
 
@@ -126,15 +125,15 @@ public class MainActivityInstTest {
   public void receiveDelayed2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder()
       throws Exception {
     receiveStatuses(25);
-    onView(withTextInStatusView("tweet body 25"))
+    onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
 
     receiveStatuses(29, 23);
-    onView(withTextInStatusView("tweet body 25"))
+    onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
-    onView(withTextInStatusView("tweet body 29"))
+    onView(ofStatusView(withText("tweet body 29")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(withTextInStatusView("tweet body 23"))
+    onView(ofStatusView(withText("tweet body 23")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
   }
 
@@ -157,11 +156,11 @@ public class MainActivityInstTest {
             userStreamListener.onStatus(status);
           }
         });
-    Thread.sleep(500); // buffering tweets in 500ms
+    Thread.sleep(600); // buffering tweets in 500ms
   }
 
-  private Matcher<View> withTextInStatusView(String text) {
-    final Matcher<View> viewMatcher = withText(text);
+  @NonNull
+  private Matcher<View> ofStatusView(final Matcher<View> viewMatcher) {
     return new BoundedMatcher<View, StatusView>(StatusView.class) {
       @Override
       protected boolean matchesSafely(StatusView item) {
@@ -170,7 +169,6 @@ public class MainActivityInstTest {
               @Override
               public boolean apply(@Nullable View view) {
                 return view != null
-                    && view instanceof TextView
                     && viewMatcher.matches(view);
               }
             });
