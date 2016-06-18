@@ -5,11 +5,22 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.espresso.NoMatchingViewException;
+import android.support.test.espresso.ViewAssertion;
+import android.support.test.espresso.core.deps.guava.base.Predicate;
+import android.support.test.espresso.core.deps.guava.collect.Iterables;
+import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.TextView;
 
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,8 +33,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import rx.Observable;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -36,6 +51,7 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static android.support.test.espresso.util.TreeIterables.breadthFirstViewTraversal;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -76,21 +92,79 @@ public class MainActivityInstTest {
   }
 
   @Test
-  public void tests() throws Exception {
+  public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
     rule.launchActivity(new Intent());
     verify(twitter, times(1)).getHomeTimeline();
     final UserStreamListener userStreamListener = app.getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
     userStreamListener.onStatus(createStatus(25));
     Thread.sleep(500);
-    userStreamListener.onStatus(createStatus(29));
-    userStreamListener.onStatus(createStatus(27));
+    onView(withTextInStatusView("tweet body 25"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+
+    Observable
+        .just(createStatus(29), createStatus(27))
+        .observeOn(Schedulers.io())
+        .subscribe(new Action1<Status>() {
+          @Override
+          public void call(Status status) {
+            userStreamListener.onStatus(status);
+          }
+        });
     Thread.sleep(500); // buffering tweets in 500ms
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));
-    // TODO position of each view
-    onView(withText("tweet body 25")).check(matches(isDisplayed()));
-    onView(withText("tweet body 29")).check(matches(isDisplayed()));
-    onView(withText("tweet body 27")).check(matches(isDisplayed()));
+    onView(withTextInStatusView("tweet body 25"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
+    onView(withTextInStatusView("tweet body 29"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+    onView(withTextInStatusView("tweet body 27"))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
+  }
+
+  private Matcher<View> withTextInStatusView(String text) {
+    final Matcher<View> viewMatcher = withText(text);
+    return new BoundedMatcher<View, StatusView>(StatusView.class) {
+      @Override
+      protected boolean matchesSafely(StatusView item) {
+        final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
+            new Predicate<View>() {
+              @Override
+              public boolean apply(@Nullable View view) {
+                return view != null
+                    && view instanceof TextView
+                    && viewMatcher.matches(view);
+              }
+            });
+        return it.iterator().hasNext();
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("with text: ");
+        viewMatcher.describeTo(description);
+      }
+    };
+  }
+
+  private ViewAssertion recyclerViewDescendantsMatches(
+      @IdRes final int recyclerViewId, final int position) {
+    return new ViewAssertion() {
+      @Override
+      public void check(View view, NoMatchingViewException noViewFoundException) {
+        if (!(view instanceof StatusView)) {
+          throw noViewFoundException;
+        }
+        final RecyclerView recyclerView = (RecyclerView) view.getParent();
+        if (recyclerView == null
+            || recyclerView.getId() != recyclerViewId) {
+          throw noViewFoundException;
+        }
+        final View actual = recyclerView.getChildAt(position);
+        if (view != actual) {
+          throw noViewFoundException;
+        }
+      }
+    };
   }
 
   private static Status createStatus(long id) {
