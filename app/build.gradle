@@ -3,13 +3,13 @@ apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.0"
 
     defaultConfig {
         applicationId "com.freshdigitable.udonroad"
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
@@ -18,11 +18,21 @@ android {
     buildTypes {
         debug {
             debuggable true
+            shrinkResources true
+            zipAlignEnabled true
         }
         release {
-            minifyEnabled false
+            debuggable false
+            shrinkResources true
+            zipAlignEnabled true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
     }
 
     configurations {
@@ -44,7 +54,7 @@ android {
     }
 }
 
-def supportLibVer = '23.4.0'
+def supportLibVer = '24.0.0'
 def t4jVer = '4.0.4'
 def rxVer = '1.1.0'
 def daggerVer = "2.5"
