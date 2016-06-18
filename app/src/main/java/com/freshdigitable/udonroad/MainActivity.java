@@ -25,6 +25,8 @@ import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.realmdata.RealmHomeTimelineFragment;
 import com.squareup.picasso.Picasso;
 
+import javax.inject.Inject;
+
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -37,18 +39,23 @@ public class MainActivity extends AppCompatActivity {
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment tlFragment;
   private MainAppbarFragment appbarFragment;
-  private TwitterApi twitterApi;
+
+  @Inject
+  TwitterApi twitterApi;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (!TwitterApi.hasAccessToken(this)) {
+
+    final MainApplication app = (MainApplication) getApplication();
+    app.getTwitterApiComponent().inject(this);
+    if (!twitterApi.loadAccessToken()) {
       startActivity(new Intent(this, OAuthActivity.class));
       finish();
       return;
     }
+
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-    twitterApi = TwitterApi.setup(this);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 

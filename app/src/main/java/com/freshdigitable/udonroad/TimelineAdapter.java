@@ -2,7 +2,9 @@ package com.freshdigitable.udonroad;
 
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -61,6 +63,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = get(position);
+    Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
     holder.bindStatus(status);
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound(status.getId());
@@ -90,6 +93,19 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     v.setBackgroundColor(color);
   }
 
+  @Override
+  public void onViewAttachedToWindow(ViewHolder holder) {
+    super.onViewAttachedToWindow(holder);
+//    Log.d(TAG, "onViewAttachedToWindow: " + holder.status.toString());
+  }
+
+  @Override
+  public void onViewDetachedFromWindow(ViewHolder holder) {
+    super.onViewDetachedFromWindow(holder);
+//    Log.d(TAG, "onViewDetachedFromWindow: " + holder.status.toString());
+    ViewCompat.animate(holder.itemView).cancel();
+  }
+
   private SelectedStatus selectedStatusHolder = null;
 
   private void fixSelectedTweet(ViewHolder vh) {
@@ -116,12 +132,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onViewRecycled(ViewHolder holder) {
 //    Log.d(TAG, "onViewRecycled: ");
-    holder.onRecycled();
     StatusView v = (StatusView) holder.itemView;
     Picasso.with(v.getContext()).cancelRequest(v.getIcon());
     if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
       Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
     }
+    holder.onRecycled();
   }
 
   private OnSelectedTweetChangeListener selectedTweetChangeListener;
@@ -223,7 +239,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     private OnUserIconClickedListener userIconClickedListener;
 
     void onRecycled() {
-      ((StatusView)itemView).reset();
+      this.itemView.setOnClickListener(null);
+      final StatusView v = (StatusView) this.itemView;
+      v.setUserIconClickListener(null);
+      v.reset();
       this.status = null;
       this.itemViewClicked = null;
       this.userIconClickedListener = null;

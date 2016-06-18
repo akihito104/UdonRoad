@@ -1,10 +1,11 @@
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -13,7 +14,6 @@ import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
@@ -28,27 +28,22 @@ public class TwitterApi {
   private static final String TOKEN = "token";
   private static final String TOKEN_SECRET = "token_secret";
 
-  @Nullable
-  public static TwitterApi setup(final Context context){
-    AccessToken accessToken = loadAccessToken(context);
-    if (accessToken == null) {
-      return null;
-    }
-    String consumerKey = context.getString(R.string.consumer_key);
-    String consumerSecret = context.getString(R.string.consumer_secret);
+  private final Twitter twitter;
+  private final SharedPreferences sharedPreference;
 
-    TwitterFactory factory = new TwitterFactory();
-    final Twitter twitter = factory.getInstance();
-    twitter.setOAuthConsumer(consumerKey, consumerSecret);
-    twitter.setOAuthAccessToken(accessToken);
-
-    return new TwitterApi(twitter);
+  @Inject
+  public TwitterApi(Twitter twitter, SharedPreferences sprefs) {
+    this.twitter = twitter;
+    this.sharedPreference = sprefs;
   }
 
-  private final Twitter twitter;
-
-  private TwitterApi(Twitter twitter) {
-    this.twitter = twitter;
+  public boolean loadAccessToken() {
+    final AccessToken accessToken = loadAccessToken(sharedPreference);
+    if (accessToken == null) {
+      return false;
+    }
+    twitter.setOAuthAccessToken(accessToken);
+    return true;
   }
 
   public Observable<User> verifyCredentials() {
@@ -66,31 +61,15 @@ public class TwitterApi {
     }).subscribeOn(Schedulers.io());
   }
 
-  public static Twitter getTwitterInstance(final Context context) {
-    String consumerKey = context.getString(R.string.consumer_key);
-    String consumerSecret = context.getString(R.string.consumer_secret);
-    TwitterFactory factory = new TwitterFactory();
-    Twitter twitter = factory.getInstance();
-    twitter.setOAuthConsumer(consumerKey, consumerSecret);
-
-    AccessToken accessToken = loadAccessToken(context);
-    if (accessToken != null) {
-      twitter.setOAuthAccessToken(accessToken);
-    }
-
-    return twitter;
-  }
-
-  public static void storeAccessToken(Context context, AccessToken token) {
-    SharedPreferences.Editor editor = getAppSharedPrefs(context).edit();
+  public static void storeAccessToken(SharedPreferences sharedPreferences, AccessToken token) {
+    final SharedPreferences.Editor editor = sharedPreferences.edit();
     editor.putString(TOKEN, token.getToken());
     editor.putString(TOKEN_SECRET, token.getTokenSecret());
     editor.apply();
   }
 
   @Nullable
-  static AccessToken loadAccessToken(Context context) {
-    SharedPreferences sharedPreference = getAppSharedPrefs(context);
+  public static AccessToken loadAccessToken(SharedPreferences sharedPreference) {
     String token = sharedPreference.getString(TOKEN, null);
     if (token == null) {
       return null;
@@ -101,14 +80,6 @@ public class TwitterApi {
     }
 
     return new AccessToken(token, tokenSecret);
-  }
-
-  private static SharedPreferences getAppSharedPrefs(Context context) {
-    return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
-  }
-
-  public static boolean hasAccessToken(Context context) {
-    return loadAccessToken(context) != null;
   }
 
   public Observable<Status> updateStatus(final String sendingText) {

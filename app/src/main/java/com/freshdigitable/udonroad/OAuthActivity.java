@@ -1,12 +1,15 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -23,13 +26,19 @@ import twitter4j.auth.RequestToken;
 public class OAuthActivity extends AppCompatActivity {
   private static final String TAG = OAuthActivity.class.getName();
   private String callbackUrl;
-  private Twitter twitter;
+
+  @Inject
+  Twitter twitter;
+  @Inject
+  SharedPreferences prefs;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_login);
-    twitter = TwitterApi.getTwitterInstance(this);
+    final MainApplication application = (MainApplication) getApplication();
+    application.getTwitterApiComponent().inject(this);
+
     callbackUrl = getString(R.string.callback_url);
     findViewById(R.id.button_oauth).setOnClickListener(new View.OnClickListener() {
       @Override
@@ -49,6 +58,7 @@ public class OAuthActivity extends AppCompatActivity {
           requestToken = twitter.getOAuthRequestToken(callbackUrl);
           String authUrl = requestToken.getAuthorizationURL();
           subscriber.onNext(authUrl);
+          subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
         }
@@ -104,6 +114,7 @@ public class OAuthActivity extends AppCompatActivity {
         try {
           AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
           subscriber.onNext(accessToken);
+          subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
         }
@@ -132,7 +143,7 @@ public class OAuthActivity extends AppCompatActivity {
     if (accessToken == null) {
       Toast.makeText(this, "authentication is failed...", Toast.LENGTH_LONG).show();
     }
-    TwitterApi.storeAccessToken(this, accessToken);
+    TwitterApi.storeAccessToken(prefs, accessToken);
     Toast.makeText(this, "authentication is success!", Toast.LENGTH_LONG).show();
     Intent intent = new Intent(this, MainActivity.class);
     startActivity(intent);

@@ -19,9 +19,10 @@ import android.widget.Toast;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.fab.FlingableFloatingActionButton;
 import com.freshdigitable.udonroad.fab.OnFlingListener;
-import com.freshdigitable.udonroad.realmdata.RealmTimelineAdapter;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -34,15 +35,18 @@ public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
-  private final TimelineAdapter tlAdapter = new RealmTimelineAdapter();
+  private final TimelineAdapter tlAdapter = new TimelineAdapter();
   private LinearLayoutManager tlLayoutManager;
-  private TwitterApi twitterApi;
+  @Inject
+  TwitterApi twitterApi;
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     binding = DataBindingUtil.bind(view);
+    final MainApplication application = (MainApplication) getActivity().getApplication();
+    application.getTwitterApiComponent().inject(this);
     return view;
   }
 
@@ -97,6 +101,9 @@ public class TimelineFragment extends Fragment {
     @Override
     public void onItemRangeInserted(int positionStart, int itemCount) {
       super.onItemRangeInserted(positionStart, itemCount);
+      if (positionStart != 0) {
+        return;
+      }
       if (canScroll()) {
 //        Log.d(TAG, "onItemRangeInserted: ");
         scrollTo(0);
@@ -111,7 +118,6 @@ public class TimelineFragment extends Fragment {
     super.onStart();
     final TimelineAdapter adapter = getTimelineAdapter();
     adapter.registerAdapterDataObserver(itemInsertedObserver);
-    twitterApi = TwitterApi.setup(getContext());
     fetchTweet();
   }
 
@@ -140,6 +146,9 @@ public class TimelineFragment extends Fragment {
   }
 
   public void tearDownOnFlingListener() {
+    if (fab == null) {
+      return;
+    }
     fab.setOnFlingListener(null);
   }
 
@@ -155,8 +164,8 @@ public class TimelineFragment extends Fragment {
 
   @Override
   public void onStop() {
-    super.onStop();
     Log.d(TAG, "onStop: ");
+    super.onStop();
     getTimelineAdapter().unregisterAdapterDataObserver(itemInsertedObserver);
     tearDownOnFlingListener();
     fab = null;

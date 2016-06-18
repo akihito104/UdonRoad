@@ -34,15 +34,16 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
 
   @Override
   public void onStart() {
-    super.onStart();
     final RealmConfiguration rc = createRealmConfiguration();
     adapter.openRealm(rc);
+    super.onStart();
   }
 
   @Override
   public void onStop() {
-    super.onStop();
+    Log.d(TAG, "onStop: ");
     adapter.closeRealm();
+    super.onStop();
   }
 
   public abstract RealmConfiguration createRealmConfiguration();
@@ -55,19 +56,19 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
     Observable.create(onSubscribe)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<List<Status>>() {
-          @Override
-          public void call(List<Status> statuses) {
-            adapter.addNewStatuses(statuses);
-          }
-        })
-        .doOnError(new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "fetch: ", throwable);
-          }
-        })
-        .subscribe();
+        .subscribe(
+            new Action1<List<Status>>() {
+              @Override
+              public void call(List<Status> statuses) {
+                adapter.addNewStatuses(statuses);
+              }
+            },
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                Log.e(TAG, "fetch: ", throwable);
+              }
+            });
   }
 
   protected static <T extends Fragment> T getInstance(T fragment, @NonNull User user) {

@@ -34,12 +34,12 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   private RealmResults<StatusRealm> timeline;
 
   public void openRealm(Context context) {
-    Log.d(TAG, "openRealm: ");
     final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
     openRealm(config);
   }
 
   public void openRealm(RealmConfiguration config) {
+    Log.d(TAG, "openRealm: ");
     Realm.deleteRealm(config);
     realm = Realm.getInstance(config);
     defaultTimeline();
@@ -91,6 +91,10 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       }
     }
 
+    if (inserts.size() < 1) {
+      return;
+    }
+
     timeline.asObservable()
         .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
           @Override
@@ -100,19 +104,13 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<RealmResults<StatusRealm>>() {
-          @Override
-          public void call(final RealmResults<StatusRealm> results) {
-            notifyInserted(inserts, results);
-          }
-        })
-        .doOnError(new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "addNewStatuses: ", throwable);
-          }
-        })
-        .subscribe();
+        .subscribe(
+            new Action1<RealmResults<StatusRealm>>() {
+              @Override
+              public void call(final RealmResults<StatusRealm> results) {
+                notifyInserted(inserts, results);
+              }
+            });
   }
 
   private void notifyInserted(List<StatusRealm> copied, RealmResults<StatusRealm> results) {
@@ -122,7 +120,9 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       return;
     }
     Collections.sort(res);
-    notifyItemRangeInserted(res.get(0), res.size());
+    for (int i : res) {
+      notifyItemInserted(i);
+    }
   }
 
   @Override
@@ -159,23 +159,16 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<RealmResults<StatusRealm>>() {
-          @Override
-          public void call(RealmResults<StatusRealm> statusRealms) {
-            Log.d(TAG, "call: deletedStatus");
-            for (int d : deleted) {
-              notifyItemRemoved(d);
-            }
-          }
-        })
-        .doOnError(new Action1<Throwable>(){
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "deleteStatus: ", throwable);
-          }
-        })
-        .subscribe();
-
+        .subscribe(
+            new Action1<RealmResults<StatusRealm>>() {
+              @Override
+              public void call(RealmResults<StatusRealm> statusRealms) {
+                Log.d(TAG, "call: deletedStatus");
+                for (int d : deleted) {
+                  notifyItemRemoved(d);
+                }
+              }
+            });
   }
 
   @NonNull

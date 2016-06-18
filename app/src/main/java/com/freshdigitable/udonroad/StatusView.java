@@ -94,9 +94,14 @@ public class StatusView extends RelativeLayout {
 
     tweet.setText(bindingStatus.getText());
 
-    final String formattedVia = formatString(R.string.tweet_via,
-        Html.fromHtml(bindingStatus.getSource()).toString());
-    clientName.setText(formattedVia);
+    final String source = bindingStatus.getSource();
+    if (source != null) {
+      final String formattedVia = formatString(R.string.tweet_via,
+          Html.fromHtml(source).toString());
+      clientName.setText(formattedVia);
+    } else {
+      clientName.setText(formatString(R.string.tweet_via, "none provided"));
+    }
 
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0) {
