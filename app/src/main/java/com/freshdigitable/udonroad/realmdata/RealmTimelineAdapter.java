@@ -91,10 +91,6 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       }
     }
 
-    if (inserts.size() < 1) {
-      return;
-    }
-
     timeline.asObservable()
         .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
           @Override
@@ -109,19 +105,35 @@ public class RealmTimelineAdapter extends TimelineAdapter {
               @Override
               public void call(final RealmResults<StatusRealm> results) {
                 notifyInserted(inserts, results);
+                notifyChanged(updates, results);
               }
             });
   }
 
-  private void notifyInserted(List<StatusRealm> copied, RealmResults<StatusRealm> results) {
-//    Log.d(TAG, "notifyInserted:");
-    final List<Integer> res = searchTimeline(copied, results);
-    if (res.size() < 1) {
+  private void notifyInserted(List<StatusRealm> inserted, RealmResults<StatusRealm> results) {
+    if (inserted.size() < 1) {
       return;
     }
-    Collections.sort(res);
-    for (int i : res) {
+    final List<Integer> index = searchTimeline(inserted, results);
+    if (index.size() < 1) {
+      return;
+    }
+    Collections.sort(index);
+    for (int i : index) {
       notifyItemInserted(i);
+    }
+  }
+
+  private void notifyChanged(List<StatusRealm> changed, RealmResults<StatusRealm> results) {
+    if (changed.size() < 1) {
+      return;
+    }
+    final List<Integer> index = searchTimeline(changed, results);
+    if (index.size() < 1) {
+      return;
+    }
+    for (int i : index) {
+      notifyItemChanged(i);
     }
   }
 

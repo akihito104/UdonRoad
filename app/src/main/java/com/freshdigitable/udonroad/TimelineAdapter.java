@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -63,7 +62,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = get(position);
-    Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
+//    Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
     holder.bindStatus(status);
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound(status.getId());
