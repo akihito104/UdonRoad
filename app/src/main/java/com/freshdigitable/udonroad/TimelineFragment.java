@@ -249,9 +249,16 @@ public class TimelineFragment extends Fragment {
   };
 
   private void fetchRetweet(final long tweetId) {
+    final TimelineAdapter adapter = getTimelineAdapter();
     twitterApi.retweetStatus(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(emptyAction,
+        .subscribe(
+            new Action1<Status>() {
+              @Override
+              public void call(Status status) {
+                adapter.addNewStatus(status);
+              }
+            },
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
