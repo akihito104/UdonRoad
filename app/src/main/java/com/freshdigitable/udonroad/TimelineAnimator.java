@@ -16,7 +16,13 @@ import java.util.List;
  * Created by akihit on 2015/11/21.
  */
 public class TimelineAnimator extends SimpleItemAnimator {
+  @SuppressWarnings("unused")
   private static final String TAG = TimelineAnimator.class.getSimpleName();
+
+  public TimelineAnimator() {
+    super();
+    setSupportsChangeAnimations(false);
+  }
 
   private final List<ViewHolder> pendingRemoves = new ArrayList<>();
   private final List<ViewHolder> removeAnimations = new ArrayList<>();
