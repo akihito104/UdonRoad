@@ -25,6 +25,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,14 +50,21 @@ import twitter4j.User;
 import twitter4j.UserStreamListener;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.swipeDown;
+import static android.support.test.espresso.action.ViewActions.swipeRight;
+import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static android.support.test.espresso.util.TreeIterables.breadthFirstViewTraversal;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -90,6 +99,33 @@ public class MainActivityInstTest {
     }
     assertThat(responseList.size(), is(20));
     when(twitter.getHomeTimeline()).thenReturn(responseList);
+    when(twitterApi.createFavorite(anyLong())).thenAnswer(new Answer<Observable<Status>>() {
+      @Override
+      public Observable<Status> answer(InvocationOnMock invocation) throws Throwable {
+        final Long id = invocation.getArgumentAt(0, Long.class);
+        final Status status = createStatus(id / 1000L);
+        when(status.getFavoriteCount()).thenReturn(1);
+        when(status.isFavorited()).thenReturn(true);
+        return Observable.just(status)
+            .subscribeOn(Schedulers.io());
+      }
+    });
+    when(twitterApi.retweetStatus(anyLong())).thenAnswer(new Answer<Observable<Status>>() {
+      @Override
+      public Observable<Status> answer(InvocationOnMock invocation) throws Throwable {
+        final Long id = invocation.getArgumentAt(0, Long.class);
+        final Status status = createStatus(25);
+        when(status.isRetweet()).thenReturn(true);
+        when(status.isRetweeted()).thenReturn(true);
+        final Status rtStatus = createStatus(id / 1000L);
+        when(rtStatus.isRetweeted()).thenReturn(true);
+        when(rtStatus.getRetweetCount()).thenReturn(1);
+        when(status.getRetweetedStatus()).thenReturn(rtStatus);
+        return Observable.just(status)
+            .subscribeOn(Schedulers.io());
+      }
+    });
+    when(twitterApi.loadAccessToken()).thenReturn(true);
     when(twitterApi.getTwitter()).thenReturn(twitter);
 
     rule.launchActivity(new Intent());
@@ -101,9 +137,12 @@ public class MainActivityInstTest {
 
   @After
   public void tearDown() throws Exception {
-    reset(twitter);
-    rule.getActivity().finish();
-    Thread.sleep(1000);
+    reset(twitter, twitterApi);
+    final MainActivity activity = rule.getActivity();
+    if (activity != null) {
+      activity.finish();
+      Thread.sleep(1000);
+    }
   }
 
   @Test
@@ -111,6 +150,8 @@ public class MainActivityInstTest {
     receiveStatuses(25);
     onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+    onView(ofStatusView(withText("tweet body 25")))
+        .check(selectedDescendantsMatch(withId(R.id.tl_fav_icon), not(isDisplayed())));
 
     receiveStatuses(29, 27);
     onView(ofStatusView(withText("tweet body 25")))
@@ -135,6 +176,29 @@ public class MainActivityInstTest {
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
     onView(ofStatusView(withText("tweet body 23")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
+  }
+
+  @Test
+  public void fetchFav_then_favIconAndCountAreDisplayed() throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).check(matches(isDisplayed()));
+    onView(withId(R.id.fab)).perform(swipeUp());
+    onView(ofStatusView(withText("tweet body 20")))
+        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
+    // TODO tint color check
+  }
+
+  @Test
+  public void fetchRT_then_RtIconAndCountAreDisplayed() throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).check(matches(isDisplayed()));
+    onView(withId(R.id.fab)).perform(swipeRight());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
+    onView(withId(R.id.timeline)).perform(swipeDown());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
+    // TODO tint color check
   }
 
   private void receiveStatuses(final long... statusId) throws InterruptedException {
@@ -182,6 +246,25 @@ public class MainActivityInstTest {
     };
   }
 
+  private Matcher<View> ofStatusViewAt(@IdRes final int recyclerViewId, final int position) {
+    final Matcher<View> recyclerViewMatcher = withId(recyclerViewId);
+    return new BoundedMatcher<View, StatusView>(StatusView.class) {
+      @Override
+      public void describeTo(Description description) {
+      }
+
+      @Override
+      protected boolean matchesSafely(StatusView item) {
+        final RecyclerView recyclerView = (RecyclerView) item.getParent();
+        if (!recyclerViewMatcher.matches(recyclerView)) {
+          return false;
+        }
+        final View target = recyclerView.getChildAt(position);
+        return target == item;
+      }
+    };
+  }
+
   private ViewAssertion recyclerViewDescendantsMatches(
       @IdRes final int recyclerViewId, final int position) {
     return new ViewAssertion() {
@@ -213,8 +296,8 @@ public class MainActivityInstTest {
         .thenReturn("<a href=\"https://twitter.com/akihito104\">Udonroad</a>");
     final User user = mock(User.class);
     when(user.getId()).thenReturn(2000L);
-    when(user.getScreenName()).thenReturn("akihito matsuda");
-    when(user.getName()).thenReturn("akihito104");
+    when(user.getName()).thenReturn("akihito matsuda");
+    when(user.getScreenName()).thenReturn("akihito104");
     when(status.getUser()).thenReturn(user);
     return status;
   }

@@ -243,11 +243,6 @@ public class TimelineFragment extends Fragment {
     getTimelineAdapter().setOnUserIconClickedListener(listener);
   }
 
-  private static final Action1<Status> emptyAction = new Action1<Status>() {
-    @Override
-    public void call(Status status) {}
-  };
-
   private void fetchRetweet(final long tweetId) {
     final TimelineAdapter adapter = getTimelineAdapter();
     twitterApi.retweetStatus(tweetId)

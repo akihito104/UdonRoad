@@ -106,7 +106,7 @@ public class StatusView extends RelativeLayout {
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0) {
       this.setRtCountVisibility(VISIBLE);
-      setTint(rtIcon, bindingStatus.isRetweetedByMe()
+      setTint(rtIcon, bindingStatus.isRetweeted()
           ? R.color.colorTwitterActionRetweeted
           : R.color.colorTwitterActionNormal);
       this.rtCount.setText(String.valueOf(rtCount));

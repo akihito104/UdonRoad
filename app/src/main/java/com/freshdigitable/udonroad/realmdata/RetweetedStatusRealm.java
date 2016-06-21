@@ -32,6 +32,7 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   private String source;
   private int retweetCount;
   private int favoriteCount;
+  private boolean retweeted;
   private boolean retweetByMe;
   private boolean favorited;
   private UserRealm user;
@@ -49,6 +50,7 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
     this.retweetByMe = status.isRetweetedByMe();
+    this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
     this.user = new UserRealm(status.getUser());
   }
@@ -114,7 +116,7 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   }
 
   public boolean isRetweeted() {
-    throw new RuntimeException("not implement yet.");
+    return retweeted;
   }
 
   public int getFavoriteCount() {
@@ -139,10 +141,6 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
 
   public RetweetedStatusRealm getRetweetedStatus() {
     return retweetedStatus;
-  }
-
-  public void setRetweetedStatus(RetweetedStatusRealm retweetedStatus) {
-    this.retweetedStatus = retweetedStatus;
   }
 
   public long[] getContributors() {
@@ -227,5 +225,9 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
 
   public int getAccessLevel() {
     throw new RuntimeException("not implement yet.");
+  }
+
+  public void setRetweeted(boolean retweeted) {
+    this.retweeted = retweeted;
   }
 }

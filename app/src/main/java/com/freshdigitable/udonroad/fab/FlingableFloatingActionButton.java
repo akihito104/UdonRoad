@@ -3,7 +3,6 @@ package com.freshdigitable.udonroad.fab;
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -57,7 +56,7 @@ public class FlingableFloatingActionButton extends LinearLayout {
         }
         final Direction direction = Direction.getDirection(old, motionEvent);
         if (action == MotionEvent.ACTION_MOVE) {
-          Log.d(TAG, "onTouch: " + direction);
+//          Log.d(TAG, "onTouch: " + direction);
           if (actionIndicatorHelper != null) {
             actionIndicatorHelper.onFling(direction);
           }

@@ -16,7 +16,6 @@ import twitter4j.TwitterStream;
 import twitter4j.UserStreamListener;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by akihit on 2016/06/16.
@@ -50,7 +49,6 @@ public class MockTwitterApiModule {
   @Provides
   public TwitterApi provideTwitterApi() {
     final TwitterApi mock = mock(TwitterApi.class);
-    when(mock.loadAccessToken()).thenReturn(true);
     return mock;
   }
 
