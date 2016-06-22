@@ -27,7 +27,6 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   @PrimaryKey
   private long id;
   private Date createdAt;
-  private RetweetedStatusRealm retweetedStatus;
   private String text;
   private String source;
   private int retweetCount;
@@ -43,8 +42,6 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   public RetweetedStatusRealm(Status status) {
     this.id = status.getId();
     this.createdAt = status.getCreatedAt();
-    this.retweetedStatus = status.isRetweet() ?
-        new RetweetedStatusRealm(status.getRetweetedStatus()) : null;
     this.text = status.getText();
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
@@ -136,11 +133,11 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   }
 
   public boolean isRetweet() {
-    return retweetedStatus != null;
+    return false;
   }
 
-  public RetweetedStatusRealm getRetweetedStatus() {
-    return retweetedStatus;
+  public Status getRetweetedStatus() {
+    return null;
   }
 
   public long[] getContributors() {

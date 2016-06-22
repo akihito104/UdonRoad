@@ -29,6 +29,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -39,8 +40,8 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.Subscriber;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
@@ -85,6 +86,7 @@ public class MainActivityInstTest {
   public ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
   private MockMainApplication app;
+  private long rtStatusId;
 
   @Before
   public void setup() throws Exception {
@@ -114,14 +116,10 @@ public class MainActivityInstTest {
       @Override
       public Observable<Status> answer(InvocationOnMock invocation) throws Throwable {
         final Long id = invocation.getArgumentAt(0, Long.class);
-        final Status status = createStatus(25);
-        when(status.isRetweet()).thenReturn(true);
-        when(status.isRetweeted()).thenReturn(true);
-        final Status rtStatus = createStatus(id / 1000L);
-        when(rtStatus.isRetweeted()).thenReturn(true);
-        when(rtStatus.getRetweetCount()).thenReturn(1);
-        when(status.getRetweetedStatus()).thenReturn(rtStatus);
-        return Observable.just(status)
+        final long rtedStatusId = id / 1000L;
+        rtStatusId = 100 + rtedStatusId;
+        final Status rtStatus = createRtStatus(rtStatusId, rtedStatusId, true);
+        return Observable.just(rtStatus)
             .subscribeOn(Schedulers.io());
       }
     });
@@ -147,13 +145,15 @@ public class MainActivityInstTest {
 
   @Test
   public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
-    receiveStatuses(25);
+    receiveStatuses(createStatus(25));
     onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
     onView(ofStatusView(withText("tweet body 25")))
         .check(selectedDescendantsMatch(withId(R.id.tl_fav_icon), not(isDisplayed())));
 
-    receiveStatuses(29, 27);
+    receiveStatuses(
+        createStatus(29),
+        createStatus(27));
     onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
     onView(ofStatusView(withText("tweet body 29")))
@@ -165,11 +165,13 @@ public class MainActivityInstTest {
   @Test
   public void receiveDelayed2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder()
       throws Exception {
-    receiveStatuses(25);
+    receiveStatuses(createStatus(25));
     onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
 
-    receiveStatuses(29, 23);
+    receiveStatuses(
+        createStatus(29),
+        createStatus(23));
     onView(ofStatusView(withText("tweet body 25")))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
     onView(ofStatusView(withText("tweet body 29")))
@@ -193,6 +195,10 @@ public class MainActivityInstTest {
     onView(ofStatusView(withText("tweet body 20"))).perform(click());
     onView(withId(R.id.fab)).check(matches(isDisplayed()));
     onView(withId(R.id.fab)).perform(swipeRight());
+    receiveStatuses(createRtStatus(rtStatusId, 20, false));
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 20"))));
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
     onView(withId(R.id.timeline)).perform(swipeDown());
@@ -201,23 +207,19 @@ public class MainActivityInstTest {
     // TODO tint color check
   }
 
-  private void receiveStatuses(final long... statusId) throws InterruptedException {
-    final UserStreamListener userStreamListener = app.getUserStreamListener();
-    Observable
-        .create(new Observable.OnSubscribe<Status>() {
+  private void receiveStatuses(final Status... statuses) throws InterruptedException {
+    Observable.just(Arrays.asList(statuses))
+        .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
           @Override
-          public void call(Subscriber<? super Status> subscriber) {
-            for (long s : statusId) {
-              subscriber.onNext(createStatus(s));
-            }
-            subscriber.onCompleted();
+          public Iterable<Status> call(List<Status> statuses) {
+            return statuses;
           }
         })
         .observeOn(Schedulers.io())
         .subscribe(new Action1<Status>() {
           @Override
           public void call(Status status) {
-            userStreamListener.onStatus(status);
+            app.getUserStreamListener().onStatus(status);
           }
         });
     Thread.sleep(600); // buffering tweets in 500ms
@@ -302,8 +304,23 @@ public class MainActivityInstTest {
     return status;
   }
 
+  private static Status createRtStatus(long newStatusId, long rtedStatusId, boolean isFromApi) {
+    final Status rtStatus = createStatus(rtedStatusId);
+    when(rtStatus.isRetweeted()).thenReturn(isFromApi);
+    final int retweetCount = rtStatus.getRetweetCount();
+    when(rtStatus.getRetweetCount()).thenReturn(retweetCount + 1);
+
+    final Status status = createStatus(newStatusId);
+    final String rtText = rtStatus.getText();
+    when(status.getText()).thenReturn(rtText);
+    when(status.isRetweet()).thenReturn(true);
+    when(status.isRetweeted()).thenReturn(isFromApi);
+    when(status.getRetweetedStatus()).thenReturn(rtStatus);
+    return status;
+  }
+
   @NonNull
-  protected ResponseList<Status> createResponseList() {
+  private ResponseList<Status> createResponseList() {
     return new ResponseList<Status>() {
       List<Status> list = new ArrayList<>();
 

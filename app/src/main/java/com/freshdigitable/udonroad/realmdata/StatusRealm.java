@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import java.util.Date;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
@@ -27,11 +28,14 @@ public class StatusRealm extends RealmObject implements Status {
   @PrimaryKey
   private long id;
   private Date createdAt;
-  private RetweetedStatusRealm retweetedStatus;
+  @Ignore
+  private Status retweetedStatus;
+  private long retweetedStatusId;
   private String text;
   private String source;
   private int retweetCount;
   private int favoriteCount;
+  private boolean retweet;
   private boolean retweetByMe;
   private boolean retweeted;
   private boolean favorited;
@@ -43,8 +47,11 @@ public class StatusRealm extends RealmObject implements Status {
   public StatusRealm(Status status) {
     this.id = status.getId();
     this.createdAt = status.getCreatedAt();
-    this.retweetedStatus = status.isRetweet() ?
-        new RetweetedStatusRealm(status.getRetweetedStatus()) : null;
+    this.retweetedStatus = status.getRetweetedStatus();
+    this.retweet = status.isRetweet();
+    if (status.isRetweet()) {
+      this.retweetedStatusId = this.retweetedStatus.getId();
+    }
     this.text = status.getText();
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
@@ -140,14 +147,14 @@ public class StatusRealm extends RealmObject implements Status {
   }
 
   public boolean isRetweet() {
-    return retweetedStatus != null;
+    return retweet;
   }
 
-  public RetweetedStatusRealm getRetweetedStatus() {
+  public Status getRetweetedStatus() {
     return retweetedStatus;
   }
 
-  public void setRetweetedStatus(RetweetedStatusRealm retweetedStatus) {
+  public void setRetweetedStatus(Status retweetedStatus) {
     this.retweetedStatus = retweetedStatus;
   }
 
@@ -245,5 +252,9 @@ public class StatusRealm extends RealmObject implements Status {
         ", date:" + createdAt.getTime() +
         ", @" + user.getScreenName() +
         ", text:" + sub;
+  }
+
+  public long getRetweetedStatusId() {
+    return retweetedStatusId;
   }
 }
