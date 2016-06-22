@@ -84,6 +84,14 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         updates.add(status);
       }
 
+      final RealmResults<StatusRealm> u = timeline.where()
+          .equalTo("retweetedStatusId", s.getId())
+          .findAll();
+      if (u.size() > 0) {
+        insertOrUpdateRetweetedStatus(status);
+        updates.addAll(u);
+      }
+
       if (!s.isRetweet()) {
         continue;
       }
@@ -101,6 +109,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       final RealmResults<StatusRealm> rtedUpdate = timeline.where()
           .equalTo("retweetedStatusId", retweetedStatus.getId())
           .findAll();
+      insertOrUpdateRetweetedStatus(retweetedStatus);
       updates.addAll(rtedUpdate);
     }
 
