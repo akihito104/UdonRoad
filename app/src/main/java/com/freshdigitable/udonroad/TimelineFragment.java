@@ -113,11 +113,41 @@ public class TimelineFragment extends Fragment {
     }
   };
 
+  private final RecyclerView.AdapterDataObserver createdAtObserver
+      = new RecyclerView.AdapterDataObserver() {
+    @Override
+    public void onItemRangeChanged(int positionStart, int itemCount) {
+      super.onItemRangeChanged(positionStart, itemCount);
+      updateTime();
+    }
+
+    @Override
+    public void onItemRangeInserted(int positionStart, int itemCount) {
+      super.onItemRangeInserted(positionStart, itemCount);
+      updateTime();
+    }
+
+    @Override
+    public void onItemRangeRemoved(int positionStart, int itemCount) {
+      super.onItemRangeRemoved(positionStart, itemCount);
+      updateTime();
+    }
+
+    private void updateTime() {
+      final int childCount = binding.timeline.getChildCount();
+      for (int i = 0; i < childCount; i++) {
+        final View v = binding.timeline.getChildAt(i);
+        ((StatusView) v).updateTime();
+      }
+    }
+  };
+
   @Override
   public void onStart() {
     super.onStart();
     final TimelineAdapter adapter = getTimelineAdapter();
     adapter.registerAdapterDataObserver(itemInsertedObserver);
+    adapter.registerAdapterDataObserver(createdAtObserver);
     fetchTweet();
   }
 
@@ -166,7 +196,9 @@ public class TimelineFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
-    getTimelineAdapter().unregisterAdapterDataObserver(itemInsertedObserver);
+    final TimelineAdapter adapter = getTimelineAdapter();
+    adapter.unregisterAdapterDataObserver(itemInsertedObserver);
+    adapter.unregisterAdapterDataObserver(createdAtObserver);
     tearDownOnFlingListener();
     fab = null;
   }
@@ -243,15 +275,17 @@ public class TimelineFragment extends Fragment {
     getTimelineAdapter().setOnUserIconClickedListener(listener);
   }
 
-  private static final Action1<Status> emptyAction = new Action1<Status>() {
-    @Override
-    public void call(Status status) {}
-  };
-
   private void fetchRetweet(final long tweetId) {
+    final TimelineAdapter adapter = getTimelineAdapter();
     twitterApi.retweetStatus(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(emptyAction,
+        .subscribe(
+            new Action1<Status>() {
+              @Override
+              public void call(Status status) {
+                adapter.addNewStatus(status);
+              }
+            },
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
@@ -267,9 +301,16 @@ public class TimelineFragment extends Fragment {
   }
 
   private void fetchFavorite(final long tweetId) {
+    final TimelineAdapter adapter = getTimelineAdapter();
     twitterApi.createFavorite(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(emptyAction,
+        .subscribe(
+            new Action1<Status>() {
+              @Override
+              public void call(Status status) {
+                adapter.addNewStatus(status);
+              }
+            },
             new Action1<Throwable>() {
               @Override
               public void call(Throwable e) {

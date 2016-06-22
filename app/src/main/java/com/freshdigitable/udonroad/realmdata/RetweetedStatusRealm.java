@@ -27,11 +27,11 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   @PrimaryKey
   private long id;
   private Date createdAt;
-  private RetweetedStatusRealm retweetedStatus;
   private String text;
   private String source;
   private int retweetCount;
   private int favoriteCount;
+  private boolean retweeted;
   private boolean retweetByMe;
   private boolean favorited;
   private UserRealm user;
@@ -42,13 +42,12 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   public RetweetedStatusRealm(Status status) {
     this.id = status.getId();
     this.createdAt = status.getCreatedAt();
-    this.retweetedStatus = status.isRetweet() ?
-        new RetweetedStatusRealm(status.getRetweetedStatus()) : null;
     this.text = status.getText();
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
     this.retweetByMe = status.isRetweetedByMe();
+    this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
     this.user = new UserRealm(status.getUser());
   }
@@ -114,7 +113,7 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   }
 
   public boolean isRetweeted() {
-    throw new RuntimeException("not implement yet.");
+    return retweeted;
   }
 
   public int getFavoriteCount() {
@@ -134,15 +133,11 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   }
 
   public boolean isRetweet() {
-    return retweetedStatus != null;
+    return false;
   }
 
-  public RetweetedStatusRealm getRetweetedStatus() {
-    return retweetedStatus;
-  }
-
-  public void setRetweetedStatus(RetweetedStatusRealm retweetedStatus) {
-    this.retweetedStatus = retweetedStatus;
+  public Status getRetweetedStatus() {
+    return null;
   }
 
   public long[] getContributors() {
@@ -227,5 +222,9 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
 
   public int getAccessLevel() {
     throw new RuntimeException("not implement yet.");
+  }
+
+  public void setRetweeted(boolean retweeted) {
+    this.retweeted = retweeted;
   }
 }

@@ -14,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.util.Date;
+
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
@@ -37,6 +39,7 @@ public class StatusView extends RelativeLayout {
   private TextView rtUser;
   private ImageView rtUserIcon;
   private LinearLayout rtUserContainer;
+  private Date createdAtDate;
 
   public StatusView(Context context) {
     this(context, null);
@@ -77,7 +80,9 @@ public class StatusView extends RelativeLayout {
     } else {
       bindingStatus = status;
     }
-    createdAt.setText(timeSpanConv.toTimeSpanString(bindingStatus.getCreatedAt()));
+
+    createdAtDate = bindingStatus.getCreatedAt();
+    updateCreatedAt(createdAtDate);
     if (status.isRetweet()) {
       setRetweetedUserVisibility(VISIBLE);
       final String formattedRtUser = formatString(R.string.tweet_retweeting_user,
@@ -106,7 +111,7 @@ public class StatusView extends RelativeLayout {
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0) {
       this.setRtCountVisibility(VISIBLE);
-      setTint(rtIcon, bindingStatus.isRetweetedByMe()
+      setTint(rtIcon, bindingStatus.isRetweeted()
           ? R.color.colorTwitterActionRetweeted
           : R.color.colorTwitterActionNormal);
       this.rtCount.setText(String.valueOf(rtCount));
@@ -120,6 +125,14 @@ public class StatusView extends RelativeLayout {
           : R.color.colorTwitterActionNormal);
       this.favCount.setText(String.valueOf(favCount));
     }
+  }
+
+  private void updateCreatedAt(Date createdAtDate) {
+    createdAt.setText(timeSpanConv.toTimeSpanString(createdAtDate));
+  }
+
+  public void updateTime() {
+    updateCreatedAt(this.createdAtDate);
   }
 
   public ImageView getIcon() {
