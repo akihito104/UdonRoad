@@ -42,6 +42,7 @@ public class StatusRealm extends RealmObject implements Status {
   private boolean favorited;
   private UserRealm user;
   private RealmList<URLEntityRealm> urlEntities;
+  private RealmList<ExtendedMediaEntityRealm> mediaEntities;
 
   public StatusRealm() {
   }
@@ -62,12 +63,13 @@ public class StatusRealm extends RealmObject implements Status {
     this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
     this.user = new UserRealm(status.getUser());
-    final URLEntity[] urlEntities = status.getURLEntities();
-    if (urlEntities != null && urlEntities.length > 0) {
-      this.urlEntities = new RealmList<>();
-      for (URLEntity u : urlEntities) {
-        this.urlEntities.add(new URLEntityRealm(u));
-      }
+
+    this.urlEntities = parseToURLEntityRealm(status.getURLEntities());
+
+    this.mediaEntities = new RealmList<>();
+    final ExtendedMediaEntity[] me = status.getExtendedMediaEntities();
+    for (ExtendedMediaEntity m : me) {
+      mediaEntities.add(new ExtendedMediaEntityRealm(m));
     }
   }
 
@@ -235,11 +237,11 @@ public class StatusRealm extends RealmObject implements Status {
   }
 
   public MediaEntity[] getMediaEntities() {
-    throw new RuntimeException("not implement yet.");
+    return getExtendedMediaEntities();
   }
 
   public ExtendedMediaEntity[] getExtendedMediaEntities() {
-    throw new RuntimeException("not implement yet.");
+    return mediaEntities.toArray(new ExtendedMediaEntity[mediaEntities.size()]);
   }
 
   public SymbolEntity[] getSymbolEntities() {
@@ -268,5 +270,13 @@ public class StatusRealm extends RealmObject implements Status {
 
   public long getRetweetedStatusId() {
     return retweetedStatusId;
+  }
+
+  static RealmList<URLEntityRealm> parseToURLEntityRealm(URLEntity[] urlEntities) {
+    RealmList<URLEntityRealm> urlEntityRealms = new RealmList<>();
+    for (URLEntity u : urlEntities) {
+      urlEntityRealms.add(new URLEntityRealm(u));
+    }
+    return urlEntityRealms;
   }
 }

@@ -52,13 +52,8 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
     this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
     this.user = new UserRealm(status.getUser());
-    final URLEntity[] urlEntities = status.getURLEntities();
-    if (urlEntities != null && urlEntities.length > 0) {
-      this.urlEntities = new RealmList<>();
-      for (URLEntity u : urlEntities) {
-        this.urlEntities.add(new URLEntityRealm(u));
-      }
-    }
+
+    this.urlEntities = StatusRealm.parseToURLEntityRealm(status.getURLEntities());
   }
 
   public Date getCreatedAt() {
