@@ -17,6 +17,7 @@ import android.widget.TextView;
 import java.util.Date;
 
 import twitter4j.Status;
+import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
 
@@ -97,7 +98,7 @@ public class StatusView extends RelativeLayout {
         user.getName(), user.getScreenName());
     names.setText(Html.fromHtml(formattedNames));
 
-    tweet.setText(bindingStatus.getText());
+    tweet.setText(parseText(bindingStatus));
 
     final String source = bindingStatus.getSource();
     if (source != null) {
@@ -193,6 +194,15 @@ public class StatusView extends RelativeLayout {
   private String formatString(@StringRes int id, Object... items) {
     final String format = getResources().getString(id);
     return String.format(format, items);
+  }
+
+  private String parseText(Status status) {
+    String text = status.getText();
+    final URLEntity[] urlEntities = status.getURLEntities();
+    for (URLEntity u : urlEntities) {
+      text = text.replace(u.getURL(), u.getDisplayURL());
+    }
+    return text;
   }
 
   @Override

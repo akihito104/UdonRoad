@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.ExtendedMediaEntity;
@@ -35,6 +36,7 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   private boolean retweetByMe;
   private boolean favorited;
   private UserRealm user;
+  private RealmList<URLEntityRealm> urlEntities;
 
   public RetweetedStatusRealm() {
   }
@@ -50,6 +52,13 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
     this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
     this.user = new UserRealm(status.getUser());
+    final URLEntity[] urlEntities = status.getURLEntities();
+    if (urlEntities != null && urlEntities.length > 0) {
+      this.urlEntities = new RealmList<>();
+      for (URLEntity u : urlEntities) {
+        this.urlEntities.add(new URLEntityRealm(u));
+      }
+    }
   }
 
   public Date getCreatedAt() {
@@ -197,7 +206,10 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   }
 
   public URLEntity[] getURLEntities() {
-    throw new RuntimeException("not implement yet.");
+    if (urlEntities == null) {
+      return new URLEntity[0];
+    }
+    return urlEntities.toArray(new URLEntity[urlEntities.size()]);
   }
 
   public HashtagEntity[] getHashtagEntities() {
