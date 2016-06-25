@@ -6,6 +6,7 @@
     <string name="tweet_retweeting_user">\@%1$s</string>
     <string name="tweet_via">via %1$s</string>
     <string name="tweet_rtby">RT by</string>
+    <string name="tweet_media_descs">user appending image of this tweet</string>
     <string name="desc_tweet_retweet_icon">Retweet icon</string>
     <string name="desc_tweet_favorite_icon">Favorite icon</string>
     <string name="desc_rt_user_icon">RT user icon</string>

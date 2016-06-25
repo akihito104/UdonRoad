@@ -5,7 +5,6 @@
 
     <!--<RelativeLayout android:layout_width="match_parent"-->
                     <!--android:layout_height="match_parent"-->
-                    <!--android:padding="@dimen/grid_margin"-->
         <!--&gt;-->
         <LinearLayout
             android:id="@+id/tl_rt_user_container"
@@ -89,9 +88,8 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/tweet_small_fontsize"
             android:layout_alignTop="@+id/tl_icon"
-            android:layout_below="@+id/tl_rt_user"
-            android:layout_alignLeft="@+id/tl_tweet"
-            android:layout_alignStart="@+id/tl_tweet"
+            android:layout_toRightOf="@id/tl_icon"
+            android:layout_toEndOf="@id/tl_icon"
             tools:text="ScreenName @name"
             />
 
@@ -130,7 +128,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_below="@+id/tl_tweet"
+            android:layout_below="@+id/tl_image_group"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:textSize="@dimen/tweet_small_fontsize"
@@ -141,7 +139,6 @@
             android:id="@+id/tl_rt_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tl_tweet"
             android:layout_toRightOf="@+id/tl_icon"
             android:layout_toEndOf="@+id/tl_icon"
             android:layout_alignTop="@+id/tl_rtcount"
@@ -166,6 +163,62 @@
             android:visibility="gone"
             tools:visibility="visible"
             />
+
+        <LinearLayout
+            android:id="@+id/tl_image_group"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/tweet_user_icon"
+            android:layout_marginTop="@dimen/grid_margin"
+            android:layout_marginBottom="@dimen/grid_margin"
+            android:layout_toRightOf="@id/tl_icon"
+            android:layout_toEndOf="@id/tl_icon"
+            android:layout_below="@id/tl_tweet"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible"
+            >
+            <ImageView
+                android:id="@+id/tl_image_1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:contentDescription="@string/tweet_media_descs"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+            <ImageView
+                android:id="@+id/tl_image_2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="@dimen/grid_margin"
+                android:layout_weight="1"
+                android:contentDescription="@string/tweet_media_descs"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+            <ImageView
+                android:id="@+id/tl_image_3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="@dimen/grid_margin"
+                android:layout_weight="1"
+                android:contentDescription="@string/tweet_media_descs"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+            <ImageView
+                android:id="@+id/tl_image_4"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="@dimen/grid_margin"
+                android:layout_weight="1"
+                android:contentDescription="@string/tweet_media_descs"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+        </LinearLayout>
 
     <!--</RelativeLayout>-->
 </merge>

@@ -6,12 +6,15 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -84,6 +87,23 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       setSelectedBackground(holder.itemView);
       selectedStatusHolder = new SelectedStatus(holder);
     }
+
+    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    if (extendedMediaEntities != null) {
+      final StatusView itemView = (StatusView) holder.itemView;
+      final ImageView[] mediaImages = itemView.getMediaImages();
+      for (int i = 0; i < extendedMediaEntities.length; i++) {
+        final RequestCreator rc = Picasso.with(mediaImages[i].getContext())
+            .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
+        if (itemView.getMediaHeight() == 0 || itemView.getMediaWidth() == 0) {
+          rc.fit();
+        } else {
+          rc.resize(itemView.getMediaWidth(), itemView.getMediaHeight());
+        }
+        rc.centerCrop()
+            .into(mediaImages[i]);
+      }
+    }
   }
 
   private void setSelectedBackground(View v) {
@@ -103,6 +123,17 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     super.onViewDetachedFromWindow(holder);
 //    Log.d(TAG, "onViewDetachedFromWindow: " + holder.status.toString());
     ViewCompat.animate(holder.itemView).cancel();
+
+    StatusView v = (StatusView) holder.itemView;
+    Picasso.with(v.getContext()).cancelRequest(v.getIcon());
+    if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
+      Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
+    }
+    if (v.getMediaImages()[0].getVisibility() == View.VISIBLE) {
+      for (ImageView mi : v.getMediaImages()) {
+        Picasso.with(v.getContext()).cancelRequest(mi);
+      }
+    }
   }
 
   private SelectedStatus selectedStatusHolder = null;
@@ -130,12 +161,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onViewRecycled(ViewHolder holder) {
-//    Log.d(TAG, "onViewRecycled: ");
-    StatusView v = (StatusView) holder.itemView;
-    Picasso.with(v.getContext()).cancelRequest(v.getIcon());
-    if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
-      Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
-    }
     holder.onRecycled();
   }
 

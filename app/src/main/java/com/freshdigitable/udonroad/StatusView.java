@@ -9,6 +9,7 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Html;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import java.util.Date;
 
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
@@ -41,6 +43,9 @@ public class StatusView extends RelativeLayout {
   private ImageView rtUserIcon;
   private LinearLayout rtUserContainer;
   private Date createdAtDate;
+  private View mediaGroup;
+  private ImageView[] mediaImages;
+  private final int grid;
 
   public StatusView(Context context) {
     this(context, null);
@@ -53,8 +58,9 @@ public class StatusView extends RelativeLayout {
   public StatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
 
-    int padding = (int) (4 * getResources().getDisplayMetrics().density + 0.5f);
-    setPadding(padding, padding, padding, padding);
+    grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    setPadding(grid, grid, grid, grid);
+    mediaHeight = getResources().getDimensionPixelOffset(R.dimen.tweet_user_icon);
 
     final View v = View.inflate(context, R.layout.view_status, this);
     createdAt = (TextView) v.findViewById(R.id.tl_create_at);
@@ -69,18 +75,20 @@ public class StatusView extends RelativeLayout {
     rtUserContainer = (LinearLayout) v.findViewById(R.id.tl_rt_user_container);
     rtUser = (TextView) v.findViewById(R.id.tl_rt_user);
     rtUserIcon = (ImageView) v.findViewById(R.id.tl_rt_user_icon);
+    mediaGroup = v.findViewById(R.id.tl_image_group);
+    mediaImages = new ImageView[]{
+        (ImageView) v.findViewById(R.id.tl_image_1),
+        (ImageView) v.findViewById(R.id.tl_image_2),
+        (ImageView) v.findViewById(R.id.tl_image_3),
+        (ImageView) v.findViewById(R.id.tl_image_4)
+    };
     reset();
   }
 
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
 
   public void bindStatus(final Status status) {
-    final Status bindingStatus;
-    if (status.isRetweet()) {
-      bindingStatus = status.getRetweetedStatus();
-    } else {
-      bindingStatus = status;
-    }
+    final Status bindingStatus = getBindingStatus(status);
 
     createdAtDate = bindingStatus.getCreatedAt();
     updateCreatedAt(createdAtDate);
@@ -98,7 +106,7 @@ public class StatusView extends RelativeLayout {
         user.getName(), user.getScreenName());
     names.setText(Html.fromHtml(formattedNames));
 
-    tweet.setText(parseText(bindingStatus));
+    tweet.setText(parseText(status));
 
     final String source = bindingStatus.getSource();
     if (source != null) {
@@ -126,6 +134,35 @@ public class StatusView extends RelativeLayout {
           : R.color.colorTwitterActionNormal);
       this.favCount.setText(String.valueOf(favCount));
     }
+
+    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    final int mediaCount = extendedMediaEntities.length;
+    if (mediaCount > 0) {
+      mediaWidth = (mediaGroup.getWidth() - grid * (mediaCount - 1)) / mediaCount;
+      mediaGroup.setVisibility(VISIBLE);
+      for (int i = 0; i < mediaCount; i++) {
+        mediaImages[i].setVisibility(VISIBLE);
+      }
+    }
+  }
+
+  private int mediaWidth;
+  private final int mediaHeight;
+
+  public int getMediaWidth() {
+    return mediaWidth > 0
+        ? mediaWidth
+        : 0;
+  }
+
+  public int getMediaHeight() {
+    return mediaHeight;
+  }
+
+  protected Status getBindingStatus(Status status) {
+    return status.isRetweet()
+        ? status.getRetweetedStatus()
+        : status;
   }
 
   private void updateCreatedAt(Date createdAtDate) {
@@ -182,9 +219,19 @@ public class StatusView extends RelativeLayout {
     setTint(rtIcon, R.color.colorTwitterActionNormal);
     setTint(favIcon, R.color.colorTwitterActionNormal);
 
+    icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);
     setUserIconClickListener(null);
+
+    for (ImageView mi : mediaImages) {
+      mi.setImageDrawable(null);
+      final ViewGroup.LayoutParams layoutParams = mi.getLayoutParams();
+      layoutParams.width = 0;
+      mi.setLayoutParams(layoutParams);
+      mi.setVisibility(GONE);
+    }
+    mediaGroup.setVisibility(GONE);
   }
 
   public void setUserIconClickListener(OnClickListener userIconClickListener) {
@@ -197,12 +244,20 @@ public class StatusView extends RelativeLayout {
   }
 
   private String parseText(Status status) {
-    String text = status.getText();
+    String text = getBindingStatus(status).getText();
     final URLEntity[] urlEntities = status.getURLEntities();
     for (URLEntity u : urlEntities) {
       text = text.replace(u.getURL(), u.getDisplayURL());
     }
+    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    for (ExtendedMediaEntity eme : extendedMediaEntities) {
+      text = text.replace(eme.getURL(), "");
+    }
     return text;
+  }
+
+  public ImageView[] getMediaImages() {
+    return mediaImages;
   }
 
   @Override
