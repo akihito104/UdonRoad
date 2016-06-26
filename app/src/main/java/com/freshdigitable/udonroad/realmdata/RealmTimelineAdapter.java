@@ -81,7 +81,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
       if (update == null) {
         inserts.add(status);
-        insertOrUpdateReferredStatus(status.getRetweetedStatus());
+        insertOrUpdateReferredStatus(s.getQuotedStatus());
       } else {
         status.setFavorited(update.isFavorited() | s.isFavorited());
         status.setRetweeted(update.isRetweeted() | s.isRetweeted());
@@ -111,6 +111,9 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         continue;
       }
       final Status retweetedStatus = s.getRetweetedStatus();
+      insertOrUpdateReferredStatus(retweetedStatus);
+      insertOrUpdateReferredStatus(retweetedStatus.getQuotedStatus());
+
       final StatusRealm rtUpdate = timeline.where()
           .equalTo("id", retweetedStatus.getId())
           .findFirst();
@@ -124,16 +127,18 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       final RealmResults<StatusRealm> rtedUpdate = timeline.where()
           .equalTo(KEY_RETWEETED_STATUS_ID, retweetedStatus.getId())
           .findAll();
-      insertOrUpdateReferredStatus(retweetedStatus);
-      updates.addAll(rtedUpdate);
+      if (rtedUpdate.size() > 0) {
+        updates.addAll(rtedUpdate);
+      }
 
       final long rtQuotedStatusId = retweetedStatus.getQuotedStatusId();
       if (rtQuotedStatusId > 0) {
         final RealmResults<StatusRealm> rtUpdatedQuotedStatus = timeline.where()
             .equalTo(KEY_QUOTAD_STATUS_ID, rtQuotedStatusId)
             .findAll();
-        insertOrUpdateReferredStatus(retweetedStatus.getQuotedStatus());
-        updates.addAll(rtUpdatedQuotedStatus);
+        if (rtUpdatedQuotedStatus.size() > 0) {
+          updates.addAll(rtUpdatedQuotedStatus);
+        }
       }
     }
 
