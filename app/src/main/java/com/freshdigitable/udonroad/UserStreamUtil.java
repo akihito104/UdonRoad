@@ -54,6 +54,7 @@ public class UserStreamUtil {
 
   private final Subscription subscription = statusPublishSubject
       .buffer(500, TimeUnit.MILLISECONDS)
+      .onBackpressureBuffer()
       .observeOn(AndroidSchedulers.mainThread())
       .subscribe(new Action1<List<Status>>() {
         @Override

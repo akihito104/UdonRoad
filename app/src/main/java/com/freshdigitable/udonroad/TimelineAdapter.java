@@ -88,21 +88,41 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       selectedStatusHolder = new SelectedStatus(holder);
     }
 
+    final StatusView itemView = (StatusView) holder.itemView;
     final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
     if (extendedMediaEntities != null) {
-      final StatusView itemView = (StatusView) holder.itemView;
+      final int mediaHeight = itemView.getMediaHeight();
+      final int mediaWidth = itemView.getMediaWidth();
       final ImageView[] mediaImages = itemView.getMediaImages();
-      for (int i = 0; i < extendedMediaEntities.length; i++) {
-        final RequestCreator rc = Picasso.with(mediaImages[i].getContext())
-            .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
-        if (itemView.getMediaHeight() == 0 || itemView.getMediaWidth() == 0) {
-          rc.fit();
-        } else {
-          rc.resize(itemView.getMediaWidth(), itemView.getMediaHeight());
-        }
-        rc.centerCrop()
-            .into(mediaImages[i]);
+      loadMediaView(extendedMediaEntities, mediaHeight, mediaWidth, mediaImages);
+    }
+
+    final Status quotedStatus = status.getQuotedStatus();
+    if (quotedStatus != null) {
+      final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
+      Picasso.with(quotedStatusView.getContext())
+          .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
+          .fit()
+          .into(quotedStatusView.getIcon());
+      loadMediaView(quotedStatus.getExtendedMediaEntities(),
+          quotedStatusView.getMediaHeight(), quotedStatusView.getMediaWidth(),
+          quotedStatusView.getMediaImages());
+    }
+  }
+
+  private void loadMediaView(ExtendedMediaEntity[] extendedMediaEntities,
+                               int mediaHeight, int mediaWidth,
+                               ImageView[] mediaImages) {
+    for (int i = 0; i < extendedMediaEntities.length; i++) {
+      final RequestCreator rc = Picasso.with(mediaImages[i].getContext())
+          .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
+      if (mediaHeight == 0 || mediaWidth == 0) {
+        rc.fit();
+      } else {
+        rc.resize(mediaWidth, mediaHeight);
       }
+      rc.centerCrop()
+          .into(mediaImages[i]);
     }
   }
 
@@ -132,6 +152,16 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     if (v.getMediaImages()[0].getVisibility() == View.VISIBLE) {
       for (ImageView mi : v.getMediaImages()) {
         Picasso.with(v.getContext()).cancelRequest(mi);
+      }
+    }
+
+    final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
+    if (quotedStatusView.getVisibility() == View.VISIBLE) {
+      Picasso.with(v.getContext()).cancelRequest(quotedStatusView.getIcon());
+      if (quotedStatusView.getMediaImages()[0].getVisibility() == View.VISIBLE) {
+        for (ImageView mi : v.getMediaImages()) {
+          Picasso.with(v.getContext()).cancelRequest(mi);
+        }
       }
     }
   }

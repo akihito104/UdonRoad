@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+ */
+
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.ColorRes;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -11,7 +16,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -24,12 +28,9 @@ import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
 
 /**
- * Created by akihit on 2016/01/11.
+ * Created by akihit on 2016/06/26.
  */
-public class StatusView extends RelativeLayout {
-  @SuppressWarnings("unused")
-  private static final String TAG = StatusView.class.getSimpleName();
-  private OnClickListener userIconClickListener;
+public class QuotedStatusView extends RelativeLayout {
   private TextView createdAt;
   private ImageView icon;
   private TextView names;
@@ -39,31 +40,26 @@ public class StatusView extends RelativeLayout {
   private TextView rtCount;
   private ImageView favIcon;
   private TextView favCount;
-  private TextView rtUser;
-  private ImageView rtUserIcon;
-  private LinearLayout rtUserContainer;
   private Date createdAtDate;
   private View mediaGroup;
   private ImageView[] mediaImages;
   private final int grid;
-  private QuotedStatusView quotedStatus;
 
-  public StatusView(Context context) {
+  public QuotedStatusView(Context context) {
     this(context, null);
   }
 
-  public StatusView(Context context, AttributeSet attrs) {
+  public QuotedStatusView(Context context, AttributeSet attrs) {
     this(context, attrs, 0);
   }
 
-  public StatusView(Context context, AttributeSet attrs, int defStyleAttr) {
+  public QuotedStatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-
     grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
     setPadding(grid, grid, grid, grid);
     mediaHeight = getResources().getDimensionPixelOffset(R.dimen.tweet_user_icon);
 
-    final View v = View.inflate(context, R.layout.view_status, this);
+    final View v = View.inflate(context, R.layout.view_quoted_status, this);
     createdAt = (TextView) v.findViewById(R.id.tl_create_at);
     icon = (ImageView) v.findViewById(R.id.tl_icon);
     names = (TextView) v.findViewById(R.id.tl_names);
@@ -73,9 +69,6 @@ public class StatusView extends RelativeLayout {
     rtCount = (TextView) v.findViewById(R.id.tl_rtcount);
     favIcon = (ImageView) v.findViewById(R.id.tl_fav_icon);
     favCount = (TextView) v.findViewById(R.id.tl_favcount);
-    rtUserContainer = (LinearLayout) v.findViewById(R.id.tl_rt_user_container);
-    rtUser = (TextView) v.findViewById(R.id.tl_rt_user);
-    rtUserIcon = (ImageView) v.findViewById(R.id.tl_rt_user_icon);
     mediaGroup = v.findViewById(R.id.tl_image_group);
     mediaImages = new ImageView[]{
         (ImageView) v.findViewById(R.id.tl_image_1),
@@ -83,7 +76,6 @@ public class StatusView extends RelativeLayout {
         (ImageView) v.findViewById(R.id.tl_image_3),
         (ImageView) v.findViewById(R.id.tl_image_4)
     };
-    quotedStatus = (QuotedStatusView) v.findViewById(R.id.tl_quoted);
     reset();
   }
 
@@ -95,14 +87,9 @@ public class StatusView extends RelativeLayout {
     createdAtDate = bindingStatus.getCreatedAt();
     updateCreatedAt(createdAtDate);
     if (status.isRetweet()) {
-      setRetweetedUserVisibility(VISIBLE);
-      final String formattedRtUser = formatString(R.string.tweet_retweeting_user,
-          status.getUser().getScreenName());
-      rtUser.setText(formattedRtUser);
       this.setTextColor(ContextCompat.getColor(getContext(), R.color.colorTwitterActionRetweeted));
     }
     final User user = bindingStatus.getUser();
-    icon.setOnClickListener(userIconClickListener);
 
     final String formattedNames = formatString(R.string.tweet_name_screenName,
         user.getName(), user.getScreenName());
@@ -146,12 +133,6 @@ public class StatusView extends RelativeLayout {
         mediaImages[i].setVisibility(VISIBLE);
       }
     }
-
-    final Status quotedBindingStatus = bindingStatus.getQuotedStatus();
-    if (quotedBindingStatus != null) {
-      quotedStatus.bindStatus(quotedBindingStatus);
-      quotedStatus.setVisibility(VISIBLE);
-    }
   }
 
   private int mediaWidth;
@@ -167,29 +148,26 @@ public class StatusView extends RelativeLayout {
     return mediaHeight;
   }
 
-  private Status getBindingStatus(Status status) {
+  protected Status getBindingStatus(Status status) {
     return status.isRetweet()
         ? status.getRetweetedStatus()
         : status;
   }
 
   private void updateCreatedAt(Date createdAtDate) {
+    if (createdAtDate == null) {
+      return;
+    }
     createdAt.setText(timeSpanConv.toTimeSpanString(createdAtDate));
   }
 
   public void updateTime() {
     updateCreatedAt(this.createdAtDate);
-    if (quotedStatus.getVisibility() == VISIBLE) {
-      quotedStatus.updateTime();
-    }
   }
 
+  @Nullable
   public ImageView getIcon() {
     return icon;
-  }
-
-  public ImageView getRtUserIcon() {
-    return rtUserIcon;
   }
 
   private void setTint(ImageView view, @ColorRes int color) {
@@ -207,10 +185,6 @@ public class StatusView extends RelativeLayout {
     favCount.setVisibility(visibility);
   }
 
-  private void setRetweetedUserVisibility(int visibility) {
-    rtUserContainer.setVisibility(visibility);
-  }
-
   private void setTextColor(int color) {
     names.setTextColor(color);
     createdAt.setTextColor(color);
@@ -221,7 +195,6 @@ public class StatusView extends RelativeLayout {
     setBackgroundColor(Color.TRANSPARENT);
     setRtCountVisibility(GONE);
     setFavCountVisibility(GONE);
-    setRetweetedUserVisibility(GONE);
     setTextColor(Color.GRAY);
 
     rtIcon.setVisibility(GONE);
@@ -231,9 +204,7 @@ public class StatusView extends RelativeLayout {
     setTint(favIcon, R.color.colorTwitterActionNormal);
 
     icon.setImageResource(android.R.color.transparent);
-    icon.setOnClickListener(null);
     setOnClickListener(null);
-    setUserIconClickListener(null);
 
     for (ImageView mi : mediaImages) {
       mi.setImageDrawable(null);
@@ -243,12 +214,6 @@ public class StatusView extends RelativeLayout {
       mi.setVisibility(GONE);
     }
     mediaGroup.setVisibility(GONE);
-    quotedStatus.setVisibility(GONE);
-    quotedStatus.reset();
-  }
-
-  public void setUserIconClickListener(OnClickListener userIconClickListener) {
-    this.userIconClickListener = userIconClickListener;
   }
 
   private String formatString(@StringRes int id, Object... items) {
@@ -271,17 +236,5 @@ public class StatusView extends RelativeLayout {
 
   public ImageView[] getMediaImages() {
     return mediaImages;
-  }
-
-  public QuotedStatusView getQuotedStatusView() {
-    return quotedStatus;
-  }
-
-  @Override
-  public String toString() {
-    final CharSequence text = tweet.getText();
-    final CharSequence cs = text.length() > 10 ? text.subSequence(0, 9) : text;
-    return "height: " + getHeight()
-        + ", text: " + cs;
   }
 }

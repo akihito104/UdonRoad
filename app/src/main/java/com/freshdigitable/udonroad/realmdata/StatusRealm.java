@@ -26,6 +26,10 @@ import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 public class StatusRealm extends RealmObject implements Status {
+  public static final String KEY_ID = "id";
+  public static final String KEY_RETWEETED_STATUS_ID = "retweetedStatusId";
+  public static final String KEY_QUOTAD_STATUS_ID = "quotedStatusId";
+
   @PrimaryKey
   private long id;
   private Date createdAt;
@@ -43,6 +47,9 @@ public class StatusRealm extends RealmObject implements Status {
   private UserRealm user;
   private RealmList<URLEntityRealm> urlEntities;
   private RealmList<ExtendedMediaEntityRealm> mediaEntities;
+  @Ignore
+  private Status quotedStatus;
+  private long quotedStatusId;
 
   public StatusRealm() {
   }
@@ -71,6 +78,9 @@ public class StatusRealm extends RealmObject implements Status {
     for (ExtendedMediaEntity m : me) {
       mediaEntities.add(new ExtendedMediaEntityRealm(m));
     }
+
+    this.quotedStatus = status.getQuotedStatus();
+    this.quotedStatusId = status.getQuotedStatusId();
   }
 
   public Date getCreatedAt() {
@@ -209,12 +219,18 @@ public class StatusRealm extends RealmObject implements Status {
     throw new RuntimeException("not implement yet.");
   }
 
+  @Override
   public long getQuotedStatusId() {
-    throw new RuntimeException("not implement yet.");
+    return quotedStatusId;
   }
 
+  @Override
   public Status getQuotedStatus() {
-    throw new RuntimeException("not implement yet.");
+    return quotedStatus;
+  }
+
+  public void setQuotedStatus(Status quotedStatus) {
+    this.quotedStatus = quotedStatus;
   }
 
   public int compareTo(@NonNull Status another) {
