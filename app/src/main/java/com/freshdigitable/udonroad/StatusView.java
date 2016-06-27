@@ -257,10 +257,17 @@ public class StatusView extends RelativeLayout {
   }
 
   private String parseText(Status status) {
-    String text = getBindingStatus(status).getText();
+    final Status bindingStatus = getBindingStatus(status);
+    String text = bindingStatus.getText();
+    final String quotedStatusIdStr = Long.toString(bindingStatus.getQuotedStatusId());
     final URLEntity[] urlEntities = status.getURLEntities();
     for (URLEntity u : urlEntities) {
-      text = text.replace(u.getURL(), u.getDisplayURL());
+      if (bindingStatus.getQuotedStatus() != null
+          && u.getExpandedURL().contains(quotedStatusIdStr)) {
+        text = text.replace(u.getURL(), "");
+      } else {
+        text = text.replace(u.getURL(), u.getDisplayURL());
+      }
     }
     final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
     for (ExtendedMediaEntity eme : extendedMediaEntities) {
