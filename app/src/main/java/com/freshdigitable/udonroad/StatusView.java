@@ -84,7 +84,6 @@ public class StatusView extends RelativeLayout {
         (ImageView) v.findViewById(R.id.tl_image_4)
     };
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.tl_quoted);
-    reset();
   }
 
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
@@ -219,6 +218,7 @@ public class StatusView extends RelativeLayout {
 
   public void reset() {
     setBackgroundColor(Color.TRANSPARENT);
+    quotedStatus.setBackgroundResource(R.drawable.s_quoted_frame);
     setRtCountVisibility(GONE);
     setFavCountVisibility(GONE);
     setRetweetedUserVisibility(GONE);

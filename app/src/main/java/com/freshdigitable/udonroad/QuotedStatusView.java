@@ -76,7 +76,6 @@ public class QuotedStatusView extends RelativeLayout {
         (ImageView) v.findViewById(R.id.tl_image_3),
         (ImageView) v.findViewById(R.id.tl_image_4)
     };
-    reset();
   }
 
   private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
@@ -192,7 +191,6 @@ public class QuotedStatusView extends RelativeLayout {
   }
 
   public void reset() {
-    setBackgroundColor(Color.TRANSPARENT);
     setRtCountVisibility(GONE);
     setFavCountVisibility(GONE);
     setTextColor(Color.GRAY);
