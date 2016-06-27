@@ -97,7 +97,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       loadMediaView(extendedMediaEntities, mediaHeight, mediaWidth, mediaImages);
     }
 
-    final Status quotedStatus = status.getQuotedStatus();
+    final Status quotedStatus = status.isRetweet()
+        ? status.getRetweetedStatus().getQuotedStatus()
+        : status.getQuotedStatus();
     if (quotedStatus != null) {
       final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
       Picasso.with(quotedStatusView.getContext())
