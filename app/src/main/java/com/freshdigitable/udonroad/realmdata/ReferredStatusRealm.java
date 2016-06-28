@@ -8,7 +8,9 @@ import android.support.annotation.NonNull;
 
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
@@ -23,7 +25,7 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
-public class RetweetedStatusRealm extends RealmObject implements Status {
+public class ReferredStatusRealm extends RealmObject implements Status {
   @PrimaryKey
   private long id;
   private Date createdAt;
@@ -35,11 +37,16 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   private boolean retweetByMe;
   private boolean favorited;
   private UserRealm user;
+  private RealmList<URLEntityRealm> urlEntities;
+  private RealmList<ExtendedMediaEntityRealm> mediaEntities;
+  @Ignore
+  private Status quotedStatus;
+  private long quotedStatusId;
 
-  public RetweetedStatusRealm() {
+  public ReferredStatusRealm() {
   }
 
-  public RetweetedStatusRealm(Status status) {
+  public ReferredStatusRealm(Status status) {
     this.id = status.getId();
     this.createdAt = status.getCreatedAt();
     this.text = status.getText();
@@ -50,6 +57,17 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
     this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
     this.user = new UserRealm(status.getUser());
+
+    this.urlEntities = StatusRealm.parseToURLEntityRealm(status.getURLEntities());
+
+    this.mediaEntities = new RealmList<>();
+    final ExtendedMediaEntity[] me = status.getExtendedMediaEntities();
+    for (ExtendedMediaEntity m : me) {
+      mediaEntities.add(new ExtendedMediaEntityRealm(m));
+    }
+
+    this.quotedStatusId = status.getQuotedStatusId();
+    this.quotedStatus = status.getQuotedStatus();
   }
 
   public Date getCreatedAt() {
@@ -180,12 +198,18 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
     throw new RuntimeException("not implement yet.");
   }
 
+  @Override
   public long getQuotedStatusId() {
-    throw new RuntimeException("not implement yet.");
+    return quotedStatusId;
   }
 
+  @Override
   public Status getQuotedStatus() {
-    throw new RuntimeException("not implement yet.");
+    return quotedStatus;
+  }
+
+  public void setQuotedStatus(Status quotedStatus) {
+    this.quotedStatus = quotedStatus;
   }
 
   public int compareTo(@NonNull Status another) {
@@ -197,7 +221,10 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   }
 
   public URLEntity[] getURLEntities() {
-    throw new RuntimeException("not implement yet.");
+    if (urlEntities == null) {
+      return new URLEntity[0];
+    }
+    return urlEntities.toArray(new URLEntity[urlEntities.size()]);
   }
 
   public HashtagEntity[] getHashtagEntities() {
@@ -205,11 +232,14 @@ public class RetweetedStatusRealm extends RealmObject implements Status {
   }
 
   public MediaEntity[] getMediaEntities() {
-    throw new RuntimeException("not implement yet.");
+    return getExtendedMediaEntities();
   }
 
   public ExtendedMediaEntity[] getExtendedMediaEntities() {
-    throw new RuntimeException("not implement yet.");
+    if (mediaEntities == null) {
+      return new ExtendedMediaEntity[0];
+    }
+    return mediaEntities.toArray(new ExtendedMediaEntity[mediaEntities.size()]);
   }
 
   public SymbolEntity[] getSymbolEntities() {

@@ -43,10 +43,12 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserStreamListener;
 
@@ -296,6 +298,8 @@ public class MainActivityInstTest {
     when(status.isRetweet()).thenReturn(false);
     when(status.getSource())
         .thenReturn("<a href=\"https://twitter.com/akihito104\">Udonroad</a>");
+    when(status.getURLEntities()).thenReturn(new URLEntity[0]);
+    when(status.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[0]);
     final User user = mock(User.class);
     when(user.getId()).thenReturn(2000L);
     when(user.getName()).thenReturn("akihito matsuda");

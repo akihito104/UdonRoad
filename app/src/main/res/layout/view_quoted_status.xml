@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+  -->
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+       xmlns:tools="http://schemas.android.com/tools"
+    >
+
+    <!--<RelativeLayout android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--&gt;-->
+    <ImageView
+        android:id="@+id/q_icon"
+        android:layout_width="@dimen/small_user_icon"
+        android:layout_height="@dimen/small_user_icon"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:contentDescription="@string/desc_icon"
+        android:layout_marginRight="@dimen/grid_margin"
+        />
+
+    <TextView
+        android:id="@+id/q_tweet"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/q_icon"
+        android:textSize="@dimen/tweet_main_size"
+        tools:text="Tweet"
+        />
+
+    <TextView
+        android:id="@+id/q_create_at"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="@dimen/tweet_small_fontsize"
+        android:layout_alignBottom="@+id/q_icon"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        tools:text="CreatedTime"
+        />
+
+    <TextView
+        android:id="@+id/q_names"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/tweet_small_fontsize"
+        android:layout_alignBottom="@+id/q_icon"
+        android:layout_toRightOf="@id/q_icon"
+        android:layout_toEndOf="@id/q_icon"
+        tools:text="ScreenName @name"
+        />
+
+    <TextView
+        android:id="@+id/q_rtcount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/grid_margin"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="@dimen/tweet_small_fontsize"
+        android:layout_alignTop="@+id/q_via"
+        android:layout_toRightOf="@+id/q_rt_icon"
+        android:layout_toEndOf="@+id/q_rt_icon"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Count"
+        />
+
+    <TextView
+        android:id="@+id/q_favcount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="@dimen/tweet_small_fontsize"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Count"
+        android:layout_alignTop="@+id/q_rtcount"
+        android:layout_alignBottom="@+id/q_rtcount"
+        android:layout_toEndOf="@+id/q_fav_icon"
+        android:layout_toRightOf="@+id/q_fav_icon"
+        />
+
+    <TextView
+        android:id="@+id/q_via"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/q_image_group"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:textSize="@dimen/tweet_small_fontsize"
+        tools:text="via clientName"
+        />
+
+    <ImageView
+        android:id="@+id/q_rt_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/q_rtcount"
+        android:layout_alignBottom="@+id/q_rtcount"
+        android:src="@drawable/ic_retweet"
+        android:tint="@color/colorTwitterActionNormal"
+        android:contentDescription="@string/desc_tweet_retweet_icon"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <ImageView
+        android:id="@+id/q_fav_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/q_rtcount"
+        android:layout_alignBottom="@+id/q_favcount"
+        android:layout_alignTop="@+id/q_favcount"
+        android:src="@drawable/ic_like"
+        android:tint="@color/colorTwitterActionNormal"
+        android:contentDescription="@string/desc_tweet_favorite_icon"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <LinearLayout
+        android:id="@+id/q_image_group"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/tweet_user_icon"
+        android:layout_marginTop="@dimen/grid_margin"
+        android:layout_marginBottom="@dimen/grid_margin"
+        android:layout_below="@id/q_tweet"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible"
+        >
+        <ImageView
+            android:id="@+id/q_image_1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/tweet_media_descs"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        <ImageView
+            android:id="@+id/q_image_2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/grid_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/tweet_media_descs"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        <ImageView
+            android:id="@+id/q_image_3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/grid_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/tweet_media_descs"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        <ImageView
+            android:id="@+id/q_image_4"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/grid_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/tweet_media_descs"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+    </LinearLayout>
+
+    <!--</RelativeLayout>-->
+
+</merge>

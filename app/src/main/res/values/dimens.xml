@@ -3,7 +3,8 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="tweet_small_fontsize">10sp</dimen>
-    <dimen name="tweet_user_icon">46dp</dimen>
+    <dimen name="tweet_user_icon">40dp</dimen>
     <dimen name="tweet_main_size">12sp</dimen>
     <dimen name="grid_margin">4dp</dimen>
+    <dimen name="small_user_icon">16dp</dimen>
 </resources>
