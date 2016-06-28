@@ -1,51 +1,26 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.support.annotation.ColorRes;
-import android.support.annotation.StringRes;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.text.Html;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import java.util.Date;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
-import twitter4j.util.TimeSpanConverter;
 
 /**
  * Created by akihit on 2016/01/11.
  */
-public class StatusView extends RelativeLayout {
+public class StatusView extends StatusViewBase {
   @SuppressWarnings("unused")
   private static final String TAG = StatusView.class.getSimpleName();
-  private OnClickListener userIconClickListener;
-  private TextView createdAt;
-  private ImageView icon;
-  private TextView names;
-  private TextView tweet;
-  private TextView clientName;
-  private ImageView rtIcon;
-  private TextView rtCount;
-  private ImageView favIcon;
-  private TextView favCount;
-  private TextView rtUser;
-  private ImageView rtUserIcon;
-  private LinearLayout rtUserContainer;
-  private Date createdAtDate;
-  private View mediaGroup;
-  private ImageView[] mediaImages;
-  private final int grid;
+  protected TextView rtUser;
+  protected ImageView rtUserIcon;
+  protected LinearLayout rtUserContainer;
   private QuotedStatusView quotedStatus;
 
   public StatusView(Context context) {
@@ -58,11 +33,6 @@ public class StatusView extends RelativeLayout {
 
   public StatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-
-    grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
-    setPadding(grid, grid, grid, grid);
-    mediaHeight = getResources().getDimensionPixelOffset(R.dimen.tweet_user_icon);
-
     final View v = View.inflate(context, R.layout.view_status, this);
     createdAt = (TextView) v.findViewById(R.id.tl_create_at);
     icon = (ImageView) v.findViewById(R.id.tl_icon);
@@ -86,177 +56,42 @@ public class StatusView extends RelativeLayout {
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.tl_quoted);
   }
 
-  private static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
-
+  @Override
   public void bindStatus(final Status status) {
-    final Status bindingStatus = getBindingStatus(status);
-
-    createdAtDate = bindingStatus.getCreatedAt();
-    updateCreatedAt(createdAtDate);
+    super.bindStatus(status);
     if (status.isRetweet()) {
-      setRetweetedUserVisibility(VISIBLE);
-      final String formattedRtUser = formatString(R.string.tweet_retweeting_user,
-          status.getUser().getScreenName());
-      rtUser.setText(formattedRtUser);
-      this.setTextColor(ContextCompat.getColor(getContext(), R.color.colorTwitterActionRetweeted));
-    }
-    final User user = bindingStatus.getUser();
-    icon.setOnClickListener(userIconClickListener);
-
-    final String formattedNames = formatString(R.string.tweet_name_screenName,
-        user.getName(), user.getScreenName());
-    names.setText(Html.fromHtml(formattedNames));
-
-    tweet.setText(parseText(status));
-
-    final String source = bindingStatus.getSource();
-    if (source != null) {
-      final String formattedVia = formatString(R.string.tweet_via,
-          Html.fromHtml(source).toString());
-      clientName.setText(formattedVia);
-    } else {
-      clientName.setText(formatString(R.string.tweet_via, "none provided"));
+      bindRtUser(status.getUser());
     }
 
-    final int rtCount = bindingStatus.getRetweetCount();
-    if (rtCount > 0) {
-      this.setRtCountVisibility(VISIBLE);
-      setTint(rtIcon, bindingStatus.isRetweeted()
-          ? R.color.colorTwitterActionRetweeted
-          : R.color.colorTwitterActionNormal);
-      this.rtCount.setText(String.valueOf(rtCount));
-    }
-
-    final int favCount = bindingStatus.getFavoriteCount();
-    if (favCount > 0) {
-      this.setFavCountVisibility(VISIBLE);
-      setTint(favIcon, bindingStatus.isFavorited()
-          ? R.color.colorTwitterActionFaved
-          : R.color.colorTwitterActionNormal);
-      this.favCount.setText(String.valueOf(favCount));
-    }
-
-    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    final int mediaCount = extendedMediaEntities.length;
-    if (mediaCount > 0) {
-      mediaWidth = (mediaGroup.getWidth() - grid * (mediaCount - 1)) / mediaCount;
-      mediaGroup.setVisibility(VISIBLE);
-      for (int i = 0; i < mediaCount; i++) {
-        mediaImages[i].setVisibility(VISIBLE);
-      }
-    }
-
-    final Status quotedBindingStatus = bindingStatus.getQuotedStatus();
+    final Status quotedBindingStatus = getBindingStatus(status).getQuotedStatus();
     if (quotedBindingStatus != null) {
       quotedStatus.bindStatus(quotedBindingStatus);
       quotedStatus.setVisibility(VISIBLE);
     }
   }
 
-  private int mediaWidth;
-  private final int mediaHeight;
-
-  public int getMediaWidth() {
-    return mediaWidth > 0
-        ? mediaWidth
-        : 0;
-  }
-
-  public int getMediaHeight() {
-    return mediaHeight;
-  }
-
-  private Status getBindingStatus(Status status) {
-    return status.isRetweet()
-        ? status.getRetweetedStatus()
-        : status;
-  }
-
-  private void updateCreatedAt(Date createdAtDate) {
-    createdAt.setText(timeSpanConv.toTimeSpanString(createdAtDate));
-  }
-
-  public void updateTime() {
-    updateCreatedAt(this.createdAtDate);
-    if (quotedStatus.getVisibility() == VISIBLE) {
-      quotedStatus.updateTime();
-    }
-  }
-
-  public ImageView getIcon() {
-    return icon;
-  }
-
-  public ImageView getRtUserIcon() {
-    return rtUserIcon;
-  }
-
-  private void setTint(ImageView view, @ColorRes int color) {
-//    Log.d(TAG, "setTint: " + color);
-    DrawableCompat.setTint(view.getDrawable(), ContextCompat.getColor(getContext(), color));
-  }
-
-  private void setRtCountVisibility(int visibility) {
-    rtIcon.setVisibility(visibility);
-    rtCount.setVisibility(visibility);
-  }
-
-  private void setFavCountVisibility(int visibility) {
-    favIcon.setVisibility(visibility);
-    favCount.setVisibility(visibility);
+  private void bindRtUser(User user) {
+    setRetweetedUserVisibility(VISIBLE);
+    final String formattedRtUser = formatString(R.string.tweet_retweeting_user,
+        user.getScreenName());
+    rtUser.setText(formattedRtUser);
   }
 
   private void setRetweetedUserVisibility(int visibility) {
     rtUserContainer.setVisibility(visibility);
   }
 
-  private void setTextColor(int color) {
-    names.setTextColor(color);
-    createdAt.setTextColor(color);
-    tweet.setTextColor(color);
-  }
-
+  @Override
   public void reset() {
-    setBackgroundColor(Color.TRANSPARENT);
-    quotedStatus.setBackgroundResource(R.drawable.s_quoted_frame);
-    setRtCountVisibility(GONE);
-    setFavCountVisibility(GONE);
+    super.reset();
     setRetweetedUserVisibility(GONE);
-    setTextColor(Color.GRAY);
-
-    rtIcon.setVisibility(GONE);
-    favIcon.setVisibility(GONE);
-
-    setTint(rtIcon, R.color.colorTwitterActionNormal);
-    setTint(favIcon, R.color.colorTwitterActionNormal);
-
-    icon.setImageResource(android.R.color.transparent);
-    icon.setOnClickListener(null);
-    setOnClickListener(null);
-    setUserIconClickListener(null);
-
-    for (ImageView mi : mediaImages) {
-      mi.setImageDrawable(null);
-      final ViewGroup.LayoutParams layoutParams = mi.getLayoutParams();
-      layoutParams.width = 0;
-      mi.setLayoutParams(layoutParams);
-      mi.setVisibility(GONE);
-    }
-    mediaGroup.setVisibility(GONE);
+    quotedStatus.setBackgroundResource(R.drawable.s_quoted_frame);
     quotedStatus.setVisibility(GONE);
     quotedStatus.reset();
   }
 
-  public void setUserIconClickListener(OnClickListener userIconClickListener) {
-    this.userIconClickListener = userIconClickListener;
-  }
-
-  private String formatString(@StringRes int id, Object... items) {
-    final String format = getResources().getString(id);
-    return String.format(format, items);
-  }
-
-  private String parseText(Status status) {
+  @Override
+  protected String parseText(Status status) {
     final Status bindingStatus = getBindingStatus(status);
     String text = bindingStatus.getText();
     final String quotedStatusIdStr = Long.toString(bindingStatus.getQuotedStatusId());
@@ -276,8 +111,8 @@ public class StatusView extends RelativeLayout {
     return text;
   }
 
-  public ImageView[] getMediaImages() {
-    return mediaImages;
+  public ImageView getRtUserIcon() {
+    return rtUserIcon;
   }
 
   public QuotedStatusView getQuotedStatusView() {
