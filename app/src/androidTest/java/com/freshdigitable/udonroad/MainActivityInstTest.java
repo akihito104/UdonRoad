@@ -47,6 +47,7 @@ import twitter4j.ExtendedMediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
 import twitter4j.URLEntity;
 import twitter4j.User;
@@ -57,6 +58,7 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.action.ViewActions.swipeRight;
 import static android.support.test.espresso.action.ViewActions.swipeUp;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -207,6 +209,45 @@ public class MainActivityInstTest {
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
     // TODO tint color check
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForLatestStatus_then_removedTheTopOfTimeline()
+      throws Exception {
+    final Status target = createStatus(20);
+    Observable.just(createDeletionNotice(target))
+        .observeOn(Schedulers.io())
+        .subscribe(new Action1<StatusDeletionNotice>() {
+          @Override
+          public void call(StatusDeletionNotice statusDeletionNotice) {
+            app.getUserStreamListener().onDeletionNotice(statusDeletionNotice);
+          }
+        });
+    Thread.sleep(500);
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  @NonNull
+  protected StatusDeletionNotice createDeletionNotice(final Status target) {
+    return new StatusDeletionNotice() {
+      @Override
+      public long getStatusId() {
+        return target.getId();
+      }
+
+      @Override
+      public long getUserId() {
+        return target.getUser().getId();
+      }
+
+      @Override
+      public int compareTo(@NonNull StatusDeletionNotice statusDeletionNotice) {
+        return 0;
+      }
+    };
   }
 
   private void receiveStatuses(final Status... statuses) throws InterruptedException {
