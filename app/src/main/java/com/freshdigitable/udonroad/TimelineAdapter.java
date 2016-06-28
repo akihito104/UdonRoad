@@ -285,6 +285,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           itemViewClicked.onItemViewClicked(ViewHolder.this);
         }
       });
+      final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
+      if (quotedStatusView.getVisibility() == View.VISIBLE) {
+        quotedStatusView.setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            itemViewClicked.onItemViewClicked(ViewHolder.this);
+          }
+        });
+      }
     }
 
     boolean hasSameStatusId(SelectedStatus other) {
@@ -310,8 +319,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     private final View view;
 
     private SelectedStatus(ViewHolder viewHolder) {
-      this.status = viewHolder.status;
-      this.view = viewHolder.itemView;
+      this(viewHolder.status, viewHolder.itemView);
+    }
+
+    private SelectedStatus(Status status, View view) {
+      this.status = status;
+      this.view = view;
     }
   }
 
