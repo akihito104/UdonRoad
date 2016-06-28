@@ -48,8 +48,7 @@ public class MockTwitterApiModule {
   @Singleton
   @Provides
   public TwitterApi provideTwitterApi() {
-    final TwitterApi mock = mock(TwitterApi.class);
-    return mock;
+    return mock(TwitterApi.class);
   }
 
   public UserStreamListener userStreamListener;

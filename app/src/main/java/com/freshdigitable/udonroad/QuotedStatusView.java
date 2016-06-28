@@ -60,21 +60,21 @@ public class QuotedStatusView extends RelativeLayout {
     mediaHeight = getResources().getDimensionPixelOffset(R.dimen.tweet_user_icon);
 
     final View v = View.inflate(context, R.layout.view_quoted_status, this);
-    createdAt = (TextView) v.findViewById(R.id.tl_create_at);
-    icon = (ImageView) v.findViewById(R.id.tl_icon);
-    names = (TextView) v.findViewById(R.id.tl_names);
-    tweet = (TextView) v.findViewById(R.id.tl_tweet);
-    clientName = (TextView) v.findViewById(R.id.tl_via);
-    rtIcon = (ImageView) v.findViewById(R.id.tl_rt_icon);
-    rtCount = (TextView) v.findViewById(R.id.tl_rtcount);
-    favIcon = (ImageView) v.findViewById(R.id.tl_fav_icon);
-    favCount = (TextView) v.findViewById(R.id.tl_favcount);
-    mediaGroup = v.findViewById(R.id.tl_image_group);
+    createdAt = (TextView) v.findViewById(R.id.q_create_at);
+    icon = (ImageView) v.findViewById(R.id.q_icon);
+    names = (TextView) v.findViewById(R.id.q_names);
+    tweet = (TextView) v.findViewById(R.id.q_tweet);
+    clientName = (TextView) v.findViewById(R.id.q_via);
+    rtIcon = (ImageView) v.findViewById(R.id.q_rt_icon);
+    rtCount = (TextView) v.findViewById(R.id.q_rtcount);
+    favIcon = (ImageView) v.findViewById(R.id.q_fav_icon);
+    favCount = (TextView) v.findViewById(R.id.q_favcount);
+    mediaGroup = v.findViewById(R.id.q_image_group);
     mediaImages = new ImageView[]{
-        (ImageView) v.findViewById(R.id.tl_image_1),
-        (ImageView) v.findViewById(R.id.tl_image_2),
-        (ImageView) v.findViewById(R.id.tl_image_3),
-        (ImageView) v.findViewById(R.id.tl_image_4)
+        (ImageView) v.findViewById(R.id.q_image_1),
+        (ImageView) v.findViewById(R.id.q_image_2),
+        (ImageView) v.findViewById(R.id.q_image_3),
+        (ImageView) v.findViewById(R.id.q_image_4)
     };
   }
 

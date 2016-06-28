@@ -289,6 +289,9 @@ public class StatusRealm extends RealmObject implements Status {
   }
 
   static RealmList<URLEntityRealm> parseToURLEntityRealm(URLEntity[] urlEntities) {
+    if (urlEntities == null) {
+      return null;
+    }
     RealmList<URLEntityRealm> urlEntityRealms = new RealmList<>();
     for (URLEntity u : urlEntities) {
       urlEntityRealms.add(new URLEntityRealm(u));
