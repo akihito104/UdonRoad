@@ -248,7 +248,11 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     deleteRetweetedStatus(statusId);
 
     final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
-        .equalTo("id", statusId)
+        .beginGroup()
+        .equalTo(KEY_ID, statusId)
+        .or()
+        .equalTo(KEY_RETWEETED_STATUS_ID, statusId)
+        .endGroup()
         .findAll();
     if (res.size() < 1) {
       return;

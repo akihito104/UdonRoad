@@ -215,7 +215,80 @@ public class MainActivityInstTest {
   public void receiveDeletedStatusEventForLatestStatus_then_removedTheTopOfTimeline()
       throws Exception {
     final Status target = createStatus(20);
-    Observable.just(createDeletionNotice(target))
+    receiveDeletionNotice(target);
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForRTStatus_then_removedRTStatus()
+      throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).perform(swipeRight());
+    final Status target = createRtStatus(rtStatusId, 20, false);
+    receiveStatuses(target);
+    onView(withId(R.id.timeline)).perform(swipeDown());
+    receiveDeletionNotice(target);
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 20"))));
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForRTingStatus_then_removedOriginalAndRTedStatuses()
+      throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).perform(swipeRight());
+    final Status targetRt = createRtStatus(rtStatusId, 20, false);
+    receiveStatuses(targetRt);
+    final Status target = createStatus(20);
+    receiveDeletionNotice(target, targetRt);
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForFavedStatus_then_removedOriginalStatuses()
+      throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).perform(swipeUp());
+    final Status target = createStatus(20);
+    receiveDeletionNotice(target);
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  @Test
+  public void receive2DeletedStatusEventsAtSameTime_then_removed2Statuses()
+      throws Exception {
+    receiveDeletionNotice(createStatus(19), createStatus(20));
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusView(withText("tweet body 19"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 18"))));
+  }
+
+  protected void receiveDeletionNotice(Status... target) throws InterruptedException {
+    Observable.just(Arrays.asList(target))
+        .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
+          @Override
+          public Iterable<Status> call(List<Status> statuses) {
+            return statuses;
+          }
+        })
+        .map(new Func1<Status, StatusDeletionNotice>() {
+          @Override
+          public StatusDeletionNotice call(Status status) {
+            return createDeletionNotice(status);
+          }
+        })
         .observeOn(Schedulers.io())
         .subscribe(new Action1<StatusDeletionNotice>() {
           @Override
@@ -224,10 +297,6 @@ public class MainActivityInstTest {
           }
         });
     Thread.sleep(500);
-
-    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText("tweet body 19"))));
   }
 
   @NonNull
