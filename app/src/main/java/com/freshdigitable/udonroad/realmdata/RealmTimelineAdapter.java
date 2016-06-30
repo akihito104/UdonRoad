@@ -137,7 +137,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   }
 
   @NonNull
-  protected RealmResults<StatusRealm> findReferringStatus(long id) {
+  private RealmResults<StatusRealm> findReferringStatus(long id) {
     return timeline.where()
               .beginGroup()
               .equalTo(KEY_QUOTAD_STATUS_ID, id)
@@ -163,8 +163,8 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
   private StatusRealm margeStatus(Status older, Status newer) {
     final StatusRealm res = new StatusRealm(newer);
-    res.setRetweeted(newer.isRetweeted() | older.isRetweeted());
-    res.setFavorited(newer.isFavorited() | older.isFavorited());
+    res.setRetweeted(newer.isRetweeted() || older.isRetweeted());
+    res.setFavorited(newer.isFavorited() || older.isFavorited());
     return res;
   }
 
@@ -259,6 +259,13 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     }
 
     final List<Integer> deleted = searchTimeline(res);
+    if (isStatusViewSelected()) {
+      for (Status r : res) {
+        if (getSelectedTweetId() == r.getId()) {
+          clearSelectedTweet();
+        }
+      }
+    }
 
     realm.beginTransaction();
     res.deleteAllFromRealm();
@@ -308,7 +315,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   private void deleteRetweetedStatus(long statusId) {
     realm.beginTransaction();
     realm.where(ReferredStatusRealm.class)
-        .equalTo("id", statusId)
+        .equalTo(KEY_ID, statusId)
         .findAll()
         .deleteAllFromRealm();
     realm.commitTransaction();
@@ -322,7 +329,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       @Override
       public void execute(Realm realm) {
         final ReferredStatusRealm update = realm.where(ReferredStatusRealm.class)
-            .equalTo("id", rtStatus.getId())
+            .equalTo(KEY_ID, rtStatus.getId())
             .findFirst();
         if (update != null) {
           update(update, rtStatus);
@@ -335,12 +342,12 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         if (update == null) {
           return;
         }
-        update.setFavorited(update.isFavorited() | s.isFavorited());
+        update.setFavorited(update.isFavorited() || s.isFavorited());
         final int favoriteCount = s.getFavoriteCount();
         if (favoriteCount > 0) {
           update.setFavoriteCount(favoriteCount);
         }
-        update.setRetweeted(update.isRetweeted() | s.isRetweeted());
+        update.setRetweeted(update.isRetweeted() || s.isRetweeted());
         final int retweetCount = s.getRetweetCount();
         if (retweetCount > 0) {
           update.setRetweetCount(retweetCount);
@@ -368,7 +375,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
   private ReferredStatusRealm getReferredStatus(long id) {
     return realm.where(ReferredStatusRealm.class)
-        .equalTo("id", id)
+        .equalTo(KEY_ID, id)
         .findFirst();
   }
 
@@ -380,7 +387,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   public void defaultTimeline() {
     timeline = realm
         .where(StatusRealm.class)
-        .findAllSorted("id", Sort.DESCENDING);
+        .findAllSorted(KEY_ID, Sort.DESCENDING);
     notifyDataSetChanged();
   }
 }

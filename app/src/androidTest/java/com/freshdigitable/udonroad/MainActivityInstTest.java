@@ -246,9 +246,9 @@ public class MainActivityInstTest {
     final Status target = createStatus(20);
     receiveDeletionNotice(target, targetRt);
 
-    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText("tweet body 19"))));
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
   }
 
   @Test
@@ -259,20 +259,31 @@ public class MainActivityInstTest {
     final Status target = createStatus(20);
     receiveDeletionNotice(target);
 
-    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText("tweet body 19"))));
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
   }
 
   @Test
   public void receive2DeletedStatusEventsAtSameTime_then_removed2Statuses()
       throws Exception {
-    receiveDeletionNotice(createStatus(19), createStatus(20));
+    receiveDeletionNotice(createStatus(18), createStatus(20));
 
     onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
-    onView(ofStatusView(withText("tweet body 19"))).check(doesNotExist());
+    onView(ofStatusView(withText("tweet body 18"))).check(doesNotExist());
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText("tweet body 18"))));
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  @Test
+  public void receiveStatusDeletionNoticeForSelectedStatus_then_removedSelectedStatus()
+      throws Exception {
+    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    receiveDeletionNotice(createStatus(20));
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
   }
 
   protected void receiveDeletionNotice(Status... target) throws InterruptedException {
