@@ -118,7 +118,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   private void loadMediaView(ExtendedMediaEntity[] extendedMediaEntities,
                                int mediaHeight, int mediaWidth,
                                ImageView[] mediaImages) {
-    for (int i = 0; i < extendedMediaEntities.length; i++) {
+    final int mediaCount = extendedMediaEntities.length > mediaImages.length
+        ? mediaImages.length : extendedMediaEntities.length;
+    for (int i = 0; i < mediaCount; i++) {
       final RequestCreator rc = Picasso.with(mediaImages[i].getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
       if (mediaHeight == 0 || mediaWidth == 0) {
