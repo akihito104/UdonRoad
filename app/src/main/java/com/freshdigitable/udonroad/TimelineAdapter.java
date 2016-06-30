@@ -2,7 +2,6 @@ package com.freshdigitable.udonroad;
 
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,7 +64,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = get(position);
-//    Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
+    if (holder.status != null && holder.status.getId() == status.getId()) {
+//      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
+      ((StatusView) holder.itemView).bindStatus(status);
+      return;
+    }
     holder.bindStatus(status);
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound(status.getId());
@@ -144,7 +147,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onViewDetachedFromWindow(ViewHolder holder) {
     super.onViewDetachedFromWindow(holder);
 //    Log.d(TAG, "onViewDetachedFromWindow: " + holder.status.toString());
-    ViewCompat.animate(holder.itemView).cancel();
 
     StatusView v = (StatusView) holder.itemView;
     Picasso.with(v.getContext()).cancelRequest(v.getIcon());

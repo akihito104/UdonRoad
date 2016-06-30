@@ -47,6 +47,7 @@ import twitter4j.ExtendedMediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
 import twitter4j.URLEntity;
 import twitter4j.User;
@@ -57,6 +58,7 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.action.ViewActions.swipeRight;
 import static android.support.test.espresso.action.ViewActions.swipeUp;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -207,6 +209,125 @@ public class MainActivityInstTest {
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
     // TODO tint color check
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForLatestStatus_then_removedTheTopOfTimeline()
+      throws Exception {
+    final Status target = createStatus(20);
+    receiveDeletionNotice(target);
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForRTStatus_then_removedRTStatus()
+      throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).perform(swipeRight());
+    final Status target = createRtStatus(rtStatusId, 20, false);
+    receiveStatuses(target);
+    onView(withId(R.id.timeline)).perform(swipeDown());
+    receiveDeletionNotice(target);
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 20"))));
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForRTingStatus_then_removedOriginalAndRTedStatuses()
+      throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).perform(swipeRight());
+    final Status targetRt = createRtStatus(rtStatusId, 20, false);
+    receiveStatuses(targetRt);
+    final Status target = createStatus(20);
+    receiveDeletionNotice(target, targetRt);
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+  }
+
+  @Test
+  public void receiveDeletedStatusEventForFavedStatus_then_removedOriginalStatuses()
+      throws Exception {
+    onView(ofStatusView(withText("tweet body 20"))).perform(click());
+    onView(withId(R.id.fab)).perform(swipeUp());
+    final Status target = createStatus(20);
+    receiveDeletionNotice(target);
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+  }
+
+  @Test
+  public void receive2DeletedStatusEventsAtSameTime_then_removed2Statuses()
+      throws Exception {
+    receiveDeletionNotice(createStatus(18), createStatus(20));
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusView(withText("tweet body 18"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  @Test
+  public void receiveStatusDeletionNoticeForSelectedStatus_then_removedSelectedStatus()
+      throws Exception {
+    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    receiveDeletionNotice(createStatus(20));
+
+    onView(ofStatusView(withText("tweet body 20"))).check(doesNotExist());
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText("tweet body 19"))));
+  }
+
+  protected void receiveDeletionNotice(Status... target) throws InterruptedException {
+    Observable.just(Arrays.asList(target))
+        .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
+          @Override
+          public Iterable<Status> call(List<Status> statuses) {
+            return statuses;
+          }
+        })
+        .map(new Func1<Status, StatusDeletionNotice>() {
+          @Override
+          public StatusDeletionNotice call(Status status) {
+            return createDeletionNotice(status);
+          }
+        })
+        .observeOn(Schedulers.io())
+        .subscribe(new Action1<StatusDeletionNotice>() {
+          @Override
+          public void call(StatusDeletionNotice statusDeletionNotice) {
+            app.getUserStreamListener().onDeletionNotice(statusDeletionNotice);
+          }
+        });
+    Thread.sleep(500);
+  }
+
+  @NonNull
+  protected StatusDeletionNotice createDeletionNotice(final Status target) {
+    return new StatusDeletionNotice() {
+      @Override
+      public long getStatusId() {
+        return target.getId();
+      }
+
+      @Override
+      public long getUserId() {
+        return target.getUser().getId();
+      }
+
+      @Override
+      public int compareTo(@NonNull StatusDeletionNotice statusDeletionNotice) {
+        return 0;
+      }
+    };
   }
 
   private void receiveStatuses(final Status... statuses) throws InterruptedException {
