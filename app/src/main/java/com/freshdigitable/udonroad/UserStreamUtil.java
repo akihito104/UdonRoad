@@ -32,12 +32,29 @@ public class UserStreamUtil {
   TwitterStreamApi streamApi;
   private TimelineAdapter adapter;
 
-  public UserStreamUtil(MainApplication app, TimelineAdapter adapter) {
-    app.getTwitterApiComponent().inject(this);
+  public UserStreamUtil(TimelineAdapter adapter) {
+//    app.getTwitterApiComponent().inject(this);
     this.adapter = adapter;
   }
 
   public void connect() {
+    statusPublishSubject = PublishSubject.create();
+    subscription = statusPublishSubject
+        .buffer(500, TimeUnit.MILLISECONDS)
+        .onBackpressureBuffer()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<List<Status>>() {
+          @Override
+          public void call(List<Status> statuses) {
+            adapter.addNewStatuses(statuses);
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.d(TAG, "error: " + throwable);
+          }
+        });
+
     streamApi.loadAccessToken();
     streamApi.connectUserStream(statusListener);
   }
@@ -50,23 +67,8 @@ public class UserStreamUtil {
     }
   }
 
-  private final PublishSubject<Status> statusPublishSubject = PublishSubject.create();
-
-  private final Subscription subscription = statusPublishSubject
-      .buffer(500, TimeUnit.MILLISECONDS)
-      .onBackpressureBuffer()
-      .observeOn(AndroidSchedulers.mainThread())
-      .subscribe(new Action1<List<Status>>() {
-        @Override
-        public void call(List<Status> statuses) {
-          adapter.addNewStatuses(statuses);
-        }
-      }, new Action1<Throwable>() {
-        @Override
-        public void call(Throwable throwable) {
-          Log.d(TAG, "error: " + throwable);
-        }
-      });
+  private PublishSubject<Status> statusPublishSubject;
+  private Subscription subscription;
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {
 

@@ -149,6 +149,7 @@ public class TimelineFragment extends Fragment {
     adapter.registerAdapterDataObserver(itemInsertedObserver);
     adapter.registerAdapterDataObserver(createdAtObserver);
     fetchTweet();
+    setupOnFlingListener();
   }
 
   public void setupOnFlingListener() {
@@ -200,7 +201,7 @@ public class TimelineFragment extends Fragment {
     adapter.unregisterAdapterDataObserver(itemInsertedObserver);
     adapter.unregisterAdapterDataObserver(createdAtObserver);
     tearDownOnFlingListener();
-    fab = null;
+//    fab = null;
   }
 
   private StatusDetailFragment statusDetail;

@@ -52,6 +52,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
   public void closeRealm() {
     Log.d(TAG, "closeRealm: ");
+    clearSelectedTweet();
     realm.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
