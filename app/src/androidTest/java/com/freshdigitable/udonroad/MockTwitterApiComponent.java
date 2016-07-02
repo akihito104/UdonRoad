@@ -15,4 +15,6 @@ import dagger.Component;
 @Component(modules = MockTwitterApiModule.class)
 public interface MockTwitterApiComponent extends TwitterApiComponent {
   void inject(MainActivityInstTest mainActivityInstTest);
+
+  void inject(MainActivityResumeInstTest mainActivityResumeInstTest);
 }
