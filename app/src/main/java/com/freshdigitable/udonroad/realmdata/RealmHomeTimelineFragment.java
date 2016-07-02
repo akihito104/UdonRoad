@@ -47,7 +47,8 @@ public class RealmHomeTimelineFragment extends RealmTimelineFragment {
   public View onCreateView(
       LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     final MainApplication application = (MainApplication) getActivity().getApplication();
-    userStream = new UserStreamUtil(application, adapter);
+    userStream = new UserStreamUtil(adapter);
+    application.getTwitterApiComponent().inject(userStream);
     return super.onCreateView(inflater, container, savedInstanceState);
   }
 

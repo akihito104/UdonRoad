@@ -132,12 +132,7 @@ public class MainActivityResumeInstTest {
   }
 
   @Test
-  public void headingAfterRelaunch_then_latestTweetAppears() throws Exception {
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    receiveStatuses(app.getUserStreamListener(),
-        createStatus(21), createStatus(22));
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-
+  public void receiveStatusesAfterRelaunch_then_latestTweetAppers() throws Exception {
     Intent home = new Intent();
     home.setAction(Intent.ACTION_MAIN);
     home.addCategory(Intent.CATEGORY_HOME);
@@ -150,10 +145,36 @@ public class MainActivityResumeInstTest {
     Thread.sleep(500);
     rule.getActivity().startActivity(relaunch);
 
-    onView(withId(R.id.action_heading)).perform(click());
+    Thread.sleep(200);
+
+    receiveStatuses(app.getUserStreamListener(),
+        createStatus(21), createStatus(22));
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(createText(22)))));
+  }
+
+  @Test
+  public void headingAfterRelaunch_then_latestTweetAppears() throws Exception {
+    Intent home = new Intent();
+    home.setAction(Intent.ACTION_MAIN);
+    home.addCategory(Intent.CATEGORY_HOME);
+    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+    Intent relaunch = new Intent(rule.getActivity(), rule.getActivity().getClass());
+    relaunch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+    InstrumentationRegistry.getTargetContext().startActivity(home);
+    Thread.sleep(500);
+    rule.getActivity().startActivity(relaunch);
+
+    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    onView(withId(R.id.fab)).check(matches(isDisplayed()));
+    receiveStatuses(app.getUserStreamListener(),
+        createStatus(26), createStatus(28));
+    onView(withId(R.id.action_heading)).perform(click());
     onView(withId(R.id.fab)).check(matches(not(isDisplayed())));
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(createText(28)))));
   }
 
 }
