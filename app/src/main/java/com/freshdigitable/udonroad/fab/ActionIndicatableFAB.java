@@ -2,6 +2,7 @@ package com.freshdigitable.udonroad.fab;
 
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,26 +18,26 @@ import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
  *
  * Created by akihit on 15/11/04.
  */
-public class FlingableFloatingActionButton extends LinearLayout {
+public class ActionIndicatableFAB extends LinearLayout {
   @SuppressWarnings("unused")
-  private static final String TAG = FlingableFloatingActionButton.class.getSimpleName();
-  private FloatingActionButton fab;
+  private static final String TAG = ActionIndicatableFAB.class.getSimpleName();
+  private FlingableFAB fab;
 
-  public FlingableFloatingActionButton(Context context) {
+  public ActionIndicatableFAB(Context context) {
     this(context, null);
   }
 
-  public FlingableFloatingActionButton(Context context, AttributeSet attributeSet) {
+  public ActionIndicatableFAB(Context context, AttributeSet attributeSet) {
     this(context, attributeSet, 0);
   }
 
-  public FlingableFloatingActionButton(Context context, AttributeSet attributeSet, int defStyleAttr) {
+  public ActionIndicatableFAB(Context context, AttributeSet attributeSet, int defStyleAttr) {
     super(context, attributeSet, defStyleAttr);
     final View v = View.inflate(context, R.layout.view_fling_fab, this);
-    actionIndicator = (ImageView) v.findViewById(R.id.fab_indicator);
+    final ImageView actionIndicator = (ImageView) v.findViewById(R.id.fab_indicator);
     this.actionIndicatorHelper = new ActionIndicatorHelper(actionIndicator);
 
-    fab = (FloatingActionButton) v.findViewById(R.id.fab);
+    fab = (FlingableFAB) v.findViewById(R.id.fab);
     fab.hide();
     fab.setOnTouchListener(new View.OnTouchListener() {
       private MotionEvent old;
@@ -49,24 +50,18 @@ public class FlingableFloatingActionButton extends LinearLayout {
         final int action = motionEvent.getAction();
         if (action == MotionEvent.ACTION_DOWN) {
           old = MotionEvent.obtain(motionEvent);
-          if (actionIndicator != null) {
-            actionIndicator.setVisibility(VISIBLE);
-          }
+          actionIndicatorHelper.onStart();
           return false;
         }
         final Direction direction = Direction.getDirection(old, motionEvent);
         if (action == MotionEvent.ACTION_MOVE) {
 //          Log.d(TAG, "onTouch: " + direction);
-          if (actionIndicatorHelper != null) {
-            actionIndicatorHelper.onFling(direction);
-          }
+          actionIndicatorHelper.onMoving(direction);
           return false;
         } else if (action == MotionEvent.ACTION_UP) {
           flingListener.onFling(direction);
           old.recycle();
-          if (actionIndicator != null) {
-            actionIndicator.setVisibility(INVISIBLE);
-          }
+          actionIndicatorHelper.onFling(direction);
           return true;
         }
         return false;
@@ -77,6 +72,8 @@ public class FlingableFloatingActionButton extends LinearLayout {
       public void onClick(View v) {
       }
     });
+    fab.setActionIcon(Direction.UP, ContextCompat.getDrawable(context, R.drawable.ic_like));
+    fab.setActionIcon(Direction.RIGHT, ContextCompat.getDrawable(context, R.drawable.ic_retweet));
   }
 
   private OnFlingListener flingListener;
@@ -85,7 +82,7 @@ public class FlingableFloatingActionButton extends LinearLayout {
     this.flingListener = listener;
   }
 
-  private ImageView actionIndicator;
+//  private ImageView actionIndicator;
 
   private OnFlingListener actionIndicatorHelper;
 

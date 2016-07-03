@@ -16,7 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.fab.FlingableFloatingActionButton;
+import com.freshdigitable.udonroad.fab.ActionIndicatableFAB;
 import com.freshdigitable.udonroad.realmdata.RealmUserFavsFragment;
 import com.freshdigitable.udonroad.realmdata.RealmUserHomeTimelineFragment;
 
@@ -124,9 +124,9 @@ public class UserInfoPagerFragment extends Fragment {
     ffab.getFab().hide();
   }
 
-  private FlingableFloatingActionButton ffab;
+  private ActionIndicatableFAB ffab;
 
-  public void setFAB(FlingableFloatingActionButton ffab) {
+  public void setFAB(ActionIndicatableFAB ffab) {
     this.ffab = ffab;
   }
 

@@ -10,11 +10,16 @@ import android.view.MotionEvent;
  * Created by akihit on 2016/03/22.
  */
 public interface OnFlingListener {
+  void onStart();
+
+  void onMoving(Direction direction);
+
   void onFling(Direction direction);
+
 
   enum Direction {
     UP(6), UP_RIGHT(7), RIGHT(0), DOWN_RIGHT(1), DOWN(2), DOWN_LEFT(3), LEFT(4), UP_LEFT(5), UNDEFINED(-1);
-    final int index;
+    public final int index;
 
     Direction(int i) {
       index = i;

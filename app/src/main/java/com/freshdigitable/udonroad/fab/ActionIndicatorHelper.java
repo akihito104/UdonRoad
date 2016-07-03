@@ -10,6 +10,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class ActionIndicatorHelper implements OnFlingListener {
   private final ImageView indicator;
 
-  public ActionIndicatorHelper(ImageView indicator) {
+  public ActionIndicatorHelper(@NonNull ImageView indicator) {
     this.indicator = indicator;
 
     setIndicatorIcon(Direction.UP, R.drawable.ic_like);
@@ -44,10 +45,20 @@ public class ActionIndicatorHelper implements OnFlingListener {
     return d;
   }
 
-  private Drawable old;
+  @Override
+  public void onStart() {
+    indicator.setVisibility(View.VISIBLE);
+  }
 
   @Override
   public void onFling(Direction direction) {
+    indicator.setVisibility(View.INVISIBLE);
+  }
+
+  private Drawable old;
+
+  @Override
+  public void onMoving(Direction direction) {
     final Drawable icon = indicatorIcon.get(direction);
     if (old == icon) {
       return;

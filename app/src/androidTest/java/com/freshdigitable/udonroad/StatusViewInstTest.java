@@ -13,15 +13,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Date;
-
 import twitter4j.Status;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
 
 /**
  * Created by akihit on 2016/06/08.
@@ -42,7 +39,7 @@ public class StatusViewInstTest {
 
   @Test
   public void bindStatus_normal_0RT_0fav() throws Exception {
-    Status status = create();
+    Status status = createStatus(10);
     sut.bindStatus(status);
     final TextView account = (TextView) sut.findViewById(R.id.tl_names);
     final User user = status.getUser();
@@ -50,18 +47,5 @@ public class StatusViewInstTest {
         R.string.tweet_name_screenName),
         user.getName(), user.getScreenName());
     assertThat(account.getText().toString(), is(Html.fromHtml(format).toString()));
-  }
-
-  protected Status create() {
-    final Status mockStatus = mock(Status.class);
-    stub(mockStatus.getText()).toReturn("tweet text is here.");
-    stub(mockStatus.getCreatedAt()).toReturn(new Date());
-    stub(mockStatus.getSource())
-        .toReturn("<a href=\"http://twitter.com/akihito104\" rel=\"nofollow\">Udonroad</a>");
-    final User userMock = mock(User.class);
-    stub(userMock.getName()).toReturn("akihito104");
-    stub(userMock.getScreenName()).toReturn("akihito matsuda");
-    stub(mockStatus.getUser()).toReturn(userMock);
-    return mockStatus;
   }
 }
