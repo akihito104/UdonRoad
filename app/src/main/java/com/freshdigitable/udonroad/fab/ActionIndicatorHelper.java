@@ -11,7 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
 
@@ -19,23 +18,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ActionIndicatorHelper implements OnFlingListener {
-  private final ImageView indicator;
+  private final ActionIndicatorView indicator;
 
-  public ActionIndicatorHelper(@NonNull ImageView indicator) {
+  public ActionIndicatorHelper(@NonNull ActionIndicatorView indicator) {
     this.indicator = indicator;
 
     setIndicatorIcon(Direction.UP, R.drawable.ic_like);
     setIndicatorIcon(Direction.RIGHT, R.drawable.ic_retweet);
-
-    defaultIndicatorIcon = createIndicatorIcon(R.drawable.ic_add_white_36dp);
   }
 
   private final Map<Direction, Drawable> indicatorIcon = new HashMap<>();
-  private final Drawable defaultIndicatorIcon;
 
-  private void setIndicatorIcon(Direction direction, @DrawableRes int drawable) {
-    final Drawable d = createIndicatorIcon(drawable);
+  private void setIndicatorIcon(Direction direction, @DrawableRes int drawableId) {
+    final Drawable d = createIndicatorIcon(drawableId);
     indicatorIcon.put(direction, d);
+    indicator.setDrawable(direction, d);
   }
 
   @NonNull
@@ -64,10 +61,11 @@ public class ActionIndicatorHelper implements OnFlingListener {
       return;
     }
     old = icon;
-    if (icon != null) {
-      indicator.setImageDrawable(icon);
+    if (direction != null) {
+      indicator.setSelectedIconVisible();
+      indicator.getSelectedIcon().setImageDrawable(icon);
     } else {
-      indicator.setImageDrawable(defaultIndicatorIcon);
+      indicator.setActionIconVisible();
     }
   }
 }

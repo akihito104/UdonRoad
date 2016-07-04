@@ -2,11 +2,9 @@ package com.freshdigitable.udonroad.fab;
 
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.freshdigitable.udonroad.R;
@@ -21,7 +19,7 @@ import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
 public class ActionIndicatableFAB extends LinearLayout {
   @SuppressWarnings("unused")
   private static final String TAG = ActionIndicatableFAB.class.getSimpleName();
-  private FlingableFAB fab;
+  private FloatingActionButton fab;
 
   public ActionIndicatableFAB(Context context) {
     this(context, null);
@@ -34,10 +32,10 @@ public class ActionIndicatableFAB extends LinearLayout {
   public ActionIndicatableFAB(Context context, AttributeSet attributeSet, int defStyleAttr) {
     super(context, attributeSet, defStyleAttr);
     final View v = View.inflate(context, R.layout.view_fling_fab, this);
-    final ImageView actionIndicator = (ImageView) v.findViewById(R.id.fab_indicator);
+    final ActionIndicatorView actionIndicator = (ActionIndicatorView) v.findViewById(R.id.fab_indicator);
     this.actionIndicatorHelper = new ActionIndicatorHelper(actionIndicator);
 
-    fab = (FlingableFAB) v.findViewById(R.id.fab);
+    fab = (FloatingActionButton) v.findViewById(R.id.fab);
     fab.hide();
     fab.setOnTouchListener(new View.OnTouchListener() {
       private MotionEvent old;
@@ -72,8 +70,6 @@ public class ActionIndicatableFAB extends LinearLayout {
       public void onClick(View v) {
       }
     });
-    fab.setActionIcon(Direction.UP, ContextCompat.getDrawable(context, R.drawable.ic_like));
-    fab.setActionIcon(Direction.RIGHT, ContextCompat.getDrawable(context, R.drawable.ic_retweet));
   }
 
   private OnFlingListener flingListener;
@@ -81,8 +77,6 @@ public class ActionIndicatableFAB extends LinearLayout {
   public void setOnFlingListener(OnFlingListener listener) {
     this.flingListener = listener;
   }
-
-//  private ImageView actionIndicator;
 
   private OnFlingListener actionIndicatorHelper;
 
