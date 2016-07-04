@@ -14,7 +14,7 @@
         <com.freshdigitable.udonroad.fab.ActionIndicatorView
             android:id="@+id/fab_indicator"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="48dp"
             android:layout_marginBottom="64dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"

@@ -61,7 +61,7 @@ public class ActionIndicatorHelper implements OnFlingListener {
       return;
     }
     old = icon;
-    if (direction != null) {
+    if (icon != null) {
       indicator.setSelectedIconVisible();
       indicator.getSelectedIcon().setImageDrawable(icon);
     } else {
