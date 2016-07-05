@@ -14,25 +14,33 @@ import android.view.View;
 
 import com.freshdigitable.udonroad.R;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActionIndicatorHelper implements OnFlingListener {
   private final ActionIndicatorView indicator;
+  private List<Direction> enableDirections = new ArrayList<>();
 
   public ActionIndicatorHelper(@NonNull ActionIndicatorView indicator) {
     this.indicator = indicator;
 
     setIndicatorIcon(Direction.UP, R.drawable.ic_like);
     setIndicatorIcon(Direction.RIGHT, R.drawable.ic_retweet);
+    addEnableDirection(Direction.UP_RIGHT);
   }
-
-  private final Map<Direction, Drawable> indicatorIcon = new HashMap<>();
 
   private void setIndicatorIcon(Direction direction, @DrawableRes int drawableId) {
     final Drawable d = createIndicatorIcon(drawableId);
-    indicatorIcon.put(direction, d);
     indicator.setDrawable(direction, d);
+    addEnableDirection(direction);
+  }
+
+  public void addEnableDirection(Direction direction) {
+    enableDirections.add(direction);
+  }
+
+  public void removeEnableDirection(Direction direction) {
+    enableDirections.remove(direction);
   }
 
   @NonNull
@@ -44,6 +52,8 @@ public class ActionIndicatorHelper implements OnFlingListener {
 
   @Override
   public void onStart() {
+    indicator.onActionLeave(prevSelected);
+    prevSelected = Direction.UNDEFINED;
     indicator.setVisibility(View.VISIBLE);
   }
 
@@ -52,20 +62,26 @@ public class ActionIndicatorHelper implements OnFlingListener {
     indicator.setVisibility(View.INVISIBLE);
   }
 
-  private Drawable old;
+  private Direction prevSelected = Direction.UNDEFINED;
 
   @Override
   public void onMoving(Direction direction) {
-    final Drawable icon = indicatorIcon.get(direction);
-    if (old == icon) {
+    if (prevSelected == direction) {
       return;
     }
-    old = icon;
-    if (icon != null) {
-      indicator.setSelectedIconVisible();
-      indicator.getSelectedIcon().setImageDrawable(icon);
-    } else {
-      indicator.setActionIconVisible();
+    indicator.onActionLeave(prevSelected);
+    if (isDirectionEnabled(direction)) {
+      indicator.onActionSelected(direction);
     }
+    prevSelected = direction;
+  }
+
+  private boolean isDirectionEnabled(Direction direction) {
+    for (Direction d : enableDirections) {
+      if (d == direction) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -71,5 +71,24 @@ public interface OnFlingListener {
       }
       return angle;
     }
+
+    public Direction[] getBothNeighbor() {
+      if (this == UNDEFINED) {
+        return new Direction[0];
+      }
+      return new Direction[]{
+          getWithIndex((index + 1) % 8),
+          getWithIndex((index - 1) < 0 ? 7 : index - 1)
+      };
+    }
+
+    private static Direction getWithIndex(int i) {
+      for (Direction d : values()) {
+        if (d.index == i) {
+          return d;
+        }
+      }
+      return UNDEFINED;
+    }
   }
 }

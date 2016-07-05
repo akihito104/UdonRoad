@@ -34,13 +34,5 @@
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
         />
-    <ImageView
-        android:id="@+id/indicator_selected"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:visibility="gone"
-        />
 <!--</RelativeLayout>-->
 </merge>
