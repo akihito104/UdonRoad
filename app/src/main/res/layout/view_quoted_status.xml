@@ -38,6 +38,7 @@
         android:layout_alignBottom="@+id/q_icon"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:gravity="end"
         tools:text="CreatedTime"
         />
 
@@ -45,11 +46,13 @@
         android:id="@+id/q_names"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/tweet_small_fontsize"
+        android:layout_marginRight="@dimen/grid_margin"
         android:layout_alignBottom="@+id/q_icon"
         android:layout_toRightOf="@id/q_icon"
         android:layout_toEndOf="@id/q_icon"
-        tools:text="ScreenName @name"
+        android:layout_toLeftOf="@id/q_create_at"
+        android:textSize="@dimen/tweet_small_fontsize"
+        tools:text="Screen name @name"
         />
 
     <TextView
@@ -71,26 +74,31 @@
         android:id="@+id/q_favcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/grid_margin"
+        android:layout_alignTop="@+id/q_rtcount"
+        android:layout_alignBottom="@+id/q_rtcount"
+        android:layout_toEndOf="@+id/q_fav_icon"
+        android:layout_toRightOf="@+id/q_fav_icon"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textSize="@dimen/tweet_small_fontsize"
         android:visibility="gone"
         tools:visibility="visible"
         tools:text="Count"
-        android:layout_alignTop="@+id/q_rtcount"
-        android:layout_alignBottom="@+id/q_rtcount"
-        android:layout_toEndOf="@+id/q_fav_icon"
-        android:layout_toRightOf="@+id/q_fav_icon"
         />
 
     <TextView
         android:id="@+id/q_via"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
         android:layout_below="@+id/q_image_group"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/q_favcount"
+        android:gravity="end"
         android:textSize="@dimen/tweet_small_fontsize"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:lines="1"
+        android:ellipsize="end"
         tools:text="via clientName"
         />
 
