@@ -39,7 +39,7 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
     onView(withId(R.id.action_heading)).perform(click());
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(createText(22)))));
-    onView(withId(R.id.fab)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
   }
 
   @Test
@@ -58,11 +58,11 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
     launchHomeAndBackToApp();
 
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    onView(withId(R.id.fab)).check(matches(isDisplayed()));
+    onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     receiveStatuses(app.getUserStreamListener(),
         createStatus(26), createStatus(28));
     onView(withId(R.id.action_heading)).perform(click());
-    onView(withId(R.id.fab)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(createText(28)))));
   }
@@ -72,7 +72,7 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
     launchHomeAndBackToApp();
 
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    onView(withId(R.id.fab)).perform(swipeUp());
+    onView(withId(R.id.ffab)).perform(swipeUp());
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
   }

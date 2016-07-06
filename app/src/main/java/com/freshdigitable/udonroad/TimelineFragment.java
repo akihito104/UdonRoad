@@ -6,6 +6,7 @@ package com.freshdigitable.udonroad;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,10 +15,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
-import com.freshdigitable.udonroad.fab.ActionIndicatableFAB;
+import com.freshdigitable.udonroad.fab.FlingableFAB;
+import com.freshdigitable.udonroad.fab.FlingableFABHelper;
 import com.freshdigitable.udonroad.fab.OnFlingAdapter;
 
 import java.util.List;
@@ -75,16 +76,17 @@ public class TimelineFragment extends Fragment {
     });
 
     final TimelineAdapter adapter = getTimelineAdapter();
+    final FlingableFAB fab = fabHelper.getFab();
     adapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
           public void onTweetSelected(Status status) {
-            fab.getFab().show();
+            fab.show();
           }
 
           @Override
           public void onTweetUnselected() {
-            fab.getFab().hide();
+            fab.hide();
           }
         });
     adapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
@@ -154,7 +156,7 @@ public class TimelineFragment extends Fragment {
 
   public void setupOnFlingListener() {
     final TimelineAdapter adapter = getTimelineAdapter();
-    fab.setOnFlingListener(new OnFlingAdapter() {
+    fabHelper.getFab().setOnFlingListener(new OnFlingAdapter() {
       @Override
       public void onFling(Direction direction) {
         if (!isTweetSelected()) {
@@ -177,10 +179,10 @@ public class TimelineFragment extends Fragment {
   }
 
   public void tearDownOnFlingListener() {
-    if (fab == null) {
+    if (fabHelper == null) {
       return;
     }
-    fab.setOnFlingListener(null);
+    fabHelper.getFab().setOnFlingListener(null);
   }
 
   @Override
@@ -201,7 +203,6 @@ public class TimelineFragment extends Fragment {
     adapter.unregisterAdapterDataObserver(itemInsertedObserver);
     adapter.unregisterAdapterDataObserver(createdAtObserver);
     tearDownOnFlingListener();
-//    fab = null;
   }
 
   private StatusDetailFragment statusDetail;
@@ -290,13 +291,13 @@ public class TimelineFragment extends Fragment {
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
-                showToast("failed to retweet...");
+                showSnackbar("failed to retweet...");
               }
             },
             new Action0() {
               @Override
               public void call() {
-                showToast("success to retweet");
+                showSnackbar("success to retweet");
               }
             });
   }
@@ -318,18 +319,18 @@ public class TimelineFragment extends Fragment {
                 if (e instanceof TwitterException) {
                   final int statusCode = ((TwitterException) e).getStatusCode();
                   if (statusCode == 403) {
-                    showToast("already faved");
+                    showSnackbar("already faved");
                     return;
                   }
                 }
                 Log.e(TAG, "error: ", e);
-                showToast("failed to create fav...");
+                showSnackbar("failed to create fav...");
               }
             },
             new Action0() {
               @Override
               public void call() {
-                showToast("success to create fav.");
+                showSnackbar("success to create fav.");
               }
             });
   }
@@ -371,14 +372,9 @@ public class TimelineFragment extends Fragment {
             });
   }
 
-  private void showToast(String text) {
-    Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
-  }
-
-  private ActionIndicatableFAB fab;
-
-  public void setFAB(ActionIndicatableFAB fab) {
-    this.fab = fab;
+  private void showSnackbar(String text) {
+    Snackbar.make(binding.getRoot(), text, Snackbar.LENGTH_SHORT)
+        .show();
   }
 
   protected TwitterApi getTwitterApi() {
@@ -399,16 +395,23 @@ public class TimelineFragment extends Fragment {
   }
 
   public void setFabVisibility(boolean hidden) {
+    final FlingableFAB fab = fabHelper.getFab();
     if (hidden) {
-      if (fab.getFab().getVisibility() == View.VISIBLE) {
+      if (fab.getVisibility() == View.VISIBLE) {
         Log.d(TAG, "setFabVisibility: hide");
-        fab.getFab().hide();
+        fab.hide();
       }
     } else if (isTweetSelected()) {
-      if (fab.getFab().getVisibility() != View.VISIBLE) {
+      if (fab.getVisibility() != View.VISIBLE) {
         Log.d(TAG, "setFabVisibility: show");
-        fab.getFab().show();
+        fab.show();
       }
     }
+  }
+
+  private FlingableFABHelper fabHelper;
+
+  public void setFABHelper(FlingableFABHelper flingableFABHelper) {
+    this.fabHelper = flingableFABHelper;
   }
 }

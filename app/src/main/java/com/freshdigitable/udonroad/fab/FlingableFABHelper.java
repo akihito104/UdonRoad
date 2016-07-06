@@ -10,6 +10,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v4.view.ViewCompat;
 import android.view.View;
 
 import com.freshdigitable.udonroad.R;
@@ -17,12 +18,17 @@ import com.freshdigitable.udonroad.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ActionIndicatorHelper implements OnFlingListener {
+public class FlingableFABHelper implements OnFlingListener {
   private final ActionIndicatorView indicator;
+  private final FlingableFAB fab;
   private List<Direction> enableDirections = new ArrayList<>();
 
-  public ActionIndicatorHelper(@NonNull ActionIndicatorView indicator) {
+  public FlingableFABHelper(@NonNull ActionIndicatorView indicator,
+                            @NonNull FlingableFAB fab) {
     this.indicator = indicator;
+    this.fab = fab;
+    fab.setActionIndicatorHelper(this);
+    ViewCompat.setElevation(this.indicator, this.fab.getCompatElevation());
 
     setIndicatorIcon(Direction.UP, R.drawable.ic_like);
     setIndicatorIcon(Direction.RIGHT, R.drawable.ic_retweet);
@@ -57,11 +63,6 @@ public class ActionIndicatorHelper implements OnFlingListener {
     indicator.setVisibility(View.VISIBLE);
   }
 
-  @Override
-  public void onFling(Direction direction) {
-    indicator.setVisibility(View.INVISIBLE);
-  }
-
   private Direction prevSelected = Direction.UNDEFINED;
 
   @Override
@@ -84,4 +85,19 @@ public class ActionIndicatorHelper implements OnFlingListener {
     }
     return false;
   }
+
+  @Override
+  public void onFling(Direction direction) {
+    indicator.getHandler().postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        indicator.setVisibility(View.INVISIBLE);
+      }
+    }, 200);
+  }
+
+  public FlingableFAB getFab() {
+    return fab;
+  }
+
 }

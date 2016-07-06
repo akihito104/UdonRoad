@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.fab.FlingableFABHelper;
 import com.freshdigitable.udonroad.realmdata.RealmHomeTimelineFragment;
 import com.squareup.picasso.Picasso;
 
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
   @Inject
   TwitterApi twitterApi;
+  private FlingableFABHelper flingableFABHelper;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    binding.ffab.hide();
+    flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
     setupAppBar();
     setupHomeTimeline();
   }
@@ -94,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         showUserInfo(user);
       }
     });
-    tlFragment.setFAB(binding.ffab);
+    tlFragment.setFABHelper(flingableFABHelper);
     tlFragment.setupOnFlingListener();
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
@@ -104,10 +108,10 @@ public class MainActivity extends AppCompatActivity {
   private UserInfoPagerFragment userInfoPager;
 
   private void showUserInfo(User user) {
-    binding.ffab.getFab().hide();
+    binding.ffab.hide();
     appbarFragment.showUserInfo(user);
     userInfoPager = UserInfoPagerFragment.getInstance(user);
-    userInfoPager.setFAB(binding.ffab);
+    userInfoPager.setFABHelper(flingableFABHelper);
     userInfoPager.setTabLayout(appbarFragment.getTabLayout());
     sendStatusMenuItem.setVisible(false);
     getSupportFragmentManager().beginTransaction()
@@ -215,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
     if (appbarFragment.isUserInfoVisible()) {
-      if (binding.ffab.getFab().getVisibility() == View.VISIBLE) {
+      if (binding.ffab.getVisibility() == View.VISIBLE) {
         userInfoPager.clearSelectedTweet();
         return;
       }
