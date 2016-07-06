@@ -30,12 +30,28 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 />
 
-            <com.freshdigitable.udonroad.fab.FlingableFloatingActionButton
+            <com.freshdigitable.udonroad.fab.ActionIndicatorView
+                android:id="@+id/fab_indicator"
+                android:layout_width="52dp"
+                android:layout_height="48dp"
+                android:layout_marginBottom="150dp"
+                android:src="@drawable/ic_add"
+                android:background="#cccc"
+                android:contentDescription="@string/desc_fling_indicator"
+                android:layout_gravity="bottom|center"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+
+            <com.freshdigitable.udonroad.fab.FlingableFAB
                 android:id="@+id/ffab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_gravity="bottom|center"
+                android:src="@drawable/ic_add"
+                android:layout_marginBottom="32dp"
+                app:fabSize="normal"
                 />
 
         </android.support.design.widget.CoordinatorLayout>

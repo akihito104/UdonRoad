@@ -16,7 +16,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.fab.FlingableFloatingActionButton;
+import com.freshdigitable.udonroad.fab.FlingableFAB;
+import com.freshdigitable.udonroad.fab.FlingableFABHelper;
 import com.freshdigitable.udonroad.realmdata.RealmUserFavsFragment;
 import com.freshdigitable.udonroad.realmdata.RealmUserHomeTimelineFragment;
 
@@ -58,12 +59,13 @@ public class UserInfoPagerFragment extends Fragment {
     final User user = getUser();
 
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
+    final FlingableFAB ffab = fabHelper.getFab();
     final RealmUserHomeTimelineFragment home = RealmUserHomeTimelineFragment.getInstance(user);
-    home.setFAB(ffab);
+    home.setFABHelper(fabHelper);
     home.setupOnFlingListener();
     pagerAdapter.putFragment(home, "Tweets");
     final RealmUserFavsFragment favs = RealmUserFavsFragment.getInstance(user);
-    favs.setFAB(ffab);
+    favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
     viewPager.setAdapter(pagerAdapter);
     viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
@@ -76,9 +78,9 @@ public class UserInfoPagerFragment extends Fragment {
           TimelineFragment fragment = (TimelineFragment) item;
           fragment.setupOnFlingListener();
           if (fragment.isTweetSelected()) {
-            ffab.getFab().show();
+            ffab.show();
           } else {
-            ffab.getFab().hide();
+            ffab.hide();
           }
         }
       }
@@ -121,13 +123,7 @@ public class UserInfoPagerFragment extends Fragment {
         ((TimelineFragment) f).clearSelectedTweet();
       }
     }
-    ffab.getFab().hide();
-  }
-
-  private FlingableFloatingActionButton ffab;
-
-  public void setFAB(FlingableFloatingActionButton ffab) {
-    this.ffab = ffab;
+    fabHelper.getFab().hide();
   }
 
   public void scrollToTop() {
@@ -136,6 +132,12 @@ public class UserInfoPagerFragment extends Fragment {
     if (item instanceof TimelineFragment) {
       ((TimelineFragment) item).scrollToTop();
     }
+  }
+
+  private FlingableFABHelper fabHelper;
+
+  public void setFABHelper(FlingableFABHelper flingableFABHelper) {
+    this.fabHelper = flingableFABHelper;
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {
