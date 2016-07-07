@@ -23,6 +23,16 @@
                 tools:layout="@layout/fragment_main_appbar"
                 />
 
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="12dp"
+                app:fabSize="mini"
+                app:layout_anchor="@id/main_appbar"
+                app:layout_anchorGravity="bottom|right"
+                app:layout_behavior="com.freshdigitable.udonroad.TweetSendButtonBehavior"
+                />
+
             <FrameLayout
                 android:id="@+id/main_timeline_container"
                 android:layout_width="match_parent"

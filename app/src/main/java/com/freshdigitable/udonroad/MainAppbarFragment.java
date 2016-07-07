@@ -49,7 +49,7 @@ public class MainAppbarFragment extends Fragment {
     binding.mainToolbar.setTitle("Home");
 
     final TextView toolbarTitle = binding.mainToolbarTitle;
-    binding.mainAppbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+    binding.mainAppbarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
       // it is visible (alpha=1.0) at initial state.
       private boolean isTitleVisible = true;
 

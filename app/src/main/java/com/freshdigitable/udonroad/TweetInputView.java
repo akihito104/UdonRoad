@@ -61,12 +61,12 @@ public class TweetInputView extends RelativeLayout {
     final ImageButton tweetSendButton = (ImageButton) v.findViewById(R.id.tw_send_intweet);
     tweetSendButton.setOnClickListener(new OnClickListener() {
       @Override
-      public void onClick(View v) {
+      public void onClick(final View v) {
         String sendingText = inputText.getText().toString();
         if (sendingText.isEmpty()) {
           return;
         }
-        tweetSendButton.setClickable(false);
+        v.setClickable(false);
         onStatusSending.sendStatus(sendingText)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Subscriber<Status>() {
@@ -85,7 +85,7 @@ public class TweetInputView extends RelativeLayout {
 
               @Override
               public void onCompleted() {
-                tweetSendButton.setClickable(true);
+                v.setClickable(true);
               }
             });
       }
