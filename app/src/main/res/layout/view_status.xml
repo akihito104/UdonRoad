@@ -59,40 +59,48 @@
             android:layout_marginRight="@dimen/grid_margin"
             />
 
+        <LinearLayout
+            android:id="@+id/tl_names_and_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/tl_icon"
+            android:layout_toRightOf="@id/tl_icon"
+            android:layout_alignParentEnd="true"
+            >
+            <TextView
+                android:id="@+id/tl_names"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginRight="@dimen/grid_margin"
+                android:textSize="@dimen/tweet_small_fontsize"
+                android:lines="1"
+                android:ellipsize="end"
+                tools:text="ScreenName \@name"
+                />
+
+            <TextView
+                android:id="@+id/tl_create_at"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:gravity="end"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textSize="@dimen/tweet_small_fontsize"
+                android:lines="1"
+                tools:text="CreatedTime"
+                />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tl_tweet"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tl_names"
+            android:layout_below="@+id/tl_names_and_time"
             android:layout_toRightOf="@+id/tl_icon"
             android:layout_toEndOf="@+id/tl_icon"
             android:textSize="@dimen/tweet_main_size"
             tools:text="Tweet"
-            />
-
-        <TextView
-            android:id="@+id/tl_create_at"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textSize="@dimen/tweet_small_fontsize"
-            android:layout_alignTop="@+id/tl_names"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            tools:text="CreatedTime"
-            />
-
-        <TextView
-            android:id="@+id/tl_names"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="@dimen/grid_margin"
-            android:layout_alignTop="@+id/tl_icon"
-            android:layout_toRightOf="@id/tl_icon"
-            android:layout_toEndOf="@id/tl_icon"
-            android:layout_toLeftOf="@+id/tl_create_at"
-            android:textSize="@dimen/tweet_small_fontsize"
-            tools:text="ScreenName @name"
             />
 
         <TextView
