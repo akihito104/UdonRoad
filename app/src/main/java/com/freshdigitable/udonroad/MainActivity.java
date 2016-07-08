@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
   private void setupAppBar() {
     appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
+    appbarFragment.setTweetSendFab(binding.mainSendTweet);
   }
 
   private void setupHomeTimeline() {
@@ -165,12 +166,6 @@ public class MainActivity extends AppCompatActivity {
                 Picasso.with(binding.navDrawer.getContext())
                     .load(user.getProfileImageURLHttps()).fit()
                     .into(icon);
-                icon.setOnClickListener(new View.OnClickListener() {
-                  @Override
-                  public void onClick(View v) {
-                    startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
-                  }
-                });
               }
             },
             new Action1<Throwable>() {
@@ -275,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
   private void sendStatusSelected() {
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-    appbarFragment.stretchStatusInputView(new TweetInputView.OnStatusSending() {
+    appbarFragment.stretchStatusInputView(new MainAppbarFragment.OnStatusSending() {
       @Override
       public Observable<Status> sendStatus(String status) {
         return twitterApi.updateStatus(status);
