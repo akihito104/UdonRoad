@@ -33,6 +33,7 @@
                 app:layout_anchor="@id/main_appbar"
                 app:layout_anchorGravity="bottom|right"
                 app:layout_behavior="com.freshdigitable.udonroad.TweetSendButtonBehavior"
+                app:backgroundTint="@color/selector_send_tweet_button"
                 />
 
             <FrameLayout

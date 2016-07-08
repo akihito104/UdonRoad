@@ -11,6 +11,8 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +38,7 @@ import twitter4j.User;
 public class MainAppbarFragment extends Fragment {
   private static final String TAG = MainAppbarFragment.class.getSimpleName();
   private FragmentMainAppbarBinding binding;
+
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -105,6 +108,25 @@ public class MainAppbarFragment extends Fragment {
     this.tweetSendFab = fab;
   }
 
+  private TextWatcher textWatcher = new TextWatcher() {
+    @Override
+    public void afterTextChanged(Editable editable) {
+      if (editable.length() < 1) {
+        tweetSendFab.setEnabled(false);
+      } else {
+        tweetSendFab.setEnabled(true);
+      }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    }
+  };
+
   public void stretchStatusInputView(final OnStatusSending statusSending) {
     final TweetInputView inputText = binding.mainTweetInputView;
     userObservable.observeOn(AndroidSchedulers.mainThread())
@@ -121,14 +143,15 @@ public class MainAppbarFragment extends Fragment {
             Log.d(TAG, throwable.getMessage(), throwable);
           }
         });
-    inputText.appearing();
+
+    inputText.addTextWatcher(textWatcher);
+    if (inputText.getText().length() < 1) {
+      tweetSendFab.setEnabled(false);
+    }
     tweetSendFab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(final View v) {
         String sendingText = inputText.getText().toString();
-        if (sendingText.isEmpty()) {
-          return;
-        }
         v.setClickable(false);
         statusSending.sendStatus(sendingText)
             .observeOn(AndroidSchedulers.mainThread())
@@ -153,9 +176,11 @@ public class MainAppbarFragment extends Fragment {
             });
       }
     });
+    inputText.appearing();
   }
 
   public void collapseStatusInputView() {
+    binding.mainTweetInputView.removeTextWatcher(textWatcher);
     binding.mainTweetInputView.disappearing();
     tweetSendFab.setOnClickListener(null);
   }

@@ -3,6 +3,7 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.support.design.widget.TextInputEditText;
 import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -80,5 +81,13 @@ public class TweetInputView extends RelativeLayout {
 
   public ImageView getIcon() {
     return icon;
+  }
+
+  public void addTextWatcher(TextWatcher textWatcher) {
+    inputText.addTextChangedListener(textWatcher);
+  }
+
+  public void removeTextWatcher(TextWatcher textWatcher) {
+    inputText.removeTextChangedListener(textWatcher);
   }
 }
