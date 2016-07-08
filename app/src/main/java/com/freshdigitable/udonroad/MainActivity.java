@@ -268,6 +268,9 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void sendStatusSelected() {
+    if (binding.ffab.getVisibility() == View.VISIBLE) {
+      binding.ffab.hide();
+    }
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
     appbarFragment.stretchStatusInputView(new MainAppbarFragment.OnStatusSending() {
@@ -293,6 +296,9 @@ public class MainActivity extends AppCompatActivity {
     sendStatusMenuItem.setIcon(R.drawable.ic_create_white_24dp);
     tlFragment.setStopScroll(false);
     appbarFragment.collapseStatusInputView();
+    if (tlFragment.isTweetSelected()) {
+      binding.ffab.show();
+    }
   }
 
   private void showToast(String text) {
