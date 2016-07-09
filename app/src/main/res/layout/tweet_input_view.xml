@@ -36,6 +36,7 @@
         android:layout_height="wrap_content"
         app:counterEnabled="true"
         app:counterMaxLength="140"
+        app:counterTextAppearance="?android:attr/textAppearanceSmallInverse"
         >
         <android.support.design.widget.TextInputEditText
             android:id="@+id/tw_intext"
