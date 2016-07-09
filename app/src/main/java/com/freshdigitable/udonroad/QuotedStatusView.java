@@ -34,7 +34,7 @@ public class QuotedStatusView extends StatusViewBase {
     final View v = View.inflate(context, R.layout.view_quoted_status, this);
     createdAt = (TextView) v.findViewById(R.id.q_create_at);
     icon = (ImageView) v.findViewById(R.id.q_icon);
-    names = (TextView) v.findViewById(R.id.q_names);
+    names = (CombinedScreenNameTextView) v.findViewById(R.id.q_names);
     tweet = (TextView) v.findViewById(R.id.q_tweet);
     clientName = (TextView) v.findViewById(R.id.q_via);
     rtIcon = (ImageView) v.findViewById(R.id.q_rt_icon);

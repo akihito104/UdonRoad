@@ -36,7 +36,7 @@ public class StatusView extends StatusViewBase {
     final View v = View.inflate(context, R.layout.view_status, this);
     createdAt = (TextView) v.findViewById(R.id.tl_create_at);
     icon = (ImageView) v.findViewById(R.id.tl_icon);
-    names = (TextView) v.findViewById(R.id.tl_names);
+    names = (CombinedScreenNameTextView) v.findViewById(R.id.tl_names);
     tweet = (TextView) v.findViewById(R.id.tl_tweet);
     clientName = (TextView) v.findViewById(R.id.tl_via);
     rtIcon = (ImageView) v.findViewById(R.id.tl_rt_icon);

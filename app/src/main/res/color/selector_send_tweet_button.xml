@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+  -->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="#ccc"/>
+    <item android:color="#FF4081"/>
+</selector>

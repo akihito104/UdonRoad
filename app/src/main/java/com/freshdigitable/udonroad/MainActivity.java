@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
   private void setupAppBar() {
     appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
+    appbarFragment.setTweetSendFab(binding.mainSendTweet);
   }
 
   private void setupHomeTimeline() {
@@ -108,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
   private UserInfoPagerFragment userInfoPager;
 
   private void showUserInfo(User user) {
+    if (appbarFragment.isStatusInputViewVisible()) {
+      return;
+    }
     binding.ffab.hide();
     appbarFragment.showUserInfo(user);
     userInfoPager = UserInfoPagerFragment.getInstance(user);
@@ -165,12 +169,6 @@ public class MainActivity extends AppCompatActivity {
                 Picasso.with(binding.navDrawer.getContext())
                     .load(user.getProfileImageURLHttps()).fit()
                     .into(icon);
-                icon.setOnClickListener(new View.OnClickListener() {
-                  @Override
-                  public void onClick(View v) {
-                    startActivity(UserAccountActivity.createIntent(MainActivity.this, user));
-                  }
-                });
               }
             },
             new Action1<Throwable>() {
@@ -273,9 +271,12 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void sendStatusSelected() {
+    if (binding.ffab.getVisibility() == View.VISIBLE) {
+      binding.ffab.hide();
+    }
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-    appbarFragment.stretchStatusInputView(new TweetInputView.OnStatusSending() {
+    appbarFragment.stretchStatusInputView(new MainAppbarFragment.OnStatusSending() {
       @Override
       public Observable<Status> sendStatus(String status) {
         return twitterApi.updateStatus(status);
@@ -298,6 +299,9 @@ public class MainActivity extends AppCompatActivity {
     sendStatusMenuItem.setIcon(R.drawable.ic_create_white_24dp);
     tlFragment.setStopScroll(false);
     appbarFragment.collapseStatusInputView();
+    if (tlFragment.isTweetSelected()) {
+      binding.ffab.show();
+    }
   }
 
   private void showToast(String text) {

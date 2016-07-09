@@ -23,6 +23,19 @@
                 tools:layout="@layout/fragment_main_appbar"
                 />
 
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/main_send_tweet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="12dp"
+                android:src="@drawable/ic_send_white_24dp"
+                app:fabSize="mini"
+                app:layout_anchor="@id/main_appbar"
+                app:layout_anchorGravity="bottom|right"
+                app:layout_behavior="com.freshdigitable.udonroad.TweetSendButtonBehavior"
+                app:backgroundTint="@color/selector_send_tweet_button"
+                />
+
             <FrameLayout
                 android:id="@+id/main_timeline_container"
                 android:layout_width="match_parent"
