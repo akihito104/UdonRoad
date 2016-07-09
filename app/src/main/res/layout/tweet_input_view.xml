@@ -66,7 +66,8 @@
             android:labelFor="@id/tw_intext"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:inputType="none"
+            android:inputType="textImeMultiLine|textMultiLine"
+            android:maxLines="5"
             android:textColor="@android:color/primary_text_dark"
             >
         </android.support.design.widget.TextInputEditText>
