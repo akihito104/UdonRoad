@@ -32,7 +32,7 @@ import twitter4j.util.TimeSpanConverter;
 public abstract class StatusViewBase extends RelativeLayout {
   protected TextView createdAt;
   protected ImageView icon;
-  protected TextView names;
+  protected CombinedScreenNameTextView names;
   protected TextView tweet;
   protected TextView clientName;
   protected ImageView rtIcon;
@@ -97,9 +97,7 @@ public abstract class StatusViewBase extends RelativeLayout {
   }
 
   protected void bindTweetUserName(User user) {
-    final String formattedNames = formatString(R.string.tweet_name_screenName,
-        user.getName(), user.getScreenName());
-    names.setText(Html.fromHtml(formattedNames));
+      names.setNames(user);
   }
 
   protected void bindText(Status status) {

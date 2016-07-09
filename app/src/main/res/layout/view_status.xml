@@ -67,7 +67,7 @@
             android:layout_toRightOf="@id/tl_icon"
             android:layout_alignParentEnd="true"
             >
-            <TextView
+            <com.freshdigitable.udonroad.CombinedScreenNameTextView
                 android:id="@+id/tl_names"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

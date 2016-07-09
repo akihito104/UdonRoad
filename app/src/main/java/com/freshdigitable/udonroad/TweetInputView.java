@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import twitter4j.User;
 
@@ -22,8 +21,7 @@ public class TweetInputView extends RelativeLayout {
   @SuppressWarnings("unused")
   private static final String TAG = TweetInputView.class.getSimpleName();
   private TextInputEditText inputText;
-  private TextView name;
-  private TextView account;
+  private CombinedScreenNameTextView name;
   private ImageView icon;
 
   public TweetInputView(Context context) {
@@ -52,8 +50,7 @@ public class TweetInputView extends RelativeLayout {
       }
     });
 
-    name = (TextView) v.findViewById(R.id.tw_name);
-    account = (TextView) v.findViewById(R.id.tw_account);
+    name = (CombinedScreenNameTextView) v.findViewById(R.id.tw_name);
     icon = (ImageView) v.findViewById(R.id.tw_icon);
   }
 
@@ -71,8 +68,7 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public void setUserInfo(User user) {
-    name.setText(user.getName());
-    account.setText(user.getScreenName());
+    name.setNames(user);
   }
 
   public Editable getText() {

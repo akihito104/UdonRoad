@@ -37,7 +37,7 @@
             android:layout_toEndOf="@id/q_icon"
             android:layout_alignParentEnd="true"
             >
-            <TextView
+            <com.freshdigitable.udonroad.CombinedScreenNameTextView
                 android:id="@+id/q_names"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
