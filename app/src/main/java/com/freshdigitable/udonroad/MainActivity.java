@@ -109,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
   private UserInfoPagerFragment userInfoPager;
 
   private void showUserInfo(User user) {
+    if (appbarFragment.isStatusInputViewVisible()) {
+      return;
+    }
     binding.ffab.hide();
     appbarFragment.showUserInfo(user);
     userInfoPager = UserInfoPagerFragment.getInstance(user);
