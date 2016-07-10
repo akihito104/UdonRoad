@@ -142,9 +142,7 @@ public abstract class StatusViewBase extends RelativeLayout {
   protected final int mediaHeight;
 
   public int getMediaWidth() {
-    return mediaWidth > 0
-        ? mediaWidth
-        : 0;
+    return Math.max(mediaWidth, 0);
   }
 
   public int getMediaHeight() {
@@ -153,8 +151,7 @@ public abstract class StatusViewBase extends RelativeLayout {
 
   protected void bindMediaEntities(Status status) {
     final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    final int mediaCount = extendedMediaEntities.length > mediaImages.length
-        ? mediaImages.length : extendedMediaEntities.length;
+    final int mediaCount = Math.min(mediaImages.length, extendedMediaEntities.length);
     if (mediaCount > 0) {
       mediaWidth = (mediaGroup.getWidth() - grid * (mediaCount - 1)) / mediaCount;
       mediaGroup.setVisibility(VISIBLE);
