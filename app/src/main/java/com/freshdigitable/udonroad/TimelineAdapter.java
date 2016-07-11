@@ -64,9 +64,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = get(position);
+    final StatusView itemView = (StatusView) holder.itemView;
     if (holder.status != null && holder.status.getId() == status.getId()) {
 //      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
-      ((StatusView) holder.itemView).bindStatus(status);
+      itemView.bindStatus(status);
       return;
     }
     holder.bindStatus(status);
@@ -91,14 +92,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       selectedStatusHolder = new SelectedStatus(holder);
     }
 
-    final StatusView itemView = (StatusView) holder.itemView;
-    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    if (extendedMediaEntities != null) {
-      final int mediaHeight = itemView.getMediaHeight();
-      final int mediaWidth = itemView.getMediaWidth();
-      final ImageView[] mediaImages = itemView.getMediaImages();
-      loadMediaView(extendedMediaEntities, mediaHeight, mediaWidth, mediaImages);
-    }
+    loadMediaView(status.getExtendedMediaEntities(),
+        itemView.getMediaHeight(), itemView.getMediaWidth(),
+        itemView.getMediaContainer());
 
     final Status quotedStatus = status.isRetweet()
         ? status.getRetweetedStatus().getQuotedStatus()
@@ -111,16 +107,16 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           .into(quotedStatusView.getIcon());
       loadMediaView(quotedStatus.getExtendedMediaEntities(),
           quotedStatusView.getMediaHeight(), quotedStatusView.getMediaWidth(),
-          quotedStatusView.getMediaImages());
+          quotedStatusView.getMediaContainer());
     }
   }
 
   private void loadMediaView(ExtendedMediaEntity[] extendedMediaEntities,
                                int mediaHeight, int mediaWidth,
-                               ImageView[] mediaImages) {
-    final int mediaCount = Math.min(extendedMediaEntities.length, mediaImages.length);
+                               MediaContainer mediaContainer) {
+    final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
-      final RequestCreator rc = Picasso.with(mediaImages[i].getContext())
+      final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
       if (mediaHeight == 0 || mediaWidth == 0) {
         rc.fit();
@@ -128,7 +124,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         rc.resize(mediaWidth, mediaHeight);
       }
       rc.centerCrop()
-          .into(mediaImages[i]);
+          .into((ImageView) mediaContainer.getChildAt(i));
     }
   }
 
@@ -154,19 +150,22 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
       Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
     }
-    if (v.getMediaImages()[0].getVisibility() == View.VISIBLE) {
-      for (ImageView mi : v.getMediaImages()) {
-        Picasso.with(v.getContext()).cancelRequest(mi);
-      }
-    }
+    unloadMediaView(v);
 
     final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
     if (quotedStatusView.getVisibility() == View.VISIBLE) {
       Picasso.with(v.getContext()).cancelRequest(quotedStatusView.getIcon());
-      if (quotedStatusView.getMediaImages()[0].getVisibility() == View.VISIBLE) {
-        for (ImageView mi : v.getMediaImages()) {
-          Picasso.with(v.getContext()).cancelRequest(mi);
-        }
+      unloadMediaView(quotedStatusView);
+    }
+  }
+
+  public void unloadMediaView(StatusViewBase v) {
+    final MediaContainer mediaContainer = v.getMediaContainer();
+    if (mediaContainer.getThumbCount() > 0
+        && mediaContainer.getChildAt(0).getVisibility() == View.VISIBLE) {
+      for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
+        final ImageView iv = (ImageView) mediaContainer.getChildAt(i);
+        Picasso.with(v.getContext()).cancelRequest(iv);
       }
     }
   }

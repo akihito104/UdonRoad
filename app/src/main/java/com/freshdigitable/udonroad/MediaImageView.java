@@ -13,8 +13,6 @@ import android.util.AttributeSet;
  */
 public class MediaImageView extends AppCompatImageView {
 
-  private int mediaHeight;
-
   public MediaImageView(Context context) {
     this(context, null);
   }
@@ -25,10 +23,7 @@ public class MediaImageView extends AppCompatImageView {
 
   public MediaImageView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    mediaHeight = getResources().getDimensionPixelOffset(R.dimen.tweet_user_icon);
-  }
-
-  public int getMediaHeight() {
-    return mediaHeight;
+    setContentDescription(getResources().getString(R.string.tweet_media_descs));
+    setVisibility(GONE);
   }
 }

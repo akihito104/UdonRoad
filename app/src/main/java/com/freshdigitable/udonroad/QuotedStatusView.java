@@ -41,13 +41,7 @@ public class QuotedStatusView extends StatusViewBase {
     rtCount = (TextView) v.findViewById(R.id.q_rtcount);
     favIcon = (ImageView) v.findViewById(R.id.q_fav_icon);
     favCount = (TextView) v.findViewById(R.id.q_favcount);
-    mediaGroup = v.findViewById(R.id.q_image_group);
-    mediaImages = new ImageView[]{
-        (ImageView) v.findViewById(R.id.q_image_1),
-        (ImageView) v.findViewById(R.id.q_image_2),
-        (ImageView) v.findViewById(R.id.q_image_3),
-        (ImageView) v.findViewById(R.id.q_image_4)
-    };
+    mediaContainer = (MediaContainer) v.findViewById(R.id.q_image_group);
   }
 
   @Override

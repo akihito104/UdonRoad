@@ -5,11 +5,11 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import twitter4j.ExtendedMediaEntity;
 
@@ -18,7 +18,11 @@ import twitter4j.ExtendedMediaEntity;
  */
 public class MediaContainer extends LinearLayout {
 
-  private int grid;
+  private final int grid;
+  private final int maxThumbCount;
+
+  private int thumbWidth;
+  private int thumbCount;
 
   public MediaContainer(Context context) {
     this(context, null);
@@ -31,19 +35,15 @@ public class MediaContainer extends LinearLayout {
   public MediaContainer(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
-  }
 
-  private int thumbCount;
-  private List<MediaImageView> thumbs = new ArrayList<>(4);
-
-  public void setThumbCount(int count) {
-    this.thumbCount = count;
-    final int size = thumbs.size();
-    if (count <= size) {
-      return;
+    final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MediaContainer, defStyleAttr, 0);
+    try {
+      maxThumbCount = a.getInt(R.styleable.MediaContainer_thumbCount, 0);
+    } finally {
+      a.recycle();
     }
-    for (int i=0; i<size-count; i++) {
-      thumbs.add(new MediaImageView(getContext()));
+    if (isInEditMode()) {
+      setThumbCount(maxThumbCount);
     }
   }
 
@@ -51,21 +51,47 @@ public class MediaContainer extends LinearLayout {
     return thumbCount;
   }
 
-  private int mediaWidth;
-
-  public int getMediaWidth() {
-    return Math.max(mediaWidth, 0);
+  public int getThumbWidth() {
+    return Math.max(thumbWidth, 0);
   }
 
   public void bindMediaEntities(ExtendedMediaEntity[] extendedMediaEntities) {
-    final int mediaCount = Math.min(thumbs.size(), extendedMediaEntities.length);
-    if (mediaCount < 1) {
+    final int thumbCount = Math.min(maxThumbCount, extendedMediaEntities.length);
+    if (thumbCount < 1) {
       return;
     }
-    mediaWidth = (getWidth() - grid * (mediaCount - 1)) / mediaCount;
+    setThumbCount(thumbCount);
+    thumbWidth = (getWidth() - grid * (thumbCount - 1)) / thumbCount;
     setVisibility(VISIBLE);
-    for (int i = 0; i < mediaCount; i++) {
-      thumbs.get(i).setVisibility(VISIBLE);
+    for (int i = 0; i < thumbCount; i++) {
+      getChildAt(i).setVisibility(VISIBLE);
     }
+  }
+
+  private final LayoutParams lp = new LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
+
+  private void setThumbCount(int count) {
+    this.thumbCount = count;
+    final int size = getChildCount();
+    if (count <= size) {
+      return;
+    }
+    for (int i = 0; i < count - size; i++) {
+      final MediaImageView mediaImageView = new MediaImageView(getContext());
+      if (size + i > 0) {
+        lp.leftMargin = grid;
+      }
+      addView(mediaImageView, lp);
+    }
+  }
+
+  public void reset() {
+    setVisibility(GONE);
+    for (int i = 0; i < thumbCount; i++) {
+      final ImageView mi = (ImageView) getChildAt(i);
+      mi.setImageDrawable(null);
+      mi.setVisibility(GONE);
+    }
+    thumbCount = 0;
   }
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+  -->
+
+<resources>
+    <declare-styleable name="MediaContainer">
+        <attr name="thumbCount" format="integer" />
+    </declare-styleable>
+</resources>
