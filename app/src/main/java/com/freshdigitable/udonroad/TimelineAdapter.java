@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -92,7 +93,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       selectedStatusHolder = new SelectedStatus(holder);
     }
 
-    loadMediaView(status.getExtendedMediaEntities(),
+    loadMediaView(status,
         itemView.getMediaHeight(), itemView.getMediaWidth(),
         itemView.getMediaContainer());
 
@@ -105,17 +106,26 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
           .fit()
           .into(quotedStatusView.getIcon());
-      loadMediaView(quotedStatus.getExtendedMediaEntities(),
+      loadMediaView(quotedStatus,
           quotedStatusView.getMediaHeight(), quotedStatusView.getMediaWidth(),
           quotedStatusView.getMediaContainer());
     }
   }
 
-  private void loadMediaView(ExtendedMediaEntity[] extendedMediaEntities,
-                               int mediaHeight, int mediaWidth,
-                               MediaContainer mediaContainer) {
+  private void loadMediaView(final Status status,
+                             int mediaHeight, int mediaWidth,
+                             MediaContainer mediaContainer) {
+    ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
     final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
+      final View mediaView = mediaContainer.getChildAt(i);
+      mediaView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          final Intent intent = MediaViewActivity.create(view.getContext(), status);
+          view.getContext().startActivity(intent);
+        }
+      });
       final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
       if (mediaHeight == 0 || mediaWidth == 0) {
@@ -124,7 +134,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         rc.resize(mediaWidth, mediaHeight);
       }
       rc.centerCrop()
-          .into((ImageView) mediaContainer.getChildAt(i));
+          .into((ImageView) mediaView);
     }
   }
 
@@ -165,6 +175,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         && mediaContainer.getChildAt(0).getVisibility() == View.VISIBLE) {
       for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
         final ImageView iv = (ImageView) mediaContainer.getChildAt(i);
+        iv.setOnClickListener(null);
         Picasso.with(v.getContext()).cancelRequest(iv);
       }
     }

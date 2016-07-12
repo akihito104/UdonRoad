@@ -61,8 +61,20 @@ public class RealmHomeTimelineFragment extends RealmTimelineFragment {
   @Override
   public void onStop() {
     Log.d(TAG, "onStop: ");
-    userStream.disconnect();
     super.onStop();
+  }
+
+  @Override
+  public void onDestroyView() {
+    Log.d(TAG, "onDestroyView: ");
+    super.onDestroyView();
+  }
+
+  @Override
+  public void onDestroy() {
+    Log.d(TAG, "onDestroy: ");
+    userStream.disconnect();
+    super.onDestroy();
   }
 
   @Override
