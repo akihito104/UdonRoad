@@ -6,6 +6,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -99,19 +100,25 @@ public class MediaViewActivity extends AppCompatActivity {
     final StatusRealm status = realm.where(StatusRealm.class)
         .equalTo("id", id)
         .findFirst();
-    if (status.getRetweetedStatusId() > 0) {
-      final ReferredStatusRealm rtStatus = realm.where(ReferredStatusRealm.class)
-          .equalTo("id", status.getRetweetedStatusId())
+    if (status != null) {
+      if (status.getRetweetedStatusId() > 0) {
+        final ReferredStatusRealm rtStatus = realm.where(ReferredStatusRealm.class)
+            .equalTo("id", status.getRetweetedStatusId())
+            .findFirst();
+        status.setRetweetedStatus(rtStatus);
+      }
+      if (status.getQuotedStatusId() > 0) {
+        final ReferredStatusRealm qtStatus = realm.where(ReferredStatusRealm.class)
+            .equalTo("id", status.getQuotedStatusId())
+            .findFirst();
+        status.setQuotedStatus(qtStatus);
+      }
+      return status;
+    } else {
+      return realm.where(ReferredStatusRealm.class)
+          .equalTo("id", id)
           .findFirst();
-      status.setRetweetedStatus(rtStatus);
     }
-    if (status.getQuotedStatusId() > 0) {
-      final ReferredStatusRealm qtStatus = realm.where(ReferredStatusRealm.class)
-          .equalTo("id", status.getQuotedStatusId())
-          .findFirst();
-      status.setQuotedStatus(qtStatus);
-    }
-    return status;
   }
 
   @Override
@@ -146,10 +153,6 @@ public class MediaViewActivity extends AppCompatActivity {
   private static class MediaPagerAdapter extends FragmentPagerAdapter {
     private ExtendedMediaEntity[] mediaEntities;
 
-    public MediaPagerAdapter(FragmentManager fm) {
-      this(fm, null);
-    }
-
     public MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities) {
       super(fm);
       this.mediaEntities = mediaEntities;
@@ -179,7 +182,9 @@ public class MediaViewActivity extends AppCompatActivity {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-      return new ImageView(getContext());
+      final ImageView imageView = new ImageView(getContext());
+      imageView.setBackgroundColor(Color.BLACK);
+      return imageView;
     }
 
     @Override
@@ -187,7 +192,6 @@ public class MediaViewActivity extends AppCompatActivity {
       super.onStart();
       Picasso.with(getContext())
           .load(mediaEntity.getMediaURLHttps())
-          .fit()
           .into((ImageView) getView());
     }
 
