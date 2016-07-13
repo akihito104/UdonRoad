@@ -92,10 +92,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       setSelectedBackground(holder.itemView);
       selectedStatusHolder = new SelectedStatus(holder);
     }
-
-    loadMediaView(status,
-        itemView.getMediaHeight(), itemView.getMediaWidth(),
-        itemView.getMediaContainer());
+    loadMediaView(status, itemView.getMediaContainer());
 
     final Status quotedStatus = status.isRetweet()
         ? status.getRetweetedStatus().getQuotedStatus()
@@ -106,32 +103,29 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
           .fit()
           .into(quotedStatusView.getIcon());
-      loadMediaView(quotedStatus,
-          quotedStatusView.getMediaHeight(), quotedStatusView.getMediaWidth(),
-          quotedStatusView.getMediaContainer());
+      loadMediaView(quotedStatus, quotedStatusView.getMediaContainer());
     }
   }
 
-  private void loadMediaView(final Status status,
-                             int mediaHeight, int mediaWidth,
-                             MediaContainer mediaContainer) {
+  private void loadMediaView(final Status status, MediaContainer mediaContainer) {
     ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
     final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
       final View mediaView = mediaContainer.getChildAt(i);
+      final int num = i;
       mediaView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          final Intent intent = MediaViewActivity.create(view.getContext(), status);
+          final Intent intent = MediaViewActivity.create(view.getContext(), status, num);
           view.getContext().startActivity(intent);
         }
       });
       final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
-      if (mediaHeight == 0 || mediaWidth == 0) {
+      if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {
-        rc.resize(mediaWidth, mediaHeight);
+        rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
       }
       rc.centerCrop()
           .into((ImageView) mediaView);

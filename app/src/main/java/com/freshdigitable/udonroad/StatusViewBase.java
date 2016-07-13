@@ -54,7 +54,6 @@ public abstract class StatusViewBase extends RelativeLayout {
     grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
     setPadding(grid, grid, grid, grid);
     setBackgroundColor(Color.TRANSPARENT);
-    mediaHeight = getResources().getDimensionPixelOffset(R.dimen.tweet_user_icon);
   }
 
   @CallSuper
@@ -132,16 +131,6 @@ public abstract class StatusViewBase extends RelativeLayout {
           : R.color.colorTwitterActionNormal);
       this.favCount.setText(String.valueOf(favCount));
     }
-  }
-
-  protected final int mediaHeight;
-
-  public int getMediaWidth() {
-    return Math.max(mediaContainer.getThumbWidth(), 0);
-  }
-
-  public int getMediaHeight() {
-    return mediaHeight;
   }
 
   protected void bindMediaEntities(Status status) {
