@@ -18,6 +18,8 @@ public interface TwitterApiComponent {
 
   void inject(MainActivity activity);
 
+  void inject(MediaViewActivity mediaViewActivity);
+
   void inject(UserStreamUtil userStreamUtil);
 
   void inject(TimelineFragment timelineFragment);
