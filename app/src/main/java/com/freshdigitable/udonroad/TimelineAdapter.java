@@ -109,6 +109,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   private void loadMediaView(final Status status, MediaContainer mediaContainer) {
     ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    if (extendedMediaEntities.length < 1) {
+      return;
+    }
     final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
       final View mediaView = mediaContainer.getChildAt(i);

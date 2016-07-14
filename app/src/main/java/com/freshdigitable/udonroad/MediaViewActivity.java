@@ -21,11 +21,13 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.fab.FlingableFAB;
@@ -41,6 +43,8 @@ import javax.inject.Inject;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
@@ -220,27 +224,70 @@ public class MediaViewActivity extends AppCompatActivity {
       public void onFling(Direction direction) {
         switch (direction) {
           case UP:
-            twitterApi.createFavorite(status.getId())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+            createFavorite(status);
             break;
           case RIGHT:
-            twitterApi.retweetStatus(status.getId())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+            retweetStatus(status);
             break;
           case UP_RIGHT:
-            twitterApi.createFavorite(status.getId())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
-            twitterApi.retweetStatus(status.getId())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+            createFavorite(status);
+            retweetStatus(status);
             break;
         }
         handler.postDelayed(hideSystemUITask, DURATION_SHOW_SYSTEM_UI);
       }
     });
+  }
+
+  private void retweetStatus(Status status) {
+    twitterApi.retweetStatus(status.getId())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            new Action1<Status>() {
+              @Override
+              public void call(Status status) {
+              }
+            },
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                showToast("failed RT...");
+              }
+            },
+            showToastAction("success RT"));
+  }
+
+  private void createFavorite(Status status) {
+    twitterApi.createFavorite(status.getId())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            new Action1<Status>() {
+              @Override
+              public void call(Status status) {
+              }
+            },
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                showToast("failed fav...");
+              }
+            },
+            showToastAction("success fav"));
+  }
+
+  private Action0 showToastAction(final String text) {
+    return new Action0() {
+      @Override
+      public void call() {
+        showToast(text);
+      }
+    };
+  }
+
+  private void showToast(String text) {
+    final Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
+    toast.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, binding.mediaToolbar.getHeight());
+    toast.show();
   }
 
   @Override

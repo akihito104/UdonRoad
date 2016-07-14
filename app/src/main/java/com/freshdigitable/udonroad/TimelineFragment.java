@@ -6,7 +6,6 @@ package com.freshdigitable.udonroad;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -26,7 +25,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
@@ -279,6 +277,7 @@ public class TimelineFragment extends Fragment {
 
   private void fetchRetweet(final long tweetId) {
     final TimelineAdapter adapter = getTimelineAdapter();
+    final View rootView = binding.getRoot();
     twitterApi.retweetStatus(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
@@ -291,19 +290,15 @@ public class TimelineFragment extends Fragment {
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
-                showSnackbar("failed to retweet...");
+                SnackbarUtil.show(rootView, "failed to retweet...");
               }
             },
-            new Action0() {
-              @Override
-              public void call() {
-                showSnackbar("success to retweet");
-              }
-            });
+            SnackbarUtil.action(rootView, "success to retweet"));
   }
 
   private void fetchFavorite(final long tweetId) {
     final TimelineAdapter adapter = getTimelineAdapter();
+    final View rootView = binding.getRoot();
     twitterApi.createFavorite(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
@@ -319,20 +314,15 @@ public class TimelineFragment extends Fragment {
                 if (e instanceof TwitterException) {
                   final int statusCode = ((TwitterException) e).getStatusCode();
                   if (statusCode == 403) {
-                    showSnackbar("already faved");
+                    SnackbarUtil.show(rootView, "already faved");
                     return;
                   }
                 }
                 Log.e(TAG, "error: ", e);
-                showSnackbar("failed to create fav...");
+                SnackbarUtil.show(rootView, "failed to create fav...");
               }
             },
-            new Action0() {
-              @Override
-              public void call() {
-                showSnackbar("success to create fav.");
-              }
-            });
+            SnackbarUtil.action(rootView, "success to create fav."));
   }
 
   protected void fetchTweet() {
@@ -370,11 +360,6 @@ public class TimelineFragment extends Fragment {
                 Log.e(TAG, "home timeline is not downloaded.", e);
               }
             });
-  }
-
-  private void showSnackbar(String text) {
-    Snackbar.make(binding.getRoot(), text, Snackbar.LENGTH_SHORT)
-        .show();
   }
 
   protected TwitterApi getTwitterApi() {
