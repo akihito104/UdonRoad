@@ -10,39 +10,47 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         >
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/media_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="#3000"
-            app:titleTextColor="#fff"
-            />
         <android.support.v4.view.ViewPager
             android:id="@+id/media_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             />
-        <com.freshdigitable.udonroad.fab.ActionIndicatorView
-            android:id="@+id/media_indicator"
-            android:layout_width="52dp"
-            android:layout_height="48dp"
-            android:layout_marginBottom="182dp"
-            android:src="@drawable/ic_add"
-            android:background="#3000"
-            android:contentDescription="@string/desc_fling_indicator"
-            android:layout_gravity="bottom|center_horizontal"
-            android:visibility="gone"
-            tools:visibility="visible"
-            />
-        <com.freshdigitable.udonroad.fab.FlingableFAB
-            android:id="@+id/media_ffab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|bottom"
-            android:layout_marginBottom="64dp"
-            android:src="@drawable/ic_add"
-            app:backgroundTint="#3000"
-            app:fabSize="normal"
-            />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true"
+            >
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/media_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/colorImmersiveLayerBackground"
+                app:titleTextColor="#fff"
+                />
+            <com.freshdigitable.udonroad.fab.ActionIndicatorView
+                android:id="@+id/media_indicator"
+                android:layout_width="52dp"
+                android:layout_height="48dp"
+                android:layout_marginBottom="150dp"
+                android:src="@drawable/ic_add"
+                android:background="@color/colorImmersiveLayerBackground"
+                android:contentDescription="@string/desc_fling_indicator"
+                android:layout_gravity="bottom|center_horizontal"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+            <com.freshdigitable.udonroad.fab.FlingableFAB
+                android:id="@+id/media_ffab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="32dp"
+                android:src="@drawable/ic_add"
+                app:backgroundTint="@color/colorImmersiveLayerBackground"
+                app:fabSize="normal"
+                />
+        </FrameLayout>
+
     </FrameLayout>
 </layout>

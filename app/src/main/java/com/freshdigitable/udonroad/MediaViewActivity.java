@@ -304,7 +304,7 @@ public class MediaViewActivity extends AppCompatActivity {
     public void onStart() {
       super.onStart();
       Picasso.with(getContext())
-          .load(mediaEntity.getMediaURLHttps())
+          .load(mediaEntity.getMediaURLHttps() + ":medium")
           .into((ImageView) getView());
     }
 
