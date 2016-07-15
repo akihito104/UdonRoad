@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+  -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+           android:layout_height="match_parent"
+           android:layout_width="match_parent"
+    >
+    <VideoView
+        android:id="@+id/media_video"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        />
+</FrameLayout>

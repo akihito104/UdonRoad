@@ -114,7 +114,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
     final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
-      final View mediaView = mediaContainer.getChildAt(i);
+      final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
       final int num = i;
       mediaView.setOnClickListener(new View.OnClickListener() {
         @Override
@@ -131,7 +131,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
       }
       rc.centerCrop()
-          .into((ImageView) mediaView);
+          .into(mediaView);
     }
   }
 

@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,6 +30,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.fab.FlingableFAB;
@@ -342,22 +345,77 @@ public class MediaViewActivity extends AppCompatActivity {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-      final ImageView imageView = new ImageView(getContext());
-      imageView.setBackgroundColor(Color.BLACK);
-      return imageView;
+      if (container != null) {
+        container.setBackgroundColor(Color.BLACK);
+      }
+
+      final String type = mediaEntity.getType();
+      if ("video".equals(type)) {
+        return inflater.inflate(R.layout.view_video, container, false);
+      } else {
+        return new ImageView(getContext());
+      }
     }
 
     @Override
     public void onStart() {
       super.onStart();
-      Picasso.with(getContext())
-          .load(mediaEntity.getMediaURLHttps() + ":medium")
-          .into((ImageView) getView());
+      if (getView() == null) {
+        return;
+      }
+      final String type = mediaEntity.getType();
+      if ("video".equals(type)) {
+        final VideoView video = (VideoView) getView().findViewById(R.id.media_video);
+        final String url = selectVideo();
+        if (url != null) {
+          video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+              video.start();
+            }
+          });
+          video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+              video.stopPlayback();
+            }
+          });
+          Log.d(TAG, "onStart: video: " + url);
+          video.setVideoURI(Uri.parse(url));
+        }
+      } else {
+        Picasso.with(getContext())
+            .load(mediaEntity.getMediaURLHttps() + ":medium")
+            .into((ImageView) getView());
+      }
+    }
+
+    private String selectVideo() {
+      final ExtendedMediaEntity.Variant[] videoVariants = mediaEntity.getVideoVariants();
+      for (ExtendedMediaEntity.Variant v : videoVariants) {
+        if (v.getContentType().equals("video/mp4")) {
+          return v.getUrl();
+        }
+      }
+      return null;
     }
 
     @Override
     public void onStop() {
-      Picasso.with(getContext()).cancelRequest((ImageView) getView());
+      final View view = getView();
+      if (view == null) {
+        return;
+      }
+      final String type = mediaEntity.getType();
+      if ("video".equals(type)) {
+        final VideoView vv = (VideoView) view.findViewById(R.id.media_video);
+        vv.stopPlayback();
+        vv.setOnPreparedListener(null);
+        vv.setOnCompletionListener(null);
+        vv.setVideoURI(null);
+      } else {
+        Picasso.with(getContext()).cancelRequest((ImageView) view);
+      }
       super.onStop();
     }
   }
