@@ -54,7 +54,6 @@ public class MediaViewActivity extends AppCompatActivity {
   private static final String TAG = MediaViewActivity.class.getSimpleName();
   private static final String CREATE_STATUS = "status";
   private static final String CREATE_START = "start";
-  private static final int DURATION_SHOW_SYSTEM_UI = 5000;
 
   private Realm realm;
   private ActivityMediaViewBinding binding;
@@ -62,13 +61,6 @@ public class MediaViewActivity extends AppCompatActivity {
   TwitterApi twitterApi;
   private FlingableFABHelper ffabHelper;
   private Handler handler;
-  private final Runnable hideSystemUITask = new Runnable() {
-    @Override
-    public void run() {
-      Log.d(TAG, "handler.postDelayed: ");
-      hideSystemUI();
-    }
-  };
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -108,14 +100,12 @@ public class MediaViewActivity extends AppCompatActivity {
       @Override
       public void onSystemUiVisibilityChange(int visibility) {
         Log.d(TAG, "onSystemUiVisibilityChange: " + visibility);
-        if ((View.SYSTEM_UI_FLAG_FULLSCREEN & visibility) == 0) {
-          showSystemUI();
+        if (isSystemUIVisible(visibility)) {
           if (actionBar != null) {
             setTitle();
             actionBar.show();
           }
           mediaFfab.show();
-          handler.postDelayed(hideSystemUITask, DURATION_SHOW_SYSTEM_UI);
         } else {
           if (actionBar != null) {
             actionBar.hide();
@@ -124,6 +114,18 @@ public class MediaViewActivity extends AppCompatActivity {
         }
       }
     });
+  }
+
+  private boolean isSystemUIVisible() {
+    return isSystemUIVisible(getWindow().getDecorView().getSystemUiVisibility());
+  }
+
+  private boolean isSystemUIVisible(int visibility) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+      return (View.SYSTEM_UI_FLAG_FULLSCREEN & visibility) == 0;
+    } else {
+      return (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION & visibility) == 0;
+    }
   }
 
   private void showSystemUI() {
@@ -204,8 +206,21 @@ public class MediaViewActivity extends AppCompatActivity {
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
     final Status status = findStatus(statusId);
     final int startPage = intent.getIntExtra(CREATE_START, 0);
-    binding.mediaPager.setAdapter(new MediaPagerAdapter(getSupportFragmentManager(),
-        status.getExtendedMediaEntities()));
+    binding.mediaPager.setAdapter(new MediaPagerAdapter(
+        getSupportFragmentManager(),
+        status.getExtendedMediaEntities(),
+        new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            Log.d(TAG, "onClick: page");
+            if (isSystemUIVisible()) {
+              hideSystemUI();
+            } else {
+              showSystemUI();
+            }
+          }
+        })
+    );
     binding.mediaPager.addOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setCurrentItem(startPage);
     setTitle();
@@ -213,11 +228,6 @@ public class MediaViewActivity extends AppCompatActivity {
     ffabHelper.addEnableDirection(Direction.UP);
     ffabHelper.addEnableDirection(Direction.UP_RIGHT);
     binding.mediaFfab.setOnFlingListener(new OnFlingAdapter() {
-      @Override
-      public void onStart() {
-        handler.removeCallbacksAndMessages(null);
-      }
-
       @Override
       public void onFling(Direction direction) {
         switch (direction) {
@@ -232,7 +242,6 @@ public class MediaViewActivity extends AppCompatActivity {
             retweetStatus(status);
             break;
         }
-        handler.postDelayed(hideSystemUITask, DURATION_SHOW_SYSTEM_UI);
       }
     });
   }
@@ -299,6 +308,14 @@ public class MediaViewActivity extends AppCompatActivity {
     super.onStop();
   }
 
+  private final Runnable hideSystemUITask = new Runnable() {
+    @Override
+    public void run() {
+      Log.d(TAG, "handler.postDelayed: ");
+      hideSystemUI();
+    }
+  };
+
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     Log.d(TAG, "onWindowFocusChanged: " + Boolean.toString(hasFocus));
@@ -310,15 +327,18 @@ public class MediaViewActivity extends AppCompatActivity {
 
   private static class MediaPagerAdapter extends FragmentPagerAdapter {
     private ExtendedMediaEntity[] mediaEntities;
+    private View.OnClickListener pageClickListener;
 
-    public MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities) {
+    public MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities,
+                             View.OnClickListener pageClickListener) {
       super(fm);
       this.mediaEntities = mediaEntities;
+      this.pageClickListener = pageClickListener;
     }
 
     @Override
     public Fragment getItem(int position) {
-      return MediaFragment.create(mediaEntities[position]);
+      return MediaFragment.create(mediaEntities[position], pageClickListener);
     }
 
     @Override
@@ -328,7 +348,8 @@ public class MediaViewActivity extends AppCompatActivity {
   }
 
   public static abstract class MediaFragment extends Fragment {
-    private static MediaFragment create(ExtendedMediaEntity mediaEntity) {
+    private static MediaFragment create(
+        ExtendedMediaEntity mediaEntity, View.OnClickListener pageClickListener) {
       final MediaFragment fragment;
       final String type = mediaEntity.getType();
       if ("video".equals(type)) {
@@ -337,10 +358,12 @@ public class MediaViewActivity extends AppCompatActivity {
         fragment = new PhotoMediaFragment();
       }
       fragment.mediaEntity = mediaEntity;
+      fragment.pageClickListener = pageClickListener;
       return fragment;
     }
 
     protected ExtendedMediaEntity mediaEntity;
+    protected View.OnClickListener pageClickListener;
 
     @Nullable
     @Override

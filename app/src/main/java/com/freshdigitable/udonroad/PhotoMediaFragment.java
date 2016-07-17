@@ -17,12 +17,17 @@ import com.squareup.picasso.Picasso;
  * Created by akihit on 2016/07/17.
  */
 public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
+  public static final String TAG = PhotoMediaFragment.class.getSimpleName();
+  private ImageView imageView;
+
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
-    return new ImageView(getContext());
+    imageView = new ImageView(getContext());
+    imageView.setOnClickListener(pageClickListener);
+    return imageView;
   }
 
   @Override
@@ -36,6 +41,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onStop() {
     Picasso.with(getContext()).cancelRequest((ImageView) getView());
+    imageView.setOnClickListener(null);
     super.onStop();
   }
 }

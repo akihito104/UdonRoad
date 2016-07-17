@@ -28,13 +28,29 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @SuppressWarnings("unused")
   private static final String TAG = VideoMediaFragment.class.getSimpleName();
   private VideoView videoView;
+  private View rootView;
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
-    return inflater.inflate(R.layout.view_video, container, false);
+    rootView = inflater.inflate(R.layout.view_video, container, false);
+    rootView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (pageClickListener != null) {
+          pageClickListener.onClick(view);
+        }
+        Log.d(TAG, "onClick: video");
+        if (isCompleted) {
+          videoView.seekTo(0);
+          videoView.resume();
+          isCompleted = false;
+        }
+      }
+    });
+    return rootView;
   }
 
   @Override
@@ -42,6 +58,8 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onViewCreated(view, savedInstanceState);
     videoView = (VideoView) view.findViewById(R.id.media_video);
   }
+
+  private boolean isCompleted = false;
 
   @Override
   public void onStart() {
@@ -54,16 +72,18 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
       @Override
       public void onPrepared(MediaPlayer mediaPlayer) {
+//        Log.d(TAG, "onPrepared: ");
         videoView.start();
       }
     });
     videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
       @Override
       public void onCompletion(MediaPlayer mediaPlayer) {
+//        Log.d(TAG, "onCompletion: ");
         videoView.stopPlayback();
+        isCompleted = true;
       }
     });
-    Log.d(TAG, "onStart: video: " + url);
     videoView.setVideoURI(Uri.parse(url));
   }
 
@@ -102,5 +122,11 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     videoView.setOnCompletionListener(null);
     videoView.setVideoURI(null);
     super.onStop();
+  }
+
+  @Override
+  public void onDestroyView() {
+    rootView.setOnClickListener(null);
+    super.onDestroyView();
   }
 }
