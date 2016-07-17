@@ -14,6 +14,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.VideoView;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import twitter4j.ExtendedMediaEntity;
 
 /**
@@ -63,13 +68,31 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   }
 
   private String selectVideo() {
+    final List<ExtendedMediaEntity.Variant> playableMedia = findPlayableMedia();
+    if (playableMedia.size() == 0) {
+      return null;
+    } else if (playableMedia.size() == 1) {
+      return playableMedia.get(0).getUrl();
+    }
+
+    Collections.sort(playableMedia, new Comparator<ExtendedMediaEntity.Variant>() {
+      @Override
+      public int compare(ExtendedMediaEntity.Variant l, ExtendedMediaEntity.Variant r) {
+        return l.getBitrate() - r.getBitrate();
+      }
+    });
+    return playableMedia.get(1).getUrl();
+  }
+
+  private List<ExtendedMediaEntity.Variant> findPlayableMedia() {
     final ExtendedMediaEntity.Variant[] videoVariants = mediaEntity.getVideoVariants();
+    List<ExtendedMediaEntity.Variant> res = new ArrayList<>(videoVariants.length);
     for (ExtendedMediaEntity.Variant v : videoVariants) {
       if (v.getContentType().equals("video/mp4")) {
-        return v.getUrl();
+        res.add(v);
       }
     }
-    return null;
+    return res;
   }
 
   @Override
