@@ -353,10 +353,11 @@ public class MediaViewActivity extends AppCompatActivity {
         ExtendedMediaEntity mediaEntity, View.OnClickListener pageClickListener) {
       final MediaFragment fragment;
       final String type = mediaEntity.getType();
-      if ("video".equals(type)) {
-        fragment = new VideoMediaFragment();
-      } else {
+      if ("photo".equals(type)) {
         fragment = new PhotoMediaFragment();
+      } else {
+        // video and animated_gif are distributed as a mp4
+        fragment = new VideoMediaFragment();
       }
       fragment.mediaEntity = mediaEntity;
       fragment.pageClickListener = pageClickListener;

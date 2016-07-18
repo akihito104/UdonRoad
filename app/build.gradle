@@ -70,7 +70,7 @@ dependencies {
     compile "org.twitter4j:twitter4j-core:$t4jVer"
     compile "org.twitter4j:twitter4j-stream:$t4jVer"
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.squareup.okhttp3:okhttp:3.2.0'
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
 
     compile "io.reactivex:rxandroid:$rxVer"
     // Because RxAndroid releases are few and far between, it is recommended you also

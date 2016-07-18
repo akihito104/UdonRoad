@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.ExtendedMediaEntity.Variant;
 
 /**
  * Created by akihit on 2016/07/17.
@@ -91,26 +91,26 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   }
 
   private String selectVideo() {
-    final List<ExtendedMediaEntity.Variant> playableMedia = findPlayableMedia();
+    final List<Variant> playableMedia = findPlayableMedia();
     if (playableMedia.size() == 0) {
       return null;
     } else if (playableMedia.size() == 1) {
       return playableMedia.get(0).getUrl();
     }
 
-    Collections.sort(playableMedia, new Comparator<ExtendedMediaEntity.Variant>() {
+    Collections.sort(playableMedia, new Comparator<Variant>() {
       @Override
-      public int compare(ExtendedMediaEntity.Variant l, ExtendedMediaEntity.Variant r) {
+      public int compare(Variant l, Variant r) {
         return l.getBitrate() - r.getBitrate();
       }
     });
     return playableMedia.get(1).getUrl();
   }
 
-  private List<ExtendedMediaEntity.Variant> findPlayableMedia() {
-    final ExtendedMediaEntity.Variant[] videoVariants = mediaEntity.getVideoVariants();
-    List<ExtendedMediaEntity.Variant> res = new ArrayList<>(videoVariants.length);
-    for (ExtendedMediaEntity.Variant v : videoVariants) {
+  private List<Variant> findPlayableMedia() {
+    final Variant[] videoVariants = mediaEntity.getVideoVariants();
+    List<Variant> res = new ArrayList<>(videoVariants.length);
+    for (Variant v : videoVariants) {
       if (v.getContentType().equals("video/mp4")) {
         res.add(v);
       }
