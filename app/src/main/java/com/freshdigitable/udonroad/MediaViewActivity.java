@@ -23,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -374,5 +375,39 @@ public class MediaViewActivity extends AppCompatActivity {
       }
       return super.onCreateView(inflater, container, savedInstanceState);
     }
+
+    protected final View.OnTouchListener touchListener = new View.OnTouchListener() {
+      final double LOWER_THRESHOLD = (90 - 10) * Math.PI / 180;
+      final double UPPER_THRESHOLD = (90 + 10) * Math.PI / 180;
+      private MotionEvent old;
+
+      @Override
+      public boolean onTouch(View view, MotionEvent now) {
+        final int action = now.getAction();
+        if (action == MotionEvent.ACTION_DOWN) {
+          old = MotionEvent.obtain(now);
+          return false;
+        }
+        if (action == MotionEvent.ACTION_UP) {
+          try {
+            final float deltaX = now.getX() - old.getX();
+            final float deltaY = now.getY() - old.getY();
+            final double powDist = deltaX * deltaX + deltaY * deltaY;
+            if (powDist < 100) {  // maybe click
+//              Log.d(TAG, "onTouch: click: " + powDist);
+              return false;
+            }
+            final double rad = Math.atan2(deltaY, deltaX);
+            final double absRad = Math.abs(rad);
+            if (absRad > LOWER_THRESHOLD || absRad < UPPER_THRESHOLD) { // maybe swipe to longitude
+              return true;
+            }
+          } finally {
+            old.recycle();
+          }
+        }
+        return false;
+      }
+    };
   }
 }

@@ -36,20 +36,6 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
     rootView = inflater.inflate(R.layout.view_video, container, false);
-    rootView.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (pageClickListener != null) {
-          pageClickListener.onClick(view);
-        }
-        Log.d(TAG, "onClick: video");
-        if (isCompleted) {
-          videoView.seekTo(0);
-          videoView.resume();
-          isCompleted = false;
-        }
-      }
-    });
     return rootView;
   }
 
@@ -68,6 +54,23 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     if (url == null) {
       return;
     }
+
+    rootView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (pageClickListener != null) {
+          pageClickListener.onClick(view);
+        }
+        Log.d(TAG, "onClick: video");
+        if (isCompleted) {
+          final VideoView video = (VideoView) view.findViewById(R.id.media_video);
+          video.seekTo(0);
+          video.resume();
+          isCompleted = false;
+        }
+      }
+    });
+    rootView.setOnTouchListener(super.touchListener);
 
     videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
       @Override
@@ -121,12 +124,8 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     videoView.setOnPreparedListener(null);
     videoView.setOnCompletionListener(null);
     videoView.setVideoURI(null);
-    super.onStop();
-  }
-
-  @Override
-  public void onDestroyView() {
     rootView.setOnClickListener(null);
-    super.onDestroyView();
+    rootView.setOnTouchListener(null);
+    super.onStop();
   }
 }

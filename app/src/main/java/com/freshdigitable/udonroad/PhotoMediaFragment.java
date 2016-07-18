@@ -26,13 +26,14 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
     imageView = new ImageView(getContext());
-    imageView.setOnClickListener(pageClickListener);
     return imageView;
   }
 
   @Override
   public void onStart() {
     super.onStart();
+    imageView.setOnClickListener(super.pageClickListener);
+    imageView.setOnTouchListener(super.touchListener);
     Picasso.with(getContext())
         .load(mediaEntity.getMediaURLHttps() + ":medium")
         .into((ImageView) getView());
@@ -42,6 +43,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   public void onStop() {
     Picasso.with(getContext()).cancelRequest((ImageView) getView());
     imageView.setOnClickListener(null);
+    imageView.setOnTouchListener(null);
     super.onStop();
   }
 }
