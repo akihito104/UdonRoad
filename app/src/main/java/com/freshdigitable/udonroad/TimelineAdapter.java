@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -64,9 +65,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = get(position);
+    final StatusView itemView = (StatusView) holder.itemView;
     if (holder.status != null && holder.status.getId() == status.getId()) {
 //      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
-      ((StatusView) holder.itemView).bindStatus(status);
+      itemView.bindStatus(status);
       return;
     }
     holder.bindStatus(status);
@@ -90,15 +92,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       setSelectedBackground(holder.itemView);
       selectedStatusHolder = new SelectedStatus(holder);
     }
-
-    final StatusView itemView = (StatusView) holder.itemView;
-    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    if (extendedMediaEntities != null) {
-      final int mediaHeight = itemView.getMediaHeight();
-      final int mediaWidth = itemView.getMediaWidth();
-      final ImageView[] mediaImages = itemView.getMediaImages();
-      loadMediaView(extendedMediaEntities, mediaHeight, mediaWidth, mediaImages);
-    }
+    loadMediaView(status, itemView.getMediaContainer());
 
     final Status quotedStatus = status.isRetweet()
         ? status.getRetweetedStatus().getQuotedStatus()
@@ -109,27 +103,39 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
           .fit()
           .into(quotedStatusView.getIcon());
-      loadMediaView(quotedStatus.getExtendedMediaEntities(),
-          quotedStatusView.getMediaHeight(), quotedStatusView.getMediaWidth(),
-          quotedStatusView.getMediaImages());
+      loadMediaView(quotedStatus, quotedStatusView.getMediaContainer());
     }
   }
 
-  private void loadMediaView(ExtendedMediaEntity[] extendedMediaEntities,
-                               int mediaHeight, int mediaWidth,
-                               ImageView[] mediaImages) {
-    final int mediaCount = extendedMediaEntities.length > mediaImages.length
-        ? mediaImages.length : extendedMediaEntities.length;
+  private void loadMediaView(final Status status, MediaContainer mediaContainer) {
+    ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    if (extendedMediaEntities.length < 1) {
+      return;
+    }
+    final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
-      final RequestCreator rc = Picasso.with(mediaImages[i].getContext())
+      final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
+      final int num = i;
+
+      final String type = extendedMediaEntities[i].getType();
+      mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
+
+      mediaView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          final Intent intent = MediaViewActivity.create(view.getContext(), status, num);
+          view.getContext().startActivity(intent);
+        }
+      });
+      final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
-      if (mediaHeight == 0 || mediaWidth == 0) {
+      if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {
-        rc.resize(mediaWidth, mediaHeight);
+        rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
       }
       rc.centerCrop()
-          .into(mediaImages[i]);
+          .into(mediaView);
     }
   }
 
@@ -155,19 +161,23 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
       Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
     }
-    if (v.getMediaImages()[0].getVisibility() == View.VISIBLE) {
-      for (ImageView mi : v.getMediaImages()) {
-        Picasso.with(v.getContext()).cancelRequest(mi);
-      }
-    }
+    unloadMediaView(v);
 
     final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
     if (quotedStatusView.getVisibility() == View.VISIBLE) {
       Picasso.with(v.getContext()).cancelRequest(quotedStatusView.getIcon());
-      if (quotedStatusView.getMediaImages()[0].getVisibility() == View.VISIBLE) {
-        for (ImageView mi : v.getMediaImages()) {
-          Picasso.with(v.getContext()).cancelRequest(mi);
-        }
+      unloadMediaView(quotedStatusView);
+    }
+  }
+
+  public void unloadMediaView(StatusViewBase v) {
+    final MediaContainer mediaContainer = v.getMediaContainer();
+    if (mediaContainer.getThumbCount() > 0
+        && mediaContainer.getChildAt(0).getVisibility() == View.VISIBLE) {
+      for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
+        final ImageView iv = (ImageView) mediaContainer.getChildAt(i);
+        iv.setOnClickListener(null);
+        Picasso.with(v.getContext()).cancelRequest(iv);
       }
     }
   }

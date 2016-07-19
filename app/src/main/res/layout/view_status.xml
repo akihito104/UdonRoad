@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
        xmlns:tools="http://schemas.android.com/tools"
+       xmlns:app="http://schemas.android.com/apk/res-auto"
     >
 
     <!--<RelativeLayout android:layout_width="match_parent"-->
@@ -179,7 +180,7 @@
             tools:visibility="visible"
             />
 
-        <LinearLayout
+        <com.freshdigitable.udonroad.MediaContainer
             android:id="@+id/tl_image_group"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/tweet_user_icon"
@@ -193,47 +194,8 @@
             android:orientation="horizontal"
             android:visibility="gone"
             tools:visibility="visible"
-            >
-            <ImageView
-                android:id="@+id/tl_image_1"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:contentDescription="@string/tweet_media_descs"
-                android:visibility="gone"
-                tools:visibility="visible"
-                />
-            <ImageView
-                android:id="@+id/tl_image_2"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="@dimen/grid_margin"
-                android:layout_weight="1"
-                android:contentDescription="@string/tweet_media_descs"
-                android:visibility="gone"
-                tools:visibility="visible"
-                />
-            <ImageView
-                android:id="@+id/tl_image_3"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="@dimen/grid_margin"
-                android:layout_weight="1"
-                android:contentDescription="@string/tweet_media_descs"
-                android:visibility="gone"
-                tools:visibility="visible"
-                />
-            <ImageView
-                android:id="@+id/tl_image_4"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="@dimen/grid_margin"
-                android:layout_weight="1"
-                android:contentDescription="@string/tweet_media_descs"
-                android:visibility="gone"
-                tools:visibility="visible"
-                />
-        </LinearLayout>
+            app:thumbCount="4"
+            />
 
         <com.freshdigitable.udonroad.QuotedStatusView
             android:id="@+id/tl_quoted"

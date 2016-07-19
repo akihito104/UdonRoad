@@ -45,7 +45,6 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
   public void openRealm(RealmConfiguration config) {
     Log.d(TAG, "openRealm: ");
-    Realm.deleteRealm(config);
     realm = Realm.getInstance(config);
     defaultTimeline();
   }
@@ -53,12 +52,6 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   public void closeRealm() {
     Log.d(TAG, "closeRealm: ");
     clearSelectedTweet();
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.deleteAll();
-      }
-    });
     realm.close();
   }
 

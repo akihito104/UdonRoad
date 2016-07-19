@@ -37,32 +37,40 @@ public class UserStreamUtil {
     this.adapter = adapter;
   }
 
-  public void connect() {
-    statusPublishSubject = PublishSubject.create();
-    subscription = statusPublishSubject
-        .buffer(500, TimeUnit.MILLISECONDS)
-        .onBackpressureBuffer()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<List<Status>>() {
-          @Override
-          public void call(List<Status> statuses) {
-            adapter.addNewStatuses(statuses);
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.d(TAG, "error: " + throwable);
-          }
-        });
+  private boolean isConnectedUserStream = false;
 
-    streamApi.loadAccessToken();
-    streamApi.connectUserStream(statusListener);
+  public void connect() {
+    if (subscription == null || subscription.isUnsubscribed()) {
+      statusPublishSubject = PublishSubject.create();
+      subscription = statusPublishSubject
+          .buffer(500, TimeUnit.MILLISECONDS)
+          .onBackpressureBuffer()
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(new Action1<List<Status>>() {
+            @Override
+            public void call(List<Status> statuses) {
+              adapter.addNewStatuses(statuses);
+            }
+          }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+              Log.d(TAG, "error: " + throwable);
+            }
+          });
+    }
+    if (!isConnectedUserStream) {
+      streamApi.loadAccessToken();
+      streamApi.connectUserStream(statusListener);
+      isConnectedUserStream = true;
+    }
   }
 
   public void disconnect() {
     streamApi.disconnectStreamListener();
+    isConnectedUserStream = false;
+
     statusPublishSubject.onCompleted();
-    if (subscription != null && subscription.isUnsubscribed()) {
+    if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
   }

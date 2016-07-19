@@ -39,6 +39,7 @@ public class FlingableFAB extends FloatingActionButton {
         final int action = motionEvent.getAction();
         if (action == MotionEvent.ACTION_DOWN) {
           old = MotionEvent.obtain(motionEvent);
+          flingListener.onStart();
           if (actionIndicatorHelper != null) {
             actionIndicatorHelper.onStart();
           }
@@ -47,6 +48,7 @@ public class FlingableFAB extends FloatingActionButton {
         final Direction direction = Direction.getDirection(old, motionEvent);
         if (action == MotionEvent.ACTION_MOVE) {
 //          Log.d(TAG, "onTouch: " + direction);
+          flingListener.onMoving(direction);
           if (actionIndicatorHelper != null) {
             actionIndicatorHelper.onMoving(direction);
           }

@@ -587,7 +587,8 @@ public class TimelineAnimator extends SimpleItemAnimator {
   }
 
   private void cancelAll(List<ViewHolder> viewHolders) {
-    for (ViewHolder vh : viewHolders) {
+    for (int i = viewHolders.size() - 1; i >= 0; i--) {
+      final ViewHolder vh = viewHolders.get(i);
       ViewCompat.animate(vh.itemView).cancel();
     }
     viewHolders.clear();

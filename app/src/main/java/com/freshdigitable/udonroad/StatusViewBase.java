@@ -13,15 +13,12 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Html;
 import android.util.AttributeSet;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.Date;
 
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
@@ -39,8 +36,7 @@ public abstract class StatusViewBase extends RelativeLayout {
   protected TextView rtCount;
   protected ImageView favIcon;
   protected TextView favCount;
-  protected View mediaGroup;
-  protected ImageView[] mediaImages;
+  protected MediaContainer mediaContainer;
   protected final int grid;
   protected static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
 
@@ -58,7 +54,6 @@ public abstract class StatusViewBase extends RelativeLayout {
     grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
     setPadding(grid, grid, grid, grid);
     setBackgroundColor(Color.TRANSPARENT);
-    mediaHeight = getResources().getDimensionPixelOffset(R.dimen.tweet_user_icon);
   }
 
   @CallSuper
@@ -138,30 +133,8 @@ public abstract class StatusViewBase extends RelativeLayout {
     }
   }
 
-  protected int mediaWidth;
-  protected final int mediaHeight;
-
-  public int getMediaWidth() {
-    return mediaWidth > 0
-        ? mediaWidth
-        : 0;
-  }
-
-  public int getMediaHeight() {
-    return mediaHeight;
-  }
-
   protected void bindMediaEntities(Status status) {
-    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    final int mediaCount = extendedMediaEntities.length > mediaImages.length
-        ? mediaImages.length : extendedMediaEntities.length;
-    if (mediaCount > 0) {
-      mediaWidth = (mediaGroup.getWidth() - grid * (mediaCount - 1)) / mediaCount;
-      mediaGroup.setVisibility(VISIBLE);
-      for (int i = 0; i < mediaCount; i++) {
-        mediaImages[i].setVisibility(VISIBLE);
-      }
-    }
+    mediaContainer.bindMediaEntities(status.getExtendedMediaEntities());
   }
 
   protected Status getBindingStatus(Status status) {
@@ -206,14 +179,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     setOnClickListener(null);
     setUserIconClickListener(null);
 
-    for (ImageView mi : mediaImages) {
-      mi.setImageDrawable(null);
-      final ViewGroup.LayoutParams layoutParams = mi.getLayoutParams();
-      layoutParams.width = 0;
-      mi.setLayoutParams(layoutParams);
-      mi.setVisibility(GONE);
-    }
-    mediaGroup.setVisibility(GONE);
+    mediaContainer.reset();
   }
 
   public void setUserIconClickListener(OnClickListener userIconClickListener) {
@@ -229,9 +195,9 @@ public abstract class StatusViewBase extends RelativeLayout {
     return icon;
   }
 
-  public ImageView[] getMediaImages() {
-    return mediaImages;
-  }
-
   protected abstract String parseText(Status status);
+
+  public MediaContainer getMediaContainer() {
+    return mediaContainer;
+  }
 }

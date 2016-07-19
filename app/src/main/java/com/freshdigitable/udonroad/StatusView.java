@@ -46,13 +46,7 @@ public class StatusView extends StatusViewBase {
     rtUserContainer = (LinearLayout) v.findViewById(R.id.tl_rt_user_container);
     rtUser = (TextView) v.findViewById(R.id.tl_rt_user);
     rtUserIcon = (ImageView) v.findViewById(R.id.tl_rt_user_icon);
-    mediaGroup = v.findViewById(R.id.tl_image_group);
-    mediaImages = new ImageView[]{
-        (ImageView) v.findViewById(R.id.tl_image_1),
-        (ImageView) v.findViewById(R.id.tl_image_2),
-        (ImageView) v.findViewById(R.id.tl_image_3),
-        (ImageView) v.findViewById(R.id.tl_image_4)
-    };
+    mediaContainer = (MediaContainer) v.findViewById(R.id.tl_image_group);
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.tl_quoted);
   }
 

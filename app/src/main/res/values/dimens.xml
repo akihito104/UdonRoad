@@ -8,4 +8,5 @@
     <dimen name="grid_margin">4dp</dimen>
     <dimen name="small_user_icon">16dp</dimen>
     <dimen name="selected_indicator_size">24dp</dimen>
+    <dimen name="action_bar_elevation">4dp</dimen>
 </resources>

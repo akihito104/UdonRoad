@@ -35,7 +35,8 @@
                     android:scheme="udonr" />
             </intent-filter>
         </activity>
-
+        <activity android:name=".MediaViewActivity"
+            android:theme="@style/Theme.AppTheme.TranslucentStatusBar"/>
     </application>
 
 </manifest>

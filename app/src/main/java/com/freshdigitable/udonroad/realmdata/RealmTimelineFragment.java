@@ -15,6 +15,7 @@ import com.freshdigitable.udonroad.TimelineFragment;
 
 import java.util.List;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -44,6 +45,13 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
     Log.d(TAG, "onStop: ");
     adapter.closeRealm();
     super.onStop();
+  }
+
+  @Override
+  public void onDestroy() {
+    Log.d(TAG, "onDestroy: ");
+    Realm.deleteRealm(createRealmConfiguration());
+    super.onDestroy();
   }
 
   public abstract RealmConfiguration createRealmConfiguration();

@@ -7,4 +7,5 @@
     <color name="colorTwitterActionNormalTransparent">#3FAAB8C2</color>
     <color name="colorTwitterActionRetweeted">#19CF86</color>
     <color name="colorTwitterActionFaved">#E81C4F</color>
+    <color name="colorImmersiveLayerBackground">#3000</color>
 </resources>
