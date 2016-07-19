@@ -34,4 +34,5 @@
     <string name="detail_fav_delete_failed">like delete failure…</string>
     <string name="detail_fav_delete_success">like destroy successed</string>
     <string name="desc_fling_indicator">action indicator</string>
+    <string name="media_remain_time">%1$d:%2$02d</string>
 </resources>

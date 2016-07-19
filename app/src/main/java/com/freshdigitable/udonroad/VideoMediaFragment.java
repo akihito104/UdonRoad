@@ -12,6 +12,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import java.util.ArrayList;
@@ -19,7 +21,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import twitter4j.ExtendedMediaEntity.Variant;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
  * Created by akihit on 2016/07/17.
@@ -29,6 +39,9 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   private static final String TAG = VideoMediaFragment.class.getSimpleName();
   private VideoView videoView;
   private View rootView;
+  private ProgressBar progressBar;
+  private Subscription subscribe;
+  private TextView progressText;
 
   @Nullable
   @Override
@@ -43,6 +56,8 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     videoView = (VideoView) view.findViewById(R.id.media_video);
+    progressBar = (ProgressBar) view.findViewById(R.id.media_progressBar);
+    progressText = (TextView) view.findViewById(R.id.media_progressText);
   }
 
   private boolean isCompleted = false;
@@ -61,7 +76,6 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
         if (pageClickListener != null) {
           pageClickListener.onClick(view);
         }
-        Log.d(TAG, "onClick: video");
         if (isCompleted) {
           final VideoView video = (VideoView) view.findViewById(R.id.media_video);
           video.seekTo(0);
@@ -75,19 +89,44 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
       @Override
       public void onPrepared(MediaPlayer mediaPlayer) {
-//        Log.d(TAG, "onPrepared: ");
+        progressBar.setMax(mediaPlayer.getDuration());
         videoView.start();
       }
     });
     videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
       @Override
       public void onCompletion(MediaPlayer mediaPlayer) {
-//        Log.d(TAG, "onCompletion: ");
         videoView.stopPlayback();
         isCompleted = true;
       }
     });
     videoView.setVideoURI(Uri.parse(url));
+
+    subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
+        .onBackpressureLatest()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Long>() {
+          @Override
+          public void call(Long aLong) {
+            if (!videoView.isPlaying()) {
+              return;
+            }
+
+            final int currentPosition = videoView.getCurrentPosition();
+            progressBar.setProgress(currentPosition);
+
+            final int remain = videoView.getDuration() - currentPosition;
+            final long minutes = MILLISECONDS.toMinutes(remain);
+            final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
+            progressText.setText(
+                String.format(getString(R.string.media_remain_time), minutes, seconds));
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "call: ", throwable);
+          }
+        });
   }
 
   private String selectVideo() {
@@ -126,6 +165,9 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     videoView.setVideoURI(null);
     rootView.setOnClickListener(null);
     rootView.setOnTouchListener(null);
+    if (subscribe != null && !subscribe.isUnsubscribed()) {
+      subscribe.unsubscribe();
+    }
     super.onStop();
   }
 }
