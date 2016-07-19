@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+  -->
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/s_play_circle"
+          android:width="24dp" android:height="24dp"/>
+    <item android:drawable="@drawable/ic_play_circle_outline"
+        android:height="24dp"
+        android:width="24dp"
+        />
+</layer-list>

@@ -56,7 +56,8 @@ android {
 
 def supportLibVer = '24.0.0'
 def t4jVer = '4.0.4'
-def rxVer = '1.1.0'
+def rxVer = '1.1.6'
+def rxAndroidVer = '1.2.1'
 def daggerVer = "2.5"
 def supportTestVer = "0.5"
 def dexmakerVer = '1.4'
@@ -72,7 +73,7 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
 
-    compile "io.reactivex:rxandroid:$rxVer"
+    compile "io.reactivex:rxandroid:$rxAndroidVer"
     // Because RxAndroid releases are few and far between, it is recommended you also
     // explicitly depend on RxJava's latest version for bug fixes and new features.
     compile "io.reactivex:rxjava:$rxVer"

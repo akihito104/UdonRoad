@@ -116,6 +116,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     for (int i = 0; i < mediaCount; i++) {
       final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
       final int num = i;
+
+      final String type = extendedMediaEntities[i].getType();
+      mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
+
       mediaView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
