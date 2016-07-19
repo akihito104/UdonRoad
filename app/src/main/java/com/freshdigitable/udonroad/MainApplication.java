@@ -6,6 +6,8 @@ package com.freshdigitable.udonroad;
 
 import android.app.Application;
 
+import com.squareup.leakcanary.LeakCanary;
+
 /**
  * Created by akihit on 2016/06/16.
  */
@@ -17,6 +19,7 @@ public class MainApplication extends Application {
   public void onCreate() {
     super.onCreate();
     twitterApiComponent = createTwitterApiComponent();
+    LeakCanary.install(this);
   }
 
   protected TwitterApiComponent createTwitterApiComponent() {

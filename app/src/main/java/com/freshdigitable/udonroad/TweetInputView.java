@@ -37,19 +37,6 @@ public class TweetInputView extends RelativeLayout {
 
     final View v = View.inflate(context, R.layout.tweet_input_view, this);
     inputText = (TextInputEditText) v.findViewById(R.id.tw_intext);
-    final InputMethodManager inputMethodManager
-        = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-    inputText.setOnFocusChangeListener(new OnFocusChangeListener() {
-      @Override
-      public void onFocusChange(View v, boolean hasFocus) {
-        if (hasFocus) {
-          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-        } else {
-          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
-      }
-    });
-
     name = (CombinedScreenNameTextView) v.findViewById(R.id.tw_name);
     icon = (ImageView) v.findViewById(R.id.tw_icon);
   }
@@ -85,5 +72,28 @@ public class TweetInputView extends RelativeLayout {
 
   public void removeTextWatcher(TextWatcher textWatcher) {
     inputText.removeTextChangedListener(textWatcher);
+  }
+
+  @Override
+  protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
+    final InputMethodManager inputMethodManager
+        = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+    inputText.setOnFocusChangeListener(new OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View v, boolean hasFocus) {
+        if (hasFocus) {
+          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
+        } else {
+          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+      }
+    });
+  }
+
+  @Override
+  protected void onDetachedFromWindow() {
+    inputText.setOnFocusChangeListener(null);
+    super.onDetachedFromWindow();
   }
 }

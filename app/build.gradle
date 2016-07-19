@@ -61,6 +61,7 @@ def rxAndroidVer = '1.2.1'
 def daggerVer = "2.5"
 def supportTestVer = "0.5"
 def dexmakerVer = '1.4'
+def leakcanaryVer= '1.4-beta2'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -80,6 +81,10 @@ dependencies {
 
     compile "com.google.dagger:dagger:$daggerVer"
     apt "com.google.dagger:dagger-compiler:$daggerVer"
+
+    debugCompile "com.squareup.leakcanary:leakcanary-android:$leakcanaryVer"
+    releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$leakcanaryVer"
+    testCompile "com.squareup.leakcanary:leakcanary-android-no-op:$leakcanaryVer"
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.10.19'
