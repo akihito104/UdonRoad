@@ -2,7 +2,7 @@
  * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
  */
 
-package com.freshdigitable.udonroad.fab;
+package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -11,7 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
-import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 public class SimpleFlingListenerHelper implements OnTouchListener {
   private final GestureDetector gestureDetector;

@@ -2,7 +2,7 @@
  * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
  */
 
-package com.freshdigitable.udonroad.fab;
+package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import java.util.HashMap;
 import java.util.Map;

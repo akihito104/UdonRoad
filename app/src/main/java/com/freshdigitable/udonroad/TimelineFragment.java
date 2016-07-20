@@ -16,9 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
-import com.freshdigitable.udonroad.fab.FlingableFAB;
-import com.freshdigitable.udonroad.fab.FlingableFABHelper;
-import com.freshdigitable.udonroad.fab.OnFlingAdapter;
+import com.freshdigitable.udonroad.ffab.FlingableFAB;
+import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 
 import java.util.List;
 

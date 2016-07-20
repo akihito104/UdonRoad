@@ -30,10 +30,10 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
-import com.freshdigitable.udonroad.fab.FlingableFAB;
-import com.freshdigitable.udonroad.fab.FlingableFABHelper;
-import com.freshdigitable.udonroad.fab.OnFlingAdapter;
-import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.FlingableFAB;
+import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.realmdata.ReferredStatusRealm;
 import com.freshdigitable.udonroad.realmdata.StatusRealm;
 

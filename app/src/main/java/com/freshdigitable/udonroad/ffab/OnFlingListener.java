@@ -2,7 +2,7 @@
  * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
  */
 
-package com.freshdigitable.udonroad.fab;
+package com.freshdigitable.udonroad.ffab;
 
 import android.view.MotionEvent;
 

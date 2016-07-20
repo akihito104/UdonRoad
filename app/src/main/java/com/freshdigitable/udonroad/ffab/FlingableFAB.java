@@ -1,4 +1,4 @@
-package com.freshdigitable.udonroad.fab;
+package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
@@ -6,7 +6,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.freshdigitable.udonroad.fab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 /**
  * FlingibleFloatingActionButton accepts only fling action.<br>

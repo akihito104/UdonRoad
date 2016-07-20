@@ -2,7 +2,7 @@
  * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
  */
 
-package com.freshdigitable.udonroad.fab;
+package com.freshdigitable.udonroad.ffab;
 
 /**
  * Created by akihit on 2016/07/03.

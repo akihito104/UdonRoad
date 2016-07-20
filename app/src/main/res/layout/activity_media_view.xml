@@ -28,7 +28,7 @@
                 android:background="@color/colorImmersiveLayerBackground"
                 app:titleTextColor="#fff"
                 />
-            <com.freshdigitable.udonroad.fab.ActionIndicatorView
+            <com.freshdigitable.udonroad.ffab.ActionIndicatorView
                 android:id="@+id/media_indicator"
                 android:layout_width="52dp"
                 android:layout_height="48dp"
@@ -40,7 +40,7 @@
                 android:visibility="gone"
                 tools:visibility="visible"
                 />
-            <com.freshdigitable.udonroad.fab.FlingableFAB
+            <com.freshdigitable.udonroad.ffab.FlingableFAB
                 android:id="@+id/media_ffab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
