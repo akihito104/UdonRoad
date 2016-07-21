@@ -6,7 +6,6 @@ package com.freshdigitable.udonroad.realmdata;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 
@@ -81,16 +80,14 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
 
   protected static <T extends Fragment> T getInstance(T fragment, @NonNull User user) {
     final Bundle args = new Bundle();
-    args.putSerializable("USER", user);
+    args.putLong("user_id", user.getId());
     fragment.setArguments(args);
     return fragment;
   }
 
-  @Nullable
-  protected User getUser() {
+  protected long getUserId() {
     final Bundle arguments = getArguments();
-    return (User) arguments.get("USER");
-
+    return arguments.getLong("user_id");
   }
 
   @Override

@@ -24,7 +24,6 @@ import twitter4j.User;
  * Created by akihit on 2016/02/07.
  */
 public class UserInfoAppbarFragment extends Fragment {
-  private static final String KEY_USER = "user";
   private FragmentUserInfoAppbarBinding binding;
 
   @Nullable
@@ -123,13 +122,5 @@ public class UserInfoAppbarFragment extends Fragment {
 
   public TabLayout getTabLayout() {
     return binding.userInfoTabs;
-  }
-
-  public static UserInfoAppbarFragment getInstance(User user) {
-    UserInfoAppbarFragment instance = new UserInfoAppbarFragment();
-    Bundle args = new Bundle();
-    args.putSerializable(KEY_USER, user);
-    instance.setArguments(args);
-    return instance;
   }
 }

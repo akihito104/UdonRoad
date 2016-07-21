@@ -4,8 +4,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.support.annotation.NonNull;
-
 import java.util.List;
 
 import io.realm.RealmConfiguration;
@@ -31,7 +29,7 @@ public class RealmUserFavsFragment extends RealmTimelineFragment {
 
   @Override
   protected void fetchTweet() {
-    final long userId = getUser().getId();
+    final long userId = getUserId();
     final Twitter twitter = getTwitterApi().getTwitter();
     fetchTweet(new Observable.OnSubscribe<List<Status>>() {
       @Override
@@ -48,7 +46,7 @@ public class RealmUserFavsFragment extends RealmTimelineFragment {
 
   @Override
   protected void fetchTweet(final Paging page) {
-    final long userId = getUser().getId();
+    final long userId = getUserId();
     final Twitter twitter = getTwitterApi().getTwitter();
     fetchTweet(new Observable.OnSubscribe<List<Status>>() {
       @Override
@@ -65,15 +63,5 @@ public class RealmUserFavsFragment extends RealmTimelineFragment {
 
   public static RealmUserFavsFragment getInstance(User user) {
     return getInstance(new RealmUserFavsFragment(), user);
-  }
-
-  @NonNull
-  @Override
-  protected User getUser() {
-    final User user = super.getUser();
-    if (user == null) {
-      throw new RuntimeException();
-    }
-    return user;
   }
 }
