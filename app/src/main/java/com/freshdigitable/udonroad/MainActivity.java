@@ -106,31 +106,13 @@ public class MainActivity extends AppCompatActivity {
         .commit();
   }
 
-  private UserInfoPagerFragment userInfoPager;
-
   private void showUserInfo(User user) {
     if (appbarFragment.isStatusInputViewVisible()) {
       return;
     }
     binding.ffab.hide();
-    appbarFragment.showUserInfo(user);
-    userInfoPager = UserInfoPagerFragment.getInstance(user);
-    userInfoPager.setFABHelper(flingableFABHelper);
-    userInfoPager.setTabLayout(appbarFragment.getTabLayout());
-    sendStatusMenuItem.setVisible(false);
-    getSupportFragmentManager().beginTransaction()
-        .hide(tlFragment)
-        .add(R.id.main_timeline_container, userInfoPager)
-        .commit();
-  }
-
-  private void dismissUserInfo() {
-    appbarFragment.dismissUserInfo();
-    sendStatusMenuItem.setVisible(true);
-    getSupportFragmentManager().beginTransaction()
-        .remove(userInfoPager)
-        .show(tlFragment)
-        .commit();
+    final Intent intent = UserInfoActivity.createIntent(getApplicationContext(), user);
+    startActivity(intent);
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -216,14 +198,6 @@ public class MainActivity extends AppCompatActivity {
       cancelWritingSelected();
       return;
     }
-    if (appbarFragment.isUserInfoVisible()) {
-      if (binding.ffab.getVisibility() == View.VISIBLE) {
-        userInfoPager.clearSelectedTweet();
-        return;
-      }
-      dismissUserInfo();
-      return;
-    }
     if (tlFragment.isTweetSelected()) {
       tlFragment.clearSelectedTweet();
       return;
@@ -265,8 +239,6 @@ public class MainActivity extends AppCompatActivity {
   private void headingSelected() {
     if (tlFragment.isVisible()) {
       tlFragment.scrollToTop();
-    } else if (userInfoPager.isVisible()) {
-      userInfoPager.scrollToTop();
     }
   }
 

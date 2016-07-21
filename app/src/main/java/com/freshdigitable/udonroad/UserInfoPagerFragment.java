@@ -56,10 +56,12 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
-    final User user = getUser();
+  }
 
+  @Override
+  public void onStart() {
+    super.onStart();
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    final FlingableFAB ffab = fabHelper.getFab();
     final RealmUserHomeTimelineFragment home = RealmUserHomeTimelineFragment.getInstance(user);
     home.setFABHelper(fabHelper);
     home.setupOnFlingListener();
@@ -68,6 +70,8 @@ public class UserInfoPagerFragment extends Fragment {
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
     viewPager.setAdapter(pagerAdapter);
+
+    final FlingableFAB ffab = fabHelper.getFab();
     viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
       @Override
       public void onPageSelected(int position) {
@@ -86,28 +90,20 @@ public class UserInfoPagerFragment extends Fragment {
       }
     });
     tab.setupWithViewPager(viewPager);
-    tab.setVisibility(View.VISIBLE);
   }
 
   @Override
   public void onStop() {
     viewPager.clearOnPageChangeListeners();
-    tab.setVisibility(View.GONE);
+    viewPager.setAdapter(null);
     tab.removeAllTabs();
     super.onStop();
   }
 
-  public static UserInfoPagerFragment getInstance(User user) {
-    final Bundle args = new Bundle();
-    args.putSerializable("USER", user);
-    final UserInfoPagerFragment fragment = new UserInfoPagerFragment();
-    fragment.setArguments(args);
-    return fragment;
-  }
+  private User user;
 
-  private User getUser() {
-    final Bundle arguments = getArguments();
-    return (User) arguments.get("USER");
+  public void setUser(User user) {
+    this.user = user;
   }
 
   private TabLayout tab;
