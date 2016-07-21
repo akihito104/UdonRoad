@@ -13,8 +13,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
 import twitter4j.User;
 
 /**
@@ -65,12 +63,19 @@ public class UserInfoView extends RelativeLayout {
 
   public void bindData(User user) {
     name.setText(user.getName());
-    screenName.setText("@" + user.getScreenName());
+
+    UserInfoActivity.bindUserScreenName(screenName, user);
     description.setText(user.getDescription());
-    Picasso.with(getContext()).load(user.getProfileBannerMobileURL()).fit().into(banner);
-    Picasso.with(getContext()).load(user.getProfileImageURLHttps()).into(icon);
     tweetCount.setText("* " + user.getStatusesCount());
     followerCount.setText("< " + user.getFollowersCount());
     friendsCount.setText("> " + user.getFriendsCount());
+  }
+
+  public ImageView getBanner() {
+    return banner;
+  }
+
+  public ImageView getIcon() {
+    return icon;
   }
 }

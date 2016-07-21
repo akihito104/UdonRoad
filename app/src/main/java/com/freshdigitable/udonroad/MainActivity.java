@@ -182,6 +182,11 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onDestroy() {
+    binding.navDrawer.setNavigationItemSelectedListener(null);
+    appbarFragment.setUserObservable(null);
+    appbarFragment.setTweetSendFab(null);
+    tlFragment.setUserIconClickedListener(null);
+    tlFragment.setFABHelper(null);
     super.onDestroy();
   }
 

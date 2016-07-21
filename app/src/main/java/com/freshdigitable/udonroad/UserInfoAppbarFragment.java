@@ -4,6 +4,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -15,6 +16,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoAppbarBinding;
+import com.squareup.picasso.Picasso;
 
 import twitter4j.User;
 
@@ -40,7 +42,7 @@ public class UserInfoAppbarFragment extends Fragment {
 
     binding.userInfoToolbar.setTitle("");
     final TextView toolbarTitle = binding.userInfoToolbarTitle;
-    binding.userInfoAppbarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+    binding.userInfoAppbarLayout.addOnOffsetChangedListener(new OnOffsetChangedListener() {
       private boolean isTitleVisible = toolbarTitle.getVisibility() == View.VISIBLE;
 
       @Override
@@ -98,14 +100,25 @@ public class UserInfoAppbarFragment extends Fragment {
   }
 
   private void showUserInfo(User user) {
-    binding.userInfoToolbarTitle.setText("@" + user.getScreenName());
+    UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
     binding.userInfoUserInfoView.bindData(user);
+    Picasso.with(getContext())
+        .load(user.getProfileBannerMobileURL())
+        .fit()
+        .into(binding.userInfoUserInfoView.getBanner());
+    Picasso.with(getContext())
+        .load(user.getProfileImageURLHttps())
+        .into(binding.userInfoUserInfoView.getIcon());
   }
 
   private void dismissUserInfo() {
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
+    Picasso.with(getContext())
+        .cancelRequest(binding.userInfoUserInfoView.getBanner());
+    Picasso.with(getContext())
+        .cancelRequest(binding.userInfoUserInfoView.getIcon());
   }
 
   public TabLayout getTabLayout() {
