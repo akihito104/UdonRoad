@@ -35,7 +35,11 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
   @Override
   public void onStart() {
     final RealmConfiguration rc = createRealmConfiguration();
-    adapter.openRealm(rc);
+    if (rc == null) {
+      adapter.openRealm(getContext());
+    } else {
+      adapter.openRealm(getContext(), rc);
+    }
     super.onStart();
   }
 

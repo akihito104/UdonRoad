@@ -36,15 +36,17 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_RETWEETED_ST
 public class RealmTimelineAdapter extends TimelineAdapter {
   private static final String TAG = RealmTimelineAdapter.class.getSimpleName();
   private Realm realm;
-  private RealmResults<StatusRealm> timeline;
+  private RealmResults<StatusIDs> timeline;
+  private StatusCache statusCache;
 
   public void openRealm(Context context) {
     final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
-    openRealm(config);
+    openRealm(context, config);
   }
 
-  public void openRealm(RealmConfiguration config) {
+  public void openRealm(Context context, RealmConfiguration config) {
     Log.d(TAG, "openRealm: ");
+    statusCache = new StatusCache(context);
     realm = Realm.getInstance(config);
     defaultTimeline();
   }
@@ -53,6 +55,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     Log.d(TAG, "closeRealm: ");
     clearSelectedTweet();
     realm.close();
+    statusCache.close();
   }
 
   @Override
@@ -65,33 +68,34 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     if (statuses.size() < 1) {
       return;
     }
-    final List<StatusRealm> inserts = new ArrayList<>();
-    final List<StatusRealm> updates = new ArrayList<>();
+    final List<StatusIDs> inserts = new ArrayList<>();
+    final List<StatusIDs> updates = new ArrayList<>();
     for (Status s : statuses) {
-      final StatusRealm update = createIfUpdateTimeline(s);
+      final StatusIDs update = findTimeline(s);
       if (update == null) {
-        inserts.add(new StatusRealm(s));
+        inserts.add(new StatusIDs(s));
       } else {
-        updates.add(margeStatus(update, s));
+        updates.add(new StatusIDs(s));
       }
+      statusCache.upsertStatus(s);
 
-      final RealmResults<StatusRealm> u = findReferringStatus(s.getId());
+      final RealmResults<StatusIDs> u = findReferringStatus(s.getId());
       if (u.size() > 0) {
-        insertOrUpdateReferredStatus(s);
+        statusCache.upsertStatus(s);
         updates.addAll(u);
       }
 
       final long quotedStatusId = s.getQuotedStatusId();
       if (quotedStatusId > 0) {
         final Status quotedStatus = s.getQuotedStatus();
-        insertOrUpdateReferredStatus(quotedStatus);
+        statusCache.upsertStatus(quotedStatus);
 
-        final StatusRealm q = createIfUpdateTimeline(quotedStatus);
+        final StatusIDs q = findTimeline(quotedStatus);
         if (q != null) {
           updates.add(q);
         }
 
-        final RealmResults<StatusRealm> updatedQuotedStatus = findReferringStatus(quotedStatusId);
+        final RealmResults<StatusIDs> updatedQuotedStatus = findReferringStatus(quotedStatusId);
         if (updatedQuotedStatus.size() > 0) {
           updates.addAll(updatedQuotedStatus);
         }
@@ -101,21 +105,21 @@ public class RealmTimelineAdapter extends TimelineAdapter {
         continue;
       }
       final Status retweetedStatus = s.getRetweetedStatus();
-      insertOrUpdateReferredStatus(retweetedStatus);
-      insertOrUpdateReferredStatus(retweetedStatus.getQuotedStatus());
+      statusCache.upsertStatus(retweetedStatus);
+      statusCache.upsertStatus(retweetedStatus.getQuotedStatus());
 
-      final StatusRealm rs = createIfUpdateTimeline(retweetedStatus);
+      final StatusIDs rs = findTimeline(retweetedStatus);
       if (rs != null) {
         updates.add(rs);
       }
-      final RealmResults<StatusRealm> rtedUpdate = findReferringStatus(retweetedStatus.getId());
+      final RealmResults<StatusIDs> rtedUpdate = findReferringStatus(retweetedStatus.getId());
       if (rtedUpdate.size() > 0) {
         updates.addAll(rtedUpdate);
       }
 
       final long rtQuotedStatusId = retweetedStatus.getQuotedStatusId();
       if (rtQuotedStatusId > 0) {
-        final RealmResults<StatusRealm> rtUpdatedQuotedStatus = findReferringStatus(rtQuotedStatusId);
+        final RealmResults<StatusIDs> rtUpdatedQuotedStatus = findReferringStatus(rtQuotedStatusId);
         if (rtUpdatedQuotedStatus.size() > 0) {
           updates.addAll(rtUpdatedQuotedStatus);
         }
@@ -131,7 +135,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   }
 
   @NonNull
-  private RealmResults<StatusRealm> findReferringStatus(long id) {
+  private RealmResults<StatusIDs> findReferringStatus(long id) {
     return timeline.where()
               .beginGroup()
               .equalTo(KEY_QUOTAD_STATUS_ID, id)
@@ -142,49 +146,38 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   }
 
   @Nullable
-  private StatusRealm createIfUpdateTimeline(Status newer) {
+  private StatusIDs findTimeline(Status newer) {
     if (newer == null) {
       return null;
     }
-    final StatusRealm older = timeline.where()
+    return timeline.where()
         .equalTo(KEY_ID, newer.getId())
         .findFirst();
-    if (older == null) {
-      return null;
-    }
-    return margeStatus(older, newer);
   }
 
-  private StatusRealm margeStatus(Status older, Status newer) {
-    final StatusRealm res = new StatusRealm(newer);
-    res.setRetweeted(newer.isRetweeted() || older.isRetweeted());
-    res.setFavorited(newer.isFavorited() || older.isFavorited());
-    return res;
-  }
-
-  private void insertStatus(List<StatusRealm> inserts) {
+  private void insertStatus(List<StatusIDs> inserts) {
     realm.beginTransaction();
-    final List<StatusRealm> inserted = realm.copyToRealmOrUpdate(inserts);
+    final List<StatusIDs> inserted = realm.copyToRealmOrUpdate(inserts);
     realm.commitTransaction();
     timeline.asObservable()
-        .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
+        .filter(new Func1<RealmResults<StatusIDs>, Boolean>() {
           @Override
-          public Boolean call(RealmResults<StatusRealm> statusRealms) {
+          public Boolean call(RealmResults<StatusIDs> statusRealms) {
             return statusRealms.isLoaded();
           }
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<RealmResults<StatusRealm>>() {
+            new Action1<RealmResults<StatusIDs>>() {
               @Override
-              public void call(final RealmResults<StatusRealm> results) {
+              public void call(final RealmResults<StatusIDs> results) {
                 notifyInserted(inserted, results);
               }
             });
   }
 
-  private void notifyInserted(List<StatusRealm> inserted, RealmResults<StatusRealm> results) {
+  private void notifyInserted(List<StatusIDs> inserted, RealmResults<StatusIDs> results) {
     if (inserted.size() < 1) {
       return;
     }
@@ -198,28 +191,28 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     }
   }
 
-  private void updateStatus(List<StatusRealm> updates) {
+  private void updateStatus(List<StatusIDs> updates) {
     realm.beginTransaction();
-    final List<StatusRealm> updated = realm.copyToRealmOrUpdate(updates);
+    final List<StatusIDs> updated = realm.copyToRealmOrUpdate(updates);
     realm.commitTransaction();
     timeline.asObservable()
-        .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
+        .filter(new Func1<RealmResults<StatusIDs>, Boolean>() {
           @Override
-          public Boolean call(RealmResults<StatusRealm> results) {
+          public Boolean call(RealmResults<StatusIDs> results) {
             return results.isLoaded();
           }
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<RealmResults<StatusRealm>>() {
+        .subscribe(new Action1<RealmResults<StatusIDs>>() {
           @Override
-          public void call(RealmResults<StatusRealm> results) {
+          public void call(RealmResults<StatusIDs> results) {
             notifyChanged(updated, results);
           }
         });
   }
 
-  private void notifyChanged(List<StatusRealm> changed, RealmResults<StatusRealm> results) {
+  private void notifyChanged(List<StatusIDs> changed, RealmResults<StatusIDs> results) {
     if (changed.size() < 1) {
       return;
     }
@@ -239,9 +232,8 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
   @Override
   public void deleteStatus(long statusId) {
-    deleteRetweetedStatus(statusId);
 
-    final RealmResults<StatusRealm> res = realm.where(StatusRealm.class)
+    final RealmResults<StatusIDs> res = realm.where(StatusIDs.class)
         .beginGroup()
         .equalTo(KEY_ID, statusId)
         .or()
@@ -254,8 +246,9 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
     final List<Integer> deleted = searchTimeline(res);
     if (isStatusViewSelected()) {
-      for (Status r : res) {
-        if (getSelectedTweetId() == r.getId()) {
+      final long selectedTweetId = getSelectedTweetId();
+      for (StatusIDs r : res) {
+        if (selectedTweetId == r.getId()) {
           clearSelectedTweet();
         }
       }
@@ -269,35 +262,36 @@ public class RealmTimelineAdapter extends TimelineAdapter {
       return;
     }
     timeline.asObservable()
-        .filter(new Func1<RealmResults<StatusRealm>, Boolean>() {
+        .filter(new Func1<RealmResults<StatusIDs>, Boolean>() {
           @Override
-          public Boolean call(RealmResults<StatusRealm> statusRealms) {
+          public Boolean call(RealmResults<StatusIDs> statusRealms) {
             return statusRealms.isLoaded();
           }
         })
         .first()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<RealmResults<StatusRealm>>() {
+            new Action1<RealmResults<StatusIDs>>() {
               @Override
-              public void call(RealmResults<StatusRealm> statusRealms) {
+              public void call(RealmResults<StatusIDs> statusRealms) {
                 Log.d(TAG, "call: deletedStatus");
                 for (int d : deleted) {
                   notifyItemRemoved(d);
+                  statusCache.deleteStatus(d);
                 }
               }
             });
   }
 
   @NonNull
-  private List<Integer> searchTimeline(List<StatusRealm> items) {
+  private List<Integer> searchTimeline(List<StatusIDs> items) {
     return searchTimeline(items, timeline);
   }
 
   @NonNull
-  private List<Integer> searchTimeline(List<StatusRealm> items, RealmResults<StatusRealm> timeline) {
+  private List<Integer> searchTimeline(List<StatusIDs> items, RealmResults<StatusIDs> timeline) {
     final List<Integer> res = new ArrayList<>(items.size());
-    for (StatusRealm sr : items) {
+    for (StatusIDs sr : items) {
       final int index = timeline.indexOf(sr);
       if (index >= 0) {
         res.add(index);
@@ -306,71 +300,10 @@ public class RealmTimelineAdapter extends TimelineAdapter {
     return res;
   }
 
-  private void deleteRetweetedStatus(long statusId) {
-    realm.beginTransaction();
-    realm.where(ReferredStatusRealm.class)
-        .equalTo(KEY_ID, statusId)
-        .findAll()
-        .deleteAllFromRealm();
-    realm.commitTransaction();
-  }
-
-  private void insertOrUpdateReferredStatus(@Nullable final Status rtStatus) {
-    if (rtStatus == null) {
-      return;
-    }
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final ReferredStatusRealm update = realm.where(ReferredStatusRealm.class)
-            .equalTo(KEY_ID, rtStatus.getId())
-            .findFirst();
-        if (update != null) {
-          update(update, rtStatus);
-        } else {
-          realm.copyToRealmOrUpdate(new ReferredStatusRealm(rtStatus));
-        }
-      }
-
-      private void update(ReferredStatusRealm update, Status s) {
-        if (update == null) {
-          return;
-        }
-        update.setFavorited(update.isFavorited() || s.isFavorited());
-        final int favoriteCount = s.getFavoriteCount();
-        if (favoriteCount > 0) {
-          update.setFavoriteCount(favoriteCount);
-        }
-        update.setRetweeted(update.isRetweeted() || s.isRetweeted());
-        final int retweetCount = s.getRetweetCount();
-        if (retweetCount > 0) {
-          update.setRetweetCount(retweetCount);
-        }
-      }
-    });
-  }
-
   @Override
   protected Status get(int position) {
-    final StatusRealm res = timeline.get(position);
-    if (res.isRetweet()) {
-      final ReferredStatusRealm rtStatus = getReferredStatus(res.getRetweetedStatusId());
-      if (rtStatus.getQuotedStatusId() > 0) {
-        rtStatus.setQuotedStatus(getReferredStatus(rtStatus.getQuotedStatusId()));
-      }
-      res.setRetweetedStatus(rtStatus);
-      return res;
-    }
-    if (res.getQuotedStatusId() > 0) {
-      res.setQuotedStatus(getReferredStatus(res.getQuotedStatusId()));
-    }
-    return res;
-  }
-
-  private ReferredStatusRealm getReferredStatus(long id) {
-    return realm.where(ReferredStatusRealm.class)
-        .equalTo(KEY_ID, id)
-        .findFirst();
+    final StatusIDs ids = timeline.get(position);
+    return statusCache.getStatus(ids.getId());
   }
 
   @Override
@@ -380,7 +313,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
 
   public void defaultTimeline() {
     timeline = realm
-        .where(StatusRealm.class)
+        .where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
     notifyDataSetChanged();
   }

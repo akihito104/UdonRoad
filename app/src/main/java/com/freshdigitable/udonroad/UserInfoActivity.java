@@ -12,10 +12,8 @@ import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.realmdata.UserRealm;
+import com.freshdigitable.udonroad.realmdata.StatusCache;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import twitter4j.User;
 
 /**
@@ -23,8 +21,8 @@ import twitter4j.User;
  */
 public class UserInfoActivity extends AppCompatActivity {
 
-  private Realm realm;
   private UserInfoPagerFragment viewPager;
+  private StatusCache statusCache;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +42,13 @@ public class UserInfoActivity extends AppCompatActivity {
 
   @Override
   protected void onStop() {
-    realm.close();
     super.onStop();
+  }
+
+  @Override
+  protected void onDestroy() {
+    statusCache.close();
+    super.onDestroy();
   }
 
   @Override
@@ -76,13 +79,8 @@ public class UserInfoActivity extends AppCompatActivity {
 
   private User parseIntent() {
     final long userId = getIntent().getLongExtra("user", -1L);
-    final RealmConfiguration realmConfig = new RealmConfiguration.Builder(getApplicationContext())
-        .name("home")
-        .build();
-    realm = Realm.getInstance(realmConfig);
-    return realm.where(UserRealm.class)
-        .equalTo("id", userId)
-        .findFirst();
+    statusCache = new StatusCache(getApplicationContext());
+    return statusCache.getUser(userId);
   }
 
   public static void bindUserScreenName(TextView textView, User user) {

@@ -4,8 +4,13 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.view.View;
+
 import java.util.List;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
@@ -19,6 +24,11 @@ import twitter4j.User;
  * Created by akihit on 2016/06/07.
  */
 public class RealmUserFavsFragment extends RealmTimelineFragment {
+  @Override
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    Realm.deleteRealm(createRealmConfiguration());
+  }
 
   @Override
   public RealmConfiguration createRealmConfiguration() {

@@ -34,13 +34,10 @@ import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
-import com.freshdigitable.udonroad.realmdata.ReferredStatusRealm;
-import com.freshdigitable.udonroad.realmdata.StatusRealm;
+import com.freshdigitable.udonroad.realmdata.StatusCache;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -56,12 +53,12 @@ public class MediaViewActivity extends AppCompatActivity {
   private static final String CREATE_STATUS = "status";
   private static final String CREATE_START = "start";
 
-  private Realm realm;
   private ActivityMediaViewBinding binding;
   @Inject
   TwitterApi twitterApi;
   private FlingableFABHelper ffabHelper;
   private Handler handler;
+  private StatusCache statusCache;
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -157,28 +154,7 @@ public class MediaViewActivity extends AppCompatActivity {
   }
 
   private Status findStatus(long id) {
-    final StatusRealm status = realm.where(StatusRealm.class)
-        .equalTo("id", id)
-        .findFirst();
-    if (status != null) {
-      if (status.getRetweetedStatusId() > 0) {
-        final ReferredStatusRealm rtStatus = realm.where(ReferredStatusRealm.class)
-            .equalTo("id", status.getRetweetedStatusId())
-            .findFirst();
-        status.setRetweetedStatus(rtStatus);
-      }
-      if (status.getQuotedStatusId() > 0) {
-        final ReferredStatusRealm qtStatus = realm.where(ReferredStatusRealm.class)
-            .equalTo("id", status.getQuotedStatusId())
-            .findFirst();
-        status.setQuotedStatus(qtStatus);
-      }
-      return status;
-    } else {
-      return realm.where(ReferredStatusRealm.class)
-          .equalTo("id", id)
-          .findFirst();
-    }
+    return statusCache.getStatus(id);
   }
 
   private void setTitle() {
@@ -199,9 +175,7 @@ public class MediaViewActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
-    realm = Realm.getInstance(
-        new RealmConfiguration.Builder(getApplicationContext())
-            .name("home").build());
+    statusCache = new StatusCache(getApplicationContext());
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
@@ -305,7 +279,7 @@ public class MediaViewActivity extends AppCompatActivity {
     binding.mediaPager.removeOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setAdapter(null);
     binding.mediaFfab.setOnFlingListener(null);
-    realm.close();
+    statusCache.close();
     super.onStop();
   }
 
