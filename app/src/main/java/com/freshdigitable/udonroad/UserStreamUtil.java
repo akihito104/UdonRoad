@@ -95,6 +95,11 @@ public class UserStreamUtil {
             public void call(Long deletedStatusId) {
               adapter.deleteStatus(deletedStatusId);
             }
+          }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+              Log.e(TAG, "error: ", throwable);
+            }
           });
     }
 

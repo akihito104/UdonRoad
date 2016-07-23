@@ -24,6 +24,7 @@ public class StatusCache {
   public StatusCache(Context context) {
     final RealmConfiguration config = new RealmConfiguration.Builder(context)
         .name("cache")
+        .deleteRealmIfMigrationNeeded()
         .build();
     cache = Realm.getInstance(config);
   }
