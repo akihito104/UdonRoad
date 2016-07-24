@@ -41,15 +41,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   private final List<Status> statuses;
 
   public long getSelectedTweetId() {
-    return isStatusViewSelected() ? selectedStatusHolder.status.getId() : -1;
+    return isStatusViewSelected() ? selectedStatusHolder.statusId : -1;
   }
 
   public boolean isStatusViewSelected() {
     return selectedStatusHolder != null;
-  }
-
-  public Status getSelectedStatus() {
-    return isStatusViewSelected() ? selectedStatusHolder.status : null;
   }
 
   public interface LastItemBoundListener {
@@ -66,7 +62,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onBindViewHolder(final ViewHolder holder, int position) {
     Status status = get(position);
     final StatusView itemView = (StatusView) holder.itemView;
-    if (holder.status != null && holder.status.getId() == status.getId()) {
+    if (holder.statusId == status.getId()) {
 //      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
       itemView.bindStatus(status);
       return;
@@ -191,7 +187,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     selectedStatusHolder = new SelectedStatus(vh);
     setSelectedBackground(selectedStatusHolder.view);
     if (selectedTweetChangeListener != null) {
-      selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.status);
+      selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.statusId);
     }
   }
 
@@ -217,7 +213,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   interface OnSelectedTweetChangeListener {
-    void onTweetSelected(Status status);
+    void onTweetSelected(long statusId);
     void onTweetUnselected();
   }
 
@@ -267,14 +263,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
-    private Status status;
+    private long statusId;
 
     public ViewHolder(View itemView) {
       super(itemView);
     }
 
     void bindStatus(final Status status) {
-      this.status = status;
+      this.statusId = status.getId();
       StatusView v = (StatusView) itemView;
       final User user = status.isRetweet()
           ? status.getRetweetedStatus().getUser()
@@ -311,7 +307,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
 
     boolean hasSameStatusId(SelectedStatus other) {
-      return other != null && this.status.getId() == other.status.getId();
+      return other != null && this.statusId == other.statusId;
     }
 
     private OnItemViewClickListener itemViewClicked;
@@ -322,22 +318,22 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       final StatusView v = (StatusView) this.itemView;
       v.setUserIconClickListener(null);
       v.reset();
-      this.status = null;
+      this.statusId = -1;
       this.itemViewClicked = null;
       this.userIconClickedListener = null;
     }
   }
 
   private static class SelectedStatus {
-    private final Status status;
+    private final long statusId;
     private final View view;
 
     private SelectedStatus(ViewHolder viewHolder) {
-      this(viewHolder.status, viewHolder.itemView);
+      this(viewHolder.statusId, viewHolder.itemView);
     }
 
-    private SelectedStatus(Status status, View view) {
-      this.status = status;
+    private SelectedStatus(long statusId, View view) {
+      this.statusId = statusId;
       this.view = view;
     }
   }

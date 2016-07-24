@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
+import com.freshdigitable.udonroad.realmdata.StatusCache;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -43,7 +44,9 @@ public class StatusDetailFragment extends Fragment {
     super.onActivityCreated(savedInstanceState);
     binding = DataBindingUtil.bind(getView());
 
-    this.status = (Status) getArguments().get("status");
+    long id = (long) getArguments().get("statusId");
+    final StatusCache statusCache = new StatusCache(getContext());
+    this.status = statusCache.getStatus(id);
     binding.statusView.bindStatus(this.status);
 
     final ArrayAdapter<DetailMenu> arrayAdapter
@@ -58,8 +61,8 @@ public class StatusDetailFragment extends Fragment {
         return v;
       }
     };
-    arrayAdapter.add(status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
-    arrayAdapter.add(status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
+    arrayAdapter.add(this.status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
+    arrayAdapter.add(this.status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
     arrayAdapter.add(DetailMenu.REPLY);
     arrayAdapter.add(DetailMenu.QUOTE);
 
@@ -68,7 +71,7 @@ public class StatusDetailFragment extends Fragment {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final DetailMenu menu = (DetailMenu) parent.getItemAtPosition(position);
-        menu.action(twitterApi, status, getContext());
+        menu.action(twitterApi, StatusDetailFragment.this.status, getContext());
       }
     });
   }
@@ -86,9 +89,9 @@ public class StatusDetailFragment extends Fragment {
     this.twitterApi = twitterApi;
   }
 
-  public static StatusDetailFragment getInstance(final Status status) {
+  public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
-    args.putSerializable("status", status);
+    args.putLong("statusId", statusId);
     final StatusDetailFragment statusDetailFragment = new StatusDetailFragment();
     statusDetailFragment.setArguments(args);
     return statusDetailFragment;

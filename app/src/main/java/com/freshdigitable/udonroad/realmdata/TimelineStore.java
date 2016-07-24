@@ -62,21 +62,15 @@ public class TimelineStore {
   }
 
   public Observable<Integer> subscribeInsertEvent() {
-    return insertEvent
-        .onBackpressureBuffer();
-//        .observeOn(AndroidSchedulers.mainThread());
+    return insertEvent.onBackpressureBuffer();
   }
 
   public Observable<Integer> subscribeUpdateEvent() {
-    return updateEvent
-        .onBackpressureBuffer();
-//        .observeOn(AndroidSchedulers.mainThread());
+    return updateEvent.onBackpressureBuffer();
   }
 
   public Observable<Integer> subscribeDeleteEvent() {
-    return deleteEvent
-        .onBackpressureBuffer();
-//        .observeOn(AndroidSchedulers.mainThread());
+    return deleteEvent.onBackpressureBuffer();
   }
 
   public void upsert(List<Status> statuses) {
@@ -203,7 +197,6 @@ public class TimelineStore {
     Collections.sort(index);
     for (int i : index) {
       insertEvent.onNext(i);
-//      notifyItemInserted(i);
     }
   }
 
@@ -238,7 +231,6 @@ public class TimelineStore {
     }
     for (int i : index) {
       updateEvent.onNext(i);
-//      notifyItemChanged(i);
     }
   }
 
@@ -255,14 +247,6 @@ public class TimelineStore {
     }
 
     final List<Integer> deleted = searchTimeline(res);
-//    if (isStatusViewSelected()) {
-//      final long selectedTweetId = getSelectedTweetId();
-//      for (StatusIDs r : res) {
-//        if (selectedTweetId == r.getId()) {
-//          clearSelectedTweet();
-//        }
-//      }
-//    }
 
     realm.beginTransaction();
     res.deleteAllFromRealm();
@@ -287,7 +271,6 @@ public class TimelineStore {
                 Log.d(TAG, "call: deletedStatus");
                 for (int d : deleted) {
                   deleteEvent.onNext(d);
-//                  notifyItemRemoved(d);
                   statusCache.deleteStatus(d);
                 }
               }

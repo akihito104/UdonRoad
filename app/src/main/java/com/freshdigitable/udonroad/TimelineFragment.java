@@ -78,7 +78,7 @@ public class TimelineFragment extends Fragment {
     adapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
-          public void onTweetSelected(Status status) {
+          public void onTweetSelected(long statusId) {
             fab.show();
           }
 
@@ -160,8 +160,7 @@ public class TimelineFragment extends Fragment {
         if (!isTweetSelected()) {
           return;
         }
-        final Status status = adapter.getSelectedStatus();
-        final long id = status.getId();
+        final long id = adapter.getSelectedTweetId();
         if (Direction.UP.equals(direction)) {
           fetchFavorite(id);
         } else if (Direction.RIGHT.equals(direction)) {
@@ -170,7 +169,7 @@ public class TimelineFragment extends Fragment {
           fetchFavorite(id);
           fetchRetweet(id);
         } else if (Direction.LEFT.equals(direction)) {
-          showStatusDetail(status);
+          showStatusDetail(id);
         }
       }
     });
@@ -205,7 +204,7 @@ public class TimelineFragment extends Fragment {
 
   private StatusDetailFragment statusDetail;
 
-  private void showStatusDetail(Status status) {
+  private void showStatusDetail(long status) {
     statusDetail = StatusDetailFragment.getInstance(status);
     statusDetail.setTwitterApi(twitterApi);
     getActivity().getSupportFragmentManager().beginTransaction()
