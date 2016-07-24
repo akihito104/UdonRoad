@@ -16,6 +16,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoAppbarBinding;
+import com.freshdigitable.udonroad.realmdata.StatusCache;
 import com.squareup.picasso.Picasso;
 
 import twitter4j.User;
@@ -25,6 +26,7 @@ import twitter4j.User;
  */
 public class UserInfoAppbarFragment extends Fragment {
   private FragmentUserInfoAppbarBinding binding;
+  private StatusCache statusCache;
 
   @Nullable
   @Override
@@ -83,19 +85,22 @@ public class UserInfoAppbarFragment extends Fragment {
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
+    statusCache = new StatusCache(getContext());
+    final User user = statusCache.getUser(userId);
     showUserInfo(user);
   }
 
   @Override
   public void onStop() {
     dismissUserInfo();
+    statusCache.close();
     super.onStop();
   }
 
-  private User user;
+  private long userId;
 
-  public void setUser(User user) {
-    this.user = user;
+  public void setUser(long userId) {
+    this.userId = userId;
   }
 
   private void showUserInfo(User user) {

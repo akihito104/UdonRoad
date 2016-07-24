@@ -45,7 +45,14 @@ public class TimelineStore {
     open(context, config);
   }
 
-  public void open(Context context, RealmConfiguration config) {
+  public void open(Context context, String storeName) {
+    final RealmConfiguration config = new RealmConfiguration.Builder(context)
+        .name(storeName)
+        .build();
+    open(context, config);
+  }
+
+  private void open(Context context, RealmConfiguration config) {
     Log.d(TAG, "openRealm: ");
     insertEvent = PublishSubject.create();
     updateEvent = PublishSubject.create();
@@ -295,8 +302,12 @@ public class TimelineStore {
   }
 
   public void clear() {
-    realm.deleteAll();
-    statusCache.clear();
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.deleteAll();
+      }
+    });
   }
 
   public void close() {

@@ -10,15 +10,12 @@ import android.view.View;
 
 import java.util.List;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.User;
 
 /**
  * Created by akihit on 2016/06/07.
@@ -27,14 +24,15 @@ public class RealmUserFavsFragment extends RealmTimelineFragment {
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    Realm.deleteRealm(createRealmConfiguration());
+    final TimelineStore timelineStore = new TimelineStore();
+    timelineStore.open(getContext(), getStoreName());
+    timelineStore.clear();
+    timelineStore.close();
   }
 
   @Override
-  public RealmConfiguration createRealmConfiguration() {
-    return new RealmConfiguration.Builder(getContext())
-        .name("user_favs")
-        .build();
+  public String getStoreName() {
+    return "user_favs";
   }
 
   @Override
@@ -71,7 +69,7 @@ public class RealmUserFavsFragment extends RealmTimelineFragment {
     });
   }
 
-  public static RealmUserFavsFragment getInstance(User user) {
-    return getInstance(new RealmUserFavsFragment(), user);
+  public static RealmUserFavsFragment getInstance(long userId) {
+    return getInstance(new RealmUserFavsFragment(), userId);
   }
 }

@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.realmdata.StatusCache;
 
 import twitter4j.User;
 
@@ -20,9 +19,7 @@ import twitter4j.User;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity {
-
   private UserInfoPagerFragment viewPager;
-  private StatusCache statusCache;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -30,14 +27,14 @@ public class UserInfoActivity extends AppCompatActivity {
     ActivityUserInfoBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
     binding.ffab.hide();
 
-    User user = parseIntent();
+    long userId = parseIntent();
     final UserInfoAppbarFragment appbar = (UserInfoAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.userInfo_appbar);
-    appbar.setUser(user);
+    appbar.setUser(userId);
 
     viewPager = (UserInfoPagerFragment) getSupportFragmentManager().findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setTabLayout(appbar.getTabLayout());
     viewPager.setFABHelper(new FlingableFABHelper(binding.fabIndicator, binding.ffab));
-    viewPager.setUser(user);
+    viewPager.setUser(userId);
   }
 
   @Override
@@ -47,7 +44,6 @@ public class UserInfoActivity extends AppCompatActivity {
 
   @Override
   protected void onDestroy() {
-    statusCache.close();
     super.onDestroy();
   }
 
@@ -77,10 +73,8 @@ public class UserInfoActivity extends AppCompatActivity {
     return intent;
   }
 
-  private User parseIntent() {
-    final long userId = getIntent().getLongExtra("user", -1L);
-    statusCache = new StatusCache(getApplicationContext());
-    return statusCache.getUser(userId);
+  private long parseIntent() {
+    return getIntent().getLongExtra("user", -1L);
   }
 
   public static void bindUserScreenName(TextView textView, User user) {

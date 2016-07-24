@@ -5,7 +5,6 @@
 package com.freshdigitable.udonroad.realmdata;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 
@@ -14,15 +13,12 @@ import com.freshdigitable.udonroad.TimelineFragment;
 
 import java.util.List;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import twitter4j.Paging;
 import twitter4j.Status;
-import twitter4j.User;
 
 /**
  * Created by akihit on 2016/06/06.
@@ -34,12 +30,7 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
 
   @Override
   public void onStart() {
-    final RealmConfiguration rc = createRealmConfiguration();
-    if (rc == null) {
-      adapter.openRealm(getContext());
-    } else {
-      adapter.openRealm(getContext(), rc);
-    }
+    adapter.openRealm(getContext(), getStoreName());
     super.onStart();
   }
 
@@ -53,11 +44,10 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
   @Override
   public void onDestroy() {
     Log.d(TAG, "onDestroy: ");
-    Realm.deleteRealm(createRealmConfiguration());
     super.onDestroy();
   }
 
-  public abstract RealmConfiguration createRealmConfiguration();
+  public abstract String getStoreName();
 
   protected abstract void fetchTweet();
 
@@ -82,9 +72,9 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
             });
   }
 
-  protected static <T extends Fragment> T getInstance(T fragment, @NonNull User user) {
+  protected static <T extends Fragment> T getInstance(T fragment, long userId) {
     final Bundle args = new Bundle();
-    args.putLong("user_id", user.getId());
+    args.putLong("user_id", userId);
     fragment.setArguments(args);
     return fragment;
   }

@@ -16,7 +16,6 @@ import com.freshdigitable.udonroad.UserStreamUtil;
 
 import java.util.List;
 
-import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import twitter4j.Paging;
@@ -34,10 +33,8 @@ public class RealmHomeTimelineFragment extends RealmTimelineFragment {
   private static final String TAG = RealmHomeTimelineFragment.class.getSimpleName();
 
   @Override
-  public RealmConfiguration createRealmConfiguration() {
-    return new RealmConfiguration.Builder(getContext())
-        .name("home")
-        .build();
+  public String getStoreName() {
+    return "home";
   }
 
   private UserStreamUtil userStream;
@@ -49,6 +46,12 @@ public class RealmHomeTimelineFragment extends RealmTimelineFragment {
     final MainApplication application = (MainApplication) getActivity().getApplication();
     userStream = new UserStreamUtil(adapter);
     application.getTwitterApiComponent().inject(userStream);
+
+    final TimelineStore timelineStore = new TimelineStore();
+    timelineStore.open(getContext(), getStoreName());
+    timelineStore.clear();
+    timelineStore.close();
+
     return super.onCreateView(inflater, container, savedInstanceState);
   }
 

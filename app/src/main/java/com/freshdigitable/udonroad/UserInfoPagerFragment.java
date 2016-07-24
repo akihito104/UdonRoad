@@ -24,8 +24,6 @@ import com.freshdigitable.udonroad.realmdata.RealmUserHomeTimelineFragment;
 import java.util.ArrayList;
 import java.util.List;
 
-import twitter4j.User;
-
 /**
  * Created by akihit on 2016/06/06.
  */
@@ -62,11 +60,11 @@ public class UserInfoPagerFragment extends Fragment {
   public void onStart() {
     super.onStart();
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    final RealmUserHomeTimelineFragment home = RealmUserHomeTimelineFragment.getInstance(user);
+    final RealmUserHomeTimelineFragment home = RealmUserHomeTimelineFragment.getInstance(userId);
     home.setFABHelper(fabHelper);
     home.setupOnFlingListener();
     pagerAdapter.putFragment(home, "Tweets");
-    final RealmUserFavsFragment favs = RealmUserFavsFragment.getInstance(user);
+    final RealmUserFavsFragment favs = RealmUserFavsFragment.getInstance(userId);
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
     viewPager.setAdapter(pagerAdapter);
@@ -100,10 +98,10 @@ public class UserInfoPagerFragment extends Fragment {
     super.onStop();
   }
 
-  private User user;
+  private long userId;
 
-  public void setUser(User user) {
-    this.user = user;
+  public void setUser(long userId) {
+    this.userId = userId;
   }
 
   private TabLayout tab;

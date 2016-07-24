@@ -12,7 +12,6 @@ import com.freshdigitable.udonroad.TimelineAdapter;
 import java.util.Collections;
 import java.util.List;
 
-import io.realm.RealmConfiguration;
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Status;
@@ -29,12 +28,7 @@ public class RealmTimelineAdapter extends TimelineAdapter {
   private Subscription updateEventSubscription;
   private Subscription deleteEventSubscription;
 
-  public void openRealm(Context context) {
-    final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
-    openRealm(context, config);
-  }
-
-  public void openRealm(Context context, RealmConfiguration config) {
+  public void openRealm(Context context, String config) {
     Log.d(TAG, "openRealm: ");
     timelineStore = new TimelineStore();
     timelineStore.open(context, config);

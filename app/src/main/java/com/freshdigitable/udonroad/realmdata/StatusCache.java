@@ -18,7 +18,6 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
  * Created by akihit on 2016/07/22.
  */
 public class StatusCache {
-
   private final Realm cache;
 
   public StatusCache(Context context) {
@@ -105,7 +104,12 @@ public class StatusCache {
   }
 
   public void clear() {
-    cache.deleteAll();
+    cache.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        cache.deleteAll();
+      }
+    });
   }
 
   public void close() {
