@@ -202,6 +202,17 @@ public class TimelineFragment extends Fragment {
     tearDownOnFlingListener();
   }
 
+  @Override
+  public void onDestroyView() {
+    final TimelineAdapter adapter = getTimelineAdapter();
+    adapter.setLastItemBoundListener(null);
+    adapter.setOnSelectedTweetChangeListener(null);
+    adapter.setOnUserIconClickedListener(null);
+    binding.timeline.setOnTouchListener(null);
+    binding.timeline.setAdapter(null);
+    super.onDestroyView();
+  }
+
   private StatusDetailFragment statusDetail;
 
   private void showStatusDetail(long status) {
