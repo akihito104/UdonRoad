@@ -6,6 +6,8 @@ package com.freshdigitable.udonroad;
 
 import android.util.Log;
 
+import com.freshdigitable.udonroad.realmdata.TimelineStore;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -30,11 +32,10 @@ public class UserStreamUtil {
 
   @Inject
   TwitterStreamApi streamApi;
-  private TimelineAdapter adapter;
+  private TimelineStore timelineStore;
 
-  public UserStreamUtil(TimelineAdapter adapter) {
-//    app.getTwitterApiComponent().inject(this);
-    this.adapter = adapter;
+  public UserStreamUtil(TimelineStore timelineStore) {
+    this.timelineStore = timelineStore;
   }
 
   private boolean isConnectedUserStream = false;
@@ -49,7 +50,7 @@ public class UserStreamUtil {
           .subscribe(new Action1<List<Status>>() {
             @Override
             public void call(List<Status> statuses) {
-              adapter.addNewStatuses(statuses);
+              timelineStore.upsert(statuses);
             }
           }, new Action1<Throwable>() {
             @Override
@@ -93,7 +94,7 @@ public class UserStreamUtil {
           .subscribe(new Action1<Long>() {
             @Override
             public void call(Long deletedStatusId) {
-              adapter.deleteStatus(deletedStatusId);
+              timelineStore.delete(deletedStatusId);
             }
           }, new Action1<Throwable>() {
             @Override

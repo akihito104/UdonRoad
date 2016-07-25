@@ -4,10 +4,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.view.View;
-
 import java.util.List;
 
 import rx.Observable;
@@ -21,15 +17,6 @@ import twitter4j.TwitterException;
  * Created by akihit on 2016/06/07.
  */
 public class RealmUserFavsFragment extends RealmTimelineFragment {
-  @Override
-  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
-    final TimelineStore timelineStore = new TimelineStore();
-    timelineStore.open(getContext(), getStoreName());
-    timelineStore.clear();
-    timelineStore.close();
-  }
-
   @Override
   public String getStoreName() {
     return "user_favs";

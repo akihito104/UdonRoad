@@ -4,10 +4,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.view.View;
-
 import java.util.List;
 
 import rx.Observable;
@@ -23,15 +19,6 @@ import twitter4j.TwitterException;
 public class RealmUserHomeTimelineFragment extends RealmTimelineFragment {
   @SuppressWarnings("unused")
   private static final String TAG = RealmUserHomeTimelineFragment.class.getSimpleName();
-
-  @Override
-  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
-    final TimelineStore timelineStore = new TimelineStore();
-    timelineStore.open(getContext(), getStoreName());
-    timelineStore.clear();
-    timelineStore.close();
-  }
 
   @Override
   public String getStoreName() {

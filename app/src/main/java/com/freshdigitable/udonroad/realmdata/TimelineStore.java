@@ -53,7 +53,7 @@ public class TimelineStore {
   }
 
   private void open(Context context, RealmConfiguration config) {
-    Log.d(TAG, "openRealm: ");
+    Log.d(TAG, "openRealm: " + config.getRealmFileName());
     insertEvent = PublishSubject.create();
     updateEvent = PublishSubject.create();
     deleteEvent = PublishSubject.create();
@@ -311,7 +311,7 @@ public class TimelineStore {
   }
 
   public void close() {
-    Log.d(TAG, "closeRealm: ");
+    Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
     insertEvent.onCompleted();
     updateEvent.onCompleted();
     deleteEvent.onCompleted();

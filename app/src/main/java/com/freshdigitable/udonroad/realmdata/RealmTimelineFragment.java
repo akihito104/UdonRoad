@@ -4,6 +4,7 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -14,6 +15,7 @@ import com.freshdigitable.udonroad.TimelineFragment;
 import java.util.List;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -26,25 +28,62 @@ import twitter4j.Status;
 public abstract class RealmTimelineFragment extends TimelineFragment {
   private static final String TAG = RealmTimelineFragment.class.getSimpleName();
 
-  protected RealmTimelineAdapter adapter = new RealmTimelineAdapter();
+  protected TimelineStore timelineStore;
+  private Subscription insertEventSubscription;
+  private Subscription updateEventSubscription;
+  private Subscription deleteEventSubscription;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    timelineStore = new TimelineStore();
+    timelineStore.open(context, getStoreName());
+    timelineStore.clear();
+    final TimelineAdapter timelineAdapter = getTimelineAdapter();
+    timelineAdapter.setTimelineStore(timelineStore);
+    insertEventSubscription = timelineStore.subscribeInsertEvent()
+        .subscribe(new Action1<Integer>() {
+          @Override
+          public void call(Integer position) {
+            timelineAdapter.notifyItemInserted(position);
+          }
+        });
+    updateEventSubscription = timelineStore.subscribeUpdateEvent()
+        .subscribe(new Action1<Integer>() {
+          @Override
+          public void call(Integer position) {
+            timelineAdapter.notifyItemChanged(position);
+          }
+        });
+    deleteEventSubscription = timelineStore.subscribeDeleteEvent()
+        .subscribe(new Action1<Integer>() {
+          @Override
+          public void call(Integer position) {
+            timelineAdapter.notifyItemRemoved(position);
+          }
+        });
+  }
 
   @Override
   public void onStart() {
-    adapter.openRealm(getContext(), getStoreName());
     super.onStart();
   }
 
   @Override
   public void onStop() {
     Log.d(TAG, "onStop: ");
-    adapter.closeRealm();
+    clearSelectedTweet();
     super.onStop();
   }
 
   @Override
-  public void onDestroy() {
-    Log.d(TAG, "onDestroy: ");
-    super.onDestroy();
+  public void onDetach() {
+    insertEventSubscription.unsubscribe();
+    updateEventSubscription.unsubscribe();
+    deleteEventSubscription.unsubscribe();
+    timelineStore.clear();
+    timelineStore.close();
+    super.onDetach();
   }
 
   public abstract String getStoreName();
@@ -61,7 +100,7 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
             new Action1<List<Status>>() {
               @Override
               public void call(List<Status> statuses) {
-                adapter.addNewStatuses(statuses);
+                timelineStore.upsert(statuses);
               }
             },
             new Action1<Throwable>() {
@@ -82,10 +121,5 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
   protected long getUserId() {
     final Bundle arguments = getArguments();
     return arguments.getLong("user_id");
-  }
-
-  @Override
-  protected TimelineAdapter getTimelineAdapter() {
-    return adapter;
   }
 }

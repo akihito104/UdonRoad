@@ -6,6 +6,7 @@ package com.freshdigitable.udonroad.realmdata;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -18,9 +19,12 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
  * Created by akihit on 2016/07/22.
  */
 public class StatusCache {
+  @SuppressWarnings("unused")
+  public static final String TAG = StatusCache.class.getSimpleName();
   private final Realm cache;
 
   public StatusCache(Context context) {
+    Log.d(TAG, "StatusCache: open");
     final RealmConfiguration config = new RealmConfiguration.Builder(context)
         .name("cache")
         .deleteRealmIfMigrationNeeded()
@@ -113,6 +117,7 @@ public class StatusCache {
   }
 
   public void close() {
+    Log.d(TAG, "close: " + cache.getConfiguration().getRealmFileName());
     cache.close();
   }
 }
