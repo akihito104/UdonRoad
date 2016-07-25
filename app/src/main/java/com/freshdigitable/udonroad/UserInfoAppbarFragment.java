@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,8 +17,10 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoAppbarBinding;
-import com.freshdigitable.udonroad.realmdata.StatusCache;
+import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
+
+import javax.inject.Inject;
 
 import twitter4j.User;
 
@@ -26,7 +29,14 @@ import twitter4j.User;
  */
 public class UserInfoAppbarFragment extends Fragment {
   private FragmentUserInfoAppbarBinding binding;
-  private StatusCache statusCache;
+  @Inject
+  StatusCache statusCache;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
   @Nullable
   @Override
@@ -85,7 +95,6 @@ public class UserInfoAppbarFragment extends Fragment {
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
-    statusCache = new StatusCache(getContext());
     final User user = statusCache.getUser(userId);
     showUserInfo(user);
   }

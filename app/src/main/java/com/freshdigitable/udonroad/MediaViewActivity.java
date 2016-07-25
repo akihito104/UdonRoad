@@ -30,11 +30,11 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
+import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
-import com.freshdigitable.udonroad.realmdata.StatusCache;
 
 import javax.inject.Inject;
 
@@ -58,7 +58,8 @@ public class MediaViewActivity extends AppCompatActivity {
   TwitterApi twitterApi;
   private FlingableFABHelper ffabHelper;
   private Handler handler;
-  private StatusCache statusCache;
+  @Inject
+  StatusCache statusCache;
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -82,7 +83,7 @@ public class MediaViewActivity extends AppCompatActivity {
     showSystemUI();
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_media_view);
-    ((MainApplication) getApplication()).getTwitterApiComponent().inject(this);
+    InjectionUtil.getComponent(this).inject(this);
 
     ViewCompat.setElevation(binding.mediaToolbar,
         getResources().getDimensionPixelOffset(R.dimen.action_bar_elevation));
@@ -175,7 +176,6 @@ public class MediaViewActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
-    statusCache = new StatusCache(getApplicationContext());
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);

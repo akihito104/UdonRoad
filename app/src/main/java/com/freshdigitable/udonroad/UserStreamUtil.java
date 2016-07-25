@@ -6,7 +6,7 @@ package com.freshdigitable.udonroad;
 
 import android.util.Log;
 
-import com.freshdigitable.udonroad.realmdata.TimelineStore;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

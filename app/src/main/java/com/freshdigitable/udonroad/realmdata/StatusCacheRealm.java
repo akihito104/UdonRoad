@@ -8,6 +8,8 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.freshdigitable.udonroad.datastore.StatusCache;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import twitter4j.Status;
@@ -18,13 +20,13 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 /**
  * Created by akihit on 2016/07/22.
  */
-public class StatusCache {
+public class StatusCacheRealm implements StatusCache {
   @SuppressWarnings("unused")
-  public static final String TAG = StatusCache.class.getSimpleName();
+  public static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final Realm cache;
 
-  public StatusCache(Context context) {
-    Log.d(TAG, "StatusCache: open");
+  public StatusCacheRealm(Context context) {
+    Log.d(TAG, "StatusCacheRealm: open");
     final RealmConfiguration config = new RealmConfiguration.Builder(context)
         .name("cache")
         .deleteRealmIfMigrationNeeded()
@@ -32,6 +34,7 @@ public class StatusCache {
     cache = Realm.getInstance(config);
   }
 
+  @Override
   public void upsertStatus(@Nullable final Status rtStatus) {
     if (rtStatus == null) {
       return;
@@ -67,6 +70,7 @@ public class StatusCache {
     });
   }
 
+  @Override
   public void deleteStatus(final long statusId) {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
@@ -79,34 +83,37 @@ public class StatusCache {
     });
   }
 
-  public StatusRealm getStatus(long id) {
+  @Override
+  public Status getStatus(long id) {
     final StatusRealm res = getStatusInternal(id);
     if (res.isRetweet()) {
-    final StatusRealm rtStatus = getStatusInternal(res.getRetweetedStatusId());
-    if (rtStatus.getQuotedStatusId() > 0) {
-      rtStatus.setQuotedStatus(getStatusInternal(rtStatus.getQuotedStatusId()));
+      final StatusRealm rtStatus = getStatusInternal(res.getRetweetedStatusId());
+      if (rtStatus.getQuotedStatusId() > 0) {
+        rtStatus.setQuotedStatus(getStatusInternal(rtStatus.getQuotedStatusId()));
+      }
+      res.setRetweetedStatus(rtStatus);
+      return res;
     }
-    res.setRetweetedStatus(rtStatus);
-    return res;
-  }
     if (res.getQuotedStatusId() > 0) {
       res.setQuotedStatus(getStatusInternal(res.getQuotedStatusId()));
     }
     return res;
   }
 
+  @Override
   public User getUser(long id) {
     return cache.where(UserRealm.class)
         .equalTo("id", id)
         .findFirst();
   }
 
-  private StatusRealm getStatusInternal(long id){
+  private StatusRealm getStatusInternal(long id) {
     return cache.where(StatusRealm.class)
         .equalTo(KEY_ID, id)
         .findFirst();
   }
 
+  @Override
   public void clear() {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
@@ -116,6 +123,7 @@ public class StatusCache {
     });
   }
 
+  @Override
   public void close() {
     Log.d(TAG, "close: " + cache.getConfiguration().getRealmFileName());
     cache.close();

@@ -36,8 +36,7 @@ public class OAuthActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_login);
-    final MainApplication application = (MainApplication) getApplication();
-    application.getTwitterApiComponent().inject(this);
+    InjectionUtil.getComponent(this).inject(this);
 
     callbackUrl = getString(R.string.callback_url);
     findViewById(R.id.button_oauth).setOnClickListener(new View.OnClickListener() {

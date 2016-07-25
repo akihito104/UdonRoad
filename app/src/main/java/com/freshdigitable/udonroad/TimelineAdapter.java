@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.realmdata.TimelineStore;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 

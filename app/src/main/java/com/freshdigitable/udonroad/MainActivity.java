@@ -23,7 +23,6 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.realmdata.RealmHomeTimelineFragment;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -49,8 +48,7 @@ public class MainActivity extends AppCompatActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    final MainApplication app = (MainApplication) getApplication();
-    app.getTwitterApiComponent().inject(this);
+    InjectionUtil.getComponent(this).inject(this);
     if (!twitterApi.loadAccessToken()) {
       startActivity(new Intent(this, OAuthActivity.class));
       finish();
@@ -92,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupHomeTimeline() {
-    tlFragment = new RealmHomeTimelineFragment();
+    tlFragment = new HomeTimelineFragment();
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
       public void onClicked(User user) {

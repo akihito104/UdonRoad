@@ -9,6 +9,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.freshdigitable.udonroad.datastore.TimelineStore;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,11 +33,11 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_RETWEETED_ST
 /**
  * Created by akihit on 2016/07/23.
  */
-public class TimelineStore {
-  public static final String TAG = TimelineStore.class.getSimpleName();
+public class TimelineStoreRealm implements TimelineStore {
+  public static final String TAG = TimelineStoreRealm.class.getSimpleName();
   private Realm realm;
   private RealmResults<StatusIDs> timeline;
-  private StatusCache statusCache;
+  private StatusCacheRealm statusCache;
   private PublishSubject<Integer> insertEvent;
   private PublishSubject<Integer> updateEvent;
   private PublishSubject<Integer> deleteEvent;
@@ -45,6 +47,7 @@ public class TimelineStore {
     open(context, config);
   }
 
+  @Override
   public void open(Context context, String storeName) {
     final RealmConfiguration config = new RealmConfiguration.Builder(context)
         .name(storeName)
@@ -57,7 +60,7 @@ public class TimelineStore {
     insertEvent = PublishSubject.create();
     updateEvent = PublishSubject.create();
     deleteEvent = PublishSubject.create();
-    statusCache = new StatusCache(context);
+    statusCache = new StatusCacheRealm(context);
     realm = Realm.getInstance(config);
     defaultTimeline();
   }
@@ -68,18 +71,22 @@ public class TimelineStore {
         .findAllSorted(KEY_ID, Sort.DESCENDING);
   }
 
+  @Override
   public Observable<Integer> subscribeInsertEvent() {
     return insertEvent.onBackpressureBuffer();
   }
 
+  @Override
   public Observable<Integer> subscribeUpdateEvent() {
     return updateEvent.onBackpressureBuffer();
   }
 
+  @Override
   public Observable<Integer> subscribeDeleteEvent() {
     return deleteEvent.onBackpressureBuffer();
   }
 
+  @Override
   public void upsert(List<Status> statuses) {
     if (statuses.size() < 1) {
       return;
@@ -241,6 +248,7 @@ public class TimelineStore {
     }
   }
 
+  @Override
   public void delete(long statusId) {
     final RealmResults<StatusIDs> res = realm.where(StatusIDs.class)
         .beginGroup()
@@ -301,6 +309,7 @@ public class TimelineStore {
     return res;
   }
 
+  @Override
   public void clear() {
     realm.executeTransaction(new Realm.Transaction() {
       @Override
@@ -310,6 +319,7 @@ public class TimelineStore {
     });
   }
 
+  @Override
   public void close() {
     Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
     insertEvent.onCompleted();
@@ -319,11 +329,13 @@ public class TimelineStore {
     statusCache.close();
   }
 
+  @Override
   public Status get(int position) {
     final StatusIDs ids = timeline.get(position);
     return statusCache.getStatus(ids.getId());
   }
 
+  @Override
   public int getItemCount() {
     return timeline.size();
   }

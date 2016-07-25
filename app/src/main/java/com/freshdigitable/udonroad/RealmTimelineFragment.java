@@ -2,17 +2,18 @@
  * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 
-import com.freshdigitable.udonroad.TimelineAdapter;
-import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
@@ -28,7 +29,8 @@ import twitter4j.Status;
 public abstract class RealmTimelineFragment extends TimelineFragment {
   private static final String TAG = RealmTimelineFragment.class.getSimpleName();
 
-  protected TimelineStore timelineStore;
+  @Inject
+  TimelineStore timelineStore;
   private Subscription insertEventSubscription;
   private Subscription updateEventSubscription;
   private Subscription deleteEventSubscription;
@@ -36,7 +38,7 @@ public abstract class RealmTimelineFragment extends TimelineFragment {
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    timelineStore = new TimelineStore();
+    InjectionUtil.getComponent(this).inject(this);
     timelineStore.open(context, getStoreName());
     timelineStore.clear();
     final TimelineAdapter timelineAdapter = getTimelineAdapter();

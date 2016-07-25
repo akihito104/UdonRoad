@@ -59,7 +59,7 @@ public abstract class MainActivityInstTestBase {
   @Before
   public void setup() throws Exception {
     app = (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
-    final MockTwitterApiComponent component = (MockTwitterApiComponent) app.getTwitterApiComponent();
+    final MockAppComponent component = (MockAppComponent) app.getAppComponent();
     component.inject(this);
 
     Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("home").build());

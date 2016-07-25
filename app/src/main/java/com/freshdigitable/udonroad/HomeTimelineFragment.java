@@ -2,7 +2,7 @@
  * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,9 +10,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.freshdigitable.udonroad.MainApplication;
-import com.freshdigitable.udonroad.UserStreamUtil;
 
 import java.util.List;
 
@@ -28,9 +25,9 @@ import twitter4j.TwitterException;
  *
  * Created by akihit on 2016/06/07.
  */
-public class RealmHomeTimelineFragment extends RealmTimelineFragment {
+public class HomeTimelineFragment extends RealmTimelineFragment {
   @SuppressWarnings("unused")
-  private static final String TAG = RealmHomeTimelineFragment.class.getSimpleName();
+  private static final String TAG = HomeTimelineFragment.class.getSimpleName();
 
   @Override
   public String getStoreName() {
@@ -43,9 +40,8 @@ public class RealmHomeTimelineFragment extends RealmTimelineFragment {
   @Override
   public View onCreateView(
       LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final MainApplication application = (MainApplication) getActivity().getApplication();
     userStream = new UserStreamUtil(super.timelineStore);
-    application.getTwitterApiComponent().inject(userStream);
+    InjectionUtil.getComponent(this).inject(userStream);
     return super.onCreateView(inflater, container, savedInstanceState);
   }
 

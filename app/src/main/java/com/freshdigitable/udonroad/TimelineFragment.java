@@ -3,6 +3,7 @@
  */
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -39,13 +40,17 @@ public class TimelineFragment extends Fragment {
   @Inject
   TwitterApi twitterApi;
 
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
+
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     binding = DataBindingUtil.bind(view);
-    final MainApplication application = (MainApplication) getActivity().getApplication();
-    application.getTwitterApiComponent().inject(this);
     return view;
   }
 
@@ -217,7 +222,6 @@ public class TimelineFragment extends Fragment {
 
   private void showStatusDetail(long status) {
     statusDetail = StatusDetailFragment.getInstance(status);
-    statusDetail.setTwitterApi(twitterApi);
     getActivity().getSupportFragmentManager().beginTransaction()
         .hide(this)
         .add(R.id.main_timeline_container, statusDetail)

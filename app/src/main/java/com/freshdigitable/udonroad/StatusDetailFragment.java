@@ -20,7 +20,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
-import com.freshdigitable.udonroad.realmdata.StatusCache;
+import com.freshdigitable.udonroad.datastore.StatusCache;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -32,6 +34,14 @@ public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   private Status status;
+  @Inject
+  StatusCache statusCache;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
   @Nullable
   @Override
@@ -45,7 +55,6 @@ public class StatusDetailFragment extends Fragment {
     binding = DataBindingUtil.bind(getView());
 
     long id = (long) getArguments().get("statusId");
-    final StatusCache statusCache = new StatusCache(getContext());
     this.status = statusCache.getStatus(id);
     binding.statusView.bindStatus(this.status);
 
@@ -79,15 +88,12 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onDestroyView() {
     twitterApi = null;
+    statusCache.close();
     status = null;
     super.onDestroyView();
   }
 
-  private TwitterApi twitterApi;
-
-  public void setTwitterApi(TwitterApi twitterApi) {
-    this.twitterApi = twitterApi;
-  }
+  @Inject TwitterApi twitterApi;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();

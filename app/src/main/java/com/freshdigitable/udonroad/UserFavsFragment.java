@@ -2,7 +2,7 @@
  * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad;
 
 import java.util.List;
 
@@ -16,13 +16,10 @@ import twitter4j.TwitterException;
 /**
  * Created by akihit on 2016/06/07.
  */
-public class RealmUserHomeTimelineFragment extends RealmTimelineFragment {
-  @SuppressWarnings("unused")
-  private static final String TAG = RealmUserHomeTimelineFragment.class.getSimpleName();
-
+public class UserFavsFragment extends RealmTimelineFragment {
   @Override
   public String getStoreName() {
-    return "user_home";
+    return "user_favs";
   }
 
   @Override
@@ -33,7 +30,7 @@ public class RealmUserHomeTimelineFragment extends RealmTimelineFragment {
       @Override
       public void call(Subscriber<? super List<Status>> subscriber) {
         try {
-          subscriber.onNext(twitter.getUserTimeline(userId));
+          subscriber.onNext(twitter.getFavorites(userId));
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
@@ -50,7 +47,7 @@ public class RealmUserHomeTimelineFragment extends RealmTimelineFragment {
       @Override
       public void call(Subscriber<? super List<Status>> subscriber) {
         try {
-          subscriber.onNext(twitter.getUserTimeline(userId, page));
+          subscriber.onNext(twitter.getFavorites(userId, page));
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
@@ -59,7 +56,7 @@ public class RealmUserHomeTimelineFragment extends RealmTimelineFragment {
     });
   }
 
-  public static RealmUserHomeTimelineFragment getInstance(long userId) {
-    return getInstance(new RealmUserHomeTimelineFragment(), userId);
+  public static UserFavsFragment getInstance(long userId) {
+    return getInstance(new UserFavsFragment(), userId);
   }
 }

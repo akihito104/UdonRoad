@@ -18,8 +18,6 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.realmdata.RealmUserFavsFragment;
-import com.freshdigitable.udonroad.realmdata.RealmUserHomeTimelineFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,11 +58,11 @@ public class UserInfoPagerFragment extends Fragment {
   public void onStart() {
     super.onStart();
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    final RealmUserHomeTimelineFragment home = RealmUserHomeTimelineFragment.getInstance(userId);
+    final UserHomeTimelineFragment home = UserHomeTimelineFragment.getInstance(userId);
     home.setFABHelper(fabHelper);
     home.setupOnFlingListener();
     pagerAdapter.putFragment(home, "Tweets");
-    final RealmUserFavsFragment favs = RealmUserFavsFragment.getInstance(userId);
+    final UserFavsFragment favs = UserFavsFragment.getInstance(userId);
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
     viewPager.setAdapter(pagerAdapter);

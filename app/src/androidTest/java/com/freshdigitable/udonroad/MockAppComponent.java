@@ -12,7 +12,7 @@ import dagger.Component;
  * Created by akihit on 2016/06/16.
  */
 @Singleton
-@Component(modules = MockTwitterApiModule.class)
-public interface MockTwitterApiComponent extends TwitterApiComponent {
+@Component(modules = {MockTwitterApiModule.class, DataStoreModule.class})
+public interface MockAppComponent extends AppComponent {
   void inject(MainActivityInstTestBase mainActivityResumeInstTest);
 }
