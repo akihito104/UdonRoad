@@ -87,6 +87,11 @@ public class TimelineStoreRealm implements TimelineStore {
   }
 
   @Override
+  public void upsert(Status status) {
+    upsert(Collections.singletonList(status));
+  }
+
+  @Override
   public void upsert(List<Status> statuses) {
     if (statuses.size() < 1) {
       return;

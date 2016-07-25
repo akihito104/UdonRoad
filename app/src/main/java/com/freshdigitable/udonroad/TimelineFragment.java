@@ -6,6 +6,7 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -297,14 +298,6 @@ public class TimelineFragment extends Fragment {
         && !addedUntilStopped;
   }
 
-  private void addNewStatuses(List<Status> statuses) {
-    tlAdapter.addNewStatuses(statuses);
-  }
-
-  private void addStatusesAtLast(List<Status> statuses) {
-    tlAdapter.addNewStatusesAtLast(statuses);
-  }
-
   public void scrollToTop() {
     clearSelectedTweet();
     binding.timeline.setLayoutFrozen(false);
@@ -337,12 +330,7 @@ public class TimelineFragment extends Fragment {
     twitterApi.retweetStatus(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-                tlAdapter.addNewStatus(status);
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
@@ -357,12 +345,7 @@ public class TimelineFragment extends Fragment {
     twitterApi.createFavorite(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-                tlAdapter.addNewStatus(status);
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable e) {
@@ -384,12 +367,7 @@ public class TimelineFragment extends Fragment {
     twitterApi.getHomeTimeline()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<List<Status>>() {
-              @Override
-              public void call(List<Status> statuses) {
-                addNewStatuses(statuses);
-              }
-            },
+            listUpsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable e) {
@@ -402,19 +380,33 @@ public class TimelineFragment extends Fragment {
     twitterApi.getHomeTimeline(paging)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<List<Status>>() {
-              @Override
-              public void call(List<Status> statuses) {
-                Log.d(TAG, "onNext: " + statuses.size());
-                addStatusesAtLast(statuses);
-              }
-            },
+            listUpsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable e) {
                 Log.e(TAG, "home timeline is not downloaded.", e);
               }
             });
+  }
+
+  @NonNull
+  private Action1<Status> upsertAction() {
+    return new Action1<Status>() {
+      @Override
+      public void call(Status status) {
+        timelineStore.upsert(status);
+      }
+    };
+  }
+
+  @NonNull
+  private Action1<List<Status>> listUpsertAction() {
+    return new Action1<List<Status>>() {
+      @Override
+      public void call(List<Status> statuses) {
+        timelineStore.upsert(statuses);
+      }
+    };
   }
 
   protected TwitterApi getTwitterApi() {
@@ -460,12 +452,7 @@ public class TimelineFragment extends Fragment {
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<List<Status>>() {
-              @Override
-              public void call(List<Status> statuses) {
-                timelineStore.upsert(statuses);
-              }
-            },
+            listUpsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {

@@ -12,9 +12,6 @@ import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 
-import java.util.Collections;
-import java.util.List;
-
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
@@ -35,8 +32,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     return new ViewHolder(new StatusView(parent.getContext()));
   }
-
-//  private final List<Status> statuses;
 
   public long getSelectedTweetId() {
     return isStatusViewSelected() ? selectedStatusHolder.statusId : -1;
@@ -217,48 +212,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public int getItemCount() {
-//    return this.statuses.size();
     return timelineStore.getItemCount();
   }
-
-  public void addNewStatus(Status status) {
-//    statuses.add(0, status);
-//    notifyItemInserted(0);
-    addNewStatuses(Collections.singletonList(status));
-  }
-
-  public void addNewStatuses(List<Status> statuses) {
-//    this.statuses.addAll(0, statuses);
-//    notifyItemRangeInserted(0, statuses.size());
-    timelineStore.upsert(statuses);
-  }
-
-  public void addNewStatusesAtLast(List<Status> statuses) {
-//    this.statuses.addAll(statuses);
-//    notifyDataSetChanged();
-    addNewStatuses(statuses);
-  }
-
-//  public void deleteStatus(long statusId) {
-//    Status removing = null;
-//    for (Status s: statuses){
-//      if (s.getId() == statusId) {
-//        removing = s;
-//        break;
-//      }
-//    }
-//    if (removing == null) {
-//      return;
-//    }
-//    synchronized (statuses) {
-//      int removedItemIndex = statuses.indexOf(removing);
-//      statuses.remove(removing);
-//      notifyItemRemoved(removedItemIndex);
-//      if (getSelectedTweetId() == statusId) {
-//        clearSelectedTweet();
-//      }
-//    }
-//  }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
     private long statusId;

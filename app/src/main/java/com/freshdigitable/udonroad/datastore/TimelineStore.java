@@ -27,6 +27,8 @@ public interface TimelineStore {
 
   Observable<Integer> subscribeDeleteEvent();
 
+  void upsert(Status status);
+
   void upsert(List<Status> statuses);
 
   void delete(long statusId);
