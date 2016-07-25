@@ -225,11 +225,7 @@ public class MediaViewActivity extends AppCompatActivity {
     twitterApi.retweetStatus(status.getId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
@@ -243,11 +239,7 @@ public class MediaViewActivity extends AppCompatActivity {
     twitterApi.createFavorite(status.getId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
@@ -255,6 +247,16 @@ public class MediaViewActivity extends AppCompatActivity {
               }
             },
             showToastAction("success fav"));
+  }
+
+  @NonNull
+  private Action1<Status> upsertAction() {
+    return new Action1<Status>() {
+      @Override
+      public void call(Status status) {
+        statusCache.upsertStatus(status);
+      }
+    };
   }
 
   private Action0 showToastAction(final String text) {

@@ -144,6 +144,7 @@ public class TimelineFragment extends Fragment {
     });
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     binding.timeline.setAdapter(tlAdapter);
+    fetchTweet();
   }
 
   private final RecyclerView.AdapterDataObserver itemInsertedObserver
@@ -197,7 +198,6 @@ public class TimelineFragment extends Fragment {
     super.onStart();
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
-    fetchTweet();
     setupOnFlingListener();
   }
 
