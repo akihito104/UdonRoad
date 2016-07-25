@@ -24,8 +24,6 @@ public interface AppComponent {
 
   void inject(TimelineFragment timelineFragment);
 
-  void inject(RealmTimelineFragment realmTimelineFragment);
-
   void inject(UserInfoAppbarFragment userInfoAppbarFragment);
 
   void inject(StatusDetailFragment statusDetailFragment);

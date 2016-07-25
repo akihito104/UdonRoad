@@ -16,7 +16,7 @@ import twitter4j.TwitterException;
 /**
  * Created by akihit on 2016/06/07.
  */
-public class UserHomeTimelineFragment extends RealmTimelineFragment {
+public class UserHomeTimelineFragment extends TimelineFragment {
   @SuppressWarnings("unused")
   private static final String TAG = UserHomeTimelineFragment.class.getSimpleName();
 

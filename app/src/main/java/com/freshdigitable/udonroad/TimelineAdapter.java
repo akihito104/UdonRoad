@@ -25,6 +25,11 @@ import twitter4j.User;
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
+  private final TimelineStore timelineStore;
+
+  public TimelineAdapter(TimelineStore timelineStore) {
+    this.timelineStore = timelineStore;
+  }
 
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -39,12 +44,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   public boolean isStatusViewSelected() {
     return selectedStatusHolder != null;
-  }
-
-  private TimelineStore timelineStore;
-
-  public void setTimelineStore(TimelineStore timelineStore) {
-    this.timelineStore = timelineStore;
   }
 
   public interface LastItemBoundListener {
