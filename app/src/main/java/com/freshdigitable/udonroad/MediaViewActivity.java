@@ -30,17 +30,14 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
+import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
-import com.freshdigitable.udonroad.realmdata.ReferredStatusRealm;
-import com.freshdigitable.udonroad.realmdata.StatusRealm;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -56,12 +53,13 @@ public class MediaViewActivity extends AppCompatActivity {
   private static final String CREATE_STATUS = "status";
   private static final String CREATE_START = "start";
 
-  private Realm realm;
   private ActivityMediaViewBinding binding;
   @Inject
   TwitterApi twitterApi;
   private FlingableFABHelper ffabHelper;
   private Handler handler;
+  @Inject
+  StatusCache statusCache;
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -85,7 +83,7 @@ public class MediaViewActivity extends AppCompatActivity {
     showSystemUI();
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_media_view);
-    ((MainApplication) getApplication()).getTwitterApiComponent().inject(this);
+    InjectionUtil.getComponent(this).inject(this);
 
     ViewCompat.setElevation(binding.mediaToolbar,
         getResources().getDimensionPixelOffset(R.dimen.action_bar_elevation));
@@ -157,28 +155,7 @@ public class MediaViewActivity extends AppCompatActivity {
   }
 
   private Status findStatus(long id) {
-    final StatusRealm status = realm.where(StatusRealm.class)
-        .equalTo("id", id)
-        .findFirst();
-    if (status != null) {
-      if (status.getRetweetedStatusId() > 0) {
-        final ReferredStatusRealm rtStatus = realm.where(ReferredStatusRealm.class)
-            .equalTo("id", status.getRetweetedStatusId())
-            .findFirst();
-        status.setRetweetedStatus(rtStatus);
-      }
-      if (status.getQuotedStatusId() > 0) {
-        final ReferredStatusRealm qtStatus = realm.where(ReferredStatusRealm.class)
-            .equalTo("id", status.getQuotedStatusId())
-            .findFirst();
-        status.setQuotedStatus(qtStatus);
-      }
-      return status;
-    } else {
-      return realm.where(ReferredStatusRealm.class)
-          .equalTo("id", id)
-          .findFirst();
-    }
+    return statusCache.getStatus(id);
   }
 
   private void setTitle() {
@@ -199,9 +176,6 @@ public class MediaViewActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
-    realm = Realm.getInstance(
-        new RealmConfiguration.Builder(getApplicationContext())
-            .name("home").build());
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
@@ -251,11 +225,7 @@ public class MediaViewActivity extends AppCompatActivity {
     twitterApi.retweetStatus(status.getId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
@@ -269,11 +239,7 @@ public class MediaViewActivity extends AppCompatActivity {
     twitterApi.createFavorite(status.getId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
@@ -281,6 +247,16 @@ public class MediaViewActivity extends AppCompatActivity {
               }
             },
             showToastAction("success fav"));
+  }
+
+  @NonNull
+  private Action1<Status> upsertAction() {
+    return new Action1<Status>() {
+      @Override
+      public void call(Status status) {
+        statusCache.upsertStatus(status);
+      }
+    };
   }
 
   private Action0 showToastAction(final String text) {
@@ -305,7 +281,7 @@ public class MediaViewActivity extends AppCompatActivity {
     binding.mediaPager.removeOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setAdapter(null);
     binding.mediaFfab.setOnFlingListener(null);
-    realm.close();
+    statusCache.close();
     super.onStop();
   }
 

@@ -12,8 +12,8 @@ import dagger.Component;
  * Created by akihit on 2016/06/16.
  */
 @Singleton
-@Component(modules = TwitterApiModule.class)
-public interface TwitterApiComponent {
+@Component(modules = {TwitterApiModule.class, DataStoreModule.class})
+public interface AppComponent {
   void inject(OAuthActivity oAuthActivity);
 
   void inject(MainActivity activity);
@@ -23,4 +23,8 @@ public interface TwitterApiComponent {
   void inject(UserStreamUtil userStreamUtil);
 
   void inject(TimelineFragment timelineFragment);
+
+  void inject(UserInfoAppbarFragment userInfoAppbarFragment);
+
+  void inject(StatusDetailFragment statusDetailFragment);
 }

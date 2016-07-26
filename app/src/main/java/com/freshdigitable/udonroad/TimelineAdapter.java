@@ -8,11 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
-
-import java.util.LinkedList;
-import java.util.List;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -24,13 +22,10 @@ import twitter4j.User;
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
+  private final TimelineStore timelineStore;
 
-  public TimelineAdapter() {
-    this(new LinkedList<Status>());
-  }
-
-  private TimelineAdapter(List<Status> statuses) {
-    this.statuses = new LinkedList<>(statuses);
+  public TimelineAdapter(TimelineStore timelineStore) {
+    this.timelineStore = timelineStore;
   }
 
   @Override
@@ -38,18 +33,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return new ViewHolder(new StatusView(parent.getContext()));
   }
 
-  private final List<Status> statuses;
-
   public long getSelectedTweetId() {
-    return isStatusViewSelected() ? selectedStatusHolder.status.getId() : -1;
+    return isStatusViewSelected() ? selectedStatusHolder.statusId : -1;
   }
 
   public boolean isStatusViewSelected() {
     return selectedStatusHolder != null;
-  }
-
-  public Status getSelectedStatus() {
-    return isStatusViewSelected() ? selectedStatusHolder.status : null;
   }
 
   public interface LastItemBoundListener {
@@ -64,9 +53,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onBindViewHolder(final ViewHolder holder, int position) {
-    Status status = get(position);
+    final Status status = timelineStore.get(position);
     final StatusView itemView = (StatusView) holder.itemView;
-    if (holder.status != null && holder.status.getId() == status.getId()) {
+    if (holder.statusId == status.getId()) {
 //      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
       itemView.bindStatus(status);
       return;
@@ -191,7 +180,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     selectedStatusHolder = new SelectedStatus(vh);
     setSelectedBackground(selectedStatusHolder.view);
     if (selectedTweetChangeListener != null) {
-      selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.status);
+      selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.statusId);
     }
   }
 
@@ -217,64 +206,24 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   interface OnSelectedTweetChangeListener {
-    void onTweetSelected(Status status);
+    void onTweetSelected(long statusId);
     void onTweetUnselected();
-  }
-
-  protected Status get(int position) {
-    return statuses.get(position);
   }
 
   @Override
   public int getItemCount() {
-    return this.statuses.size();
-  }
-
-  public void addNewStatus(Status status) {
-    statuses.add(0, status);
-    notifyItemInserted(0);
-  }
-
-  public void addNewStatuses(List<Status> statuses) {
-    this.statuses.addAll(0, statuses);
-    notifyItemRangeInserted(0, statuses.size());
-  }
-
-  public void addNewStatusesAtLast(List<Status> statuses) {
-    this.statuses.addAll(statuses);
-    notifyDataSetChanged();
-  }
-
-  public void deleteStatus(long statusId) {
-    Status removing = null;
-    for (Status s: statuses){
-      if (s.getId() == statusId) {
-        removing = s;
-        break;
-      }
-    }
-    if (removing == null) {
-      return;
-    }
-    synchronized (statuses) {
-      int removedItemIndex = statuses.indexOf(removing);
-      statuses.remove(removing);
-      notifyItemRemoved(removedItemIndex);
-      if (getSelectedTweetId() == statusId) {
-        clearSelectedTweet();
-      }
-    }
+    return timelineStore.getItemCount();
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
-    private Status status;
+    private long statusId;
 
     public ViewHolder(View itemView) {
       super(itemView);
     }
 
     void bindStatus(final Status status) {
-      this.status = status;
+      this.statusId = status.getId();
       StatusView v = (StatusView) itemView;
       final User user = status.isRetweet()
           ? status.getRetweetedStatus().getUser()
@@ -282,7 +231,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       v.setUserIconClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-          userIconClickedListener.onClicked(user);
+          userIconClickedListener.onClicked(v, user);
         }
       });
       v.bindStatus(status);
@@ -311,7 +260,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
 
     boolean hasSameStatusId(SelectedStatus other) {
-      return other != null && this.status.getId() == other.status.getId();
+      return other != null && this.statusId == other.statusId;
     }
 
     private OnItemViewClickListener itemViewClicked;
@@ -322,28 +271,28 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       final StatusView v = (StatusView) this.itemView;
       v.setUserIconClickListener(null);
       v.reset();
-      this.status = null;
+      this.statusId = -1;
       this.itemViewClicked = null;
       this.userIconClickedListener = null;
     }
   }
 
   private static class SelectedStatus {
-    private final Status status;
+    private final long statusId;
     private final View view;
 
     private SelectedStatus(ViewHolder viewHolder) {
-      this(viewHolder.status, viewHolder.itemView);
+      this(viewHolder.statusId, viewHolder.itemView);
     }
 
-    private SelectedStatus(Status status, View view) {
-      this.status = status;
+    private SelectedStatus(long statusId, View view) {
+      this.statusId = statusId;
       this.view = view;
     }
   }
 
   interface OnUserIconClickedListener {
-    void onClicked(User user);
+    void onClicked(View view, User user);
   }
 
   private OnUserIconClickedListener userIconClickedListener;

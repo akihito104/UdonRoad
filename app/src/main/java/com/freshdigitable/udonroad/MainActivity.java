@@ -6,9 +6,12 @@ package com.freshdigitable.udonroad;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,7 +27,6 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.realmdata.RealmHomeTimelineFragment;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -49,14 +52,16 @@ public class MainActivity extends AppCompatActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    final MainApplication app = (MainApplication) getApplication();
-    app.getTwitterApiComponent().inject(this);
+    InjectionUtil.getComponent(this).inject(this);
     if (!twitterApi.loadAccessToken()) {
       startActivity(new Intent(this, OAuthActivity.class));
       finish();
       return;
     }
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+    }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -92,11 +97,11 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupHomeTimeline() {
-    tlFragment = new RealmHomeTimelineFragment();
+    tlFragment = new HomeTimelineFragment();
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
-      public void onClicked(User user) {
-        showUserInfo(user);
+      public void onClicked(View view, User user) {
+        showUserInfo(view, user);
       }
     });
     tlFragment.setFABHelper(flingableFABHelper);
@@ -106,31 +111,19 @@ public class MainActivity extends AppCompatActivity {
         .commit();
   }
 
-  private UserInfoPagerFragment userInfoPager;
-
-  private void showUserInfo(User user) {
+  private void showUserInfo(View view, User user) {
     if (appbarFragment.isStatusInputViewVisible()) {
       return;
     }
     binding.ffab.hide();
-    appbarFragment.showUserInfo(user);
-    userInfoPager = UserInfoPagerFragment.getInstance(user);
-    userInfoPager.setFABHelper(flingableFABHelper);
-    userInfoPager.setTabLayout(appbarFragment.getTabLayout());
-    sendStatusMenuItem.setVisible(false);
-    getSupportFragmentManager().beginTransaction()
-        .hide(tlFragment)
-        .add(R.id.main_timeline_container, userInfoPager)
-        .commit();
-  }
-
-  private void dismissUserInfo() {
-    appbarFragment.dismissUserInfo();
-    sendStatusMenuItem.setVisible(true);
-    getSupportFragmentManager().beginTransaction()
-        .remove(userInfoPager)
-        .show(tlFragment)
-        .commit();
+    final Intent intent = UserInfoActivity.createIntent(getApplicationContext(), user);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+      ViewCompat.setTransitionName(view, "user_icon");
+      startActivity(intent,
+          ActivityOptionsCompat.makeSceneTransitionAnimation(this, view, "user_icon").toBundle());
+    } else {
+      startActivity(intent);
+    }
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -200,6 +193,11 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onDestroy() {
+    binding.navDrawer.setNavigationItemSelectedListener(null);
+    appbarFragment.setUserObservable(null);
+    appbarFragment.setTweetSendFab(null);
+    tlFragment.setUserIconClickedListener(null);
+    tlFragment.setFABHelper(null);
     super.onDestroy();
   }
 
@@ -214,14 +212,6 @@ public class MainActivity extends AppCompatActivity {
     }
     if (appbarFragment.isStatusInputViewVisible()) {
       cancelWritingSelected();
-      return;
-    }
-    if (appbarFragment.isUserInfoVisible()) {
-      if (binding.ffab.getVisibility() == View.VISIBLE) {
-        userInfoPager.clearSelectedTweet();
-        return;
-      }
-      dismissUserInfo();
       return;
     }
     if (tlFragment.isTweetSelected()) {
@@ -265,8 +255,6 @@ public class MainActivity extends AppCompatActivity {
   private void headingSelected() {
     if (tlFragment.isVisible()) {
       tlFragment.scrollToTop();
-    } else if (userInfoPager.isVisible()) {
-      userInfoPager.scrollToTop();
     }
   }
 

@@ -5,6 +5,7 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Application;
+import android.support.annotation.VisibleForTesting;
 
 import com.squareup.leakcanary.LeakCanary;
 
@@ -13,22 +14,24 @@ import com.squareup.leakcanary.LeakCanary;
  */
 public class MainApplication extends Application {
 
-  private TwitterApiComponent twitterApiComponent;
+  private AppComponent appComponent;
 
   @Override
   public void onCreate() {
     super.onCreate();
-    twitterApiComponent = createTwitterApiComponent();
+    appComponent = createAppComponent();
     LeakCanary.install(this);
   }
 
-  protected TwitterApiComponent createTwitterApiComponent() {
-    return DaggerTwitterApiComponent.builder()
+  @VisibleForTesting
+  protected AppComponent createAppComponent() {
+    return DaggerAppComponent.builder()
         .twitterApiModule(new TwitterApiModule(getApplicationContext()))
+        .dataStoreModule(new DataStoreModule(getApplicationContext()))
         .build();
   }
-
-  public TwitterApiComponent getTwitterApiComponent() {
-    return twitterApiComponent;
+  
+  public AppComponent getAppComponent() {
+    return appComponent;
   }
 }

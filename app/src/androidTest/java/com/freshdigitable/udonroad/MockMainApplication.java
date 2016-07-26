@@ -14,10 +14,11 @@ public class MockMainApplication extends MainApplication {
   private MockTwitterApiModule mockTwitterApiModule;
 
   @Override
-  protected TwitterApiComponent createTwitterApiComponent() {
+  protected AppComponent createAppComponent() {
     mockTwitterApiModule = new MockTwitterApiModule(getApplicationContext());
-    return DaggerMockTwitterApiComponent.builder()
+    return DaggerMockAppComponent.builder()
         .mockTwitterApiModule(mockTwitterApiModule)
+        .dataStoreModule(new DataStoreModule(getApplicationContext()))
         .build();
   }
 

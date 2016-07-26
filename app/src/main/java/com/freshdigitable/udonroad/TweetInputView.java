@@ -35,7 +35,7 @@ public class TweetInputView extends RelativeLayout {
   public TweetInputView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
 
-    final View v = View.inflate(context, R.layout.tweet_input_view, this);
+    final View v = View.inflate(context, R.layout.view_tweet_input, this);
     inputText = (TextInputEditText) v.findViewById(R.id.tw_intext);
     name = (CombinedScreenNameTextView) v.findViewById(R.id.tw_name);
     icon = (ImageView) v.findViewById(R.id.tw_icon);

@@ -3,8 +3,10 @@
  */
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,7 +17,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
@@ -24,8 +28,11 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -34,18 +41,61 @@ public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private FragmentTimelineBinding binding;
-  private final TimelineAdapter tlAdapter = new TimelineAdapter();
+  private TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   @Inject
   TwitterApi twitterApi;
+  @Inject
+  TimelineStore timelineStore;
+  private Subscription insertEventSubscription;
+  private Subscription updateEventSubscription;
+  private Subscription deleteEventSubscription;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+    tlAdapter = new TimelineAdapter(timelineStore);
+    timelineStore.open(context, getStoreName());
+    timelineStore.clear();
+    insertEventSubscription = timelineStore.subscribeInsertEvent()
+        .subscribe(new Action1<Integer>() {
+          @Override
+          public void call(Integer position) {
+            tlAdapter.notifyItemInserted(position);
+          }
+        });
+    updateEventSubscription = timelineStore.subscribeUpdateEvent()
+        .subscribe(new Action1<Integer>() {
+          @Override
+          public void call(Integer position) {
+            tlAdapter.notifyItemChanged(position);
+          }
+        });
+    deleteEventSubscription = timelineStore.subscribeDeleteEvent()
+        .subscribe(new Action1<Integer>() {
+          @Override
+          public void call(Integer position) {
+            tlAdapter.notifyItemRemoved(position);
+          }
+        });
+  }
+
+  @Override
+  public void onDetach() {
+    insertEventSubscription.unsubscribe();
+    updateEventSubscription.unsubscribe();
+    deleteEventSubscription.unsubscribe();
+    timelineStore.clear();
+    timelineStore.close();
+    super.onDetach();
+  }
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     binding = DataBindingUtil.bind(view);
-    final MainApplication application = (MainApplication) getActivity().getApplication();
-    application.getTwitterApiComponent().inject(this);
     return view;
   }
 
@@ -73,12 +123,11 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    final TimelineAdapter adapter = getTimelineAdapter();
     final FlingableFAB fab = fabHelper.getFab();
-    adapter.setOnSelectedTweetChangeListener(
+    tlAdapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
-          public void onTweetSelected(Status status) {
+          public void onTweetSelected(long statusId) {
             fab.show();
           }
 
@@ -87,13 +136,15 @@ public class TimelineFragment extends Fragment {
             fab.hide();
           }
         });
-    adapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
+    tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
       public void onLastItemBound(long statusId) {
         fetchTweet(new Paging(1, 20, 1, statusId - 1));
       }
     });
-    binding.timeline.setAdapter(adapter);
+    tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
+    binding.timeline.setAdapter(tlAdapter);
+    fetchTweet();
   }
 
   private final RecyclerView.AdapterDataObserver itemInsertedObserver
@@ -145,23 +196,19 @@ public class TimelineFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    final TimelineAdapter adapter = getTimelineAdapter();
-    adapter.registerAdapterDataObserver(itemInsertedObserver);
-    adapter.registerAdapterDataObserver(createdAtObserver);
-    fetchTweet();
+    tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
+    tlAdapter.registerAdapterDataObserver(createdAtObserver);
     setupOnFlingListener();
   }
 
   public void setupOnFlingListener() {
-    final TimelineAdapter adapter = getTimelineAdapter();
     fabHelper.getFab().setOnFlingListener(new OnFlingAdapter() {
       @Override
       public void onFling(Direction direction) {
         if (!isTweetSelected()) {
           return;
         }
-        final Status status = adapter.getSelectedStatus();
-        final long id = status.getId();
+        final long id = tlAdapter.getSelectedTweetId();
         if (Direction.UP.equals(direction)) {
           fetchFavorite(id);
         } else if (Direction.RIGHT.equals(direction)) {
@@ -170,7 +217,7 @@ public class TimelineFragment extends Fragment {
           fetchFavorite(id);
           fetchRetweet(id);
         } else if (Direction.LEFT.equals(direction)) {
-          showStatusDetail(status);
+          showStatusDetail(id);
         }
       }
     });
@@ -197,17 +244,26 @@ public class TimelineFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
-    final TimelineAdapter adapter = getTimelineAdapter();
-    adapter.unregisterAdapterDataObserver(itemInsertedObserver);
-    adapter.unregisterAdapterDataObserver(createdAtObserver);
+    clearSelectedTweet();
+    tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
+    tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
     tearDownOnFlingListener();
+  }
+
+  @Override
+  public void onDestroyView() {
+    tlAdapter.setLastItemBoundListener(null);
+    tlAdapter.setOnSelectedTweetChangeListener(null);
+    tlAdapter.setOnUserIconClickedListener(null);
+    binding.timeline.setOnTouchListener(null);
+    binding.timeline.setAdapter(null);
+    super.onDestroyView();
   }
 
   private StatusDetailFragment statusDetail;
 
-  private void showStatusDetail(Status status) {
+  private void showStatusDetail(long status) {
     statusDetail = StatusDetailFragment.getInstance(status);
-    statusDetail.setTwitterApi(twitterApi);
     getActivity().getSupportFragmentManager().beginTransaction()
         .hide(this)
         .add(R.id.main_timeline_container, statusDetail)
@@ -235,19 +291,11 @@ public class TimelineFragment extends Fragment {
 
   private boolean canScroll() {
     return isVisible()
-        && !getTimelineAdapter().isStatusViewSelected()
+        && !tlAdapter.isStatusViewSelected()
         && statusDetail == null
         && !stopScroll
         && !isScrolledByUser
         && !addedUntilStopped;
-  }
-
-  private void addNewStatuses(List<Status> statuses) {
-    getTimelineAdapter().addNewStatuses(statuses);
-  }
-
-  private void addStatusesAtLast(List<Status> statuses) {
-    getTimelineAdapter().addNewStatusesAtLast(statuses);
   }
 
   public void scrollToTop() {
@@ -264,29 +312,25 @@ public class TimelineFragment extends Fragment {
   }
 
   public void clearSelectedTweet() {
-    getTimelineAdapter().clearSelectedTweet();
+    tlAdapter.clearSelectedTweet();
   }
 
   public boolean isTweetSelected() {
-    return getTimelineAdapter().isStatusViewSelected();
+    return tlAdapter.isStatusViewSelected();
   }
 
-  public void setUserIconClickedListener(TimelineAdapter.OnUserIconClickedListener listener) {
-    getTimelineAdapter().setOnUserIconClickedListener(listener);
+  private OnUserIconClickedListener userIconClickedListener;
+
+  public void setUserIconClickedListener(OnUserIconClickedListener listener) {
+    this.userIconClickedListener = listener;
   }
 
   private void fetchRetweet(final long tweetId) {
-    final TimelineAdapter adapter = getTimelineAdapter();
     final View rootView = binding.getRoot();
     twitterApi.retweetStatus(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-                adapter.addNewStatus(status);
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable throwable) {
@@ -297,17 +341,11 @@ public class TimelineFragment extends Fragment {
   }
 
   private void fetchFavorite(final long tweetId) {
-    final TimelineAdapter adapter = getTimelineAdapter();
     final View rootView = binding.getRoot();
     twitterApi.createFavorite(tweetId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-                adapter.addNewStatus(status);
-              }
-            },
+            upsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable e) {
@@ -329,12 +367,7 @@ public class TimelineFragment extends Fragment {
     twitterApi.getHomeTimeline()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<List<Status>>() {
-              @Override
-              public void call(List<Status> statuses) {
-                addNewStatuses(statuses);
-              }
-            },
+            listUpsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable e) {
@@ -347,13 +380,7 @@ public class TimelineFragment extends Fragment {
     twitterApi.getHomeTimeline(paging)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<List<Status>>() {
-              @Override
-              public void call(List<Status> statuses) {
-                Log.d(TAG, "onNext: " + statuses.size());
-                addStatusesAtLast(statuses);
-              }
-            },
+            listUpsertAction(),
             new Action1<Throwable>() {
               @Override
               public void call(Throwable e) {
@@ -362,12 +389,28 @@ public class TimelineFragment extends Fragment {
             });
   }
 
-  protected TwitterApi getTwitterApi() {
-    return twitterApi;
+  @NonNull
+  private Action1<Status> upsertAction() {
+    return new Action1<Status>() {
+      @Override
+      public void call(Status status) {
+        timelineStore.upsert(status);
+      }
+    };
   }
 
-  protected TimelineAdapter getTimelineAdapter() {
-    return tlAdapter;
+  @NonNull
+  private Action1<List<Status>> listUpsertAction() {
+    return new Action1<List<Status>>() {
+      @Override
+      public void call(List<Status> statuses) {
+        timelineStore.upsert(statuses);
+      }
+    };
+  }
+
+  protected TwitterApi getTwitterApi() {
+    return twitterApi;
   }
 
   @Override
@@ -398,5 +441,35 @@ public class TimelineFragment extends Fragment {
 
   public void setFABHelper(FlingableFABHelper flingableFABHelper) {
     this.fabHelper = flingableFABHelper;
+  }
+
+  public String getStoreName() {
+    return "home";
+  }
+
+  protected void fetchTweet(final Observable.OnSubscribe<List<Status>> onSubscribe) {
+    Observable.create(onSubscribe)
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            listUpsertAction(),
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                Log.e(TAG, "fetch: ", throwable);
+              }
+            });
+  }
+
+  protected static <T extends Fragment> T getInstance(T fragment, long userId) {
+    final Bundle args = new Bundle();
+    args.putLong("user_id", userId);
+    fragment.setArguments(args);
+    return fragment;
+  }
+
+  protected long getUserId() {
+    final Bundle arguments = getArguments();
+    return arguments.getLong("user_id");
   }
 }

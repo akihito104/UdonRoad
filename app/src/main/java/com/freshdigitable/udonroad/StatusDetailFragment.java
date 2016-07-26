@@ -20,6 +20,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
+import com.freshdigitable.udonroad.datastore.StatusCache;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -31,6 +34,14 @@ public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   private Status status;
+  @Inject
+  StatusCache statusCache;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
   @Nullable
   @Override
@@ -43,7 +54,8 @@ public class StatusDetailFragment extends Fragment {
     super.onActivityCreated(savedInstanceState);
     binding = DataBindingUtil.bind(getView());
 
-    this.status = (Status) getArguments().get("status");
+    long id = (long) getArguments().get("statusId");
+    this.status = statusCache.getStatus(id);
     binding.statusView.bindStatus(this.status);
 
     final ArrayAdapter<DetailMenu> arrayAdapter
@@ -58,8 +70,8 @@ public class StatusDetailFragment extends Fragment {
         return v;
       }
     };
-    arrayAdapter.add(status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
-    arrayAdapter.add(status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
+    arrayAdapter.add(this.status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
+    arrayAdapter.add(this.status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
     arrayAdapter.add(DetailMenu.REPLY);
     arrayAdapter.add(DetailMenu.QUOTE);
 
@@ -68,7 +80,7 @@ public class StatusDetailFragment extends Fragment {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final DetailMenu menu = (DetailMenu) parent.getItemAtPosition(position);
-        menu.action(twitterApi, status, getContext());
+        menu.action(twitterApi, StatusDetailFragment.this.status, getContext());
       }
     });
   }
@@ -76,19 +88,16 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onDestroyView() {
     twitterApi = null;
+    statusCache.close();
     status = null;
     super.onDestroyView();
   }
 
-  private TwitterApi twitterApi;
+  @Inject TwitterApi twitterApi;
 
-  public void setTwitterApi(TwitterApi twitterApi) {
-    this.twitterApi = twitterApi;
-  }
-
-  public static StatusDetailFragment getInstance(final Status status) {
+  public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
-    args.putSerializable("status", status);
+    args.putLong("statusId", statusId);
     final StatusDetailFragment statusDetailFragment = new StatusDetailFragment();
     statusDetailFragment.setArguments(args);
     return statusDetailFragment;

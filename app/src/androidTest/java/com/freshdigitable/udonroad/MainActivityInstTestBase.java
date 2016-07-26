@@ -16,6 +16,8 @@ import org.mockito.stubbing.Answer;
 
 import javax.inject.Inject;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 import twitter4j.ResponseList;
@@ -57,8 +59,11 @@ public abstract class MainActivityInstTestBase {
   @Before
   public void setup() throws Exception {
     app = (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
-    final MockTwitterApiComponent component = (MockTwitterApiComponent) app.getTwitterApiComponent();
+    final MockAppComponent component = (MockAppComponent) app.getAppComponent();
     component.inject(this);
+
+    Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("home").build());
+    Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("cache").build());
 
     final ResponseList<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
