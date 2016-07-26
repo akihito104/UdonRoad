@@ -4,9 +4,8 @@
 
 package com.freshdigitable.udonroad;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -40,22 +39,14 @@ public class UserInfoView extends RelativeLayout {
 
   public UserInfoView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    init(context);
-  }
 
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-  public UserInfoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-    super(context, attrs, defStyleAttr, defStyleRes);
-    init(context);
-  }
-
-  private void init(Context context) {
     final View v = View.inflate(context, R.layout.view_user_info, this);
     name = (TextView) v.findViewById(R.id.user_name);
     screenName = (TextView) v.findViewById(R.id.user_screen_name);
     description = (TextView) v.findViewById(R.id.user_description);
     banner = (ImageView) v.findViewById(R.id.user_banner);
     icon = (ImageView) v.findViewById(R.id.user_icon);
+    ViewCompat.setTransitionName(icon, "user_icon");
     tweetCount = (TextView) v.findViewById(R.id.user_tweets_count);
     followerCount = (TextView) v.findViewById(R.id.user_follower_count);
     friendsCount = (TextView) v.findViewById(R.id.user_friends_count);

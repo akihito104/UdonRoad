@@ -6,9 +6,12 @@ package com.freshdigitable.udonroad;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -55,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+    }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -93,8 +100,8 @@ public class MainActivity extends AppCompatActivity {
     tlFragment = new HomeTimelineFragment();
     tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
       @Override
-      public void onClicked(User user) {
-        showUserInfo(user);
+      public void onClicked(View view, User user) {
+        showUserInfo(view, user);
       }
     });
     tlFragment.setFABHelper(flingableFABHelper);
@@ -104,13 +111,19 @@ public class MainActivity extends AppCompatActivity {
         .commit();
   }
 
-  private void showUserInfo(User user) {
+  private void showUserInfo(View view, User user) {
     if (appbarFragment.isStatusInputViewVisible()) {
       return;
     }
     binding.ffab.hide();
     final Intent intent = UserInfoActivity.createIntent(getApplicationContext(), user);
-    startActivity(intent);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+      ViewCompat.setTransitionName(view, "user_icon");
+      startActivity(intent,
+          ActivityOptionsCompat.makeSceneTransitionAnimation(this, view, "user_icon").toBundle());
+    } else {
+      startActivity(intent);
+    }
   }
 
   private void attachToolbar(Toolbar toolbar) {

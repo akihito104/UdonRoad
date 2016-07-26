@@ -231,7 +231,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       v.setUserIconClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-          userIconClickedListener.onClicked(user);
+          userIconClickedListener.onClicked(v, user);
         }
       });
       v.bindStatus(status);
@@ -292,7 +292,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   interface OnUserIconClickedListener {
-    void onClicked(User user);
+    void onClicked(View view, User user);
   }
 
   private OnUserIconClickedListener userIconClickedListener;
