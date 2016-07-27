@@ -20,6 +20,8 @@ public interface AppComponent {
 
   void inject(MediaViewActivity mediaViewActivity);
 
+  void inject(ReplyActivity replyActivity);
+
   void inject(UserStreamUtil userStreamUtil);
 
   void inject(TimelineFragment timelineFragment);

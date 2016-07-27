@@ -23,6 +23,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TweetAppbarFragment.OnStatusSending;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.squareup.picasso.Picasso;
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment tlFragment;
-  private MainAppbarFragment appbarFragment;
+  private TweetAppbarFragment appbarFragment;
 
   @Inject
   TwitterApi twitterApi;
@@ -89,14 +91,14 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupAppBar() {
-    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar);
+    appbarFragment = (TweetAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.tweet_appbar);
     appbarFragment.setUserObservable(twitterApi.verifyCredentials());
     appbarFragment.setTweetSendFab(binding.mainSendTweet);
   }
 
   private void setupHomeTimeline() {
     tlFragment = new HomeTimelineFragment();
-    tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
+    tlFragment.setUserIconClickedListener(new OnUserIconClickedListener() {
       @Override
       public void onClicked(View view, User user) {
         showUserInfo(view, user);
@@ -255,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
     }
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-    appbarFragment.stretchStatusInputView(new MainAppbarFragment.OnStatusSending() {
+    appbarFragment.stretchStatusInputView(new OnStatusSending() {
       @Override
       public Observable<Status> sendStatus(String status) {
         return twitterApi.updateStatus(status);

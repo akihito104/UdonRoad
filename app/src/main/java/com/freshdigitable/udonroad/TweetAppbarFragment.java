@@ -15,7 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.databinding.FragmentMainAppbarBinding;
+import com.freshdigitable.udonroad.databinding.FragmentTweetAppbarBinding;
 import com.squareup.picasso.Picasso;
 
 import rx.Observable;
@@ -26,19 +26,19 @@ import twitter4j.Status;
 import twitter4j.User;
 
 /**
- * MainAppbarFragment integrates Appbar parts.
+ * TweetAppbarFragment provides Appbar with TweetInputView.
  *
  * Created by akihit on 2016/02/06.
  */
-public class MainAppbarFragment extends Fragment {
-  private static final String TAG = MainAppbarFragment.class.getSimpleName();
-  private FragmentMainAppbarBinding binding;
+public class TweetAppbarFragment extends Fragment {
+  private static final String TAG = TweetAppbarFragment.class.getSimpleName();
+  private FragmentTweetAppbarBinding binding;
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    View view = inflater.inflate(R.layout.fragment_main_appbar, container, false);
+    View view = inflater.inflate(R.layout.fragment_tweet_appbar, container, false);
     binding = DataBindingUtil.bind(view);
     return view;
   }
