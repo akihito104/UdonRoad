@@ -41,6 +41,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return selectedStatusHolder != null;
   }
 
+  public View getSelectedView() {
+    return selectedStatusHolder.view;
+  }
+
   public interface LastItemBoundListener {
     void onLastItemBound(long statusId);
   }

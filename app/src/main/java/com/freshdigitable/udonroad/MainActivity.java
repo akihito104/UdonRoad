@@ -31,7 +31,6 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
-import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Status;
@@ -92,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupAppBar() {
     appbarFragment = (TweetAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.tweet_appbar);
-    appbarFragment.setUserObservable(twitterApi.verifyCredentials());
     appbarFragment.setTweetSendFab(binding.mainSendTweet);
   }
 
@@ -187,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onDestroy() {
     binding.navDrawer.setNavigationItemSelectedListener(null);
-    appbarFragment.setUserObservable(null);
     appbarFragment.setTweetSendFab(null);
     tlFragment.setUserIconClickedListener(null);
     tlFragment.setFABHelper(null);
@@ -258,11 +255,6 @@ public class MainActivity extends AppCompatActivity {
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
     appbarFragment.stretchStatusInputView(new OnStatusSending() {
-      @Override
-      public Observable<Status> sendStatus(String status) {
-        return twitterApi.updateStatus(status);
-      }
-
       @Override
       public void onSuccess(Status status) {
         cancelWritingSelected();

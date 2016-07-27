@@ -29,4 +29,6 @@ public interface AppComponent {
   void inject(UserInfoAppbarFragment userInfoAppbarFragment);
 
   void inject(StatusDetailFragment statusDetailFragment);
+
+  void inject(TweetAppbarFragment tweetAppbarFragment);
 }

@@ -74,6 +74,10 @@ public class TweetInputView extends RelativeLayout {
     inputText.removeTextChangedListener(textWatcher);
   }
 
+  public void addText(String text) {
+    inputText.append(text);
+  }
+
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();

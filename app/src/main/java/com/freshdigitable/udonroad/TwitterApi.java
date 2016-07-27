@@ -12,6 +12,7 @@ import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import twitter4j.Paging;
 import twitter4j.Status;
+import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -94,7 +95,20 @@ public class TwitterApi {
         }
       }
     }).subscribeOn(Schedulers.io());
+  }
 
+  public Observable<Status> updateStatus(final StatusUpdate statusUpdate) {
+    return Observable.create(new Observable.OnSubscribe<Status>() {
+      @Override
+      public void call(Subscriber<? super Status> subscriber) {
+        try {
+          subscriber.onNext(twitter.updateStatus(statusUpdate));
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
   }
 
   public Observable<Status> retweetStatus(final long tweetId) {

@@ -1,5 +1,6 @@
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,13 +17,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetAppbarBinding;
+import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Status;
+import twitter4j.StatusUpdate;
 import twitter4j.User;
 
 /**
@@ -33,6 +38,16 @@ import twitter4j.User;
 public class TweetAppbarFragment extends Fragment {
   private static final String TAG = TweetAppbarFragment.class.getSimpleName();
   private FragmentTweetAppbarBinding binding;
+  @Inject
+  TwitterApi twitterApi;
+  @Inject
+  StatusCache statusCache;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
   @Nullable
   @Override
@@ -63,6 +78,12 @@ public class TweetAppbarFragment extends Fragment {
     }
   }
 
+  @Override
+  public void onStop() {
+    statusCache.close();
+    super.onStop();
+  }
+
   private FloatingActionButton tweetSendFab;
 
   public void setTweetSendFab(FloatingActionButton fab) {
@@ -89,8 +110,26 @@ public class TweetAppbarFragment extends Fragment {
   };
 
   public void stretchStatusInputView(final OnStatusSending statusSending) {
+    stretchStatusInputView(statusSending, -1);
+  }
+
+  public void stretchStatusInputView(final OnStatusSending statusSending, long inReplyToStatusId) {
+    if (inReplyToStatusId < 1) {
+      stretchStatusInputView(statusSending, null);
+      return;
+    }
+    final Status status = statusCache.getStatus(inReplyToStatusId);
+    stretchStatusInputView(statusSending, status);
+  }
+
+  public void stretchStatusInputView(final OnStatusSending statusSending, @Nullable final Status inReplyTo) {
     final TweetInputView inputText = binding.mainTweetInputView;
-    userObservable.observeOn(AndroidSchedulers.mainThread())
+    if (inReplyTo != null) {
+      inputText.addText("@" + inReplyTo.getUser().getScreenName() + " "); // XXX
+    }
+
+    twitterApi.verifyCredentials()
+        .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
@@ -109,12 +148,21 @@ public class TweetAppbarFragment extends Fragment {
     if (inputText.getText().length() < 1) {
       tweetSendFab.setEnabled(false);
     }
+
     tweetSendFab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(final View v) {
         String sendingText = inputText.getText().toString();
         v.setClickable(false);
-        statusSending.sendStatus(sendingText)
+        final Observable<Status> statusObservable;
+        if (inReplyTo != null) {
+          final StatusUpdate statusUpdate = new StatusUpdate(sendingText)
+              .inReplyToStatusId(inReplyTo.getId());
+          statusObservable = twitterApi.updateStatus(statusUpdate);
+        } else {
+          statusObservable = twitterApi.updateStatus(sendingText);
+        }
+        statusObservable
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Subscriber<Status>() {
               @Override
@@ -150,19 +198,11 @@ public class TweetAppbarFragment extends Fragment {
     return binding.mainTweetInputView.isVisible();
   }
 
-  private Observable<User> userObservable;
-
-  public void setUserObservable(Observable<User> user) {
-    this.userObservable = user;
-  }
-
   public Toolbar getToolbar() {
     return binding.mainToolbar;
   }
 
   interface OnStatusSending {
-    Observable<Status> sendStatus(String text);
-
     void onSuccess(Status status);
 
     void onFailure(Throwable e);

@@ -209,18 +209,24 @@ public class TimelineFragment extends Fragment {
           return;
         }
         final long id = tlAdapter.getSelectedTweetId();
-        if (Direction.UP.equals(direction)) {
+        if (Direction.UP == direction) {
           fetchFavorite(id);
-        } else if (Direction.RIGHT.equals(direction)) {
+        } else if (Direction.RIGHT == direction) {
           fetchRetweet(id);
-        } else if (Direction.UP_RIGHT.equals(direction)) {
+        } else if (Direction.UP_RIGHT == direction) {
           fetchFavorite(id);
           fetchRetweet(id);
-        } else if (Direction.LEFT.equals(direction)) {
+        } else if (Direction.LEFT == direction) {
           showStatusDetail(id);
+        } else if (Direction.DOWN == direction) {
+          showReplyActivity(id);
         }
       }
     });
+  }
+
+  public void showReplyActivity(long id) {
+    ReplyActivity.start(getActivity(), id, tlAdapter.getSelectedView());
   }
 
   public void tearDownOnFlingListener() {
