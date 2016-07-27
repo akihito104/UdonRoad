@@ -10,8 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -116,14 +114,7 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
     binding.ffab.hide();
-    final Intent intent = UserInfoActivity.createIntent(getApplicationContext(), user);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      ViewCompat.setTransitionName(view, "user_icon");
-      startActivity(intent,
-          ActivityOptionsCompat.makeSceneTransitionAnimation(this, view, "user_icon").toBundle());
-    } else {
-      startActivity(intent);
-    }
+    UserInfoActivity.start(this, user, view);
   }
 
   private void attachToolbar(Toolbar toolbar) {

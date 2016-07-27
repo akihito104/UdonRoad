@@ -1,14 +1,19 @@
 package com.freshdigitable.udonroad;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 
@@ -76,6 +81,13 @@ public class UserInfoActivity extends AppCompatActivity {
     Intent intent = new Intent(context, UserInfoActivity.class);
     intent.putExtra("user", user.getId());
     return intent;
+  }
+
+  public static void start(Activity activity, User user, View userIcon) {
+    final Intent intent = createIntent(activity.getApplicationContext(), user);
+    ViewCompat.setTransitionName(userIcon, "user_icon");
+    ActivityCompat.startActivity(activity, intent,
+        ActivityOptionsCompat.makeSceneTransitionAnimation(activity, userIcon, "user_icon").toBundle());
   }
 
   private long parseIntent() {

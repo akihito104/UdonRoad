@@ -51,6 +51,9 @@ public class UserInfoAppbarFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
 
+    final User user = statusCache.getUser(userId);
+    showUserInfo(user);
+
     binding.userInfoToolbar.setTitle("");
     final TextView toolbarTitle = binding.userInfoToolbarTitle;
     binding.userInfoAppbarLayout.addOnOffsetChangedListener(new OnOffsetChangedListener() {
@@ -95,8 +98,6 @@ public class UserInfoAppbarFragment extends Fragment {
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
-    final User user = statusCache.getUser(userId);
-    showUserInfo(user);
   }
 
   @Override
@@ -113,15 +114,15 @@ public class UserInfoAppbarFragment extends Fragment {
   }
 
   private void showUserInfo(User user) {
-    UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
-    binding.userInfoUserInfoView.bindData(user);
+    Picasso.with(getContext())
+        .load(user.getProfileImageURLHttps())
+        .into(binding.userInfoUserInfoView.getIcon());
     Picasso.with(getContext())
         .load(user.getProfileBannerMobileURL())
         .fit()
         .into(binding.userInfoUserInfoView.getBanner());
-    Picasso.with(getContext())
-        .load(user.getProfileImageURLHttps())
-        .into(binding.userInfoUserInfoView.getIcon());
+    UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
+    binding.userInfoUserInfoView.bindData(user);
   }
 
   private void dismissUserInfo() {
