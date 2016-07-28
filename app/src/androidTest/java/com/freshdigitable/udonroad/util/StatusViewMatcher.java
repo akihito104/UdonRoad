@@ -11,6 +11,7 @@ import android.support.test.espresso.core.deps.guava.collect.Iterables;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.StatusView;
 
@@ -64,6 +65,21 @@ public class StatusViewMatcher {
         }
         final View target = recyclerView.getChildAt(position);
         return target == item;
+      }
+    };
+  }
+
+  public static Matcher<View> asUserIcon(@IdRes final int resId, final Matcher<View> root) {
+    final Matcher<View> iconMatcher = withId(resId);
+    return new BoundedMatcher<View, ImageView>(ImageView.class) {
+      @Override
+      public void describeTo(Description description) {
+      }
+
+      @Override
+      protected boolean matchesSafely(ImageView item) {
+        return iconMatcher.matches(item)
+            && root.matches(item.getParent());
       }
     };
   }
