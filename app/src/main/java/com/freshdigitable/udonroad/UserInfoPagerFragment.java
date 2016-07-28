@@ -52,11 +52,7 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
-  }
 
-  @Override
-  public void onStart() {
-    super.onStart();
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
     final UserHomeTimelineFragment home = UserHomeTimelineFragment.getInstance(userId);
     home.setFABHelper(fabHelper);
@@ -66,6 +62,11 @@ public class UserInfoPagerFragment extends Fragment {
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
     viewPager.setAdapter(pagerAdapter);
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
 
     final FlingableFAB ffab = fabHelper.getFab();
     viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {

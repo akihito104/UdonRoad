@@ -16,13 +16,11 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import twitter4j.Status;
 
@@ -187,22 +185,13 @@ public class TimelineStoreRealm implements TimelineStore {
     realm.beginTransaction();
     final List<StatusIDs> inserted = realm.copyToRealmOrUpdate(inserts);
     realm.commitTransaction();
-    timeline.asObservable()
-        .filter(new Func1<RealmResults<StatusIDs>, Boolean>() {
-          @Override
-          public Boolean call(RealmResults<StatusIDs> statusRealms) {
-            return statusRealms.isLoaded();
-          }
-        })
-        .first()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            new Action1<RealmResults<StatusIDs>>() {
-              @Override
-              public void call(final RealmResults<StatusIDs> results) {
-                notifyInserted(inserted, results);
-              }
-            });
+    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
+      @Override
+      public void onChange(RealmResults<StatusIDs> element) {
+        notifyInserted(inserted, element);
+        element.removeChangeListener(this);
+      }
+    });
   }
 
   private void notifyInserted(List<StatusIDs> inserted, RealmResults<StatusIDs> results) {
@@ -223,21 +212,13 @@ public class TimelineStoreRealm implements TimelineStore {
     realm.beginTransaction();
     final List<StatusIDs> updated = realm.copyToRealmOrUpdate(updates);
     realm.commitTransaction();
-    timeline.asObservable()
-        .filter(new Func1<RealmResults<StatusIDs>, Boolean>() {
-          @Override
-          public Boolean call(RealmResults<StatusIDs> results) {
-            return results.isLoaded();
-          }
-        })
-        .first()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<RealmResults<StatusIDs>>() {
-          @Override
-          public void call(RealmResults<StatusIDs> results) {
-            notifyChanged(updated, results);
-          }
-        });
+    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
+      @Override
+      public void onChange(RealmResults<StatusIDs> element) {
+        notifyChanged(updated, element);
+        element.removeChangeListener(this);
+      }
+    });
   }
 
   private void notifyChanged(List<StatusIDs> changed, RealmResults<StatusIDs> results) {
@@ -275,26 +256,17 @@ public class TimelineStoreRealm implements TimelineStore {
     if (deleted.size() <= 0) {
       return;
     }
-    timeline.asObservable()
-        .filter(new Func1<RealmResults<StatusIDs>, Boolean>() {
-          @Override
-          public Boolean call(RealmResults<StatusIDs> statusRealms) {
-            return statusRealms.isLoaded();
-          }
-        })
-        .first()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            new Action1<RealmResults<StatusIDs>>() {
-              @Override
-              public void call(RealmResults<StatusIDs> statusRealms) {
-                Log.d(TAG, "call: deletedStatus");
-                for (int d : deleted) {
-                  deleteEvent.onNext(d);
-                  statusCache.deleteStatus(d);
-                }
-              }
-            });
+    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
+      @Override
+      public void onChange(RealmResults<StatusIDs> element) {
+        Log.d(TAG, "call: deletedStatus");
+        for (int d : deleted) {
+          deleteEvent.onNext(d);
+          statusCache.deleteStatus(d);
+        }
+        element.removeChangeListener(this);
+      }
+    });
   }
 
   @NonNull
@@ -330,6 +302,7 @@ public class TimelineStoreRealm implements TimelineStore {
     insertEvent.onCompleted();
     updateEvent.onCompleted();
     deleteEvent.onCompleted();
+    timeline.removeChangeListeners();
     realm.close();
     statusCache.close();
   }
