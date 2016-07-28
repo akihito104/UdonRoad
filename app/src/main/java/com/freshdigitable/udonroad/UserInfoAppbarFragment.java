@@ -50,6 +50,7 @@ public class UserInfoAppbarFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
+    statusCache.open(getContext());
 
     final User user = statusCache.getUser(userId);
     showUserInfo(user);

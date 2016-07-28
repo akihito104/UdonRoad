@@ -23,9 +23,10 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 public class StatusCacheRealm implements StatusCache {
   @SuppressWarnings("unused")
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
-  private final Realm cache;
+  private Realm cache;
 
-  public StatusCacheRealm(Context context) {
+  @Override
+  public void open(Context context) {
     Log.d(TAG, "StatusCacheRealm: open");
     final RealmConfiguration config = new RealmConfiguration.Builder(context)
         .name("cache")

@@ -4,8 +4,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
-
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.realmdata.StatusCacheRealm;
@@ -19,15 +17,9 @@ import dagger.Provides;
  */
 @Module
 public class DataStoreModule {
-  private Context context;
-
-  public DataStoreModule(Context context) {
-    this.context = context;
-  }
-
   @Provides
   public StatusCache provideStatusCache() {
-    return new StatusCacheRealm(context);
+    return new StatusCacheRealm();
   }
 
   @Provides

@@ -50,6 +50,8 @@ public class ReplyActivity extends AppCompatActivity {
     if (statusId < 0) {
       finish();
     }
+
+    statusCache.open(getApplicationContext());
     final Status status = statusCache.getStatus(statusId);
     binding.replyStatus.bindStatus(status);
   }

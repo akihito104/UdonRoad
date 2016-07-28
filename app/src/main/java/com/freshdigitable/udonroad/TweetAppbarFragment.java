@@ -68,6 +68,7 @@ public class TweetAppbarFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
+    statusCache.open(getContext());
 
     final AppCompatActivity activity = (AppCompatActivity) getActivity();
     activity.setSupportActionBar(binding.mainToolbar);

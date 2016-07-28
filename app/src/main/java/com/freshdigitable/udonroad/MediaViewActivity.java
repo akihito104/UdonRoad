@@ -176,6 +176,7 @@ public class MediaViewActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
+    statusCache.open(getApplicationContext());
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);

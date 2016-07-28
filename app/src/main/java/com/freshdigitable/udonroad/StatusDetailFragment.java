@@ -55,6 +55,7 @@ public class StatusDetailFragment extends Fragment {
     binding = DataBindingUtil.bind(getView());
 
     long id = (long) getArguments().get("statusId");
+    statusCache.open(getContext());
     this.status = statusCache.getStatus(id);
     binding.statusView.bindStatus(this.status);
 

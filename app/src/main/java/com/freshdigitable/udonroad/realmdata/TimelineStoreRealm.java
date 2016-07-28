@@ -58,7 +58,8 @@ public class TimelineStoreRealm implements TimelineStore {
     insertEvent = PublishSubject.create();
     updateEvent = PublishSubject.create();
     deleteEvent = PublishSubject.create();
-    statusCache = new StatusCacheRealm(context);
+    statusCache = new StatusCacheRealm();
+    statusCache.open(context);
     realm = Realm.getInstance(config);
     defaultTimeline();
   }

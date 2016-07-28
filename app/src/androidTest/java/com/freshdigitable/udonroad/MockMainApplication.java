@@ -18,7 +18,7 @@ public class MockMainApplication extends MainApplication {
     mockTwitterApiModule = new MockTwitterApiModule(getApplicationContext());
     return DaggerMockAppComponent.builder()
         .mockTwitterApiModule(mockTwitterApiModule)
-        .dataStoreModule(new DataStoreModule(getApplicationContext()))
+        .dataStoreModule(new DataStoreModule())
         .build();
   }
 
