@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
     }
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-    appbarFragment.stretchStatusInputView(new OnStatusSending() {
+    appbarFragment.stretchTweetInputView(new OnStatusSending() {
       @Override
       public void onSuccess(Status status) {
         cancelWritingSelected();

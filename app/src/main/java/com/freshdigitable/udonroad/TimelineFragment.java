@@ -219,14 +219,16 @@ public class TimelineFragment extends Fragment {
         } else if (Direction.LEFT == direction) {
           showStatusDetail(id);
         } else if (Direction.DOWN == direction) {
-          showReplyActivity(id);
+          showReplyActivity(id, ReplyActivity.TYPE_REPLY);
+        } else if (Direction.DOWN_RIGHT == direction) {
+          showReplyActivity(id, ReplyActivity.TYPE_QUOTE);
         }
       }
     });
   }
 
-  public void showReplyActivity(long id) {
-    ReplyActivity.start(getActivity(), id, tlAdapter.getSelectedView());
+  public void showReplyActivity(long id, @ReplyActivity.TweetType int type) {
+    ReplyActivity.start(getActivity(), id, type, tlAdapter.getSelectedView());
   }
 
   public void tearDownOnFlingListener() {

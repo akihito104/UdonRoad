@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -17,9 +18,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 
-import com.freshdigitable.udonroad.TweetAppbarFragment.OnStatusSending;
 import com.freshdigitable.udonroad.databinding.ActivityReplyBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import javax.inject.Inject;
 
@@ -31,6 +34,7 @@ import twitter4j.Status;
 public class ReplyActivity extends AppCompatActivity {
   public static final String TRANSITION_NAME = "replied_status";
   public static final String EXTRA_STATUS_ID = "statusId";
+  public static final String EXTRA_TWEET_TYPE = "tweet_type";
   private ActivityReplyBinding binding;
   @Inject
   StatusCache statusCache;
@@ -54,29 +58,49 @@ public class ReplyActivity extends AppCompatActivity {
     statusCache.open(getApplicationContext());
     final Status status = statusCache.getStatus(statusId);
     binding.replyStatus.bindStatus(status);
+
+    tweetAppbar = (TweetAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
+    tweetAppbar.setTweetSendFab(binding.replySendTweet);
+    final int tweetType = getTweetType();
+    if (tweetType == TYPE_REPLY) {
+      tweetAppbar.stretchTweetInputViewWithInReplyTo(new TweetAppbarFragment.OnStatusSending() {
+        @Override
+        public void onSuccess(Status status) {
+          // todo
+        }
+
+        @Override
+        public void onFailure(Throwable e) {
+          // todo
+        }
+      }, status);
+    } else {
+      tweetAppbar.stretchTweetInputViewWithQuoteStatus(new TweetAppbarFragment.OnStatusSending() {
+        @Override
+        public void onSuccess(Status status) {
+
+        }
+
+        @Override
+        public void onFailure(Throwable e) {
+
+        }
+      }, statusId);
+    }
+
   }
 
   private long getStatusId() {
     return getIntent().getLongExtra(EXTRA_STATUS_ID, -1);
   }
 
+  private int getTweetType() {
+    return getIntent().getIntExtra(EXTRA_TWEET_TYPE, TYPE_REPLY);
+  }
+
   @Override
   protected void onStart() {
     super.onStart();
-    tweetAppbar = (TweetAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
-    tweetAppbar.setTweetSendFab(binding.replySendTweet);
-    tweetAppbar.stretchStatusInputView(new OnStatusSending() {
-      @Override
-      public void onSuccess(Status status) {
-        // todo
-      }
-
-      @Override
-      public void onFailure(Throwable e) {
-        // todo
-      }
-    }, getStatusId());
-
   }
 
   @Override
@@ -88,10 +112,24 @@ public class ReplyActivity extends AppCompatActivity {
   }
 
   public static void start(Activity activity, long statusId, View view) {
+    start(activity, statusId, TYPE_REPLY, view);
+  }
+
+  public static void start(Activity activity, long statusId, @TweetType int type, View view) {
     ViewCompat.setTransitionName(view, TRANSITION_NAME);
     final Intent intent = new Intent(activity.getApplicationContext(), ReplyActivity.class);
     intent.putExtra(EXTRA_STATUS_ID, statusId);
+    intent.putExtra(EXTRA_TWEET_TYPE, type);
     ActivityCompat.startActivity(activity, intent,
         ActivityOptionsCompat.makeSceneTransitionAnimation(activity, view, TRANSITION_NAME).toBundle());
   }
+
+  public static final int TYPE_REPLY = 1;
+  public static final int TYPE_QUOTE = 2;
+
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef(value = {TYPE_REPLY, TYPE_QUOTE})
+  public @interface TweetType {
+  }
 }
+

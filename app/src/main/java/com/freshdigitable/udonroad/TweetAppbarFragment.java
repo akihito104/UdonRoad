@@ -20,6 +20,9 @@ import com.freshdigitable.udonroad.databinding.FragmentTweetAppbarBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import rx.Observable;
@@ -94,11 +97,7 @@ public class TweetAppbarFragment extends Fragment {
   private TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
-      if (editable.length() < 1) {
-        tweetSendFab.setEnabled(false);
-      } else {
-        tweetSendFab.setEnabled(true);
-      }
+      tweetSendFab.setEnabled(editable.length() > 1);
     }
 
     @Override
@@ -110,33 +109,48 @@ public class TweetAppbarFragment extends Fragment {
     }
   };
 
-  public void stretchStatusInputView(final OnStatusSending statusSending) {
-    stretchStatusInputView(statusSending, -1);
+  private long inReplyToStatusId = -1;
+  private List<Long> quoteStatusIds = new ArrayList<>(4);
+  private OnStatusSending statusSending;
+
+  public void stretchTweetInputView(final OnStatusSending statusSending) {
+    this.statusSending = statusSending;
+    setUpTweetInputView();
+    setUpTweetSendFab();
+    binding.mainTweetInputView.appearing();
+    binding.mainToolbar.setTitle("いまどうしてる？");
   }
 
-  public void stretchStatusInputView(final OnStatusSending statusSending, long inReplyToStatusId) {
-    if (inReplyToStatusId < 1) {
-      stretchStatusInputView(statusSending, null);
-      return;
-    }
-    final Status status = statusCache.getStatus(inReplyToStatusId);
-    stretchStatusInputView(statusSending, status);
+  public void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
+    final Status inReplyTo = statusCache.getStatus(inReplyToStatusId);
+    stretchTweetInputViewWithInReplyTo(statusSending, inReplyTo);
   }
 
-  public void stretchStatusInputView(final OnStatusSending statusSending, @Nullable final Status inReplyTo) {
+  public void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, Status inReplyTo) {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo != null) {
       inputText.addText("@" + inReplyTo.getUser().getScreenName() + " "); // XXX
     }
+    stretchTweetInputView(statusSending);
+  }
 
+  public void stretchTweetInputViewWithQuoteStatus(final OnStatusSending statusSending, long quotedStatus) {
+    quoteStatusIds.add(quotedStatus);
+    stretchTweetInputView(statusSending);
+  }
+
+  private void setUpTweetInputView() {
+    final TweetInputView inputText = binding.mainTweetInputView;
     twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
             inputText.setUserInfo(user);
-            Picasso.with(inputText.getContext()).load(
-                user.getProfileImageURLHttps()).fit().into(inputText.getIcon());
+            Picasso.with(inputText.getContext())
+                .load(user.getProfileImageURLHttps())
+                .fit()
+                .into(inputText.getIcon());
           }
         }, new Action1<Throwable>() {
           @Override
@@ -144,8 +158,15 @@ public class TweetAppbarFragment extends Fragment {
             Log.d(TAG, throwable.getMessage(), throwable);
           }
         });
-
     inputText.addTextWatcher(textWatcher);
+  }
+
+  public void tearDownTweetInputView() {
+    binding.mainTweetInputView.removeTextWatcher(textWatcher);
+  }
+
+  private void setUpTweetSendFab() {
+    final TweetInputView inputText = binding.mainTweetInputView;
     if (inputText.getText().length() < 1) {
       tweetSendFab.setEnabled(false);
     }
@@ -153,17 +174,8 @@ public class TweetAppbarFragment extends Fragment {
     tweetSendFab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(final View v) {
-        String sendingText = inputText.getText().toString();
         v.setClickable(false);
-        final Observable<Status> statusObservable;
-        if (inReplyTo != null) {
-          final StatusUpdate statusUpdate = new StatusUpdate(sendingText)
-              .inReplyToStatusId(inReplyTo.getId());
-          statusObservable = twitterApi.updateStatus(statusUpdate);
-        } else {
-          statusObservable = twitterApi.updateStatus(sendingText);
-        }
-        statusObservable
+        createSendObservable()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Subscriber<Status>() {
               @Override
@@ -186,13 +198,49 @@ public class TweetAppbarFragment extends Fragment {
             });
       }
     });
-    inputText.appearing();
+  }
+
+  private void tearDownSendTweetFab() {
+    tweetSendFab.setOnClickListener(null);
+  }
+
+  private Observable<Status> createSendObservable() {
+    final String sendingText = binding.mainTweetInputView.getText().toString();
+    if (isNeedStatusUpdate()) {
+      String s = sendingText;
+      if (quoteStatusIds.size() > 0) {
+        for (long q : quoteStatusIds) {
+          final Status status = statusCache.getStatus(q);
+          s +=" https://twitter.com/" + status.getUser().getScreenName()
+              + "/status/" + q;
+        }
+      }
+      final StatusUpdate statusUpdate = new StatusUpdate(s);
+      if (inReplyToStatusId > 0) {
+        statusUpdate.setInReplyToStatusId(inReplyToStatusId);
+      }
+      return twitterApi.updateStatus(statusUpdate);
+    } else {
+      return twitterApi.updateStatus(sendingText);
+    }
+  }
+
+  private boolean isNeedStatusUpdate() {
+    return inReplyToStatusId > 0
+        || quoteStatusIds.size() > 0;
+  }
+
+  public void addQuoteStatus(long quoteStatusId) {
+    quoteStatusIds.add(quoteStatusId);
   }
 
   public void collapseStatusInputView() {
-    binding.mainTweetInputView.removeTextWatcher(textWatcher);
+    tearDownTweetInputView();
+    tearDownSendTweetFab();
+    inReplyToStatusId = -1;
+    quoteStatusIds.clear();
     binding.mainTweetInputView.disappearing();
-    tweetSendFab.setOnClickListener(null);
+    binding.mainToolbar.setTitle("Home");
   }
 
   public boolean isStatusInputViewVisible() {
