@@ -17,26 +17,23 @@
 package com.freshdigitable.udonroad.datastore;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 
-import twitter4j.Status;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 /**
- * Created by akihit on 2016/07/25.
+ * Created by akihit on 2016/07/30.
  */
-public interface StatusCache {
+public interface ConfigStore {
   void open(Context context);
 
-  void upsertStatus(@Nullable final Status rtStatus);
-
-  void deleteStatus(long statusId);
-
-  Status getStatus(long statusId);
-
-  User getUser(long userId);
-
-  void clear();
-
   void close();
+
+  void setAuthenticatedUser(User authenticatedUser);
+
+  User getAuthenticatedUser();
+
+  void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
+
+  TwitterAPIConfiguration getTwitterAPIConfig();
 }
