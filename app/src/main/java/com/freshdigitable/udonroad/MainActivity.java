@@ -46,14 +46,10 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import twitter4j.Status;
 import twitter4j.TwitterAPIConfiguration;
-import twitter4j.TwitterException;
 import twitter4j.User;
 
 public class MainActivity extends AppCompatActivity {
@@ -204,17 +200,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "call: ", throwable);
           }
         });
-    Observable.create(new Observable.OnSubscribe<TwitterAPIConfiguration>() {
-      @Override
-      public void call(Subscriber<? super TwitterAPIConfiguration> subscriber) {
-        try {
-          subscriber.onNext(twitterApi.getTwitter().getAPIConfiguration());
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
-      }
-    }).subscribeOn(Schedulers.io())
+    twitterApi.getTwitterAPIConfiguration()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<TwitterAPIConfiguration>() {
           @Override
