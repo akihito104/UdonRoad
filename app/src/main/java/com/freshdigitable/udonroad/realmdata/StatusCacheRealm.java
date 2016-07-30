@@ -1,5 +1,17 @@
 /*
- * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.freshdigitable.udonroad.realmdata;
@@ -23,9 +35,10 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 public class StatusCacheRealm implements StatusCache {
   @SuppressWarnings("unused")
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
-  private final Realm cache;
+  private Realm cache;
 
-  public StatusCacheRealm(Context context) {
+  @Override
+  public void open(Context context) {
     Log.d(TAG, "StatusCacheRealm: open");
     final RealmConfiguration config = new RealmConfiguration.Builder(context)
         .name("cache")
@@ -98,6 +111,15 @@ public class StatusCacheRealm implements StatusCache {
       res.setQuotedStatus(getStatusInternal(res.getQuotedStatusId()));
     }
     return res;
+  }
+
+  public void upsertUser(final User user) {
+    cache.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.insert(new UserRealm(user));
+      }
+    });
   }
 
   @Override

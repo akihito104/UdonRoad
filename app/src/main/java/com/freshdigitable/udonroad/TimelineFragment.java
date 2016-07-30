@@ -1,6 +1,19 @@
 /*
- * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
@@ -209,18 +222,26 @@ public class TimelineFragment extends Fragment {
           return;
         }
         final long id = tlAdapter.getSelectedTweetId();
-        if (Direction.UP.equals(direction)) {
+        if (Direction.UP == direction) {
           fetchFavorite(id);
-        } else if (Direction.RIGHT.equals(direction)) {
+        } else if (Direction.RIGHT == direction) {
           fetchRetweet(id);
-        } else if (Direction.UP_RIGHT.equals(direction)) {
+        } else if (Direction.UP_RIGHT == direction) {
           fetchFavorite(id);
           fetchRetweet(id);
-        } else if (Direction.LEFT.equals(direction)) {
+        } else if (Direction.LEFT == direction) {
           showStatusDetail(id);
+        } else if (Direction.DOWN == direction) {
+          showReplyActivity(id, ReplyActivity.TYPE_REPLY);
+        } else if (Direction.DOWN_RIGHT == direction) {
+          showReplyActivity(id, ReplyActivity.TYPE_QUOTE);
         }
       }
     });
+  }
+
+  public void showReplyActivity(long id, @ReplyActivity.TweetType int type) {
+    ReplyActivity.start(getActivity(), id, type, tlAdapter.getSelectedView());
   }
 
   public void tearDownOnFlingListener() {

@@ -41,6 +41,8 @@
 
         <activity android:name=".UserInfoActivity"/>
 
+        <activity android:name=".ReplyActivity" />
+
     </application>
 
 </manifest>

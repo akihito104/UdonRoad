@@ -1,6 +1,19 @@
 /*
- * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
@@ -9,6 +22,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -23,16 +37,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TweetAppbarFragment.OnStatusSending;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
-import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Status;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,11 +57,13 @@ public class MainActivity extends AppCompatActivity {
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment tlFragment;
-  private MainAppbarFragment appbarFragment;
+  private TweetAppbarFragment appbarFragment;
 
   @Inject
   TwitterApi twitterApi;
   private FlingableFABHelper flingableFABHelper;
+  @Inject
+  ConfigStore configStore;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -89,14 +108,13 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupAppBar() {
-    appbarFragment = (MainAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.main_appbar);
-    appbarFragment.setUserObservable(twitterApi.verifyCredentials());
+    appbarFragment = (TweetAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.tweet_appbar);
     appbarFragment.setTweetSendFab(binding.mainSendTweet);
   }
 
   private void setupHomeTimeline() {
     tlFragment = new HomeTimelineFragment();
-    tlFragment.setUserIconClickedListener(new TimelineAdapter.OnUserIconClickedListener() {
+    tlFragment.setUserIconClickedListener(new OnUserIconClickedListener() {
       @Override
       public void onClicked(View view, User user) {
         showUserInfo(view, user);
@@ -139,35 +157,62 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupNavigationDrawer() {
-    twitterApi.verifyCredentials()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            new Action1<User>() {
-              @Override
-              public void call(final User user) {
-                final TextView account
-                    = (TextView) binding.navDrawer.findViewById(R.id.nav_header_account);
-                account.setText(user.getScreenName());
-                final ImageView icon
-                    = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
-                Picasso.with(binding.navDrawer.getContext())
-                    .load(user.getProfileImageURLHttps()).fit()
-                    .into(icon);
-              }
-            },
-            new Action1<Throwable>() {
-              @Override
-              public void call(Throwable throwable) {
-                Log.d(TAG, "twitter exception: " + throwable.toString());
-              }
-            }
-        );
+    final User authenticatedUser = configStore.getAuthenticatedUser();
+    setupNavigationDrawer(authenticatedUser);
+  }
+
+  private void setupNavigationDrawer(@Nullable User user) {
+    if (user == null) {
+      return;
+    }
+
+    final TextView account
+        = (TextView) binding.navDrawer.findViewById(R.id.nav_header_account);
+    account.setText(user.getScreenName());
+    final ImageView icon
+        = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
+    Picasso.with(binding.navDrawer.getContext())
+        .load(user.getProfileImageURLHttps()).fit()
+        .into(icon);
   }
 
   @Override
   public void onPostCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
     super.onPostCreate(savedInstanceState, persistentState);
     actionBarDrawerToggle.syncState();
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+    configStore.open(getApplicationContext());
+    twitterApi.verifyCredentials()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User user) {
+            configStore.setAuthenticatedUser(user);
+            setupNavigationDrawer(user);
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "call: ", throwable);
+          }
+        });
+    twitterApi.getTwitterAPIConfiguration()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<TwitterAPIConfiguration>() {
+          @Override
+          public void call(TwitterAPIConfiguration configuration) {
+            configStore.setTwitterAPIConfig(configuration);
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "call: ", throwable);
+          }
+        });
   }
 
   @Override
@@ -183,9 +228,14 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
+  protected void onStop() {
+    configStore.close();
+    super.onStop();
+  }
+
+  @Override
   protected void onDestroy() {
     binding.navDrawer.setNavigationItemSelectedListener(null);
-    appbarFragment.setUserObservable(null);
     appbarFragment.setTweetSendFab(null);
     tlFragment.setUserIconClickedListener(null);
     tlFragment.setFABHelper(null);
@@ -255,12 +305,7 @@ public class MainActivity extends AppCompatActivity {
     }
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-    appbarFragment.stretchStatusInputView(new MainAppbarFragment.OnStatusSending() {
-      @Override
-      public Observable<Status> sendStatus(String status) {
-        return twitterApi.updateStatus(status);
-      }
-
+    appbarFragment.stretchTweetInputView(new OnStatusSending() {
       @Override
       public void onSuccess(Status status) {
         cancelWritingSelected();
