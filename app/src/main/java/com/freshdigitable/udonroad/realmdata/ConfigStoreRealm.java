@@ -60,13 +60,17 @@ public class ConfigStoreRealm implements ConfigStore {
         realm.insert(userRealm);
       }
     });
+    cache.upsertUser(authenticatedUser);
   }
 
   @Override
   public User getAuthenticatedUser() {
     final UserRealm user = realm.where(UserRealm.class)
         .findFirst();
-    return cache.getUser(user.getId());
+    final User cacheUser = cache.getUser(user.getId());
+    return cacheUser != null
+        ? cacheUser
+        : user;
   }
 
   @Override

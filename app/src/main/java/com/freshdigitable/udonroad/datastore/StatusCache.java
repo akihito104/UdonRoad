@@ -34,6 +34,8 @@ public interface StatusCache {
 
   Status getStatus(long statusId);
 
+  void upsertUser(User user);
+
   User getUser(long userId);
 
   void clear();

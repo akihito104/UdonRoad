@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
@@ -17,6 +33,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetAppbarBinding;
+import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
 
@@ -28,7 +45,6 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.User;
@@ -45,6 +61,8 @@ public class TweetAppbarFragment extends Fragment {
   TwitterApi twitterApi;
   @Inject
   StatusCache statusCache;
+  @Inject
+  ConfigStore configStore;
 
   @Override
   public void onAttach(Context context) {
@@ -72,6 +90,7 @@ public class TweetAppbarFragment extends Fragment {
   public void onStart() {
     super.onStart();
     statusCache.open(getContext());
+    configStore.open(getContext());
 
     final AppCompatActivity activity = (AppCompatActivity) getActivity();
     activity.setSupportActionBar(binding.mainToolbar);
@@ -84,6 +103,7 @@ public class TweetAppbarFragment extends Fragment {
 
   @Override
   public void onStop() {
+    configStore.close();
     statusCache.close();
     super.onStop();
   }
@@ -141,23 +161,12 @@ public class TweetAppbarFragment extends Fragment {
 
   private void setUpTweetInputView() {
     final TweetInputView inputText = binding.mainTweetInputView;
-    twitterApi.verifyCredentials()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            inputText.setUserInfo(user);
-            Picasso.with(inputText.getContext())
-                .load(user.getProfileImageURLHttps())
-                .fit()
-                .into(inputText.getIcon());
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.d(TAG, throwable.getMessage(), throwable);
-          }
-        });
+    final User authenticatedUser = configStore.getAuthenticatedUser();
+    inputText.setUserInfo(authenticatedUser);
+    Picasso.with(inputText.getContext())
+        .load(authenticatedUser.getMiniProfileImageURLHttps())
+        .fit()
+        .into(inputText.getIcon());
     inputText.addTextWatcher(textWatcher);
   }
 
