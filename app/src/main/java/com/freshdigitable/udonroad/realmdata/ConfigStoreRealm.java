@@ -35,7 +35,9 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Override
   public void open(Context context) {
-    cache = new StatusCacheRealm();
+    if (cache == null) {
+      cache = new StatusCacheRealm();
+    }
     cache.open(context);
 
     final RealmConfiguration config = new RealmConfiguration.Builder(context)

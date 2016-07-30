@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
@@ -9,6 +25,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import twitter4j.User;
 
@@ -23,6 +40,9 @@ public class TweetInputView extends RelativeLayout {
   private TextInputEditText inputText;
   private CombinedScreenNameTextView name;
   private ImageView icon;
+  private TextView counter;
+  private TextView inReplyToMark;
+  private TextView quoteMark;
 
   public TweetInputView(Context context) {
     this(context, null);
@@ -39,6 +59,9 @@ public class TweetInputView extends RelativeLayout {
     inputText = (TextInputEditText) v.findViewById(R.id.tw_intext);
     name = (CombinedScreenNameTextView) v.findViewById(R.id.tw_name);
     icon = (ImageView) v.findViewById(R.id.tw_icon);
+    counter = (TextView) v.findViewById(R.id.tw_counter);
+    inReplyToMark = (TextView) v.findViewById(R.id.tw_replyTo);
+    quoteMark = (TextView) v.findViewById(R.id.tw_quote);
   }
 
   public boolean isVisible() {
@@ -48,6 +71,7 @@ public class TweetInputView extends RelativeLayout {
   public void appearing() {
     setVisibility(View.VISIBLE);
     inputText.requestFocus();
+    updateTextCounter(inputText.getText());
   }
 
   public void disappearing() {
@@ -78,6 +102,51 @@ public class TweetInputView extends RelativeLayout {
     inputText.append(text);
   }
 
+  public void setInReplyTo() {
+    inReplyToMark.setVisibility(VISIBLE);
+  }
+
+  public void setQuote() {
+    quoteMark.setVisibility(VISIBLE);
+  }
+
+  public void reset() {
+    inReplyToMark.setVisibility(INVISIBLE);
+    quoteMark.setVisibility(INVISIBLE);
+  }
+
+  private int shortUrlLength;
+
+  public void setShortUrlLength(int shortUrlLength) {
+    this.shortUrlLength = shortUrlLength;
+  }
+
+  final TextWatcher textWatcher = new TextWatcher() {
+    @Override
+    public void afterTextChanged(Editable editable) {
+      updateTextCounter(editable);
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    }
+  };
+
+  public void updateTextCounter(Editable editable) {
+    int length = editable.length();
+    if (quoteMark.getVisibility() == VISIBLE) {
+      if (length > 0) {
+        length++; // add space
+      }
+      length += shortUrlLength;
+    }
+    counter.setText(Integer.toString(140 - length));
+  }
+
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
@@ -93,11 +162,13 @@ public class TweetInputView extends RelativeLayout {
         }
       }
     });
+    inputText.addTextChangedListener(textWatcher);
   }
 
   @Override
   protected void onDetachedFromWindow() {
     inputText.setOnFocusChangeListener(null);
+    inputText.removeTextChangedListener(textWatcher);
     super.onDetachedFromWindow();
   }
 }

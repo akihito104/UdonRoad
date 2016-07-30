@@ -150,12 +150,14 @@ public class TweetAppbarFragment extends Fragment {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo != null) {
       inputText.addText("@" + inReplyTo.getUser().getScreenName() + " "); // XXX
+      inputText.setInReplyTo();
     }
     stretchTweetInputView(statusSending);
   }
 
   public void stretchTweetInputViewWithQuoteStatus(final OnStatusSending statusSending, long quotedStatus) {
     quoteStatusIds.add(quotedStatus);
+    binding.mainTweetInputView.setQuote();
     stretchTweetInputView(statusSending);
   }
 
@@ -168,10 +170,13 @@ public class TweetAppbarFragment extends Fragment {
         .fit()
         .into(inputText.getIcon());
     inputText.addTextWatcher(textWatcher);
+    inputText.setShortUrlLength(
+        configStore.getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
   public void tearDownTweetInputView() {
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
+    binding.mainTweetInputView.reset();
   }
 
   private void setUpTweetSendFab() {
