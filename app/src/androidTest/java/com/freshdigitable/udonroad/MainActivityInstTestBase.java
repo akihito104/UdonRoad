@@ -20,9 +20,12 @@ import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 
+import com.freshdigitable.udonroad.util.UserUtil;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -31,10 +34,13 @@ import javax.inject.Inject;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import rx.Observable;
+import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.TwitterAPIConfiguration;
+import twitter4j.User;
 import twitter4j.UserStreamListener;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -45,6 +51,7 @@ import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRespons
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyLong;
@@ -113,12 +120,24 @@ public abstract class MainActivityInstTestBase {
     });
     when(twitterApi.loadAccessToken()).thenReturn(true);
     when(twitterApi.getTwitter()).thenReturn(twitter);
+    final User userMock = UserUtil.create();
+    when(twitterApi.verifyCredentials()).thenReturn(Observable.just(userMock));
+    final TwitterAPIConfiguration twitterAPIConfigMock = createTwitterAPIConfigMock();
+    when(twitterApi.getTwitterAPIConfiguration()).thenReturn(
+        Observable.create(new Observable.OnSubscribe<TwitterAPIConfiguration>() {
+          @Override
+          public void call(Subscriber<? super TwitterAPIConfiguration> subscriber) {
+            subscriber.onNext(twitterAPIConfigMock);
+            subscriber.onCompleted();
+          }
+        }));
 
     rule.launchActivity(new Intent());
     verify(twitter, times(1)).getHomeTimeline();
     final UserStreamListener userStreamListener = app.getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));
+    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
   @After
@@ -129,5 +148,12 @@ public abstract class MainActivityInstTestBase {
       activity.finish();
       Thread.sleep(1000);
     }
+  }
+
+  private static TwitterAPIConfiguration createTwitterAPIConfigMock() {
+    final TwitterAPIConfiguration mock = Mockito.mock(TwitterAPIConfiguration.class);
+    when(mock.getShortURLLength()).thenReturn(23);
+    when(mock.getShortURLLengthHttps()).thenReturn(23);
+    return mock;
   }
 }

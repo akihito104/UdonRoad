@@ -22,9 +22,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -83,7 +80,6 @@ public class TweetAppbarFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onActivityCreated: ");
     super.onActivityCreated(savedInstanceState);
-    binding.mainToolbar.setTitle("Home");
   }
 
   @Override
@@ -91,14 +87,6 @@ public class TweetAppbarFragment extends Fragment {
     super.onStart();
     statusCache.open(getContext());
     configStore.open(getContext());
-
-    final AppCompatActivity activity = (AppCompatActivity) getActivity();
-    activity.setSupportActionBar(binding.mainToolbar);
-    final ActionBar supportActionBar = activity.getSupportActionBar();
-    if (supportActionBar != null) {
-      supportActionBar.setDisplayHomeAsUpEnabled(true);
-      supportActionBar.setHomeButtonEnabled(true);
-    }
   }
 
   @Override
@@ -138,7 +126,6 @@ public class TweetAppbarFragment extends Fragment {
     setUpTweetInputView();
     setUpTweetSendFab();
     binding.mainTweetInputView.appearing();
-    binding.mainToolbar.setTitle("いまどうしてる？");
   }
 
   public void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
@@ -254,15 +241,10 @@ public class TweetAppbarFragment extends Fragment {
     inReplyToStatusId = -1;
     quoteStatusIds.clear();
     binding.mainTweetInputView.disappearing();
-    binding.mainToolbar.setTitle("Home");
   }
 
   public boolean isStatusInputViewVisible() {
     return binding.mainTweetInputView.isVisible();
-  }
-
-  public Toolbar getToolbar() {
-    return binding.mainToolbar;
   }
 
   interface OnStatusSending {

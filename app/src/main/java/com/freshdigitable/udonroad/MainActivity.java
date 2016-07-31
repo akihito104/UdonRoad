@@ -23,7 +23,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.NavigationView;
+import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    binding.navDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+    binding.navDrawer.setNavigationItemSelectedListener(new OnNavigationItemSelectedListener() {
       @Override
       public boolean onNavigationItemSelected(MenuItem item) {
         int itemId = item.getItemId();
@@ -108,8 +109,11 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupAppBar() {
-    appbarFragment = (TweetAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.tweet_appbar);
+    appbarFragment = new TweetAppbarFragment();
     appbarFragment.setTweetSendFab(binding.mainSendTweet);
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_appbar_container, appbarFragment)
+        .commit();
   }
 
   private void setupHomeTimeline() {
@@ -213,13 +217,21 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "call: ", throwable);
           }
         });
+
+    binding.mainToolbar.setTitle("Home");
+    setSupportActionBar(binding.mainToolbar);
+    final ActionBar supportActionBar = getSupportActionBar();
+    if (supportActionBar != null) {
+      supportActionBar.setDisplayHomeAsUpEnabled(true);
+      supportActionBar.setHomeButtonEnabled(true);
+    }
   }
 
   @Override
   protected void onResume() {
     Log.d(TAG, "onResume: ");
     super.onResume();
-    attachToolbar(appbarFragment.getToolbar());
+    attachToolbar(binding.mainToolbar);
   }
 
   @Override
@@ -317,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
         Log.e(TAG, "update status: " + e);
       }
     });
+    binding.mainToolbar.setTitle("いまどうしてる？");
   }
 
   private void cancelWritingSelected() {
@@ -326,6 +339,7 @@ public class MainActivity extends AppCompatActivity {
     if (tlFragment.isTweetSelected()) {
       binding.ffab.show();
     }
+    binding.mainToolbar.setTitle("Home");
   }
 
   private void showToast(String text) {
