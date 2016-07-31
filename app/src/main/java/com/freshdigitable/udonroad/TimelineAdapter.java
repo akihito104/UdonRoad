@@ -110,6 +110,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
       Picasso.with(quotedStatusView.getContext())
           .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
+          .placeholder(android.R.color.transparent)
           .fit()
           .into(quotedStatusView.getIcon());
       loadMediaView(quotedStatus, quotedStatusView.getMediaContainer());
@@ -137,7 +138,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         }
       });
       final RequestCreator rc = Picasso.with(mediaContainer.getContext())
-          .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb");
+          .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb")
+          .placeholder(android.R.color.transparent);
       if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {
@@ -164,30 +166,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onViewDetachedFromWindow(ViewHolder holder) {
     super.onViewDetachedFromWindow(holder);
 //    Log.d(TAG, "onViewDetachedFromWindow: " + holder.status.toString());
-
-    StatusView v = (StatusView) holder.itemView;
-    Picasso.with(v.getContext()).cancelRequest(v.getIcon());
-    if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
-      Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
-    }
-    unloadMediaView(v);
-
-    final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
-    if (quotedStatusView.getVisibility() == View.VISIBLE) {
-      Picasso.with(v.getContext()).cancelRequest(quotedStatusView.getIcon());
-      unloadMediaView(quotedStatusView);
-    }
   }
 
   public void unloadMediaView(StatusViewBase v) {
     final MediaContainer mediaContainer = v.getMediaContainer();
-    if (mediaContainer.getThumbCount() > 0
-        && mediaContainer.getChildAt(0).getVisibility() == View.VISIBLE) {
-      for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
-        final ImageView iv = (ImageView) mediaContainer.getChildAt(i);
-        iv.setOnClickListener(null);
-        Picasso.with(v.getContext()).cancelRequest(iv);
-      }
+    for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
+      final ImageView iv = (ImageView) mediaContainer.getChildAt(i);
+      iv.setOnClickListener(null);
+      Picasso.with(v.getContext()).cancelRequest(iv);
     }
   }
 
@@ -217,6 +203,19 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onViewRecycled(ViewHolder holder) {
     holder.onRecycled();
+
+    StatusView v = (StatusView) holder.itemView;
+    Picasso.with(v.getContext()).cancelRequest(v.getIcon());
+    if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
+      Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
+    }
+    unloadMediaView(v);
+
+    final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
+    if (quotedStatusView.getVisibility() == View.VISIBLE) {
+      Picasso.with(v.getContext()).cancelRequest(quotedStatusView.getIcon());
+      unloadMediaView(quotedStatusView);
+    }
   }
 
   private OnSelectedTweetChangeListener selectedTweetChangeListener;
@@ -256,10 +255,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       });
       v.bindStatus(status);
       Picasso.with(v.getContext())
-          .load(user.getProfileImageURLHttps()).fit().into(v.getIcon());
+          .load(user.getProfileImageURLHttps())
+          .placeholder(android.R.color.transparent)
+          .fit()
+          .into(v.getIcon());
       if (status.isRetweet()) {
         Picasso.with(v.getContext())
-            .load(status.getUser().getMiniProfileImageURLHttps()).fit()
+            .load(status.getUser().getMiniProfileImageURLHttps())
+            .placeholder(android.R.color.transparent)
+            .fit()
             .into(v.getRtUserIcon());
       }
       itemView.setOnClickListener(new View.OnClickListener() {
