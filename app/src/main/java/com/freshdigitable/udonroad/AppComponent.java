@@ -34,13 +34,15 @@ public interface AppComponent {
 
   void inject(ReplyActivity replyActivity);
 
+  void inject(UserInfoActivity userInfoActivity);
+
   void inject(UserStreamUtil userStreamUtil);
 
   void inject(TimelineFragment timelineFragment);
 
-  void inject(UserInfoAppbarFragment userInfoAppbarFragment);
+  void inject(UserInfoFragment userInfoFragment);
 
   void inject(StatusDetailFragment statusDetailFragment);
 
-  void inject(TweetAppbarFragment tweetAppbarFragment);
+  void inject(TweetInputFragment tweetInputFragment);
 }

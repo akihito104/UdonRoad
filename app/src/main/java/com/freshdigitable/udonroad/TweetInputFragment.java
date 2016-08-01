@@ -47,12 +47,12 @@ import twitter4j.StatusUpdate;
 import twitter4j.User;
 
 /**
- * TweetAppbarFragment provides Appbar with TweetInputView.
+ * TweetInputFragment provides Appbar with TweetInputView.
  *
  * Created by akihit on 2016/02/06.
  */
-public class TweetAppbarFragment extends Fragment {
-  private static final String TAG = TweetAppbarFragment.class.getSimpleName();
+public class TweetInputFragment extends Fragment {
+  private static final String TAG = TweetInputFragment.class.getSimpleName();
   private FragmentTweetAppbarBinding binding;
   @Inject
   TwitterApi twitterApi;

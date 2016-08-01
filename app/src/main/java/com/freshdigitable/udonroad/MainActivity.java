@@ -39,7 +39,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.TweetAppbarFragment.OnStatusSending;
+import com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment tlFragment;
-  private TweetAppbarFragment appbarFragment;
+  private TweetInputFragment tweetInputFragment;
 
   @Inject
   TwitterApi twitterApi;
@@ -109,10 +109,10 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupAppBar() {
-    appbarFragment = new TweetAppbarFragment();
-    appbarFragment.setTweetSendFab(binding.mainSendTweet);
+    tweetInputFragment = new TweetInputFragment();
+    tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_appbar_container, appbarFragment)
+        .replace(R.id.main_appbar_container, tweetInputFragment)
         .commit();
   }
 
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void showUserInfo(View view, User user) {
-    if (appbarFragment.isStatusInputViewVisible()) {
+    if (tweetInputFragment.isStatusInputViewVisible()) {
       return;
     }
     binding.ffab.hide();
@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onDestroy() {
     binding.navDrawer.setNavigationItemSelectedListener(null);
-    appbarFragment.setTweetSendFab(null);
+    tweetInputFragment.setTweetSendFab(null);
     tlFragment.setUserIconClickedListener(null);
     tlFragment.setFABHelper(null);
     super.onDestroy();
@@ -263,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
       binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       return;
     }
-    if (appbarFragment.isStatusInputViewVisible()) {
+    if (tweetInputFragment.isStatusInputViewVisible()) {
       cancelWritingSelected();
       return;
     }
@@ -295,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
     if (itemId == R.id.action_heading){
       headingSelected();
     } else if (itemId == R.id.action_write) {
-      if (!appbarFragment.isStatusInputViewVisible()) {
+      if (!tweetInputFragment.isStatusInputViewVisible()) {
         sendStatusSelected();
       } else {
         cancelWritingSelected();
@@ -317,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
     }
     sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-    appbarFragment.stretchTweetInputView(new OnStatusSending() {
+    tweetInputFragment.stretchTweetInputView(new OnStatusSending() {
       @Override
       public void onSuccess(Status status) {
         cancelWritingSelected();
@@ -335,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
   private void cancelWritingSelected() {
     sendStatusMenuItem.setIcon(R.drawable.ic_create_white_24dp);
     tlFragment.setStopScroll(false);
-    appbarFragment.collapseStatusInputView();
+    tweetInputFragment.collapseStatusInputView();
     if (tlFragment.isTweetSelected()) {
       binding.ffab.show();
     }

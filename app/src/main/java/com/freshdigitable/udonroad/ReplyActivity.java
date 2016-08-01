@@ -50,7 +50,7 @@ public class ReplyActivity extends AppCompatActivity {
   private ActivityReplyBinding binding;
   @Inject
   StatusCache statusCache;
-  private TweetAppbarFragment tweetAppbar;
+  private TweetInputFragment tweetInputFragment;
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -85,11 +85,11 @@ public class ReplyActivity extends AppCompatActivity {
     final Status status = statusCache.getStatus(statusId);
     binding.replyStatus.bindStatus(status);
 
-    tweetAppbar = (TweetAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
-    tweetAppbar.setTweetSendFab(binding.replySendTweet);
+    tweetInputFragment = (TweetInputFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
+    tweetInputFragment.setTweetSendFab(binding.replySendTweet);
     final int tweetType = getTweetType();
     if (tweetType == TYPE_REPLY) {
-      tweetAppbar.stretchTweetInputViewWithInReplyTo(new TweetAppbarFragment.OnStatusSending() {
+      tweetInputFragment.stretchTweetInputViewWithInReplyTo(new TweetInputFragment.OnStatusSending() {
         @Override
         public void onSuccess(Status status) {
           // todo
@@ -101,7 +101,7 @@ public class ReplyActivity extends AppCompatActivity {
         }
       }, status);
     } else {
-      tweetAppbar.stretchTweetInputViewWithQuoteStatus(new TweetAppbarFragment.OnStatusSending() {
+      tweetInputFragment.stretchTweetInputViewWithQuoteStatus(new TweetInputFragment.OnStatusSending() {
         @Override
         public void onSuccess(Status status) {
 
@@ -118,8 +118,8 @@ public class ReplyActivity extends AppCompatActivity {
   @Override
   protected void onStop() {
     statusCache.close();
-    tweetAppbar.collapseStatusInputView();
-    tweetAppbar.setTweetSendFab(null);
+    tweetInputFragment.collapseStatusInputView();
+    tweetInputFragment.setTweetSendFab(null);
     super.onStop();
   }
 

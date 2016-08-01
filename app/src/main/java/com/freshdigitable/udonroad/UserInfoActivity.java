@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
@@ -7,6 +23,7 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.ViewCompat;
@@ -15,10 +32,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
+import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+
+import javax.inject.Inject;
 
 import twitter4j.User;
 
@@ -27,6 +48,9 @@ import twitter4j.User;
  */
 public class UserInfoActivity extends AppCompatActivity {
   private UserInfoPagerFragment viewPager;
+  private ActivityUserInfoBinding binding;
+  @Inject
+  StatusCache statusCache;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -34,21 +58,79 @@ public class UserInfoActivity extends AppCompatActivity {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
-    ActivityUserInfoBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
+    binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
+    InjectionUtil.getComponent(this).inject(this);
+
     binding.ffab.hide();
 
     long userId = parseIntent();
-    final UserInfoAppbarFragment appbar = (UserInfoAppbarFragment) getSupportFragmentManager().findFragmentById(R.id.userInfo_appbar);
-    appbar.setUser(userId);
+    setUpAppbar();
+    setUpUserInfoView(userId);
 
     viewPager = (UserInfoPagerFragment) getSupportFragmentManager().findFragmentById(R.id.userInfo_pagerFragment);
-    viewPager.setTabLayout(appbar.getTabLayout());
+    viewPager.setTabLayout(binding.userInfoTabs);
     viewPager.setFABHelper(new FlingableFABHelper(binding.fabIndicator, binding.ffab));
     viewPager.setUser(userId);
   }
 
+  private void setUpUserInfoView(long userId) {
+    final UserInfoFragment userInfoAppbarFragment = UserInfoFragment.create(userId);
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.userInfo_appbar_container, userInfoAppbarFragment)
+        .commit();
+  }
+
+  private void setUpAppbar() {
+    binding.userInfoToolbar.setTitle("");
+
+    final TextView toolbarTitle = binding.userInfoToolbarTitle;
+    binding.userInfoAppbarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+      private boolean isTitleVisible = toolbarTitle.getVisibility() == View.VISIBLE;
+
+      @Override
+      public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+        final int totalScrollRange = appBarLayout.getTotalScrollRange();
+        final float percent = (float) Math.abs(verticalOffset) / (float) totalScrollRange;
+        if (percent > 0.9) {
+          if (!isTitleVisible) {
+            startAnimation(toolbarTitle, View.VISIBLE);
+            isTitleVisible = true;
+          }
+        } else {
+          if (isTitleVisible) {
+            startAnimation(toolbarTitle, View.INVISIBLE);
+            isTitleVisible = false;
+          }
+        }
+      }
+
+      private void startAnimation(View v, int visibility) {
+        AlphaAnimation animation = (visibility == View.VISIBLE)
+            ? new AlphaAnimation(0f, 1f)
+            : new AlphaAnimation(1f, 0f);
+        animation.setDuration(200);
+        animation.setFillAfter(true);
+        v.startAnimation(animation);
+      }
+    });
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+    statusCache.open(getApplicationContext());
+    long userId = parseIntent();
+    final User user = statusCache.getUser(userId);
+    UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
+
+    setSupportActionBar(binding.userInfoToolbar);
+  }
+
   @Override
   protected void onStop() {
+    binding.userInfoToolbarTitle.setText("");
+    binding.userInfoCollapsingToolbar.setTitleEnabled(false);
+    binding.userInfoTabs.removeAllTabs();
     super.onStop();
   }
 
