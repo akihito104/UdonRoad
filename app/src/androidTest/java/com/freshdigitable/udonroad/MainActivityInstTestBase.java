@@ -29,6 +29,9 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import io.realm.Realm;
@@ -36,7 +39,7 @@ import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
-import twitter4j.ResponseList;
+import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
@@ -54,6 +57,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -87,15 +91,21 @@ public abstract class MainActivityInstTestBase {
     Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("user_home").build());
     Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("user_favs").build());
 
-    final ResponseList<Status> responseList = createResponseList();
+    final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
       final Status status = createStatus(i);
       responseList.add(status);
     }
     assertThat(responseList.size(), is(20));
-    when(twitter.getHomeTimeline()).thenReturn(responseList);
-    when(twitter.getUserTimeline(anyLong())).thenReturn(responseList);
-    when(twitter.getFavorites(anyLong())).thenReturn(createResponseList());
+    when(twitterApi.getHomeTimeline())
+        .thenReturn(Observable.just(responseList));
+    when(twitterApi.getHomeTimeline(any(Paging.class)))
+        .thenReturn(Observable.just(Collections.<Status>emptyList()));
+    when(twitterApi.getUserTimeline(anyLong())).thenReturn(Observable.just(responseList));
+    when(twitterApi.getUserTimeline(anyLong(), any(Paging.class)))
+        .thenReturn(Observable.just(Collections.<Status>emptyList()));
+    when(twitterApi.getFavorites(anyLong()))
+        .thenReturn(Observable.just((List<Status>) createResponseList()));
     when(twitterApi.createFavorite(anyLong())).thenAnswer(new Answer<Observable<Status>>() {
       @Override
       public Observable<Status> answer(InvocationOnMock invocation) throws Throwable {
@@ -133,7 +143,7 @@ public abstract class MainActivityInstTestBase {
         }));
 
     rule.launchActivity(new Intent());
-    verify(twitter, times(1)).getHomeTimeline();
+    verify(twitterApi, times(1)).getHomeTimeline();
     final UserStreamListener userStreamListener = app.getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));

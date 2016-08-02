@@ -38,11 +38,11 @@ public interface AppComponent {
 
   void inject(UserStreamUtil userStreamUtil);
 
-  void inject(TimelineFragment timelineFragment);
-
   void inject(UserInfoFragment userInfoFragment);
 
   void inject(StatusDetailFragment statusDetailFragment);
 
   void inject(TweetInputFragment tweetInputFragment);
+
+  void inject(UserInfoPagerFragment userInfoPagerFragment);
 }

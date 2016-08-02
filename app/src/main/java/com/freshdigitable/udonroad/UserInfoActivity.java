@@ -131,6 +131,7 @@ public class UserInfoActivity extends AppCompatActivity {
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
+    statusCache.close();
     super.onStop();
   }
 

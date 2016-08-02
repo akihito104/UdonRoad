@@ -202,7 +202,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onViewRecycled(ViewHolder holder) {
-    holder.onRecycled();
+    super.onViewRecycled(holder);
 
     StatusView v = (StatusView) holder.itemView;
     Picasso.with(v.getContext()).cancelRequest(v.getIcon());
@@ -216,6 +216,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       Picasso.with(v.getContext()).cancelRequest(quotedStatusView.getIcon());
       unloadMediaView(quotedStatusView);
     }
+
+    holder.onRecycled();
   }
 
   private OnSelectedTweetChangeListener selectedTweetChangeListener;

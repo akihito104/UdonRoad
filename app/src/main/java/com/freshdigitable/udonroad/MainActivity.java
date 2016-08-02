@@ -42,7 +42,9 @@ import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -65,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
   private FlingableFABHelper flingableFABHelper;
   @Inject
   ConfigStore configStore;
+  @Inject
+  TimelineStore homeTimeline;
+  private TwitterApiUtil twitterApiUtil;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -117,6 +122,10 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupHomeTimeline() {
+    homeTimeline.open(getApplicationContext(), "home");
+    twitterApiUtil = new TwitterApiUtil(twitterApi, homeTimeline,
+        new TwitterApiUtil.SnackbarFeedback(binding.mainTimelineContainer));
+
     tlFragment = new HomeTimelineFragment();
     tlFragment.setUserIconClickedListener(new OnUserIconClickedListener() {
       @Override
@@ -124,8 +133,8 @@ public class MainActivity extends AppCompatActivity {
         showUserInfo(view, user);
       }
     });
+    tlFragment.setTwitterApiUtil(twitterApiUtil);
     tlFragment.setFABHelper(flingableFABHelper);
-    tlFragment.setupOnFlingListener();
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
@@ -225,6 +234,56 @@ public class MainActivity extends AppCompatActivity {
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
+    flingableFABHelper.getFab().setOnFlingListener(new OnFlingAdapter() {
+      @Override
+      public void onFling(Direction direction) {
+        if (!tlFragment.isTweetSelected()) {
+          return;
+        }
+        final long id = tlFragment.getSelectedTweetId();
+        if (Direction.UP == direction) {
+          twitterApiUtil.createFavorite(id);
+        } else if (Direction.RIGHT == direction) {
+          twitterApiUtil.retweetStatus(id);
+        } else if (Direction.UP_RIGHT == direction) {
+          twitterApiUtil.createFavorite(id);
+          twitterApiUtil.retweetStatus(id);
+        } else if (Direction.LEFT == direction) {
+          showStatusDetail(id);
+        } else if (Direction.DOWN == direction) {
+          showReplyActivity(id, ReplyActivity.TYPE_REPLY);
+        } else if (Direction.DOWN_RIGHT == direction) {
+          showReplyActivity(id, ReplyActivity.TYPE_QUOTE);
+        }
+      }
+    });
+  }
+
+  private StatusDetailFragment statusDetail;
+
+  private void showStatusDetail(long status) {
+    statusDetail = StatusDetailFragment.getInstance(status);
+    getSupportFragmentManager().beginTransaction()
+        .hide(tlFragment)
+        .add(R.id.main_timeline_container, statusDetail)
+        .commit();
+  }
+
+  private boolean hideStatusDetail() {
+    if (statusDetail == null) {
+      return false;
+    }
+    getSupportFragmentManager().beginTransaction()
+        .remove(statusDetail)
+        .show(tlFragment)
+        .commit();
+    statusDetail = null;
+    tlFragment.setStopScroll(false);
+    return true;
+  }
+
+  public void showReplyActivity(long id, @ReplyActivity.TweetType int type) {
+    ReplyActivity.start(this, id, type, tlFragment.getSelectedView());
   }
 
   @Override
@@ -242,13 +301,16 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onStop() {
     configStore.close();
+    flingableFABHelper.getFab().setOnFlingListener(null);
     super.onStop();
   }
 
   @Override
   protected void onDestroy() {
+    binding.ffab.setOnFlingListener(null);
     binding.navDrawer.setNavigationItemSelectedListener(null);
     tweetInputFragment.setTweetSendFab(null);
+    homeTimeline.close();
     tlFragment.setUserIconClickedListener(null);
     tlFragment.setFABHelper(null);
     super.onDestroy();
@@ -256,7 +318,8 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public void onBackPressed() {
-    if (tlFragment.hideStatusDetail()) {
+    if (statusDetail != null && statusDetail.isVisible()) {
+      hideStatusDetail();
       return;
     }
     if (binding.navDrawerLayout.isDrawerOpen(binding.navDrawer)) {

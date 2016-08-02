@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -28,17 +29,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 /**
  * Created by akihit on 2016/06/06.
  */
 public class UserInfoPagerFragment extends Fragment {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
+  @Inject
+  TwitterApi twitterApi;
+  @Inject
+  TimelineStore userHomeTimeline;
+  @Inject
+  TimelineStore userFavTimeline;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
   @Nullable
   @Override
@@ -66,13 +83,23 @@ public class UserInfoPagerFragment extends Fragment {
     super.onActivityCreated(savedInstanceState);
 
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
+
     final UserHomeTimelineFragment home = UserHomeTimelineFragment.getInstance(userId);
+    userHomeTimeline.open(getContext(), "user_home");
+    userHomeTimeline.clear();
+    home.setTwitterApiUtil(new TwitterApiUtil(twitterApi, userHomeTimeline,
+            new TwitterApiUtil.SnackbarFeedback(viewPager.getRootView())));
     home.setFABHelper(fabHelper);
-    home.setupOnFlingListener();
     pagerAdapter.putFragment(home, "Tweets");
+
     final UserFavsFragment favs = UserFavsFragment.getInstance(userId);
+    userFavTimeline.open(getContext(), "user_favs");
+    userFavTimeline.clear();
+    favs.setTwitterApiUtil(new TwitterApiUtil(twitterApi, userFavTimeline,
+        new TwitterApiUtil.SnackbarFeedback(viewPager.getRootView())));
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
+
     viewPager.setAdapter(pagerAdapter);
   }
 
@@ -87,9 +114,7 @@ public class UserInfoPagerFragment extends Fragment {
         Log.d(TAG, "onPageSelected: " + position);
         final Fragment item = pagerAdapter.getItem(position);
         if (item instanceof TimelineFragment) {
-          ffab.setOnFlingListener(null);
           TimelineFragment fragment = (TimelineFragment) item;
-          fragment.setupOnFlingListener();
           if (fragment.isTweetSelected()) {
             ffab.show();
           } else {
@@ -99,14 +124,38 @@ public class UserInfoPagerFragment extends Fragment {
       }
     });
     tab.setupWithViewPager(viewPager);
+    ffab.setOnFlingListener(new OnFlingAdapter() {
+      @Override
+      public void onFling(Direction direction) {
+        final int currentItem = viewPager.getCurrentItem();
+        final TimelineFragment fragment = (TimelineFragment) pagerAdapter.getItem(currentItem);
+        final long selectedTweetId = fragment.getSelectedTweetId();
+        if (direction == Direction.UP) {
+          fragment.getTwitterApiUtil().createFavorite(selectedTweetId);
+        } else if (direction == Direction.RIGHT) {
+          fragment.getTwitterApiUtil().retweetStatus(selectedTweetId);
+        } else if (direction == Direction.UP_RIGHT) {
+          fragment.getTwitterApiUtil().createFavorite(selectedTweetId);
+          fragment.getTwitterApiUtil().retweetStatus(selectedTweetId);
+        }
+      }
+    });
   }
 
   @Override
   public void onStop() {
+    fabHelper.getFab().setOnFlingListener(null);
     viewPager.clearOnPageChangeListeners();
-    viewPager.setAdapter(null);
     tab.removeAllTabs();
     super.onStop();
+  }
+
+  @Override
+  public void onDestroyView() {
+    viewPager.setAdapter(null);
+    userHomeTimeline.close();
+    userFavTimeline.close();
+    super.onDestroyView();
   }
 
   private long userId;
