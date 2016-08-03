@@ -25,13 +25,13 @@ public class UserFavsFragment extends TimelineFragment {
   @Override
   protected void fetchTweet() {
     final long userId = getUserId();
-    twitterApiUtil.fetchFavorites(userId);
+    timelineSubscriber.fetchFavorites(userId);
   }
 
   @Override
   protected void fetchTweet(final Paging page) {
     final long userId = getUserId();
-    twitterApiUtil.fetchFavorites(userId, page);
+    timelineSubscriber.fetchFavorites(userId, page);
   }
 
   public static UserFavsFragment getInstance(long userId) {

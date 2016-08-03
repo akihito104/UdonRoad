@@ -87,16 +87,16 @@ public class UserInfoPagerFragment extends Fragment {
     final UserHomeTimelineFragment home = UserHomeTimelineFragment.getInstance(userId);
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
-    home.setTwitterApiUtil(new TwitterApiUtil(twitterApi, userHomeTimeline,
-            new TwitterApiUtil.SnackbarFeedback(viewPager.getRootView())));
+    home.setTimelineSubscriber(new TimelineSubscriber(twitterApi, userHomeTimeline,
+            new TimelineSubscriber.SnackbarFeedback(viewPager)));
     home.setFABHelper(fabHelper);
     pagerAdapter.putFragment(home, "Tweets");
 
     final UserFavsFragment favs = UserFavsFragment.getInstance(userId);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
-    favs.setTwitterApiUtil(new TwitterApiUtil(twitterApi, userFavTimeline,
-        new TwitterApiUtil.SnackbarFeedback(viewPager.getRootView())));
+    favs.setTimelineSubscriber(new TimelineSubscriber(twitterApi, userFavTimeline,
+        new TimelineSubscriber.SnackbarFeedback(viewPager)));
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
 
@@ -130,13 +130,14 @@ public class UserInfoPagerFragment extends Fragment {
         final int currentItem = viewPager.getCurrentItem();
         final TimelineFragment fragment = (TimelineFragment) pagerAdapter.getItem(currentItem);
         final long selectedTweetId = fragment.getSelectedTweetId();
+        final TimelineSubscriber timelineSubscriber = fragment.getTimelineSubscriber();
         if (direction == Direction.UP) {
-          fragment.getTwitterApiUtil().createFavorite(selectedTweetId);
+          timelineSubscriber.createFavorite(selectedTweetId);
         } else if (direction == Direction.RIGHT) {
-          fragment.getTwitterApiUtil().retweetStatus(selectedTweetId);
+          timelineSubscriber.retweetStatus(selectedTweetId);
         } else if (direction == Direction.UP_RIGHT) {
-          fragment.getTwitterApiUtil().createFavorite(selectedTweetId);
-          fragment.getTwitterApiUtil().retweetStatus(selectedTweetId);
+          timelineSubscriber.createFavorite(selectedTweetId);
+          timelineSubscriber.retweetStatus(selectedTweetId);
         }
       }
     });

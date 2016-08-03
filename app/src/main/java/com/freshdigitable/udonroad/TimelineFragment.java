@@ -47,7 +47,7 @@ public class TimelineFragment extends Fragment {
   private Subscription insertEventSubscription;
   private Subscription updateEventSubscription;
   private Subscription deleteEventSubscription;
-  protected TwitterApiUtil twitterApiUtil;
+  protected TimelineSubscriber timelineSubscriber;
 
   @Override
   public void onAttach(Context context) {
@@ -94,22 +94,22 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    tlAdapter = new TimelineAdapter(twitterApiUtil.getTimelineStore());
-    insertEventSubscription = twitterApiUtil.subscribeInsertEvent()
+    tlAdapter = new TimelineAdapter(timelineSubscriber.getTimelineStore());
+    insertEventSubscription = timelineSubscriber.subscribeInsertEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
             tlAdapter.notifyItemInserted(position);
           }
         });
-    updateEventSubscription = twitterApiUtil.subscribeUpdateEvent()
+    updateEventSubscription = timelineSubscriber.subscribeUpdateEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
             tlAdapter.notifyItemChanged(position);
           }
         });
-    deleteEventSubscription = twitterApiUtil.subscribeDeleteEvent()
+    deleteEventSubscription = timelineSubscriber.subscribeDeleteEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
@@ -277,11 +277,11 @@ public class TimelineFragment extends Fragment {
   }
 
   protected void fetchTweet() {
-    twitterApiUtil.fetchHomeTimeline();
+    timelineSubscriber.fetchHomeTimeline();
   }
 
   protected void fetchTweet(Paging paging) {
-    twitterApiUtil.fetchHomeTimeline(paging);
+    timelineSubscriber.fetchHomeTimeline(paging);
   }
 
   private FlingableFABHelper fabHelper;
@@ -302,12 +302,12 @@ public class TimelineFragment extends Fragment {
     return arguments.getLong("user_id");
   }
 
-  public void setTwitterApiUtil(TwitterApiUtil twitterApiUtil) {
-    this.twitterApiUtil = twitterApiUtil;
+  public void setTimelineSubscriber(TimelineSubscriber timelineSubscriber) {
+    this.timelineSubscriber = timelineSubscriber;
   }
 
-  public TwitterApiUtil getTwitterApiUtil() {
-    return twitterApiUtil;
+  public TimelineSubscriber getTimelineSubscriber() {
+    return timelineSubscriber;
   }
 
   public View getSelectedView() {

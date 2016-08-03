@@ -28,13 +28,13 @@ public class UserHomeTimelineFragment extends TimelineFragment {
   @Override
   protected void fetchTweet() {
     final long userId = getUserId();
-    twitterApiUtil.fetchHomeTimeline(userId);
+    timelineSubscriber.fetchHomeTimeline(userId);
   }
 
   @Override
   protected void fetchTweet(final Paging page) {
     final long userId = getUserId();
-    twitterApiUtil.fetchHomeTimeline(userId, page);
+    timelineSubscriber.fetchHomeTimeline(userId, page);
   }
 
   public static UserHomeTimelineFragment getInstance(long userId) {

@@ -79,6 +79,7 @@ public class StatusView extends StatusViewBase {
   public void reset() {
     super.reset();
     setRetweetedUserVisibility(GONE);
+    rtUserIcon.setImageDrawable(null);
     quotedStatus.setBackgroundResource(R.drawable.s_quoted_frame);
     quotedStatus.setVisibility(GONE);
     quotedStatus.reset();

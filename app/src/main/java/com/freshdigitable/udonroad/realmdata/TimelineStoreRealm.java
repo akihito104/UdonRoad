@@ -331,4 +331,9 @@ public class TimelineStoreRealm implements TimelineStore {
   public int getItemCount() {
     return timeline.size();
   }
+
+  @Override
+  public Status findStatus(long statusId) {
+    return statusCache.getStatus(statusId);
+  }
 }

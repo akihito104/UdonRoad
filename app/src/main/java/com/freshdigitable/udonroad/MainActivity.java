@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
   ConfigStore configStore;
   @Inject
   TimelineStore homeTimeline;
-  private TwitterApiUtil twitterApiUtil;
+  private TimelineSubscriber timelineSubscriber;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -123,8 +123,9 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupHomeTimeline() {
     homeTimeline.open(getApplicationContext(), "home");
-    twitterApiUtil = new TwitterApiUtil(twitterApi, homeTimeline,
-        new TwitterApiUtil.SnackbarFeedback(binding.mainTimelineContainer));
+    homeTimeline.clear();
+    timelineSubscriber = new TimelineSubscriber(twitterApi, homeTimeline,
+        new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new HomeTimelineFragment();
     tlFragment.setUserIconClickedListener(new OnUserIconClickedListener() {
@@ -133,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         showUserInfo(view, user);
       }
     });
-    tlFragment.setTwitterApiUtil(twitterApiUtil);
+    tlFragment.setTimelineSubscriber(timelineSubscriber);
     tlFragment.setFABHelper(flingableFABHelper);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
@@ -242,12 +243,12 @@ public class MainActivity extends AppCompatActivity {
         }
         final long id = tlFragment.getSelectedTweetId();
         if (Direction.UP == direction) {
-          twitterApiUtil.createFavorite(id);
+          timelineSubscriber.createFavorite(id);
         } else if (Direction.RIGHT == direction) {
-          twitterApiUtil.retweetStatus(id);
+          timelineSubscriber.retweetStatus(id);
         } else if (Direction.UP_RIGHT == direction) {
-          twitterApiUtil.createFavorite(id);
-          twitterApiUtil.retweetStatus(id);
+          timelineSubscriber.createFavorite(id);
+          timelineSubscriber.retweetStatus(id);
         } else if (Direction.LEFT == direction) {
           showStatusDetail(id);
         } else if (Direction.DOWN == direction) {

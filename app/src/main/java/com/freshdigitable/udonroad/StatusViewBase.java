@@ -174,6 +174,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     setTint(rtIcon, R.color.colorTwitterActionNormal);
     setTint(favIcon, R.color.colorTwitterActionNormal);
 
+    icon.setImageDrawable(null);
     icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);

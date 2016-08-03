@@ -48,4 +48,6 @@ public interface TimelineStore {
   Status get(int position);
 
   int getItemCount();
+
+  Status findStatus(long statusId);
 }
