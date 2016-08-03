@@ -30,19 +30,25 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
+import twitter4j.TwitterException;
 
 /**
  * Created by akihit on 2016/08/01.
  */
-public class TwitterApiUtil {
-  public static final String TAG = TwitterApiUtil.class.getSimpleName();
+public class TimelineSubscriber {
+  public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final TimelineStore timelineStore;
   private final UserFeedback userFeedback;
 
-  public TwitterApiUtil(@NonNull TwitterApi twitterApi,
-                        @NonNull TimelineStore timelineStore,
-                        @NonNull UserFeedback userFeedback) {
+  public TimelineSubscriber(@NonNull TwitterApi twitterApi,
+                            @NonNull TimelineStore timelineStore) {
+    this(twitterApi, timelineStore, new SimpleUserFeedback());
+  }
+
+  public TimelineSubscriber(@NonNull TwitterApi twitterApi,
+                            @NonNull TimelineStore timelineStore,
+                            @NonNull UserFeedback userFeedback) {
     this.twitterApi = twitterApi;
     this.timelineStore = timelineStore;
     this.userFeedback = userFeedback;
@@ -101,7 +107,21 @@ public class TwitterApiUtil {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createUpsertAction(),
-            userFeedback.onErrorDefault("failed fav..."),
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {
+                if (throwable instanceof TwitterException) {
+                  final TwitterException te = (TwitterException) throwable;
+                  final int statusCode = te.getStatusCode();
+                  final int errorCode = te.getErrorCode();
+                  if (statusCode == 403 && errorCode == 139) {
+                    userFeedback.onErrorDefault("already faved").call(throwable);
+                  }
+                } else {
+                  userFeedback.onErrorDefault("failed fav...").call(throwable);
+                }
+              }
+            },
             userFeedback.onCompleteDefault("success to fav"));
   }
 
