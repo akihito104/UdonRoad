@@ -203,9 +203,13 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
     onView(withId(R.id.action_write)).perform(click());
     onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
     onView(withId(R.id.main_send_tweet)).check(matches(isDisplayed()));
+    onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+    // the menu is not matched any view so always fail.
+//    onView(withId(R.id.action_write)).check(matches(not(isDisplayed())));
 
     // close
-    onView(withId(R.id.action_write)).perform(click());
+    onView(withId(R.id.action_cancel)).perform(click());
+    onView(withId(R.id.action_write)).check(matches(isDisplayed()));
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }

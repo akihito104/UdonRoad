@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
@@ -54,6 +55,10 @@ import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
+
+import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
+import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
+import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getSimpleName();
@@ -109,12 +114,11 @@ public class MainActivity extends AppCompatActivity {
 
     binding.ffab.hide();
     flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
-    setupAppBar();
+    tweetInputFragment = new TweetInputFragment();
     setupHomeTimeline();
   }
 
   private void setupAppBar() {
-    tweetInputFragment = new TweetInputFragment();
     tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_appbar_container, tweetInputFragment)
@@ -252,9 +256,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (Direction.LEFT == direction) {
           showStatusDetail(id);
         } else if (Direction.DOWN == direction) {
-          showReplyActivity(id, ReplyActivity.TYPE_REPLY);
+          sendStatusSelected(TYPE_REPLY, id);
         } else if (Direction.DOWN_RIGHT == direction) {
-          showReplyActivity(id, ReplyActivity.TYPE_QUOTE);
+          sendStatusSelected(TYPE_QUOTE, id);
         }
       }
     });
@@ -283,19 +287,19 @@ public class MainActivity extends AppCompatActivity {
     return true;
   }
 
-  public void showReplyActivity(long id, @ReplyActivity.TweetType int type) {
-    ReplyActivity.start(this, id, type, tlFragment.getSelectedView());
-  }
-
   @Override
   protected void onResume() {
     Log.d(TAG, "onResume: ");
     super.onResume();
     attachToolbar(binding.mainToolbar);
+    setupAppBar();
   }
 
   @Override
   protected void onPause() {
+    getSupportFragmentManager().beginTransaction()
+        .remove(tweetInputFragment)
+        .commit();
     super.onPause();
   }
 
@@ -345,11 +349,13 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private MenuItem sendStatusMenuItem;
+  private MenuItem cancelMenuItem;
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.appbar_menu, menu);
     sendStatusMenuItem = menu.findItem(R.id.action_write);
+    cancelMenuItem = menu.findItem(R.id.action_cancel);
     return super.onCreateOptionsMenu(menu);
   }
 
@@ -359,11 +365,9 @@ public class MainActivity extends AppCompatActivity {
     if (itemId == R.id.action_heading){
       headingSelected();
     } else if (itemId == R.id.action_write) {
-      if (!tweetInputFragment.isStatusInputViewVisible()) {
-        sendStatusSelected();
-      } else {
-        cancelWritingSelected();
-      }
+      sendStatusSelected(TYPE_DEFAULT, -1);
+    } else if (itemId == R.id.action_cancel) {
+      cancelWritingSelected();
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
@@ -375,29 +379,35 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  private void sendStatusSelected() {
+  private final OnStatusSending onStatusSending = new OnStatusSending() {
+    @Override
+    public void onSuccess(Status status) {
+      cancelWritingSelected();
+    }
+
+    @Override
+    public void onFailure(Throwable e) {
+      showToast("send tweet: failure...");
+      Log.e(TAG, "update status: " + e);
+    }
+  };
+
+  private void sendStatusSelected(@TweetType int type, long statusId) {
+    sendStatusMenuItem.setVisible(false);
+    cancelMenuItem.setVisible(true);
+
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
     }
-    sendStatusMenuItem.setIcon(R.drawable.ic_clear_white_24dp);
     tlFragment.setStopScroll(true);
-    tweetInputFragment.stretchTweetInputView(new OnStatusSending() {
-      @Override
-      public void onSuccess(Status status) {
-        cancelWritingSelected();
-      }
-
-      @Override
-      public void onFailure(Throwable e) {
-        showToast("send tweet: failure...");
-        Log.e(TAG, "update status: " + e);
-      }
-    });
+    tweetInputFragment.stretchTweetInputView(type, statusId, onStatusSending);
     binding.mainToolbar.setTitle("いまどうしてる？");
   }
 
   private void cancelWritingSelected() {
-    sendStatusMenuItem.setIcon(R.drawable.ic_create_white_24dp);
+    sendStatusMenuItem.setVisible(true);
+    cancelMenuItem.setVisible(false);
+
     tlFragment.setStopScroll(false);
     tweetInputFragment.collapseStatusInputView();
     if (tlFragment.isTweetSelected()) {

@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -34,6 +35,8 @@ import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -121,19 +124,29 @@ public class TweetInputFragment extends Fragment {
   private List<Long> quoteStatusIds = new ArrayList<>(4);
   private OnStatusSending statusSending;
 
-  public void stretchTweetInputView(final OnStatusSending statusSending) {
+  public void stretchTweetInputView(@TweetType int type, long statusId, OnStatusSending statusSending) {
+    if (type == TYPE_DEFAULT) {
+      stretchTweetInputView(statusSending);
+    } else if (type == TYPE_REPLY) {
+      stretchTweetInputViewWithInReplyTo(statusSending, statusId);
+    } else if (type == TYPE_QUOTE) {
+      stretchTweetInputViewWithQuoteStatus(statusSending, statusId);
+    }
+  }
+
+  private void stretchTweetInputView(final OnStatusSending statusSending) {
     this.statusSending = statusSending;
     setUpTweetInputView();
     setUpTweetSendFab();
     binding.mainTweetInputView.appearing();
   }
 
-  public void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
+  private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
     final Status inReplyTo = statusCache.getStatus(inReplyToStatusId);
     stretchTweetInputViewWithInReplyTo(statusSending, inReplyTo);
   }
 
-  public void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, Status inReplyTo) {
+  private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, Status inReplyTo) {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo != null) {
       inputText.addText("@" + inReplyTo.getUser().getScreenName() + " "); // XXX
@@ -251,5 +264,14 @@ public class TweetInputFragment extends Fragment {
     void onSuccess(Status status);
 
     void onFailure(Throwable e);
+  }
+
+  public static final int TYPE_DEFAULT = 0;
+  public static final int TYPE_REPLY = 1;
+  public static final int TYPE_QUOTE = 2;
+
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef(value = {TYPE_DEFAULT, TYPE_REPLY, TYPE_QUOTE})
+  public @interface TweetType {
   }
 }
