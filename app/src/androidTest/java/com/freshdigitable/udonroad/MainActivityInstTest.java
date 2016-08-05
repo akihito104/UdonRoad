@@ -1,5 +1,17 @@
 /*
- * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.freshdigitable.udonroad;
@@ -183,6 +195,23 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
 
   private void receiveStatuses(final Status... statuses) throws InterruptedException {
     TwitterResponseMock.receiveStatuses(app.getUserStreamListener(), statuses);
+  }
+
+  @Test
+  public void clickSendIcon_then_openTweetInputViewAndShowFab() {
+    // open
+    onView(withId(R.id.action_write)).perform(click());
+    onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
+    onView(withId(R.id.main_send_tweet)).check(matches(isDisplayed()));
+    onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+    // the menu is not matched any view so always fail.
+//    onView(withId(R.id.action_write)).check(matches(not(isDisplayed())));
+
+    // close
+    onView(withId(R.id.action_cancel)).perform(click());
+    onView(withId(R.id.action_write)).check(matches(isDisplayed()));
+//    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
 }

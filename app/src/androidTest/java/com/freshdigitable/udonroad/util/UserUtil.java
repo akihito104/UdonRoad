@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.util;
 
-import twitter4j.Paging;
+import twitter4j.User;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
- * Created by akihit on 2016/06/07.
+ * Created by akihit on 2016/07/31.
  */
-public class UserFavsFragment extends TimelineFragment {
-  @Override
-  protected void fetchTweet() {
-    final long userId = getUserId();
-    timelineSubscriber.fetchFavorites(userId);
-  }
-
-  @Override
-  protected void fetchTweet(final Paging page) {
-    final long userId = getUserId();
-    timelineSubscriber.fetchFavorites(userId, page);
-  }
-
-  public static UserFavsFragment getInstance(long userId) {
-    return getInstance(new UserFavsFragment(), userId);
+public class UserUtil {
+  public static User create() {
+    final User mock = mock(User.class);
+    when(mock.getScreenName()).thenReturn("akihito104");
+    when(mock.getName()).thenReturn("Akihito Matsuda");
+    when(mock.getId()).thenReturn(2000L);
+    return mock;
   }
 }

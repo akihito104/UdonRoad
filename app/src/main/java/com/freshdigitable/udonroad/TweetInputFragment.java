@@ -19,12 +19,10 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -37,6 +35,8 @@ import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,12 +50,12 @@ import twitter4j.StatusUpdate;
 import twitter4j.User;
 
 /**
- * TweetAppbarFragment provides Appbar with TweetInputView.
+ * TweetInputFragment provides Appbar with TweetInputView.
  *
  * Created by akihit on 2016/02/06.
  */
-public class TweetAppbarFragment extends Fragment {
-  private static final String TAG = TweetAppbarFragment.class.getSimpleName();
+public class TweetInputFragment extends Fragment {
+  private static final String TAG = TweetInputFragment.class.getSimpleName();
   private FragmentTweetAppbarBinding binding;
   @Inject
   TwitterApi twitterApi;
@@ -63,6 +63,20 @@ public class TweetAppbarFragment extends Fragment {
   StatusCache statusCache;
   @Inject
   ConfigStore configStore;
+
+  public static TweetInputFragment create(@TweetType int type, OnStatusSending statusSending) {
+    return create(type, -1, statusSending);
+  }
+
+  public static TweetInputFragment create(@TweetType int type, long statusId, OnStatusSending statusSending) {
+    final Bundle args = new Bundle();
+    args.putInt("tweet_type", type);
+    args.putLong("status_id", statusId);
+    final TweetInputFragment tweetInputFragment = new TweetInputFragment();
+    tweetInputFragment.setArguments(args);
+    tweetInputFragment.setOnStatusSending(statusSending);
+    return tweetInputFragment;
+  }
 
   @Override
   public void onAttach(Context context) {
@@ -83,7 +97,6 @@ public class TweetAppbarFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onActivityCreated: ");
     super.onActivityCreated(savedInstanceState);
-    binding.mainToolbar.setTitle("Home");
   }
 
   @Override
@@ -91,14 +104,10 @@ public class TweetAppbarFragment extends Fragment {
     super.onStart();
     statusCache.open(getContext());
     configStore.open(getContext());
-
-    final AppCompatActivity activity = (AppCompatActivity) getActivity();
-    activity.setSupportActionBar(binding.mainToolbar);
-    final ActionBar supportActionBar = activity.getSupportActionBar();
-    if (supportActionBar != null) {
-      supportActionBar.setDisplayHomeAsUpEnabled(true);
-      supportActionBar.setHomeButtonEnabled(true);
-    }
+    final Bundle arguments = getArguments();
+    final @TweetType int tweetType = arguments.getInt("tweet_type");
+    final long statusId = arguments.getLong("status_id", -1);
+    stretchTweetInputView(tweetType, statusId, statusSending);
   }
 
   @Override
@@ -133,20 +142,32 @@ public class TweetAppbarFragment extends Fragment {
   private List<Long> quoteStatusIds = new ArrayList<>(4);
   private OnStatusSending statusSending;
 
-  public void stretchTweetInputView(final OnStatusSending statusSending) {
+  public void setOnStatusSending(OnStatusSending statusSending) {
     this.statusSending = statusSending;
+  }
+
+  public void stretchTweetInputView(@TweetType int type, long statusId, OnStatusSending statusSending) {
+    if (type == TYPE_DEFAULT) {
+      stretchTweetInputView(statusSending);
+    } else if (type == TYPE_REPLY) {
+      stretchTweetInputViewWithInReplyTo(statusSending, statusId);
+    } else if (type == TYPE_QUOTE) {
+      stretchTweetInputViewWithQuoteStatus(statusSending, statusId);
+    }
+  }
+
+  private void stretchTweetInputView(final OnStatusSending statusSending) {
     setUpTweetInputView();
     setUpTweetSendFab();
     binding.mainTweetInputView.appearing();
-    binding.mainToolbar.setTitle("いまどうしてる？");
   }
 
-  public void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
+  private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
     final Status inReplyTo = statusCache.getStatus(inReplyToStatusId);
     stretchTweetInputViewWithInReplyTo(statusSending, inReplyTo);
   }
 
-  public void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, Status inReplyTo) {
+  private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, Status inReplyTo) {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo != null) {
       inputText.addText("@" + inReplyTo.getUser().getScreenName() + " "); // XXX
@@ -155,7 +176,7 @@ public class TweetAppbarFragment extends Fragment {
     stretchTweetInputView(statusSending);
   }
 
-  public void stretchTweetInputViewWithQuoteStatus(final OnStatusSending statusSending, long quotedStatus) {
+  private void stretchTweetInputViewWithQuoteStatus(final OnStatusSending statusSending, long quotedStatus) {
     quoteStatusIds.add(quotedStatus);
     binding.mainTweetInputView.setQuote();
     stretchTweetInputView(statusSending);
@@ -254,20 +275,24 @@ public class TweetAppbarFragment extends Fragment {
     inReplyToStatusId = -1;
     quoteStatusIds.clear();
     binding.mainTweetInputView.disappearing();
-    binding.mainToolbar.setTitle("Home");
   }
 
   public boolean isStatusInputViewVisible() {
     return binding.mainTweetInputView.isVisible();
   }
 
-  public Toolbar getToolbar() {
-    return binding.mainToolbar;
-  }
-
   interface OnStatusSending {
     void onSuccess(Status status);
 
     void onFailure(Throwable e);
+  }
+
+  public static final int TYPE_DEFAULT = 0;
+  public static final int TYPE_REPLY = 1;
+  public static final int TYPE_QUOTE = 2;
+
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef(value = {TYPE_DEFAULT, TYPE_REPLY, TYPE_QUOTE})
+  public @interface TweetType {
   }
 }

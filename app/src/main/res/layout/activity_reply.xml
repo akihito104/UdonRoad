@@ -27,7 +27,7 @@
             android:id="@+id/reply_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:name="com.freshdigitable.udonroad.TweetAppbarFragment"
+            android:name="com.freshdigitable.udonroad.TweetInputFragment"
             tools:layout="@layout/fragment_tweet_appbar"
             />
         <android.support.design.widget.FloatingActionButton

@@ -42,7 +42,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
@@ -50,7 +50,6 @@ import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import javax.inject.Inject;
 
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.ExtendedMediaEntity;
@@ -71,7 +70,8 @@ public class MediaViewActivity extends AppCompatActivity {
   private FlingableFABHelper ffabHelper;
   private Handler handler;
   @Inject
-  StatusCache statusCache;
+  TimelineStore homeTimeline;
+  private TimelineSubscriber userActionSubscriber;
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -125,6 +125,22 @@ public class MediaViewActivity extends AppCompatActivity {
         }
       }
     });
+    userActionSubscriber = new TimelineSubscriber(twitterApi, homeTimeline, new TimelineSubscriber.UserFeedback() {
+      @Override
+      public Action1<Throwable> onErrorDefault(final String msg) {
+        return new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            showToast(msg);
+          }
+        };
+      }
+
+      @Override
+      public Action0 onCompleteDefault(final String msg) {
+        return showToastAction(msg);
+      }
+    });
   }
 
   private boolean isSystemUIVisible() {
@@ -166,10 +182,6 @@ public class MediaViewActivity extends AppCompatActivity {
     }
   }
 
-  private Status findStatus(long id) {
-    return statusCache.getStatus(id);
-  }
-
   private void setTitle() {
     final int all = binding.mediaPager.getAdapter().getCount();
     final int currentItem = binding.mediaPager.getCurrentItem() + 1;
@@ -188,11 +200,11 @@ public class MediaViewActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
-    statusCache.open(getApplicationContext());
+    homeTimeline.open(getApplicationContext(), "home");
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
-    final Status status = findStatus(statusId);
+    final Status status = homeTimeline.findStatus(statusId);
     final int startPage = intent.getIntExtra(CREATE_START, 0);
     binding.mediaPager.setAdapter(new MediaPagerAdapter(
         getSupportFragmentManager(),
@@ -220,56 +232,18 @@ public class MediaViewActivity extends AppCompatActivity {
       public void onFling(Direction direction) {
         switch (direction) {
           case UP:
-            createFavorite(status);
+            userActionSubscriber.createFavorite(statusId);
             break;
           case RIGHT:
-            retweetStatus(status);
+            userActionSubscriber.retweetStatus(statusId);
             break;
           case UP_RIGHT:
-            createFavorite(status);
-            retweetStatus(status);
+            userActionSubscriber.createFavorite(statusId);
+            userActionSubscriber.retweetStatus(statusId);
             break;
         }
       }
     });
-  }
-
-  private void retweetStatus(Status status) {
-    twitterApi.retweetStatus(status.getId())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            upsertAction(),
-            new Action1<Throwable>() {
-              @Override
-              public void call(Throwable throwable) {
-                showToast("failed RT...");
-              }
-            },
-            showToastAction("success RT"));
-  }
-
-  private void createFavorite(Status status) {
-    twitterApi.createFavorite(status.getId())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            upsertAction(),
-            new Action1<Throwable>() {
-              @Override
-              public void call(Throwable throwable) {
-                showToast("failed fav...");
-              }
-            },
-            showToastAction("success fav"));
-  }
-
-  @NonNull
-  private Action1<Status> upsertAction() {
-    return new Action1<Status>() {
-      @Override
-      public void call(Status status) {
-        statusCache.upsertStatus(status);
-      }
-    };
   }
 
   private Action0 showToastAction(final String text) {
@@ -294,7 +268,7 @@ public class MediaViewActivity extends AppCompatActivity {
     binding.mediaPager.removeOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setAdapter(null);
     binding.mediaFfab.setOnFlingListener(null);
-    statusCache.close();
+    homeTimeline.close();
     super.onStop();
   }
 

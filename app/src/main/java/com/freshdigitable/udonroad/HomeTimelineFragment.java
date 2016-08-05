@@ -1,5 +1,17 @@
 /*
- * Copyright (c) 2016. UdonRoad by Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.freshdigitable.udonroad;
@@ -11,15 +23,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.List;
-
-import rx.Observable;
-import rx.Subscriber;
-import twitter4j.Paging;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-
 /**
  * displays Authenticated user home timeline.
  *
@@ -28,19 +31,13 @@ import twitter4j.TwitterException;
 public class HomeTimelineFragment extends TimelineFragment {
   @SuppressWarnings("unused")
   private static final String TAG = HomeTimelineFragment.class.getSimpleName();
-
-  @Override
-  public String getStoreName() {
-    return "home";
-  }
-
   private UserStreamUtil userStream;
 
   @Nullable
   @Override
   public View onCreateView(
       LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    userStream = new UserStreamUtil(super.timelineStore);
+    userStream = new UserStreamUtil(super.timelineSubscriber.getTimelineStore());
     InjectionUtil.getComponent(this).inject(userStream);
     return super.onCreateView(inflater, container, savedInstanceState);
   }
@@ -68,37 +65,5 @@ public class HomeTimelineFragment extends TimelineFragment {
     Log.d(TAG, "onDestroy: ");
     userStream.disconnect();
     super.onDestroy();
-  }
-
-  @Override
-  protected void fetchTweet() {
-    final Twitter twitter = getTwitterApi().getTwitter();
-    fetchTweet(new Observable.OnSubscribe<List<Status>>() {
-      @Override
-      public void call(Subscriber<? super List<Status>> subscriber) {
-        try {
-          subscriber.onNext(twitter.getHomeTimeline());
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
-      }
-    });
-  }
-
-  @Override
-  protected void fetchTweet(final Paging page) {
-    final Twitter twitter = getTwitterApi().getTwitter();
-    fetchTweet(new Observable.OnSubscribe<List<Status>>() {
-          @Override
-          public void call(Subscriber<? super List<Status>> subscriber) {
-            try {
-              subscriber.onNext(twitter.getHomeTimeline(page));
-              subscriber.onCompleted();
-            } catch (TwitterException e) {
-              subscriber.onError(e);
-            }
-          }
-        });
   }
 }

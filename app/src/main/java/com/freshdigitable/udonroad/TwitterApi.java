@@ -232,11 +232,57 @@ public class TwitterApi {
 
   public Observable<List<Status>> getUserTimeline(final User user) {
     final long userId = user.getId();
+    return getUserTimeline(userId);
+  }
+
+  public Observable<List<Status>> getUserTimeline(final long userId) {
     return Observable.create(new Observable.OnSubscribe<List<Status>>() {
       @Override
       public void call(Subscriber<? super List<Status>> subscriber) {
         try {
           subscriber.onNext(twitter.getUserTimeline(userId));
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<List<Status>> getUserTimeline(final long userId, final Paging paging) {
+    return Observable.create(new Observable.OnSubscribe<List<Status>>() {
+      @Override
+      public void call(Subscriber<? super List<Status>> subscriber) {
+        try {
+          subscriber.onNext(twitter.getUserTimeline(userId, paging));
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<List<Status>> getFavorites(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<List<Status>>() {
+      @Override
+      public void call(Subscriber<? super List<Status>> subscriber) {
+        try {
+          subscriber.onNext(twitter.getFavorites(userId));
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<List<Status>> getFavorites(final long userId, final Paging paging) {
+    return Observable.create(new Observable.OnSubscribe<List<Status>>() {
+      @Override
+      public void call(Subscriber<? super List<Status>> subscriber) {
+        try {
+          subscriber.onNext(twitter.getFavorites(userId, paging));
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);

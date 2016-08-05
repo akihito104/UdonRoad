@@ -20,21 +20,30 @@ import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 
+import com.freshdigitable.udonroad.util.UserUtil;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import rx.Observable;
+import rx.Subscriber;
 import rx.schedulers.Schedulers;
-import twitter4j.ResponseList;
+import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.TwitterAPIConfiguration;
+import twitter4j.User;
 import twitter4j.UserStreamListener;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -45,8 +54,10 @@ import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRespons
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -80,15 +91,21 @@ public abstract class MainActivityInstTestBase {
     Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("user_home").build());
     Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("user_favs").build());
 
-    final ResponseList<Status> responseList = createResponseList();
+    final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
       final Status status = createStatus(i);
       responseList.add(status);
     }
     assertThat(responseList.size(), is(20));
-    when(twitter.getHomeTimeline()).thenReturn(responseList);
-    when(twitter.getUserTimeline(anyLong())).thenReturn(responseList);
-    when(twitter.getFavorites(anyLong())).thenReturn(createResponseList());
+    when(twitterApi.getHomeTimeline())
+        .thenReturn(Observable.just(responseList));
+    when(twitterApi.getHomeTimeline(any(Paging.class)))
+        .thenReturn(Observable.just(Collections.<Status>emptyList()));
+    when(twitterApi.getUserTimeline(anyLong())).thenReturn(Observable.just(responseList));
+    when(twitterApi.getUserTimeline(anyLong(), any(Paging.class)))
+        .thenReturn(Observable.just(Collections.<Status>emptyList()));
+    when(twitterApi.getFavorites(anyLong()))
+        .thenReturn(Observable.just((List<Status>) createResponseList()));
     when(twitterApi.createFavorite(anyLong())).thenAnswer(new Answer<Observable<Status>>() {
       @Override
       public Observable<Status> answer(InvocationOnMock invocation) throws Throwable {
@@ -113,12 +130,24 @@ public abstract class MainActivityInstTestBase {
     });
     when(twitterApi.loadAccessToken()).thenReturn(true);
     when(twitterApi.getTwitter()).thenReturn(twitter);
+    final User userMock = UserUtil.create();
+    when(twitterApi.verifyCredentials()).thenReturn(Observable.just(userMock));
+    final TwitterAPIConfiguration twitterAPIConfigMock = createTwitterAPIConfigMock();
+    when(twitterApi.getTwitterAPIConfiguration()).thenReturn(
+        Observable.create(new Observable.OnSubscribe<TwitterAPIConfiguration>() {
+          @Override
+          public void call(Subscriber<? super TwitterAPIConfiguration> subscriber) {
+            subscriber.onNext(twitterAPIConfigMock);
+            subscriber.onCompleted();
+          }
+        }));
 
     rule.launchActivity(new Intent());
-    verify(twitter, times(1)).getHomeTimeline();
+    verify(twitterApi, times(1)).getHomeTimeline();
     final UserStreamListener userStreamListener = app.getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));
+    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
   @After
@@ -129,5 +158,12 @@ public abstract class MainActivityInstTestBase {
       activity.finish();
       Thread.sleep(1000);
     }
+  }
+
+  private static TwitterAPIConfiguration createTwitterAPIConfigMock() {
+    final TwitterAPIConfiguration mock = Mockito.mock(TwitterAPIConfiguration.class);
+    when(mock.getShortURLLength()).thenReturn(23);
+    when(mock.getShortURLLengthHttps()).thenReturn(23);
+    return mock;
   }
 }

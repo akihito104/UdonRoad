@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -28,17 +29,32 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * Created by akihit on 2016/06/06.
  */
 public class UserInfoPagerFragment extends Fragment {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
+  @Inject
+  TwitterApi twitterApi;
+  @Inject
+  TimelineStore userHomeTimeline;
+  @Inject
+  TimelineStore userFavTimeline;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
   @Nullable
   @Override
@@ -66,13 +82,23 @@ public class UserInfoPagerFragment extends Fragment {
     super.onActivityCreated(savedInstanceState);
 
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
+
     final UserHomeTimelineFragment home = UserHomeTimelineFragment.getInstance(userId);
+    userHomeTimeline.open(getContext(), "user_home");
+    userHomeTimeline.clear();
+    home.setTimelineSubscriber(new TimelineSubscriber(twitterApi, userHomeTimeline,
+            new TimelineSubscriber.SnackbarFeedback(viewPager)));
     home.setFABHelper(fabHelper);
-    home.setupOnFlingListener();
     pagerAdapter.putFragment(home, "Tweets");
+
     final UserFavsFragment favs = UserFavsFragment.getInstance(userId);
+    userFavTimeline.open(getContext(), "user_favs");
+    userFavTimeline.clear();
+    favs.setTimelineSubscriber(new TimelineSubscriber(twitterApi, userFavTimeline,
+        new TimelineSubscriber.SnackbarFeedback(viewPager)));
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
+
     viewPager.setAdapter(pagerAdapter);
   }
 
@@ -87,9 +113,7 @@ public class UserInfoPagerFragment extends Fragment {
         Log.d(TAG, "onPageSelected: " + position);
         final Fragment item = pagerAdapter.getItem(position);
         if (item instanceof TimelineFragment) {
-          ffab.setOnFlingListener(null);
           TimelineFragment fragment = (TimelineFragment) item;
-          fragment.setupOnFlingListener();
           if (fragment.isTweetSelected()) {
             ffab.show();
           } else {
@@ -101,12 +125,24 @@ public class UserInfoPagerFragment extends Fragment {
     tab.setupWithViewPager(viewPager);
   }
 
+  public Fragment getCurrentFragment() {
+    final int currentItem = viewPager.getCurrentItem();
+    return pagerAdapter.getItem(currentItem);
+  }
+
   @Override
   public void onStop() {
     viewPager.clearOnPageChangeListeners();
-    viewPager.setAdapter(null);
     tab.removeAllTabs();
     super.onStop();
+  }
+
+  @Override
+  public void onDestroyView() {
+    viewPager.setAdapter(null);
+    userHomeTimeline.close();
+    userFavTimeline.close();
+    super.onDestroyView();
   }
 
   private long userId;
@@ -122,18 +158,15 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   public void clearSelectedTweet() {
-    final List<Fragment> fragments = pagerAdapter.getFragments();
-    for (Fragment f : fragments) {
-      if (f instanceof TimelineFragment) {
-        ((TimelineFragment) f).clearSelectedTweet();
-      }
+    final Fragment currentFragment = getCurrentFragment();
+    if (currentFragment instanceof TimelineFragment) {
+      ((TimelineFragment) currentFragment).clearSelectedTweet();
     }
     fabHelper.getFab().hide();
   }
 
   public void scrollToTop() {
-    final int currentItem = viewPager.getCurrentItem();
-    final Fragment item = pagerAdapter.getItem(currentItem);
+    final Fragment item = getCurrentFragment();
     if (item instanceof TimelineFragment) {
       ((TimelineFragment) item).scrollToTop();
     }
