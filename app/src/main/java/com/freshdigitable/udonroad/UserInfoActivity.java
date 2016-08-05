@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -138,7 +139,11 @@ public class UserInfoActivity extends AppCompatActivity {
     binding.ffab.setOnFlingListener(new OnFlingAdapter() {
       @Override
       public void onFling(Direction direction) {
-        final TimelineFragment fragment = viewPager.getCurrentFragment();
+        final Fragment f = viewPager.getCurrentFragment();
+        if (!(f instanceof TimelineFragment)) {
+          return;
+        }
+        final TimelineFragment fragment = (TimelineFragment) f;
         final long selectedTweetId = fragment.getSelectedTweetId();
         final TimelineSubscriber timelineSubscriber = fragment.getTimelineSubscriber();
         if (direction == Direction.UP) {
@@ -232,18 +237,21 @@ public class UserInfoActivity extends AppCompatActivity {
         String.format(resources.getString(R.string.tweet_name), user.getScreenName()));
   }
 
+  private final OnStatusSending statusSending = new OnStatusSending() {
+    @Override
+    public void onSuccess(Status status) {
+      closeTwitterInputView();
+    }
+
+    @Override
+    public void onFailure(Throwable e) {
+    }
+  };
+
   private void showTwitterInputview(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
-    tweetInputFragment = TweetInputFragment.create(type, statusId, new OnStatusSending() {
-      @Override
-      public void onSuccess(Status status) {
-        closeTwitterInputView();
-      }
 
-      @Override
-      public void onFailure(Throwable e) {
-      }
-    });
+    tweetInputFragment = TweetInputFragment.create(type, statusId, statusSending);
     tweetInputFragment.setTweetSendFab(binding.userInfoTweetSend);
     getSupportFragmentManager().beginTransaction()
         .hide(userInfoAppbarFragment)
@@ -273,5 +281,18 @@ public class UserInfoActivity extends AppCompatActivity {
     binding.userInfoToolbar.setTitle("");
     binding.userInfoToolbarTitle.setVisibility(View.VISIBLE);
     tweetInputFragment = null;
+  }
+
+  @Override
+  public void onBackPressed() {
+    if (binding.ffab.getVisibility() == View.VISIBLE) {
+      viewPager.clearSelectedTweet();  // it also hides ffab.
+      return;
+    }
+    if (tweetInputFragment != null && tweetInputFragment.isVisible()) {
+      closeTwitterInputView();
+      return;
+    }
+    super.onBackPressed();
   }
 }

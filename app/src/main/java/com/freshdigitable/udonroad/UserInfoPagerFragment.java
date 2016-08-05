@@ -125,9 +125,9 @@ public class UserInfoPagerFragment extends Fragment {
     tab.setupWithViewPager(viewPager);
   }
 
-  public TimelineFragment getCurrentFragment() {
+  public Fragment getCurrentFragment() {
     final int currentItem = viewPager.getCurrentItem();
-    return (TimelineFragment) pagerAdapter.getItem(currentItem);
+    return pagerAdapter.getItem(currentItem);
   }
 
   @Override
@@ -158,18 +158,15 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   public void clearSelectedTweet() {
-    final List<Fragment> fragments = pagerAdapter.getFragments();
-    for (Fragment f : fragments) {
-      if (f instanceof TimelineFragment) {
-        ((TimelineFragment) f).clearSelectedTweet();
-      }
+    final Fragment currentFragment = getCurrentFragment();
+    if (currentFragment instanceof TimelineFragment) {
+      ((TimelineFragment) currentFragment).clearSelectedTweet();
     }
     fabHelper.getFab().hide();
   }
 
   public void scrollToTop() {
-    final int currentItem = viewPager.getCurrentItem();
-    final Fragment item = pagerAdapter.getItem(currentItem);
+    final Fragment item = getCurrentFragment();
     if (item instanceof TimelineFragment) {
       ((TimelineFragment) item).scrollToTop();
     }
