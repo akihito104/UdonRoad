@@ -64,6 +64,20 @@ public class TweetInputFragment extends Fragment {
   @Inject
   ConfigStore configStore;
 
+  public static TweetInputFragment create(@TweetType int type, OnStatusSending statusSending) {
+    return create(type, -1, statusSending);
+  }
+
+  public static TweetInputFragment create(@TweetType int type, long statusId, OnStatusSending statusSending) {
+    final Bundle args = new Bundle();
+    args.putInt("tweet_type", type);
+    args.putLong("status_id", statusId);
+    final TweetInputFragment tweetInputFragment = new TweetInputFragment();
+    tweetInputFragment.setArguments(args);
+    tweetInputFragment.setOnStatusSending(statusSending);
+    return tweetInputFragment;
+  }
+
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
@@ -90,6 +104,10 @@ public class TweetInputFragment extends Fragment {
     super.onStart();
     statusCache.open(getContext());
     configStore.open(getContext());
+    final Bundle arguments = getArguments();
+    final @TweetType int tweetType = arguments.getInt("tweet_type");
+    final long statusId = arguments.getLong("status_id", -1);
+    stretchTweetInputView(tweetType, statusId, statusSending);
   }
 
   @Override
@@ -124,6 +142,10 @@ public class TweetInputFragment extends Fragment {
   private List<Long> quoteStatusIds = new ArrayList<>(4);
   private OnStatusSending statusSending;
 
+  public void setOnStatusSending(OnStatusSending statusSending) {
+    this.statusSending = statusSending;
+  }
+
   public void stretchTweetInputView(@TweetType int type, long statusId, OnStatusSending statusSending) {
     if (type == TYPE_DEFAULT) {
       stretchTweetInputView(statusSending);
@@ -135,7 +157,6 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void stretchTweetInputView(final OnStatusSending statusSending) {
-    this.statusSending = statusSending;
     setUpTweetInputView();
     setUpTweetSendFab();
     binding.mainTweetInputView.appearing();
@@ -155,7 +176,7 @@ public class TweetInputFragment extends Fragment {
     stretchTweetInputView(statusSending);
   }
 
-  public void stretchTweetInputViewWithQuoteStatus(final OnStatusSending statusSending, long quotedStatus) {
+  private void stretchTweetInputViewWithQuoteStatus(final OnStatusSending statusSending, long quotedStatus) {
     quoteStatusIds.add(quotedStatus);
     binding.mainTweetInputView.setQuote();
     stretchTweetInputView(statusSending);

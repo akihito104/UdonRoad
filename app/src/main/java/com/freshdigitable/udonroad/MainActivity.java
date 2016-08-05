@@ -114,15 +114,28 @@ public class MainActivity extends AppCompatActivity {
 
     binding.ffab.hide();
     flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
-    tweetInputFragment = new TweetInputFragment();
     setupHomeTimeline();
   }
 
-  private void setupAppBar() {
+  private void setupAppBar(@TweetType int type, long statusId) {
+    tweetInputFragment = TweetInputFragment.create(type, statusId, onStatusSending);
     tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_appbar_container, tweetInputFragment)
         .commit();
+  }
+
+  private void tearDownTweetInputView() {
+    if (tweetInputFragment == null) {
+      return;
+    }
+    tweetInputFragment.collapseStatusInputView();
+    tweetInputFragment.setOnStatusSending(null);
+    tweetInputFragment.setTweetSendFab(null);
+    getSupportFragmentManager().beginTransaction()
+        .remove(tweetInputFragment)
+        .commit();
+    tweetInputFragment = null;
   }
 
   private void setupHomeTimeline() {
@@ -146,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void showUserInfo(View view, User user) {
-    if (tweetInputFragment.isStatusInputViewVisible()) {
+    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       return;
     }
     binding.ffab.hide();
@@ -292,14 +305,10 @@ public class MainActivity extends AppCompatActivity {
     Log.d(TAG, "onResume: ");
     super.onResume();
     attachToolbar(binding.mainToolbar);
-    setupAppBar();
   }
 
   @Override
   protected void onPause() {
-    getSupportFragmentManager().beginTransaction()
-        .remove(tweetInputFragment)
-        .commit();
     super.onPause();
   }
 
@@ -314,7 +323,8 @@ public class MainActivity extends AppCompatActivity {
   protected void onDestroy() {
     binding.ffab.setOnFlingListener(null);
     binding.navDrawer.setNavigationItemSelectedListener(null);
-    tweetInputFragment.setTweetSendFab(null);
+//    tweetInputFragment.setTweetSendFab(null);
+    tearDownTweetInputView();
     homeTimeline.close();
     tlFragment.setUserIconClickedListener(null);
     tlFragment.setFABHelper(null);
@@ -331,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
       binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       return;
     }
-    if (tweetInputFragment.isStatusInputViewVisible()) {
+    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       cancelWritingSelected();
       return;
     }
@@ -400,8 +410,14 @@ public class MainActivity extends AppCompatActivity {
       binding.ffab.hide();
     }
     tlFragment.setStopScroll(true);
-    tweetInputFragment.stretchTweetInputView(type, statusId, onStatusSending);
-    binding.mainToolbar.setTitle("いまどうしてる？");
+    setupAppBar(type, statusId);
+    if (type == TYPE_REPLY) {
+      binding.mainToolbar.setTitle("返信する");
+    } else if (type == TYPE_QUOTE) {
+      binding.mainToolbar.setTitle("コメントする");
+    } else {
+      binding.mainToolbar.setTitle("いまどうしてる？");
+    }
   }
 
   private void cancelWritingSelected() {
@@ -409,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
     cancelMenuItem.setVisible(false);
 
     tlFragment.setStopScroll(false);
-    tweetInputFragment.collapseStatusInputView();
+    tearDownTweetInputView();
     if (tlFragment.isTweetSelected()) {
       binding.ffab.show();
     }

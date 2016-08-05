@@ -32,7 +32,6 @@ import android.view.ViewGroup;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -124,28 +123,15 @@ public class UserInfoPagerFragment extends Fragment {
       }
     });
     tab.setupWithViewPager(viewPager);
-    ffab.setOnFlingListener(new OnFlingAdapter() {
-      @Override
-      public void onFling(Direction direction) {
-        final int currentItem = viewPager.getCurrentItem();
-        final TimelineFragment fragment = (TimelineFragment) pagerAdapter.getItem(currentItem);
-        final long selectedTweetId = fragment.getSelectedTweetId();
-        final TimelineSubscriber timelineSubscriber = fragment.getTimelineSubscriber();
-        if (direction == Direction.UP) {
-          timelineSubscriber.createFavorite(selectedTweetId);
-        } else if (direction == Direction.RIGHT) {
-          timelineSubscriber.retweetStatus(selectedTweetId);
-        } else if (direction == Direction.UP_RIGHT) {
-          timelineSubscriber.createFavorite(selectedTweetId);
-          timelineSubscriber.retweetStatus(selectedTweetId);
-        }
-      }
-    });
+  }
+
+  public TimelineFragment getCurrentFragment() {
+    final int currentItem = viewPager.getCurrentItem();
+    return (TimelineFragment) pagerAdapter.getItem(currentItem);
   }
 
   @Override
   public void onStop() {
-    fabHelper.getFab().setOnFlingListener(null);
     viewPager.clearOnPageChangeListeners();
     tab.removeAllTabs();
     super.onStop();
