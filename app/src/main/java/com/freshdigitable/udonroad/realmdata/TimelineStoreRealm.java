@@ -117,18 +117,18 @@ public class TimelineStoreRealm implements TimelineStore {
       } else {
         updates.add(new StatusIDs(s));
       }
-      statusCache.upsertStatus(s);
+      statusCache.upsert(s);
 
       final RealmResults<StatusIDs> u = findReferringStatus(s.getId());
       if (u.size() > 0) {
-        statusCache.upsertStatus(s);
+        statusCache.upsert(s);
         updates.addAll(u);
       }
 
       final long quotedStatusId = s.getQuotedStatusId();
       if (quotedStatusId > 0) {
         final Status quotedStatus = s.getQuotedStatus();
-        statusCache.upsertStatus(quotedStatus);
+        statusCache.upsert(quotedStatus);
 
         final StatusIDs q = findTimeline(quotedStatus);
         if (q != null) {
@@ -145,8 +145,8 @@ public class TimelineStoreRealm implements TimelineStore {
         continue;
       }
       final Status retweetedStatus = s.getRetweetedStatus();
-      statusCache.upsertStatus(retweetedStatus);
-      statusCache.upsertStatus(retweetedStatus.getQuotedStatus());
+      statusCache.upsert(retweetedStatus);
+      statusCache.upsert(retweetedStatus.getQuotedStatus());
 
       final StatusIDs rs = findTimeline(retweetedStatus);
       if (rs != null) {
@@ -172,6 +172,11 @@ public class TimelineStoreRealm implements TimelineStore {
     if (updates.size() > 0) {
       updateStatus(updates);
     }
+  }
+
+  @Override
+  public void deleteStatus(long statusId) {
+    delete(statusId);
   }
 
   @NonNull
@@ -248,8 +253,7 @@ public class TimelineStoreRealm implements TimelineStore {
     }
   }
 
-  @Override
-  public void delete(long statusId) {
+  private void delete(long statusId) {
     final RealmResults<StatusIDs> res = realm.where(StatusIDs.class)
         .beginGroup()
         .equalTo(KEY_ID, statusId)

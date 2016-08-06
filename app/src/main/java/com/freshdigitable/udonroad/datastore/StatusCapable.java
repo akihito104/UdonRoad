@@ -16,24 +16,17 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.Context;
+import java.util.List;
 
 import twitter4j.Status;
-import twitter4j.User;
 
 /**
- * Created by akihit on 2016/07/25.
+ * Created by akihit on 2016/08/06.
  */
-public interface StatusCache extends StatusCapable {
-  void open(Context context);
+public interface StatusCapable {
+  void upsert(Status status);
 
-  Status getStatus(long statusId);
+  void upsert(List<Status> statuses);
 
-  void upsertUser(User user);
-
-  User getUser(long userId);
-
-  void clear();
-
-  void close();
+  void deleteStatus(long statusId);
 }

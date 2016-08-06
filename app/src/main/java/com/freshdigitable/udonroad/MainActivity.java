@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
   ConfigStore configStore;
   @Inject
   TimelineStore homeTimeline;
-  private TimelineSubscriber timelineSubscriber;
+  private TimelineSubscriber<TimelineStore> timelineSubscriber;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
   private void setupHomeTimeline() {
     homeTimeline.open(getApplicationContext(), "home");
     homeTimeline.clear();
-    timelineSubscriber = new TimelineSubscriber(twitterApi, homeTimeline,
+    timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
         new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new HomeTimelineFragment();

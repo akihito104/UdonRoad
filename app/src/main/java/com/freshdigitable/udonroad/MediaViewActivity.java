@@ -42,7 +42,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
@@ -70,8 +70,8 @@ public class MediaViewActivity extends AppCompatActivity {
   private FlingableFABHelper ffabHelper;
   private Handler handler;
   @Inject
-  TimelineStore homeTimeline;
-  private TimelineSubscriber userActionSubscriber;
+  StatusCache statusCache;
+  private TimelineSubscriber<StatusCache> userActionSubscriber;
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -125,7 +125,7 @@ public class MediaViewActivity extends AppCompatActivity {
         }
       }
     });
-    userActionSubscriber = new TimelineSubscriber(twitterApi, homeTimeline, new TimelineSubscriber.UserFeedback() {
+    userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache, new TimelineSubscriber.UserFeedback() {
       @Override
       public Action1<Throwable> onErrorDefault(final String msg) {
         return new Action1<Throwable>() {
@@ -200,11 +200,11 @@ public class MediaViewActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
-    homeTimeline.open(getApplicationContext(), "home");
+    statusCache.open(getApplicationContext());
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
-    final Status status = homeTimeline.findStatus(statusId);
+    final Status status = statusCache.getStatus(statusId);
     final int startPage = intent.getIntExtra(CREATE_START, 0);
     binding.mediaPager.setAdapter(new MediaPagerAdapter(
         getSupportFragmentManager(),
@@ -268,7 +268,7 @@ public class MediaViewActivity extends AppCompatActivity {
     binding.mediaPager.removeOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setAdapter(null);
     binding.mediaFfab.setOnFlingListener(null);
-    homeTimeline.close();
+    statusCache.close();
     super.onStop();
   }
 

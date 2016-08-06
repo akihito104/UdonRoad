@@ -37,7 +37,7 @@ public class HomeTimelineFragment extends TimelineFragment {
   @Override
   public View onCreateView(
       LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    userStream = new UserStreamUtil(super.timelineSubscriber.getTimelineStore());
+    userStream = new UserStreamUtil(super.timelineSubscriber.getStatusStore());
     InjectionUtil.getComponent(this).inject(userStream);
     return super.onCreateView(inflater, container, savedInstanceState);
   }

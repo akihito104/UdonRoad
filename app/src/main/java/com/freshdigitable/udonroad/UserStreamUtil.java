@@ -94,7 +94,7 @@ public class UserStreamUtil {
           .subscribe(new Action1<Long>() {
             @Override
             public void call(Long deletedStatusId) {
-              timelineStore.delete(deletedStatusId);
+              timelineStore.deleteStatus(deletedStatusId);
             }
           }, new Action1<Throwable>() {
             @Override

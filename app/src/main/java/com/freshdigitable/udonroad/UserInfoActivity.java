@@ -39,6 +39,7 @@ import android.widget.TextView;
 
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 
@@ -145,7 +146,7 @@ public class UserInfoActivity extends AppCompatActivity {
         }
         final TimelineFragment fragment = (TimelineFragment) f;
         final long selectedTweetId = fragment.getSelectedTweetId();
-        final TimelineSubscriber timelineSubscriber = fragment.getTimelineSubscriber();
+        final TimelineSubscriber<TimelineStore> timelineSubscriber = fragment.getTimelineSubscriber();
         if (direction == Direction.UP) {
           timelineSubscriber.createFavorite(selectedTweetId);
         } else if (direction == Direction.RIGHT) {

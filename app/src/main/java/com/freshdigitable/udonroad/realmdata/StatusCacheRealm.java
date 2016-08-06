@@ -22,6 +22,8 @@ import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.StatusCache;
 
+import java.util.List;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import twitter4j.Status;
@@ -48,7 +50,18 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
-  public void upsertStatus(@Nullable final Status rtStatus) {
+  public void upsert(Status status) {
+    upsertStatus(status);
+  }
+
+  @Override
+  public void upsert(List<Status> statuses) {
+    for (Status s : statuses) {
+      upsertStatus(s);
+    }
+  }
+
+  private void upsertStatus(@Nullable final Status rtStatus) {
     if (rtStatus == null) {
       return;
     }

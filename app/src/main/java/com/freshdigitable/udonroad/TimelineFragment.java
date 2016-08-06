@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 
@@ -47,7 +48,7 @@ public class TimelineFragment extends Fragment {
   private Subscription insertEventSubscription;
   private Subscription updateEventSubscription;
   private Subscription deleteEventSubscription;
-  protected TimelineSubscriber timelineSubscriber;
+  protected TimelineSubscriber<TimelineStore> timelineSubscriber;
 
   @Override
   public void onAttach(Context context) {
@@ -94,22 +95,23 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    tlAdapter = new TimelineAdapter(timelineSubscriber.getTimelineStore());
-    insertEventSubscription = timelineSubscriber.subscribeInsertEvent()
+    final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
+    tlAdapter = new TimelineAdapter(timelineStore);
+    insertEventSubscription = timelineStore.subscribeInsertEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
             tlAdapter.notifyItemInserted(position);
           }
         });
-    updateEventSubscription = timelineSubscriber.subscribeUpdateEvent()
+    updateEventSubscription = timelineStore.subscribeUpdateEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
             tlAdapter.notifyItemChanged(position);
           }
         });
-    deleteEventSubscription = timelineSubscriber.subscribeDeleteEvent()
+    deleteEventSubscription = timelineStore.subscribeDeleteEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
@@ -302,11 +304,11 @@ public class TimelineFragment extends Fragment {
     return arguments.getLong("user_id");
   }
 
-  public void setTimelineSubscriber(TimelineSubscriber timelineSubscriber) {
+  public void setTimelineSubscriber(TimelineSubscriber<TimelineStore> timelineSubscriber) {
     this.timelineSubscriber = timelineSubscriber;
   }
 
-  public TimelineSubscriber getTimelineSubscriber() {
+  public TimelineSubscriber<TimelineStore> getTimelineSubscriber() {
     return timelineSubscriber;
   }
 

@@ -20,11 +20,10 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.StatusCapable;
 
 import java.util.List;
 
-import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -35,22 +34,23 @@ import twitter4j.TwitterException;
 /**
  * Created by akihit on 2016/08/01.
  */
-public class TimelineSubscriber {
+public class TimelineSubscriber<T extends StatusCapable> {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
-  private final TimelineStore timelineStore;
+  private final T statusStore;
   private final UserFeedback userFeedback;
 
+  @SuppressWarnings("unused")
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
-                            @NonNull TimelineStore timelineStore) {
-    this(twitterApi, timelineStore, new SimpleUserFeedback());
+                            @NonNull T statusStore) {
+    this(twitterApi, statusStore, new SimpleUserFeedback());
   }
 
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
-                            @NonNull TimelineStore timelineStore,
+                            @NonNull T statusStore,
                             @NonNull UserFeedback userFeedback) {
     this.twitterApi = twitterApi;
-    this.timelineStore = timelineStore;
+    this.statusStore = statusStore;
     this.userFeedback = userFeedback;
   }
 
@@ -134,20 +134,8 @@ public class TimelineSubscriber {
             userFeedback.onCompleteDefault("success to RT"));
   }
 
-  public TimelineStore getTimelineStore() {
-    return timelineStore;
-  }
-
-  public Observable<Integer> subscribeInsertEvent() {
-    return timelineStore.subscribeInsertEvent();
-  }
-
-  public Observable<Integer> subscribeUpdateEvent() {
-    return timelineStore.subscribeUpdateEvent();
-  }
-
-  public Observable<Integer> subscribeDeleteEvent() {
-    return timelineStore.subscribeDeleteEvent();
+  public T getStatusStore() {
+    return statusStore;
   }
 
   @NonNull
@@ -155,7 +143,7 @@ public class TimelineSubscriber {
     return new Action1<List<Status>>() {
       @Override
       public void call(List<Status> statuses) {
-        timelineStore.upsert(statuses);
+        statusStore.upsert(statuses);
       }
     };
   }
@@ -165,7 +153,7 @@ public class TimelineSubscriber {
     return new Action1<Status>() {
       @Override
       public void call(Status statuses) {
-        timelineStore.upsert(statuses);
+        statusStore.upsert(statuses);
       }
     };
   }

@@ -86,7 +86,7 @@ public class UserInfoPagerFragment extends Fragment {
     final UserHomeTimelineFragment home = UserHomeTimelineFragment.getInstance(userId);
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
-    home.setTimelineSubscriber(new TimelineSubscriber(twitterApi, userHomeTimeline,
+    home.setTimelineSubscriber(new TimelineSubscriber<>(twitterApi, userHomeTimeline,
             new TimelineSubscriber.SnackbarFeedback(viewPager)));
     home.setFABHelper(fabHelper);
     pagerAdapter.putFragment(home, "Tweets");
@@ -94,7 +94,7 @@ public class UserInfoPagerFragment extends Fragment {
     final UserFavsFragment favs = UserFavsFragment.getInstance(userId);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
-    favs.setTimelineSubscriber(new TimelineSubscriber(twitterApi, userFavTimeline,
+    favs.setTimelineSubscriber(new TimelineSubscriber<>(twitterApi, userFavTimeline,
         new TimelineSubscriber.SnackbarFeedback(viewPager)));
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
