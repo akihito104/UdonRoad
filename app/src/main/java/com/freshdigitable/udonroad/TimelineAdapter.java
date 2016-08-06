@@ -22,7 +22,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.squareup.picasso.Picasso;
@@ -108,6 +107,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         : status.getQuotedStatus();
     if (quotedStatus != null) {
       final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
+      quotedStatusView.getIcon().setImageDrawable(null);
       Picasso.with(quotedStatusView.getContext())
           .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
           .placeholder(android.R.color.transparent)
@@ -168,21 +168,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onViewDetachedFromWindow(ViewHolder holder) {
     super.onViewDetachedFromWindow(holder);
 //    Log.d(TAG, "onViewDetachedFromWindow: " + holder.status.toString());
-    StatusView v = (StatusView) holder.itemView;
-    Picasso.with(v.getContext()).cancelTag(holder.statusId);
-    unloadMediaView(v);
-
-    final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
-    if (quotedStatusView.getVisibility() == View.VISIBLE) {
-      unloadMediaView(quotedStatusView);
-    }
+    Picasso.with(holder.itemView.getContext()).cancelTag(holder.statusId);
   }
 
   public void unloadMediaView(StatusViewBase v) {
     final MediaContainer mediaContainer = v.getMediaContainer();
     for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
-      final ImageView iv = (ImageView) mediaContainer.getChildAt(i);
-      iv.setOnClickListener(null);
+      mediaContainer.getChildAt(i).setOnClickListener(null);
     }
   }
 
@@ -212,6 +204,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onViewRecycled(ViewHolder holder) {
     super.onViewRecycled(holder);
+    final StatusView v = (StatusView) holder.itemView;
+    unloadMediaView(v);
+
+    final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
+    if (quotedStatusView.getVisibility() == View.VISIBLE) {
+      unloadMediaView(quotedStatusView);
+    }
     holder.onRecycled();
   }
 
@@ -251,6 +250,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         }
       });
       v.bindStatus(status);
+      v.getIcon().setImageDrawable(null);
       Picasso.with(v.getContext())
           .load(user.getProfileImageURLHttps())
           .placeholder(android.R.color.transparent)
@@ -258,6 +258,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
           .fit()
           .into(v.getIcon());
       if (status.isRetweet()) {
+        v.getRtUserIcon().setImageDrawable(null);
         Picasso.with(v.getContext())
             .load(status.getUser().getMiniProfileImageURLHttps())
             .placeholder(android.R.color.transparent)
