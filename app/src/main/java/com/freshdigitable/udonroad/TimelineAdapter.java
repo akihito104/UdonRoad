@@ -111,6 +111,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       Picasso.with(quotedStatusView.getContext())
           .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
           .placeholder(android.R.color.transparent)
+          .tag(status.getId())
           .fit()
           .into(quotedStatusView.getIcon());
       loadMediaView(quotedStatus, quotedStatusView.getMediaContainer());
@@ -139,7 +140,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       });
       final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb")
-          .placeholder(android.R.color.transparent);
+          .placeholder(android.R.color.transparent)
+          .tag(status.getId());
       if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {
@@ -166,6 +168,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onViewDetachedFromWindow(ViewHolder holder) {
     super.onViewDetachedFromWindow(holder);
 //    Log.d(TAG, "onViewDetachedFromWindow: " + holder.status.toString());
+    StatusView v = (StatusView) holder.itemView;
+    Picasso.with(v.getContext()).cancelTag(holder.statusId);
+    unloadMediaView(v);
+
+    final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
+    if (quotedStatusView.getVisibility() == View.VISIBLE) {
+      unloadMediaView(quotedStatusView);
+    }
   }
 
   public void unloadMediaView(StatusViewBase v) {
@@ -173,7 +183,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
       final ImageView iv = (ImageView) mediaContainer.getChildAt(i);
       iv.setOnClickListener(null);
-      Picasso.with(v.getContext()).cancelRequest(iv);
     }
   }
 
@@ -203,20 +212,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onViewRecycled(ViewHolder holder) {
     super.onViewRecycled(holder);
-
-    StatusView v = (StatusView) holder.itemView;
-    Picasso.with(v.getContext()).cancelRequest(v.getIcon());
-    if (v.getRtUserIcon().getVisibility() == View.VISIBLE) {
-      Picasso.with(v.getContext()).cancelRequest(v.getRtUserIcon());
-    }
-    unloadMediaView(v);
-
-    final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
-    if (quotedStatusView.getVisibility() == View.VISIBLE) {
-      Picasso.with(v.getContext()).cancelRequest(quotedStatusView.getIcon());
-      unloadMediaView(quotedStatusView);
-    }
-
     holder.onRecycled();
   }
 
@@ -259,12 +254,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       Picasso.with(v.getContext())
           .load(user.getProfileImageURLHttps())
           .placeholder(android.R.color.transparent)
+          .tag(statusId)
           .fit()
           .into(v.getIcon());
       if (status.isRetweet()) {
         Picasso.with(v.getContext())
             .load(status.getUser().getMiniProfileImageURLHttps())
             .placeholder(android.R.color.transparent)
+            .tag(statusId)
             .fit()
             .into(v.getRtUserIcon());
       }
