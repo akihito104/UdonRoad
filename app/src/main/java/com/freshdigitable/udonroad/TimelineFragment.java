@@ -42,6 +42,9 @@ import twitter4j.Paging;
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
+  public static final String BUNDLE_ADDED_UNTIL_STOPPED = "added_until_stopped";
+  public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
+  public static final String BUNDLE_STOP_SCROLL = "stop_scroll";
   private FragmentTimelineBinding binding;
   private TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
@@ -65,10 +68,27 @@ public class TimelineFragment extends Fragment {
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_timeline, container, false);
+  public View onCreateView(LayoutInflater inflater,
+                           @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
+  View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     binding = DataBindingUtil.bind(view);
+
+    if (savedInstanceState != null) {
+      addedUntilStopped = savedInstanceState.getBoolean(BUNDLE_ADDED_UNTIL_STOPPED);
+      isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
+      stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
+    }
     return view;
+  }
+
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putBoolean(BUNDLE_ADDED_UNTIL_STOPPED, addedUntilStopped);
+    outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
+    outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
+//    outState.putLong("selected_tweet_id", tlAdapter.getSelectedTweetId());
   }
 
   private boolean isScrolledByUser = false;
