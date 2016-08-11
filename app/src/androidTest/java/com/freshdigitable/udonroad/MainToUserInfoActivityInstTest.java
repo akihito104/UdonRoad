@@ -18,12 +18,14 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.matcher.BoundedMatcher;
+import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,6 +46,9 @@ import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
  */
 @RunWith(AndroidJUnit4.class)
 public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
+  @Rule
+  public ActivityTestRule<MainActivity> rule
+      = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Test
   public void clickUserIcon_then_launchUserInfoActivity() throws Exception {
@@ -86,5 +91,10 @@ public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
     // tear down
     Espresso.pressBack();
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
+  }
+
+  @Override
+  protected ActivityTestRule<MainActivity> getRule() {
+    return rule;
   }
 }

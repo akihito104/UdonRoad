@@ -6,8 +6,10 @@ package com.freshdigitable.udonroad;
 
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,6 +33,10 @@ import static org.hamcrest.Matchers.not;
  */
 @RunWith(AndroidJUnit4.class)
 public class MainActivityResumeInstTest extends MainActivityInstTestBase {
+  @Rule
+  public ActivityTestRule<MainActivity> rule
+      = new ActivityTestRule<>(MainActivity.class, false, false);
+
   @Test
   public void heading_then_latestTweetAppears() throws Exception {
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
@@ -89,5 +95,10 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
     InstrumentationRegistry.getTargetContext().startActivity(home);
     Thread.sleep(500);
     rule.getActivity().startActivity(relaunch);
+  }
+
+  @Override
+  protected ActivityTestRule<MainActivity> getRule() {
+    return rule;
   }
 }

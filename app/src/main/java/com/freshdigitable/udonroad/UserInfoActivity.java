@@ -193,9 +193,13 @@ public class UserInfoActivity extends AppCompatActivity {
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
     Log.d(TAG, "onPrepareOptionsMenu: ");
-    replyCloseMenuItem.setVisible(tweetInputFragment != null);
-    followingMenuItem.setVisible(userInfoAppbarFragment.isVisible());
+    setupMenuVisibility();
     return super.onPrepareOptionsMenu(menu);
+  }
+
+  private void setupMenuVisibility() {
+    replyCloseMenuItem.setVisible(tweetInputFragment != null);
+    followingMenuItem.setVisible(!replyCloseMenuItem.isVisible());
   }
 
   @Override
@@ -265,6 +269,7 @@ public class UserInfoActivity extends AppCompatActivity {
     }
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     binding.userInfoAppbarLayout.setExpanded(true);
+    setupMenuVisibility();
   }
 
   private void closeTwitterInputView() {
@@ -282,6 +287,7 @@ public class UserInfoActivity extends AppCompatActivity {
     binding.userInfoToolbar.setTitle("");
     binding.userInfoToolbarTitle.setVisibility(View.VISIBLE);
     tweetInputFragment = null;
+    setupMenuVisibility();
   }
 
   @Override

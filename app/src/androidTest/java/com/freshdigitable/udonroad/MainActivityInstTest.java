@@ -16,10 +16,12 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,6 +51,9 @@ import static org.hamcrest.CoreMatchers.not;
  */
 @RunWith(AndroidJUnit4.class)
 public class MainActivityInstTest extends MainActivityInstTestBase {
+  @Rule
+  public ActivityTestRule<MainActivity> rule
+      = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Test
   public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
@@ -214,4 +219,8 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
+  @Override
+  protected ActivityTestRule<MainActivity> getRule() {
+    return rule;
+  }
 }

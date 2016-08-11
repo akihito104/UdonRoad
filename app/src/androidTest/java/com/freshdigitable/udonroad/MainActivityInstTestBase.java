@@ -16,15 +16,18 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
+import android.support.v7.app.AppCompatActivity;
 
+import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -34,8 +37,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
@@ -72,10 +73,15 @@ public abstract class MainActivityInstTestBase {
   TwitterApi twitterApi;
   @Inject
   Twitter twitter;
+  @Inject
+  StatusCache statusCache;
+  @Inject
+  TimelineStore homeTLStore;
+  @Inject
+  TimelineStore userHomeTLStore;
+  @Inject
+  TimelineStore userFavsTLStore;
 
-  @Rule
-  public ActivityTestRule<MainActivity> rule
-      = new ActivityTestRule<>(MainActivity.class, false, false);
   protected MockMainApplication app;
   protected long rtStatusId;
 
@@ -85,11 +91,19 @@ public abstract class MainActivityInstTestBase {
     final MockAppComponent component = (MockAppComponent) app.getAppComponent();
     component.inject(this);
 
-    // todo
-    Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("home").build());
-    Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("cache").build());
-    Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("user_home").build());
-    Realm.deleteRealm(new RealmConfiguration.Builder(app.getApplicationContext()).name("user_favs").build());
+    final Context applicationContext = app.getApplicationContext();
+    statusCache.open(applicationContext);
+    statusCache.clear();
+    statusCache.close();
+    homeTLStore.open(applicationContext, "home");
+    homeTLStore.clear();
+    homeTLStore.close();
+    userHomeTLStore.open(applicationContext, "user_home");
+    userHomeTLStore.clear();
+    userHomeTLStore.close();
+    userFavsTLStore.open(applicationContext, "user_fabs");
+    userFavsTLStore.clear();
+    userFavsTLStore.close();
 
     final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
@@ -142,7 +156,11 @@ public abstract class MainActivityInstTestBase {
           }
         }));
 
-    rule.launchActivity(new Intent());
+    getRule().launchActivity(getIntent());
+    verifyAfterLaunch();
+  }
+
+  protected void verifyAfterLaunch() {
     verify(twitterApi, times(1)).getHomeTimeline();
     final UserStreamListener userStreamListener = app.getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
@@ -153,7 +171,7 @@ public abstract class MainActivityInstTestBase {
   @After
   public void tearDown() throws Exception {
     reset(twitter, twitterApi);
-    final MainActivity activity = rule.getActivity();
+    final AppCompatActivity activity = getRule().getActivity();
     if (activity != null) {
       activity.finish();
       Thread.sleep(1000);
@@ -165,5 +183,11 @@ public abstract class MainActivityInstTestBase {
     when(mock.getShortURLLength()).thenReturn(23);
     when(mock.getShortURLLengthHttps()).thenReturn(23);
     return mock;
+  }
+
+  protected abstract ActivityTestRule<? extends AppCompatActivity> getRule();
+
+  protected Intent getIntent() {
+    return new Intent();
   }
 }

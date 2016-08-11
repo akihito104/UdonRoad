@@ -49,7 +49,6 @@ public class UserInfoFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    setHasOptionsMenu(true);
     binding = FragmentUserInfoBinding.inflate(inflater, container, false);
     return binding.getRoot();
   }

@@ -14,5 +14,5 @@ import dagger.Component;
 @Singleton
 @Component(modules = {MockTwitterApiModule.class, DataStoreModule.class})
 public interface MockAppComponent extends AppComponent {
-  void inject(MainActivityInstTestBase mainActivityResumeInstTest);
+  void inject(MainActivityInstTestBase mainActivityInstTest);
 }
