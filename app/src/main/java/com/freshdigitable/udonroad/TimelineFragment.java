@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -71,15 +70,14 @@ public class TimelineFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    final View view = inflater.inflate(R.layout.fragment_timeline, container, false);
-    binding = DataBindingUtil.bind(view);
+    binding = FragmentTimelineBinding.inflate(inflater, container, false);
 
     if (savedInstanceState != null) {
       addedUntilStopped = savedInstanceState.getBoolean(BUNDLE_ADDED_UNTIL_STOPPED);
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
     }
-    return view;
+    return binding.getRoot();
   }
 
   @Override

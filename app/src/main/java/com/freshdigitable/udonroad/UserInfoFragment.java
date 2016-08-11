@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -25,7 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.databinding.FragmentUserInfoAppbarBinding;
+import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
 
@@ -37,7 +36,7 @@ import twitter4j.User;
  * Created by akihit on 2016/02/07.
  */
 public class UserInfoFragment extends Fragment {
-  private FragmentUserInfoAppbarBinding binding;
+  private FragmentUserInfoBinding binding;
   @Inject
   StatusCache statusCache;
 
@@ -51,9 +50,8 @@ public class UserInfoFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     setHasOptionsMenu(true);
-    View view = inflater.inflate(R.layout.fragment_user_info_appbar, container, false);
-    binding = DataBindingUtil.bind(view);
-    return view;
+    binding = FragmentUserInfoBinding.inflate(inflater, container, false);
+    return binding.getRoot();
   }
 
   @Override
