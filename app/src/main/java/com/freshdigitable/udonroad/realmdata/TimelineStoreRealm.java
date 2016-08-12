@@ -316,6 +316,9 @@ public class TimelineStoreRealm implements TimelineStore {
 
   @Override
   public void close() {
+    if (realm == null || realm.isClosed()) {
+      return;
+    }
     Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
     insertEvent.onCompleted();
     updateEvent.onCompleted();

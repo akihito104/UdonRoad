@@ -321,13 +321,16 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onDestroy() {
-    binding.ffab.setOnFlingListener(null);
-    binding.navDrawer.setNavigationItemSelectedListener(null);
-//    tweetInputFragment.setTweetSendFab(null);
+    if (binding != null) {
+      binding.ffab.setOnFlingListener(null);
+      binding.navDrawer.setNavigationItemSelectedListener(null);
+    }
     tearDownTweetInputView();
     homeTimeline.close();
-    tlFragment.setUserIconClickedListener(null);
-    tlFragment.setFABHelper(null);
+    if (tlFragment != null) {
+      tlFragment.setUserIconClickedListener(null);
+      tlFragment.setFABHelper(null);
+    }
     super.onDestroy();
   }
 

@@ -160,6 +160,9 @@ public class StatusCacheRealm implements StatusCache {
 
   @Override
   public void close() {
+    if (cache == null || cache.isClosed()) {
+      return;
+    }
     Log.d(TAG, "close: " + cache.getConfiguration().getRealmFileName());
     cache.close();
   }
