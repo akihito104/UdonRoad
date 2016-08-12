@@ -86,7 +86,6 @@ public class TimelineFragment extends Fragment {
     outState.putBoolean(BUNDLE_ADDED_UNTIL_STOPPED, addedUntilStopped);
     outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
     outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
-//    outState.putLong("selected_tweet_id", tlAdapter.getSelectedTweetId());
   }
 
   private boolean isScrolledByUser = false;
@@ -211,6 +210,11 @@ public class TimelineFragment extends Fragment {
     super.onStart();
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
+    if (tlAdapter.isStatusViewSelected()) {
+      fabHelper.getFab().show();
+    } else {
+      fabHelper.getFab().hide();
+    }
   }
 
   public long getSelectedTweetId() {
@@ -238,7 +242,6 @@ public class TimelineFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
-    clearSelectedTweet();
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
     tearDownOnFlingListener();
@@ -330,6 +333,7 @@ public class TimelineFragment extends Fragment {
     return timelineSubscriber;
   }
 
+  @Nullable
   public View getSelectedView() {
     return tlAdapter.getSelectedView();
   }

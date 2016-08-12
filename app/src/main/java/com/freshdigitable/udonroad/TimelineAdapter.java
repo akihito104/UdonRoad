@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.support.annotation.ColorInt;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -26,6 +28,8 @@ import android.view.ViewGroup;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+
+import java.lang.ref.WeakReference;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -56,8 +60,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return selectedStatusHolder != null;
   }
 
+  @Nullable
   public View getSelectedView() {
-    return selectedStatusHolder.view;
+    return selectedStatusHolder.view.get();
   }
 
   public interface LastItemBoundListener {
@@ -84,16 +89,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       lastItemBoundListener.onLastItemBound(status.getId());
     }
 
-    holder.itemViewClicked = new OnItemViewClickListener() {
-      @Override
-      public void onItemViewClicked(final ViewHolder viewHolder) {
-        if (viewHolder.hasSameStatusId(selectedStatusHolder)) {
-          clearSelectedTweet();
-        } else {
-          fixSelectedTweet(viewHolder);
-        }
-      }
-    };
+    holder.itemViewClicked = itemViewClickListener;
     holder.userIconClickedListener = userIconClickedListener;
 
     if (status.getId() == getSelectedTweetId()) {
@@ -180,20 +176,31 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   private SelectedStatus selectedStatusHolder = null;
 
+  private final OnItemViewClickListener itemViewClickListener = new OnItemViewClickListener() {
+    @Override
+    public void onItemViewClicked(final ViewHolder viewHolder) {
+      if (viewHolder.hasSameStatusId(selectedStatusHolder)) {
+        clearSelectedTweet();
+      } else {
+        fixSelectedTweet(viewHolder);
+      }
+    }
+  };
+
   private void fixSelectedTweet(ViewHolder vh) {
     if (isStatusViewSelected()) {
-      selectedStatusHolder.view.setBackgroundColor(Color.TRANSPARENT);
+      selectedStatusHolder.setBackgroundColor(Color.TRANSPARENT);
     }
     selectedStatusHolder = new SelectedStatus(vh);
-    setSelectedBackground(selectedStatusHolder.view);
+    setSelectedBackground(vh.itemView);
     if (selectedTweetChangeListener != null) {
-      selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.statusId);
+      selectedTweetChangeListener.onTweetSelected(vh.statusId);
     }
   }
 
   public void clearSelectedTweet() {
     if (isStatusViewSelected()) {
-      selectedStatusHolder.view.setBackgroundColor(Color.TRANSPARENT);
+      selectedStatusHolder.setBackgroundColor(Color.TRANSPARENT);
     }
     selectedStatusHolder = null;
     if (selectedTweetChangeListener != null) {
@@ -203,7 +210,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   @Override
   public void onViewRecycled(ViewHolder holder) {
-    super.onViewRecycled(holder);
     final StatusView v = (StatusView) holder.itemView;
     unloadMediaView(v);
 
@@ -211,7 +217,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     if (quotedStatusView.getVisibility() == View.VISIBLE) {
       unloadMediaView(quotedStatusView);
     }
+    if (holder.hasSameStatusId(selectedStatusHolder)) {
+      selectedStatusHolder.onViewRecycled();
+    }
     holder.onRecycled();
+    super.onViewRecycled(holder);
   }
 
   private OnSelectedTweetChangeListener selectedTweetChangeListener;
@@ -303,7 +313,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   private static class SelectedStatus {
     private final long statusId;
-    private final View view;
+    private final WeakReference<View> view;
 
     private SelectedStatus(ViewHolder viewHolder) {
       this(viewHolder.statusId, viewHolder.itemView);
@@ -311,7 +321,21 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
     private SelectedStatus(long statusId, View view) {
       this.statusId = statusId;
-      this.view = view;
+      this.view = view == null
+          ? null
+          : new WeakReference<>(view);
+    }
+
+    private void setBackgroundColor(@ColorInt int color) {
+      final View view = this.view.get();
+      if (view == null) {
+        return;
+      }
+      view.setBackgroundColor(color);
+    }
+
+    private void onViewRecycled() {
+      view.clear();
     }
   }
 
