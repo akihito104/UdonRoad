@@ -173,13 +173,13 @@ public class MainActivity extends AppCompatActivity {
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
         setupNavigationDrawer();
-        tlFragment.setStopScroll(true);
+        tlFragment.stopScroll();
       }
 
       @Override
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
-        tlFragment.setStopScroll(false);
+        tlFragment.startScroll();
       }
     };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
         .show(tlFragment)
         .commit();
     statusDetail = null;
-    tlFragment.setStopScroll(false);
+    tlFragment.startScroll();
     return true;
   }
 
@@ -412,7 +412,7 @@ public class MainActivity extends AppCompatActivity {
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
     }
-    tlFragment.setStopScroll(true);
+    tlFragment.stopScroll();
     setupAppBar(type, statusId);
     if (type == TYPE_REPLY) {
       binding.mainToolbar.setTitle("返信する");
@@ -427,7 +427,7 @@ public class MainActivity extends AppCompatActivity {
     sendStatusMenuItem.setVisible(true);
     cancelMenuItem.setVisible(false);
 
-    tlFragment.setStopScroll(false);
+    tlFragment.startScroll();
     tearDownTweetInputView();
     if (tlFragment.isTweetSelected()) {
       binding.ffab.show();
