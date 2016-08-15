@@ -73,18 +73,21 @@ public class TimelineFragment extends Fragment {
     binding = FragmentTimelineBinding.inflate(inflater, container, false);
 
     if (savedInstanceState != null) {
-//      addedUntilStopped = savedInstanceState.getBoolean(BUNDLE_ADDED_UNTIL_STOPPED);
-      addedUntilStopped = tlLayoutManager.findFirstVisibleItemPosition() != 0;
+      isAddedUntilStopped();
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
     }
     return binding.getRoot();
   }
 
+  private void isAddedUntilStopped() {
+    addedUntilStopped = tlLayoutManager.getChildCount() > 0
+        && tlLayoutManager.findFirstVisibleItemPosition() != 0;
+  }
+
   @Override
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-//    outState.putBoolean(BUNDLE_ADDED_UNTIL_STOPPED, addedUntilStopped);
     outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
     outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
   }
@@ -107,7 +110,7 @@ public class TimelineFragment extends Fragment {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
           isScrolledByUser = firstVisibleItemPosition != 0;
-          addedUntilStopped = firstVisibleItemPosition != 0;
+          isAddedUntilStopped();
         }
         return false;
       }
@@ -211,6 +214,7 @@ public class TimelineFragment extends Fragment {
     super.onStart();
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
+    isAddedUntilStopped();
     if (tlAdapter.isStatusViewSelected()) {
       fabHelper.getFab().show();
     } else {
