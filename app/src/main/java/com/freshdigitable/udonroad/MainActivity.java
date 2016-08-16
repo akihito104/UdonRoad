@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
     binding.ffab.hide();
+    tlFragment.stopScroll();
     UserInfoActivity.start(this, user, view);
   }
 

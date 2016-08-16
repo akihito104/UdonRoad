@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ import twitter4j.Paging;
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
-//  public static final String BUNDLE_ADDED_UNTIL_STOPPED = "added_until_stopped";
   public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
   public static final String BUNDLE_STOP_SCROLL = "stop_scroll";
   private FragmentTimelineBinding binding;
@@ -73,16 +72,10 @@ public class TimelineFragment extends Fragment {
     binding = FragmentTimelineBinding.inflate(inflater, container, false);
 
     if (savedInstanceState != null) {
-      isAddedUntilStopped();
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
     }
     return binding.getRoot();
-  }
-
-  private void isAddedUntilStopped() {
-    addedUntilStopped = tlLayoutManager.getChildCount() > 0
-        && tlLayoutManager.findFirstVisibleItemPosition() != 0;
   }
 
   @Override
@@ -265,6 +258,11 @@ public class TimelineFragment extends Fragment {
   private boolean stopScroll = false;
   private boolean addedUntilStopped = false;
 
+  private void isAddedUntilStopped() {
+    addedUntilStopped = tlLayoutManager.getChildCount() > 0
+        && tlLayoutManager.findFirstVisibleItemPosition() != 0;
+  }
+
   public void stopScroll() {
     stopScroll = true;
   }
@@ -284,6 +282,7 @@ public class TimelineFragment extends Fragment {
   public void scrollToTop() {
     clearSelectedTweet();
     binding.timeline.setLayoutFrozen(false);
+    stopScroll = false;
     isScrolledByUser = false;
     addedUntilStopped = false;
     scrollTo(0);
