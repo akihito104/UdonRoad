@@ -22,6 +22,8 @@ import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.StatusCache;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
@@ -50,31 +52,48 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
-  public void upsert(Status status) {
-    upsertStatus(status);
+  public void upsert(@Nullable Status status) {
+    if (status == null) {
+      return;
+    }
+    upsert(Collections.singletonList(status));
   }
 
   @Override
   public void upsert(List<Status> statuses) {
-    for (Status s : statuses) {
-      upsertStatus(s);
-    }
-  }
-
-  private void upsertStatus(@Nullable final Status rtStatus) {
-    if (rtStatus == null) {
+    if (statuses == null || statuses.isEmpty()) {
       return;
     }
+
+    final List<Status> updates = new ArrayList<>();
+    for (Status s : statuses) {
+      updates.add(s);
+      final Status retweetedStatus = s.getRetweetedStatus();
+      if (retweetedStatus != null) {
+        updates.add(retweetedStatus);
+        final Status quotedStatus = retweetedStatus.getQuotedStatus();
+        if (quotedStatus != null) {
+          updates.add(quotedStatus);
+        }
+      }
+      final Status quotedStatus = s.getQuotedStatus();
+      if (quotedStatus != null) {
+        updates.add(quotedStatus);
+      }
+    }
+
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
-        final StatusRealm update = realm.where(StatusRealm.class)
-            .equalTo(KEY_ID, rtStatus.getId())
-            .findFirst();
-        if (update != null) {
-          update(update, rtStatus);
-        } else {
-          realm.copyToRealmOrUpdate(new StatusRealm(rtStatus));
+        for (Status s : updates) {
+          final StatusRealm update = realm.where(StatusRealm.class)
+              .equalTo(KEY_ID, s.getId())
+              .findFirst();
+          if (update != null) {
+            update(update, s);
+          } else {
+            realm.copyToRealmOrUpdate(new StatusRealm(s));
+          }
         }
       }
 

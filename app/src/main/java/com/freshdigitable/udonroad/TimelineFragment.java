@@ -37,6 +37,7 @@ import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
+import twitter4j.Status;
 
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
@@ -212,6 +213,12 @@ public class TimelineFragment extends Fragment {
       fabHelper.getFab().show();
     } else {
       fabHelper.getFab().hide();
+    }
+    if (tlAdapter.isStatusViewSelected()) {
+      final long selectedTweetId = tlAdapter.getSelectedTweetId();
+      final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
+      final Status status = timelineStore.findStatus(selectedTweetId);
+      timelineStore.upsert(status);
     }
   }
 

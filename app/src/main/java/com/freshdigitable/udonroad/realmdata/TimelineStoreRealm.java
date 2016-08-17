@@ -100,14 +100,18 @@ public class TimelineStoreRealm implements TimelineStore {
 
   @Override
   public void upsert(Status status) {
+    if (status == null) {
+      return;
+    }
     upsert(Collections.singletonList(status));
   }
 
   @Override
   public void upsert(List<Status> statuses) {
-    if (statuses.size() < 1) {
+    if (statuses == null || statuses.isEmpty()) {
       return;
     }
+    statusCache.upsert(statuses);
     final List<StatusIDs> inserts = new ArrayList<>();
     final List<StatusIDs> updates = new ArrayList<>();
     for (Status s : statuses) {
@@ -117,18 +121,15 @@ public class TimelineStoreRealm implements TimelineStore {
       } else {
         updates.add(new StatusIDs(s));
       }
-      statusCache.upsert(s);
 
       final RealmResults<StatusIDs> u = findReferringStatus(s.getId());
       if (u.size() > 0) {
-        statusCache.upsert(s);
         updates.addAll(u);
       }
 
       final long quotedStatusId = s.getQuotedStatusId();
       if (quotedStatusId > 0) {
         final Status quotedStatus = s.getQuotedStatus();
-        statusCache.upsert(quotedStatus);
 
         final StatusIDs q = findTimeline(quotedStatus);
         if (q != null) {
@@ -145,8 +146,6 @@ public class TimelineStoreRealm implements TimelineStore {
         continue;
       }
       final Status retweetedStatus = s.getRetweetedStatus();
-      statusCache.upsert(retweetedStatus);
-      statusCache.upsert(retweetedStatus.getQuotedStatus());
 
       final StatusIDs rs = findTimeline(retweetedStatus);
       if (rs != null) {
