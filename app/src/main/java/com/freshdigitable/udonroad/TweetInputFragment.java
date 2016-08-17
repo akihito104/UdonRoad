@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -30,7 +29,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.databinding.FragmentTweetAppbarBinding;
+import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.squareup.picasso.Picasso;
@@ -56,7 +55,7 @@ import twitter4j.User;
  */
 public class TweetInputFragment extends Fragment {
   private static final String TAG = TweetInputFragment.class.getSimpleName();
-  private FragmentTweetAppbarBinding binding;
+  private FragmentTweetInputBinding binding;
   @Inject
   TwitterApi twitterApi;
   @Inject
@@ -88,9 +87,8 @@ public class TweetInputFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    View view = inflater.inflate(R.layout.fragment_tweet_appbar, container, false);
-    binding = DataBindingUtil.bind(view);
-    return view;
+    binding = FragmentTweetInputBinding.inflate(inflater, container, false);
+    return binding.getRoot();
   }
 
   @Override

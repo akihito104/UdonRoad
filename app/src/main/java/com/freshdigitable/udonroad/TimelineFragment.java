@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -38,10 +37,13 @@ import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
+import twitter4j.Status;
 
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
+  public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
+  public static final String BUNDLE_STOP_SCROLL = "stop_scroll";
   private FragmentTimelineBinding binding;
   private TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
@@ -65,10 +67,23 @@ public class TimelineFragment extends Fragment {
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_timeline, container, false);
-    binding = DataBindingUtil.bind(view);
-    return view;
+  public View onCreateView(LayoutInflater inflater,
+                           @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
+    binding = FragmentTimelineBinding.inflate(inflater, container, false);
+
+    if (savedInstanceState != null) {
+      isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
+      stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
+    }
+    return binding.getRoot();
+  }
+
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
+    outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
   }
 
   private boolean isScrolledByUser = false;
@@ -89,7 +104,7 @@ public class TimelineFragment extends Fragment {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
           isScrolledByUser = firstVisibleItemPosition != 0;
-          addedUntilStopped = firstVisibleItemPosition != 0;
+          isAddedUntilStopped();
         }
         return false;
       }
@@ -193,6 +208,18 @@ public class TimelineFragment extends Fragment {
     super.onStart();
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
+    isAddedUntilStopped();
+    if (tlAdapter.isStatusViewSelected()) {
+      fabHelper.getFab().show();
+    } else {
+      fabHelper.getFab().hide();
+    }
+    if (tlAdapter.isStatusViewSelected()) {
+      final long selectedTweetId = tlAdapter.getSelectedTweetId();
+      final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
+      final Status status = timelineStore.findStatus(selectedTweetId);
+      timelineStore.upsert(status);
+    }
   }
 
   public long getSelectedTweetId() {
@@ -220,7 +247,6 @@ public class TimelineFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
-    clearSelectedTweet();
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
     tearDownOnFlingListener();
@@ -239,8 +265,17 @@ public class TimelineFragment extends Fragment {
   private boolean stopScroll = false;
   private boolean addedUntilStopped = false;
 
-  public void setStopScroll(boolean isStopScroll) {
-    stopScroll = isStopScroll;
+  private void isAddedUntilStopped() {
+    addedUntilStopped = tlLayoutManager.getChildCount() > 0
+        && tlLayoutManager.findFirstVisibleItemPosition() != 0;
+  }
+
+  public void stopScroll() {
+    stopScroll = true;
+  }
+
+  public void startScroll() {
+    stopScroll = false;
   }
 
   private boolean canScroll() {
@@ -254,6 +289,7 @@ public class TimelineFragment extends Fragment {
   public void scrollToTop() {
     clearSelectedTweet();
     binding.timeline.setLayoutFrozen(false);
+    stopScroll = false;
     isScrolledByUser = false;
     addedUntilStopped = false;
     scrollTo(0);
@@ -312,6 +348,7 @@ public class TimelineFragment extends Fragment {
     return timelineSubscriber;
   }
 
+  @Nullable
   public View getSelectedView() {
     return tlAdapter.getSelectedView();
   }

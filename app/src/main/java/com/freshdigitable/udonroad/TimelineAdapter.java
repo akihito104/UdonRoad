@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Intent;
-import android.graphics.Color;
-import android.support.v4.content.ContextCompat;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +24,8 @@ import android.view.ViewGroup;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+
+import java.lang.ref.WeakReference;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -56,8 +56,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     return selectedStatusHolder != null;
   }
 
+  @Nullable
   public View getSelectedView() {
-    return selectedStatusHolder.view;
+    return selectedStatusHolder.view.get();
   }
 
   public interface LastItemBoundListener {
@@ -74,74 +75,103 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   public void onBindViewHolder(final ViewHolder holder, int position) {
     final Status status = timelineStore.get(position);
     final StatusView itemView = (StatusView) holder.itemView;
-    if (holder.statusId == status.getId()) {
+    itemView.bindStatus(status);
+    final long statusId = status.getId();
+    if (holder.statusId == statusId) {
 //      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
-      itemView.bindStatus(status);
       return;
     }
     holder.bindStatus(status);
     if (position == getItemCount() - 1) {
-      lastItemBoundListener.onLastItemBound(status.getId());
+      lastItemBoundListener.onLastItemBound(statusId);
     }
 
-    holder.itemViewClicked = new OnItemViewClickListener() {
-      @Override
-      public void onItemViewClicked(final ViewHolder viewHolder) {
-        if (viewHolder.hasSameStatusId(selectedStatusHolder)) {
-          clearSelectedTweet();
-        } else {
-          fixSelectedTweet(viewHolder);
-        }
-      }
-    };
-    holder.userIconClickedListener = userIconClickedListener;
-
-    if (status.getId() == getSelectedTweetId()) {
-      setSelectedBackground(holder.itemView);
+    final long quotedStatusId = status.getQuotedStatusId();
+    if (statusId == getSelectedTweetId()) {
       selectedStatusHolder = new SelectedStatus(holder);
+    } else if (quotedStatusId != -1 && quotedStatusId == getSelectedTweetId()) {
+      final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
+      selectedStatusHolder = new SelectedStatus(quotedStatusId, quotedStatusView);
     }
-    loadMediaView(status, itemView.getMediaContainer());
-
-    final Status quotedStatus = status.isRetweet()
-        ? status.getRetweetedStatus().getQuotedStatus()
-        : status.getQuotedStatus();
-    if (quotedStatus != null) {
-      final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
-      quotedStatusView.getIcon().setImageDrawable(null);
-      Picasso.with(quotedStatusView.getContext())
-          .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
-          .placeholder(android.R.color.transparent)
-          .tag(status.getId())
-          .fit()
-          .into(quotedStatusView.getIcon());
-      loadMediaView(quotedStatus, quotedStatusView.getMediaContainer());
+    loadUserIcon(status, itemView);
+    loadRTUserIcon(status, itemView);
+    loadMediaView(status, itemView);
+    loadQuotedStatusImages(status, itemView);
+    itemView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        itemViewClickListener.onItemViewClicked(itemView, statusId, v);
+      }
+    });
+    final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
+    if (quotedStatusView.getVisibility() == View.VISIBLE) {
+      quotedStatusView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          itemViewClickListener.onItemViewClicked(quotedStatusView, quotedStatusId, view);
+        }
+      });
     }
   }
 
-  private void loadMediaView(final Status status, MediaContainer mediaContainer) {
+  private void loadUserIcon(Status status, StatusView itemView) {
+    final User user = status.isRetweet()
+        ? status.getRetweetedStatus().getUser()
+        : status.getUser();
+    itemView.getIcon().setImageDrawable(null);
+    Picasso.with(itemView.getContext())
+        .load(user.getProfileImageURLHttps())
+        .placeholder(android.R.color.transparent)
+        .tag(status.getId())
+        .fit()
+        .into(itemView.getIcon());
+    itemView.setUserIconClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        userIconClickedListener.onClicked(v, user);
+      }
+    });
+  }
+
+  private void loadRTUserIcon(Status status, StatusView itemView) {
+    if (!status.isRetweet()) {
+      return;
+    }
+    itemView.getRtUserIcon().setImageDrawable(null);
+    Picasso.with(itemView.getContext())
+        .load(status.getUser().getMiniProfileImageURLHttps())
+        .placeholder(android.R.color.transparent)
+        .tag(status.getId())
+        .fit()
+        .into(itemView.getRtUserIcon());
+  }
+
+  private void loadMediaView(final Status status, final StatusViewBase statusView) {
     ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
     if (extendedMediaEntities.length < 1) {
       return;
     }
+    final MediaContainer mediaContainer = statusView.getMediaContainer();
     final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
       final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
-      final int num = i;
-
       final String type = extendedMediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
+      final int num = i;
+      final long statusId = status.getId();
       mediaView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          final Intent intent = MediaViewActivity.create(view.getContext(), status, num);
-          view.getContext().startActivity(intent);
+          itemViewClickListener.onItemViewClicked(statusView, statusId, view);
+          MediaViewActivity.start(view.getContext(), status, num);
         }
       });
+
       final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb")
           .placeholder(android.R.color.transparent)
-          .tag(status.getId());
+          .tag(statusId);
       if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {
@@ -152,10 +182,29 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
   }
 
-  private void setSelectedBackground(View v) {
-    final int color = ContextCompat.getColor(v.getContext(),
-        R.color.colorTwitterActionNormalTransparent);
-    v.setBackgroundColor(color);
+  private void unloadMediaView(StatusViewBase v) {
+    final MediaContainer mediaContainer = v.getMediaContainer();
+    for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
+      mediaContainer.getChildAt(i).setOnClickListener(null);
+    }
+  }
+
+  private void loadQuotedStatusImages(Status status, StatusView itemView) {
+    final Status quotedStatus = status.isRetweet()
+        ? status.getRetweetedStatus().getQuotedStatus()
+        : status.getQuotedStatus();
+    if (quotedStatus == null) {
+      return;
+    }
+    final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
+    quotedStatusView.getIcon().setImageDrawable(null);
+    Picasso.with(quotedStatusView.getContext())
+        .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
+        .placeholder(android.R.color.transparent)
+        .tag(status.getId())
+        .fit()
+        .into(quotedStatusView.getIcon());
+    loadMediaView(quotedStatus, quotedStatusView);
   }
 
   @Override
@@ -171,29 +220,26 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     Picasso.with(holder.itemView.getContext()).cancelTag(holder.statusId);
   }
 
-  public void unloadMediaView(StatusViewBase v) {
-    final MediaContainer mediaContainer = v.getMediaContainer();
-    for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
-      mediaContainer.getChildAt(i).setOnClickListener(null);
-    }
-  }
-
   private SelectedStatus selectedStatusHolder = null;
 
-  private void fixSelectedTweet(ViewHolder vh) {
-    if (isStatusViewSelected()) {
-      selectedStatusHolder.view.setBackgroundColor(Color.TRANSPARENT);
+  private final OnItemViewClickListener itemViewClickListener = new OnItemViewClickListener() {
+    @Override
+    public void onItemViewClicked(StatusViewBase itemView, long statusId, View clickedItem) {
+      if (isStatusViewSelected()
+          && statusId == selectedStatusHolder.statusId) {
+        if (clickedItem instanceof MediaImageView) {
+          return;
+        }
+        clearSelectedTweet();
+      } else {
+        fixSelectedTweet(statusId, itemView);
+      }
     }
-    selectedStatusHolder = new SelectedStatus(vh);
-    setSelectedBackground(selectedStatusHolder.view);
-    if (selectedTweetChangeListener != null) {
-      selectedTweetChangeListener.onTweetSelected(selectedStatusHolder.statusId);
-    }
-  }
+  };
 
   public void clearSelectedTweet() {
     if (isStatusViewSelected()) {
-      selectedStatusHolder.view.setBackgroundColor(Color.TRANSPARENT);
+      selectedStatusHolder.setUnselectedBackground();
     }
     selectedStatusHolder = null;
     if (selectedTweetChangeListener != null) {
@@ -201,9 +247,18 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
   }
 
+  private void fixSelectedTweet(long selectedStatusId, StatusViewBase selectedView) {
+    if (isStatusViewSelected()) {
+      selectedStatusHolder.setUnselectedBackground();
+    }
+    selectedStatusHolder = new SelectedStatus(selectedStatusId, selectedView);
+    if (selectedTweetChangeListener != null) {
+      selectedTweetChangeListener.onTweetSelected(selectedStatusId);
+    }
+  }
+
   @Override
   public void onViewRecycled(ViewHolder holder) {
-    super.onViewRecycled(holder);
     final StatusView v = (StatusView) holder.itemView;
     unloadMediaView(v);
 
@@ -211,7 +266,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     if (quotedStatusView.getVisibility() == View.VISIBLE) {
       unloadMediaView(quotedStatusView);
     }
+    if (holder.hasSameStatusId(selectedStatusHolder)) {
+      selectedStatusHolder.onViewRecycled();
+    }
+    v.setOnClickListener(null);
+    v.getQuotedStatusView().setOnClickListener(null);
+    v.setUserIconClickListener(null);
+    v.reset();
     holder.onRecycled();
+    super.onViewRecycled(holder);
   }
 
   private OnSelectedTweetChangeListener selectedTweetChangeListener;
@@ -239,79 +302,51 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
     void bindStatus(final Status status) {
       this.statusId = status.getId();
-      StatusView v = (StatusView) itemView;
-      final User user = status.isRetweet()
-          ? status.getRetweetedStatus().getUser()
-          : status.getUser();
-      v.setUserIconClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          userIconClickedListener.onClicked(v, user);
-        }
-      });
-      v.bindStatus(status);
-      v.getIcon().setImageDrawable(null);
-      Picasso.with(v.getContext())
-          .load(user.getProfileImageURLHttps())
-          .placeholder(android.R.color.transparent)
-          .tag(statusId)
-          .fit()
-          .into(v.getIcon());
-      if (status.isRetweet()) {
-        v.getRtUserIcon().setImageDrawable(null);
-        Picasso.with(v.getContext())
-            .load(status.getUser().getMiniProfileImageURLHttps())
-            .placeholder(android.R.color.transparent)
-            .tag(statusId)
-            .fit()
-            .into(v.getRtUserIcon());
-      }
-      itemView.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          itemViewClicked.onItemViewClicked(ViewHolder.this);
-        }
-      });
-      final QuotedStatusView quotedStatusView = v.getQuotedStatusView();
-      if (quotedStatusView.getVisibility() == View.VISIBLE) {
-        quotedStatusView.setOnClickListener(new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            itemViewClicked.onItemViewClicked(ViewHolder.this);
-          }
-        });
-      }
     }
 
     boolean hasSameStatusId(SelectedStatus other) {
       return other != null && this.statusId == other.statusId;
     }
 
-    private OnItemViewClickListener itemViewClicked;
-    private OnUserIconClickedListener userIconClickedListener;
-
     void onRecycled() {
-      this.itemView.setOnClickListener(null);
-      final StatusView v = (StatusView) this.itemView;
-      v.setUserIconClickListener(null);
-      v.reset();
       this.statusId = -1;
-      this.itemViewClicked = null;
-      this.userIconClickedListener = null;
     }
   }
 
   private static class SelectedStatus {
     private final long statusId;
-    private final View view;
+    private final WeakReference<? extends StatusViewBase> view;
 
     private SelectedStatus(ViewHolder viewHolder) {
-      this(viewHolder.statusId, viewHolder.itemView);
+      this(viewHolder.statusId, (StatusViewBase) viewHolder.itemView);
     }
 
-    private SelectedStatus(long statusId, View view) {
+    private SelectedStatus(long statusId, StatusViewBase view) {
       this.statusId = statusId;
-      this.view = view;
+      this.view = view == null
+          ? null
+          : new WeakReference<>(view);
+      setSelectedBackground();
+    }
+
+    private void setSelectedBackground() {
+      final StatusViewBase view = this.view.get();
+      if (view == null) {
+        return;
+      }
+      view.setSelectedColor();
+    }
+
+    private void setUnselectedBackground() {
+      final StatusViewBase view = this.view.get();
+      if (view == null) {
+        return;
+      }
+      view.setUnselectedColor();
+    }
+
+    private void onViewRecycled() {
+      view.clear();
     }
   }
 
@@ -326,6 +361,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   interface OnItemViewClickListener {
-    void onItemViewClicked(ViewHolder viewHolder);
+    void onItemViewClicked(StatusViewBase itemView, long statusId, View clickedItem);
   }
 }

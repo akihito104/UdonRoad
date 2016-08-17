@@ -8,9 +8,6 @@ import android.content.SharedPreferences;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.schedulers.Schedulers;
 import twitter4j.TwitterStream;
 import twitter4j.UserStreamListener;
 import twitter4j.auth.AccessToken;
@@ -40,13 +37,7 @@ public class TwitterStreamApi {
   }
 
   public void disconnectStreamListener() {
-    Observable.create(new Observable.OnSubscribe<Void>() {
-      @Override
-      public void call(Subscriber<? super Void> subscriber) {
-        twitterStream.shutdown();
-        twitterStream.clearListeners();
-      }
-    }).subscribeOn(Schedulers.io())
-        .subscribe();
+    twitterStream.shutdown();
+    twitterStream.clearListeners();
   }
 }

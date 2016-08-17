@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
     binding.ffab.hide();
+    tlFragment.stopScroll();
     UserInfoActivity.start(this, user, view);
   }
 
@@ -173,13 +174,13 @@ public class MainActivity extends AppCompatActivity {
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
         setupNavigationDrawer();
-        tlFragment.setStopScroll(true);
+        tlFragment.stopScroll();
       }
 
       @Override
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
-        tlFragment.setStopScroll(false);
+        tlFragment.startScroll();
       }
     };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
@@ -296,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
         .show(tlFragment)
         .commit();
     statusDetail = null;
-    tlFragment.setStopScroll(false);
+    tlFragment.startScroll();
     return true;
   }
 
@@ -321,13 +322,16 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onDestroy() {
-    binding.ffab.setOnFlingListener(null);
-    binding.navDrawer.setNavigationItemSelectedListener(null);
-//    tweetInputFragment.setTweetSendFab(null);
+    if (binding != null) {
+      binding.ffab.setOnFlingListener(null);
+      binding.navDrawer.setNavigationItemSelectedListener(null);
+    }
     tearDownTweetInputView();
     homeTimeline.close();
-    tlFragment.setUserIconClickedListener(null);
-    tlFragment.setFABHelper(null);
+    if (tlFragment != null) {
+      tlFragment.setUserIconClickedListener(null);
+      tlFragment.setFABHelper(null);
+    }
     super.onDestroy();
   }
 
@@ -409,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
     }
-    tlFragment.setStopScroll(true);
+    tlFragment.stopScroll();
     setupAppBar(type, statusId);
     if (type == TYPE_REPLY) {
       binding.mainToolbar.setTitle("返信する");
@@ -424,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
     sendStatusMenuItem.setVisible(true);
     cancelMenuItem.setVisible(false);
 
-    tlFragment.setStopScroll(false);
+    tlFragment.startScroll();
     tearDownTweetInputView();
     if (tlFragment.isTweetSelected()) {
       binding.ffab.show();
