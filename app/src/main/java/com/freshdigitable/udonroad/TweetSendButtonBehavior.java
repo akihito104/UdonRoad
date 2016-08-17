@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Akihito Matsuda (akihito104)
+ * Copyright (c) 2016. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,14 @@ import java.util.List;
 /**
  * Created by akihit on 2016/07/07.
  */
+@SuppressWarnings("unused")
 public class TweetSendButtonBehavior extends CoordinatorLayout.Behavior<FloatingActionButton> {
+  @SuppressWarnings("unused")
   public TweetSendButtonBehavior() {
     super();
   }
 
+  @SuppressWarnings("unused")
   public TweetSendButtonBehavior(Context context, AttributeSet attrs) {
     super(context, attrs);
   }
