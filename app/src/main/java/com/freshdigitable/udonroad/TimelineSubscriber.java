@@ -198,7 +198,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
       return new Action1<Throwable>() {
         @Override
         public void call(Throwable throwable) {
-          SnackbarUtil.show(root, msg);
+          SnackBarUtil.show(root, msg);
           Log.e(TAG, "msg: " + msg, throwable);
         }
       };
@@ -206,7 +206,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
 
     @Override
     public Action0 onCompleteDefault(String msg) {
-      return SnackbarUtil.action(root, msg);
+      return SnackBarUtil.action(root, msg);
     }
   }
 }
