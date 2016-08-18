@@ -29,4 +29,6 @@ public interface StatusCapable {
   void upsert(List<Status> statuses);
 
   void deleteStatus(long statusId);
+
+  void upsertStrong(Status status);
 }

@@ -39,7 +39,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
@@ -50,8 +49,6 @@ import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import javax.inject.Inject;
 
-import rx.functions.Action0;
-import rx.functions.Action1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
@@ -130,22 +127,6 @@ public class MediaViewActivity extends AppCompatActivity {
         }
       }
     });
-    userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache, new TimelineSubscriber.UserFeedback() {
-      @Override
-      public Action1<Throwable> onErrorDefault(final String msg) {
-        return new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            showToast(msg);
-          }
-        };
-      }
-
-      @Override
-      public Action0 onCompleteDefault(final String msg) {
-        return showToastAction(msg);
-      }
-    });
   }
 
   private boolean isSystemUIVisible() {
@@ -206,6 +187,8 @@ public class MediaViewActivity extends AppCompatActivity {
   protected void onStart() {
     super.onStart();
     statusCache.open(getApplicationContext());
+    userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
+        new TimelineSubscriber.ToastFeedback(getApplicationContext(), Gravity.CENTER, 0, 0));
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
@@ -249,21 +232,6 @@ public class MediaViewActivity extends AppCompatActivity {
         }
       }
     });
-  }
-
-  private Action0 showToastAction(final String text) {
-    return new Action0() {
-      @Override
-      public void call() {
-        showToast(text);
-      }
-    };
-  }
-
-  private void showToast(String text) {
-    final Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
-    toast.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, binding.mediaToolbar.getHeight());
-    toast.show();
   }
 
   @Override

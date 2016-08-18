@@ -28,17 +28,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
 import twitter4j.Status;
 
 public class StatusDetailFragment extends Fragment {
@@ -47,6 +42,10 @@ public class StatusDetailFragment extends Fragment {
   private Status status;
   @Inject
   StatusCache statusCache;
+  @Inject
+  TwitterApi twitterApi;
+  private TimelineSubscriber<StatusCache> statusCacheSubscriber;
+  private ArrayAdapter<DetailMenu> arrayAdapter;
 
   @Override
   public void onAttach(Context context) {
@@ -64,14 +63,7 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
-
-    long id = (long) getArguments().get("statusId");
-    statusCache.open(getContext());
-    this.status = statusCache.getStatus(id);
-    binding.statusView.bindStatus(this.status);
-
-    final ArrayAdapter<DetailMenu> arrayAdapter
-        = new ArrayAdapter<DetailMenu>(getContext(), android.R.layout.simple_list_item_1){
+    arrayAdapter = new ArrayAdapter<DetailMenu>(getContext(), android.R.layout.simple_list_item_1) {
       @Override
       public View getView(int position, View convertView, ViewGroup parent) {
         Log.d(TAG, "ArrayAdapter.getView: " + getCount());
@@ -82,30 +74,46 @@ public class StatusDetailFragment extends Fragment {
         return v;
       }
     };
-    arrayAdapter.add(this.status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
-    arrayAdapter.add(this.status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
-    arrayAdapter.add(DetailMenu.REPLY);
-    arrayAdapter.add(DetailMenu.QUOTE);
-
     binding.detailMenu.setAdapter(arrayAdapter);
     binding.detailMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final DetailMenu menu = (DetailMenu) parent.getItemAtPosition(position);
-        menu.action(twitterApi, StatusDetailFragment.this.status, getContext());
+        menu.action(statusCacheSubscriber, status);
       }
     });
   }
 
   @Override
-  public void onDestroyView() {
-    twitterApi = null;
+  public void onStart() {
+    super.onStart();
+    long id = (long) getArguments().get("statusId");
+    statusCache.open(getContext());
+    status = statusCache.getStatus(id);
+    binding.statusView.bindStatus(status);
+    arrayAdapter.add(status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
+    arrayAdapter.add(status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
+    arrayAdapter.add(DetailMenu.REPLY);
+    arrayAdapter.add(DetailMenu.QUOTE);
+
+    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
+        new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
+  }
+
+  @Override
+  public void onStop() {
     statusCache.close();
     status = null;
+    super.onStop();
+  }
+
+  @Override
+  public void onDestroyView() {
+    binding.detailMenu.setOnItemClickListener(null);
+    binding.detailMenu.setAdapter(null);
     super.onDestroyView();
   }
 
-  @Inject TwitterApi twitterApi;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -116,95 +124,51 @@ public class StatusDetailFragment extends Fragment {
   }
 
   enum DetailMenu implements DetailMenuInterface {
-    RT_CREATE(R.string.detail_rt_create,
-        R.string.detail_rt_create_success, R.string.detail_rt_create_failed) {
+    RT_CREATE(R.string.detail_rt_create) {
       @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.retweetStatus(status.getId()), context);
+      public void action(TimelineSubscriber<StatusCache> api, Status status) {
+        api.retweetStatus(status.getId());
       }
-    }, RT_DELETE(R.string.detail_rt_delete,
-        R.string.detail_rt_delete_success, R.string.detail_rt_delete_failed) {
+    }, RT_DELETE(R.string.detail_rt_delete) {
       @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.destroyStatus(status.getId()), context);
-
+      public void action(TimelineSubscriber<StatusCache> api, Status status) {
+        api.destroyRetweet(status.getId());
       }
-    }, FAV_CREATE(R.string.detail_fav_create,
-        R.string.detail_fav_create_success, R.string.detail_fav_create_failed) {
+    }, FAV_CREATE(R.string.detail_fav_create) {
       @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.createFavorite(status.getId()), context);
+      public void action(TimelineSubscriber<StatusCache> api, Status status) {
+        api.createFavorite(status.getId());
       }
-    }, FAV_DELETE(R.string.detail_fav_delete,
-        R.string.detail_fav_delete_success, R.string.detail_fav_delete_failed) {
+    }, FAV_DELETE(R.string.detail_fav_delete) {
       @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.destroyFavorite(status.getId()), context);
+      public void action(TimelineSubscriber<StatusCache> api, Status status) {
+        api.destroyFavorite(status.getId());
       }
-    }, REPLY(R.string.detail_reply, 0, 0) {
+    }, REPLY(R.string.detail_reply) {
       @Override
-      public void action(TwitterApi api, Status status, Context context) {
+      public void action(TimelineSubscriber<StatusCache> api, Status status) {
         //TODO
       }
-    }, QUOTE(R.string.detail_quote, 0, 0) {
+    }, QUOTE(R.string.detail_quote) {
       @Override
-      public void action(TwitterApi api, Status status, Context context) {
+      public void action(TimelineSubscriber<StatusCache> api, Status status) {
         //TODO
       }
     },;
 
     final private int menuText;
-    final private int messageOnSuccess;
-    final private int messageOnFailed;
 
-    DetailMenu(@StringRes int menu,
-               @StringRes int messageOnSuccess,
-               @StringRes int messageOnFailed) {
+    DetailMenu(@StringRes int menu) {
       this.menuText = menu;
-      this.messageOnSuccess = messageOnSuccess;
-      this.messageOnFailed = messageOnFailed;
     }
 
     @StringRes
     public int getMenuText() {
       return menuText;
     }
-
-    protected void doAction(Observable<Status> observable, Context context) {
-      observable.observeOn(AndroidSchedulers.mainThread())
-          .subscribe(onNext(),
-              onErrorToast(context),
-              onCompleteToast(context));
-    }
-
-    private Action0 onCompleteToast(final Context context) {
-      return new Action0() {
-        @Override
-        public void call() {
-          Toast.makeText(context, messageOnSuccess, Toast.LENGTH_SHORT).show();
-        }
-      };
-    }
-
-    private Action1<Throwable> onErrorToast(final Context context) {
-      return new Action1<Throwable>() {
-        @Override
-        public void call(Throwable o) {
-          Toast.makeText(context, messageOnFailed, Toast.LENGTH_SHORT).show();
-        }
-      };
-    }
-
-    private Action1<Status> onNext() {
-      return new Action1<Status>() {
-        @Override
-        public void call(Status o) {
-        }
-      };
-    }
   }
 
   interface DetailMenuInterface {
-    void action(TwitterApi api, Status status, Context context);
+    void action(TimelineSubscriber<StatusCache> api, Status status);
   }
 }

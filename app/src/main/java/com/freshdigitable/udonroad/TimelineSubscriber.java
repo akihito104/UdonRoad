@@ -16,9 +16,12 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.freshdigitable.udonroad.datastore.StatusCapable;
 
@@ -59,7 +62,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault("tweet was not downloaded..."));
+            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
   public void fetchHomeTimeline(Paging paging) {
@@ -67,7 +70,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault("tweet was not downloaded..."));
+            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
   public void fetchHomeTimeline(long userId) {
@@ -75,7 +78,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault("tweet was not downloaded..."));
+            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
   public void fetchHomeTimeline(long userId, Paging paging) {
@@ -83,7 +86,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault("tweet was not downloaded..."));
+            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
   public void fetchFavorites(long userId) {
@@ -91,7 +94,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault("favorites was not downloaded..."));
+            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
   public void fetchFavorites(long userId, Paging paging) {
@@ -99,7 +102,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault("favorites was not downloaded..."));
+            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
   public void createFavorite(long statusId) {
@@ -115,14 +118,14 @@ public class TimelineSubscriber<T extends StatusCapable> {
                   final int statusCode = te.getStatusCode();
                   final int errorCode = te.getErrorCode();
                   if (statusCode == 403 && errorCode == 139) {
-                    userFeedback.onErrorDefault("already faved").call(throwable);
+                    userFeedback.onErrorDefault(R.string.msg_already_fav).call(throwable);
                   }
                 } else {
-                  userFeedback.onErrorDefault("failed fav...").call(throwable);
+                  userFeedback.onErrorDefault(R.string.msg_fav_create_failed).call(throwable);
                 }
               }
             },
-            userFeedback.onCompleteDefault("success to fav"));
+            userFeedback.onCompleteDefault(R.string.msg_fav_create_success));
   }
 
   public void retweetStatus(long statusId) {
@@ -130,8 +133,36 @@ public class TimelineSubscriber<T extends StatusCapable> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createUpsertAction(),
-            userFeedback.onErrorDefault("failed RT..."),
-            userFeedback.onCompleteDefault("success to RT"));
+            userFeedback.onErrorDefault(R.string.msg_rt_create_failed),
+            userFeedback.onCompleteDefault(R.string.msg_rt_create_success));
+  }
+
+  public void destroyFavorite(long statusId) {
+    twitterApi.destroyFavorite(statusId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            new Action1<Status>() {
+              @Override
+              public void call(Status status) {
+                statusStore.upsertStrong(status);
+              }
+            },
+            userFeedback.onErrorDefault(R.string.msg_fav_delete_failed),
+            userFeedback.onCompleteDefault(R.string.msg_fav_delete_success));
+  }
+
+  public void destroyRetweet(long statusId) {
+    twitterApi.destroyStatus(statusId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            new Action1<Status>() {
+              @Override
+              public void call(Status status) {
+                statusStore.upsertStrong(status);
+              }
+            },
+            userFeedback.onErrorDefault(R.string.msg_rt_delete_failed),
+            userFeedback.onCompleteDefault(R.string.msg_rt_delete_success));
   }
 
   public T getStatusStore() {
@@ -159,14 +190,14 @@ public class TimelineSubscriber<T extends StatusCapable> {
   }
 
   public interface UserFeedback {
-    Action1<Throwable> onErrorDefault(String msg);
+    Action1<Throwable> onErrorDefault(@StringRes int msg);
 
-    Action0 onCompleteDefault(String msg);
+    Action0 onCompleteDefault(@StringRes int msg);
   }
 
   public static class SimpleUserFeedback implements UserFeedback {
     @Override
-    public Action1<Throwable> onErrorDefault(final String msg) {
+    public Action1<Throwable> onErrorDefault(final @StringRes int msg) {
       return new Action1<Throwable>() {
         @Override
         public void call(Throwable throwable) {
@@ -176,7 +207,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
     }
 
     @Override
-    public Action0 onCompleteDefault(final String msg) {
+    public Action0 onCompleteDefault(final @StringRes int msg) {
       return new Action0() {
         @Override
         public void call() {
@@ -194,7 +225,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
     }
 
     @Override
-    public Action1<Throwable> onErrorDefault(final String msg) {
+    public Action1<Throwable> onErrorDefault(final @StringRes int msg) {
       return new Action1<Throwable>() {
         @Override
         public void call(Throwable throwable) {
@@ -205,8 +236,57 @@ public class TimelineSubscriber<T extends StatusCapable> {
     }
 
     @Override
-    public Action0 onCompleteDefault(String msg) {
+    public Action0 onCompleteDefault(@StringRes int msg) {
       return SnackBarUtil.action(root, msg);
     }
+  }
+
+  public static class ToastFeedback implements UserFeedback {
+    private final Context context;
+    private final int gravityFlag;
+    private final int gravityXOffset;
+    private final int gravityYOffset;
+
+    public ToastFeedback(Context context) {
+      this(context, 0, 0, 0);
+    }
+
+    public ToastFeedback(Context context, int gravityFlag, int gravityXOffset, int gravityYOffset) {
+      this.context = context;
+      this.gravityFlag = gravityFlag;
+      this.gravityXOffset = gravityXOffset;
+      this.gravityYOffset = gravityYOffset;
+    }
+
+    @Override
+    public Action1<Throwable> onErrorDefault(final @StringRes int msg) {
+      return new Action1<Throwable>() {
+        @Override
+        public void call(Throwable throwable) {
+          showToast(msg);
+        }
+      };
+    }
+
+    @Override
+    public Action0 onCompleteDefault(final @StringRes int msg) {
+      return showToastAction(msg);
+    }
+
+    private Action0 showToastAction(final @StringRes int text) {
+      return new Action0() {
+        @Override
+        public void call() {
+          showToast(text);
+        }
+      };
+    }
+
+    private void showToast(@StringRes int text) {
+      final Toast toast = Toast.makeText(context, text, Toast.LENGTH_SHORT);
+      toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
+      toast.show();
+    }
+
   }
 }

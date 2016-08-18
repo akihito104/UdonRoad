@@ -112,18 +112,37 @@ public class TimelineStoreRealm implements TimelineStore {
       return;
     }
     statusCache.upsert(statuses);
+    final List<StatusIDs> inserts = createInsertList(statuses);
+    if (!inserts.isEmpty()) {
+      insertStatus(inserts);
+    }
+    final List<StatusIDs> updates = createUpdateList(statuses);
+    if (!updates.isEmpty()) {
+      notifyChanged(updates, timeline);
+    }
+  }
+
+  private List<StatusIDs> createInsertList(List<Status> statuses) {
     final List<StatusIDs> inserts = new ArrayList<>();
-    final List<StatusIDs> updates = new ArrayList<>();
     for (Status s : statuses) {
       final StatusIDs update = findTimeline(s);
       if (update == null) {
         inserts.add(new StatusIDs(s));
-      } else {
-        updates.add(new StatusIDs(s));
+      }
+    }
+    return inserts;
+  }
+
+  private List<StatusIDs> createUpdateList(List<Status> statuses) {
+    final List<StatusIDs> updates = new ArrayList<>();
+    for (Status s : statuses) {
+      final StatusIDs update = findTimeline(s);
+      if (update != null) {
+        updates.add(update);
       }
 
       final RealmResults<StatusIDs> u = findReferringStatus(s.getId());
-      if (u.size() > 0) {
+      if (!u.isEmpty()) {
         updates.addAll(u);
       }
 
@@ -137,7 +156,7 @@ public class TimelineStoreRealm implements TimelineStore {
         }
 
         final RealmResults<StatusIDs> updatedQuotedStatus = findReferringStatus(quotedStatusId);
-        if (updatedQuotedStatus.size() > 0) {
+        if (!updatedQuotedStatus.isEmpty()) {
           updates.addAll(updatedQuotedStatus);
         }
       }
@@ -152,30 +171,33 @@ public class TimelineStoreRealm implements TimelineStore {
         updates.add(rs);
       }
       final RealmResults<StatusIDs> rtedUpdate = findReferringStatus(retweetedStatus.getId());
-      if (rtedUpdate.size() > 0) {
+      if (!rtedUpdate.isEmpty()) {
         updates.addAll(rtedUpdate);
       }
 
       final long rtQuotedStatusId = retweetedStatus.getQuotedStatusId();
       if (rtQuotedStatusId > 0) {
         final RealmResults<StatusIDs> rtUpdatedQuotedStatus = findReferringStatus(rtQuotedStatusId);
-        if (rtUpdatedQuotedStatus.size() > 0) {
+        if (!rtUpdatedQuotedStatus.isEmpty()) {
           updates.addAll(rtUpdatedQuotedStatus);
         }
       }
     }
-
-    if (inserts.size() > 0) {
-      insertStatus(inserts);
-    }
-    if (updates.size() > 0) {
-      updateStatus(updates);
-    }
+    return updates;
   }
 
   @Override
   public void deleteStatus(long statusId) {
     delete(statusId);
+  }
+
+  @Override
+  public void upsertStrong(Status status) {
+    statusCache.upsertStrong(status);
+    final List<StatusIDs> updates = createUpdateList(Collections.singletonList(status));
+    if (!updates.isEmpty()) {
+      notifyChanged(updates, timeline);
+    }
   }
 
   @NonNull
@@ -213,11 +235,11 @@ public class TimelineStoreRealm implements TimelineStore {
   }
 
   private void notifyInserted(List<StatusIDs> inserted, RealmResults<StatusIDs> results) {
-    if (inserted.size() < 1) {
+    if (inserted.isEmpty()) {
       return;
     }
     final List<Integer> index = searchTimeline(inserted, results);
-    if (index.size() < 1) {
+    if (index.isEmpty()) {
       return;
     }
     Collections.sort(index);
@@ -226,25 +248,12 @@ public class TimelineStoreRealm implements TimelineStore {
     }
   }
 
-  private void updateStatus(List<StatusIDs> updates) {
-    realm.beginTransaction();
-    final List<StatusIDs> updated = realm.copyToRealmOrUpdate(updates);
-    realm.commitTransaction();
-    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
-      @Override
-      public void onChange(RealmResults<StatusIDs> element) {
-        notifyChanged(updated, element);
-        element.removeChangeListener(this);
-      }
-    });
-  }
-
   private void notifyChanged(List<StatusIDs> changed, RealmResults<StatusIDs> results) {
-    if (changed.size() < 1) {
+    if (changed.isEmpty()) {
       return;
     }
     final List<Integer> index = searchTimeline(changed, results);
-    if (index.size() < 1) {
+    if (index.isEmpty()) {
       return;
     }
     for (int i : index) {
@@ -260,7 +269,7 @@ public class TimelineStoreRealm implements TimelineStore {
         .equalTo(KEY_RETWEETED_STATUS_ID, statusId)
         .endGroup()
         .findAll();
-    if (res.size() < 1) {
+    if (res.isEmpty()) {
       return;
     }
 
@@ -270,7 +279,7 @@ public class TimelineStoreRealm implements TimelineStore {
     res.deleteAllFromRealm();
     realm.commitTransaction();
 
-    if (deleted.size() <= 0) {
+    if (deleted.isEmpty()) {
       return;
     }
     timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {

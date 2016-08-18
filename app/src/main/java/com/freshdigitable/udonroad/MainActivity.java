@@ -22,6 +22,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
 import android.support.v7.app.ActionBar;
@@ -96,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     binding.navDrawer.setNavigationItemSelectedListener(new OnNavigationItemSelectedListener() {
       @Override
-      public boolean onNavigationItemSelected(MenuItem item) {
+      public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_home) {
           Log.d(TAG, "home is selected");
@@ -169,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.draver_close) {
+        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
@@ -286,6 +287,10 @@ public class MainActivity extends AppCompatActivity {
         .hide(tlFragment)
         .add(R.id.main_timeline_container, statusDetail)
         .commit();
+    tlFragment.stopScroll();
+    if (tlFragment.isTweetSelected()) {
+      binding.ffab.hide();
+    }
   }
 
   private boolean hideStatusDetail() {
@@ -298,6 +303,9 @@ public class MainActivity extends AppCompatActivity {
         .commit();
     statusDetail = null;
     tlFragment.startScroll();
+    if (tlFragment.isTweetSelected()) {
+      binding.ffab.show();
+    }
     return true;
   }
 

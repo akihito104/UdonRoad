@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.realmdata;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -65,23 +66,7 @@ public class StatusCacheRealm implements StatusCache {
       return;
     }
 
-    final List<Status> updates = new ArrayList<>();
-    for (Status s : statuses) {
-      updates.add(s);
-      final Status retweetedStatus = s.getRetweetedStatus();
-      if (retweetedStatus != null) {
-        updates.add(retweetedStatus);
-        final Status quotedStatus = retweetedStatus.getQuotedStatus();
-        if (quotedStatus != null) {
-          updates.add(quotedStatus);
-        }
-      }
-      final Status quotedStatus = s.getQuotedStatus();
-      if (quotedStatus != null) {
-        updates.add(quotedStatus);
-      }
-    }
-
+    final List<Status> updates = splitUpsertingStatus(statuses);
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
@@ -115,6 +100,27 @@ public class StatusCacheRealm implements StatusCache {
     });
   }
 
+  @NonNull
+  private List<Status> splitUpsertingStatus(List<Status> statuses) {
+    final List<Status> updates = new ArrayList<>();
+    for (Status s : statuses) {
+      updates.add(s);
+      final Status retweetedStatus = s.getRetweetedStatus();
+      if (retweetedStatus != null) {
+        updates.add(retweetedStatus);
+        final Status quotedStatus = retweetedStatus.getQuotedStatus();
+        if (quotedStatus != null) {
+          updates.add(quotedStatus);
+        }
+      }
+      final Status quotedStatus = s.getQuotedStatus();
+      if (quotedStatus != null) {
+        updates.add(quotedStatus);
+      }
+    }
+    return updates;
+  }
+
   @Override
   public void deleteStatus(final long statusId) {
     cache.executeTransaction(new Realm.Transaction() {
@@ -124,6 +130,19 @@ public class StatusCacheRealm implements StatusCache {
             .equalTo(KEY_ID, statusId)
             .findAll()
             .deleteAllFromRealm();
+      }
+    });
+  }
+
+  @Override
+  public void upsertStrong(final Status status) {
+    final List<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
+    cache.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        for (Status s: statuses) {
+          realm.copyToRealmOrUpdate(new StatusRealm(s));
+        }
       }
     });
   }
