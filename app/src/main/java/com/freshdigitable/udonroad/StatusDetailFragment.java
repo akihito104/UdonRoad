@@ -102,6 +102,10 @@ public class StatusDetailFragment extends Fragment {
 
   @Override
   public void onStop() {
+    for (int i = arrayAdapter.getCount() - 1; i >= 0; i--) {
+      final DetailMenu item = arrayAdapter.getItem(i);
+      arrayAdapter.remove(item);
+    }
     statusCache.close();
     status = null;
     super.onStop();

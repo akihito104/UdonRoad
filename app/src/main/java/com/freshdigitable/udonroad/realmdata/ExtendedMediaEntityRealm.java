@@ -36,7 +36,9 @@ public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMed
   private String type;
   private String displayUrl;
   private String expendedUrl;
+  @Ignore
   private int start;
+  @Ignore
   private int end;
   private int videoAspectRatioHeight;
   private int videoAspectRatioWidth;

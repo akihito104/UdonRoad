@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.realmdata;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.URLEntity;
 
@@ -28,7 +29,9 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
   private String url;
   private String expendedUrl;
   private String displayUrl;
+  @Ignore
   private int start;
+  @Ignore
   private int end;
 
   public URLEntityRealm() {

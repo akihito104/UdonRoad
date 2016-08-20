@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.text.Html;
 import android.text.Spanned;
@@ -43,7 +44,10 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
   }
 
   public void setNames(User user) {
-    final String template = getResources().getString(R.string.tweet_name_screenName);
+    final int maxLines = TextViewCompat.getMaxLines(this);
+    final String template = maxLines == 2
+        ? getResources().getString(R.string.tweet_name_screenName_lines)
+        : getResources().getString(R.string.tweet_name_screenName);
     final String formatted = String.format(template, user.getName(), user.getScreenName());
     setText(fromHtmlCompat(formatted));
   }

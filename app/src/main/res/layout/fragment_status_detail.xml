@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         >
-        <com.freshdigitable.udonroad.StatusView
+        <com.freshdigitable.udonroad.DetailStatusView
             android:id="@+id/status_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

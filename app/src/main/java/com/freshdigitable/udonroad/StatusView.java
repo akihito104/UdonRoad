@@ -24,7 +24,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
@@ -116,11 +115,7 @@ public class StatusView extends StatusViewBase {
         text = text.replace(u.getURL(), u.getDisplayURL());
       }
     }
-    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    for (ExtendedMediaEntity eme : extendedMediaEntities) {
-      text = text.replace(eme.getURL(), "");
-    }
-    return text;
+    return removeMediaUrl(text, status.getExtendedMediaEntities());
   }
 
   public ImageView getRtUserIcon() {

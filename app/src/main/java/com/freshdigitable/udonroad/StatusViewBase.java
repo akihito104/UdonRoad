@@ -31,6 +31,7 @@ import android.widget.TextView;
 
 import java.util.Date;
 
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
@@ -64,10 +65,14 @@ public abstract class StatusViewBase extends RelativeLayout {
   public StatusViewBase(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
 
-    grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    grid = getGrid();
     setPadding(grid, grid, grid, grid);
     setBackgroundColor(Color.TRANSPARENT);
     selectedColor = ContextCompat.getColor(context, R.color.colorTwitterActionNormalTransparent);
+  }
+
+  protected int getGrid() {
+    return getResources().getDimensionPixelSize(R.dimen.grid_margin);
   }
 
   @CallSuper
@@ -110,7 +115,7 @@ public abstract class StatusViewBase extends RelativeLayout {
   }
 
   protected void bindText(Status status) {
-    final String text = parseText(status);
+    final CharSequence text = parseText(status);
     tweet.setText(text);
   }
 
@@ -210,7 +215,14 @@ public abstract class StatusViewBase extends RelativeLayout {
     return icon;
   }
 
-  protected abstract String parseText(Status status);
+  protected abstract CharSequence parseText(Status status);
+
+  protected String removeMediaUrl(String text, ExtendedMediaEntity[] extendedMediaEntities) {
+    for (ExtendedMediaEntity eme : extendedMediaEntities) {
+      text = text.replace(eme.getURL(), "");
+    }
+    return text;
+  }
 
   public MediaContainer getMediaContainer() {
     return mediaContainer;
