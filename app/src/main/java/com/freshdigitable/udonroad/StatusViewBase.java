@@ -25,6 +25,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Html;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -200,6 +201,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     setUserIconClickListener(null);
 
     mediaContainer.reset();
+    mediaContainer.setOnMediaClickListener(null);
   }
 
   public void setUserIconClickListener(OnClickListener userIconClickListener) {
@@ -231,4 +233,12 @@ public abstract class StatusViewBase extends RelativeLayout {
   public abstract void setSelectedColor();
 
   public abstract void setUnselectedColor();
+
+  interface OnUserIconClickedListener {
+    void onClicked(View view, User user);
+  }
+
+  public TextView getUserName() {
+    return names;
+  }
 }

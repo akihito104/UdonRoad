@@ -28,7 +28,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;

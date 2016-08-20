@@ -39,7 +39,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -146,18 +146,21 @@ public class MainActivity extends AppCompatActivity {
         new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new HomeTimelineFragment();
-    tlFragment.setUserIconClickedListener(new OnUserIconClickedListener() {
-      @Override
-      public void onClicked(View view, User user) {
-        showUserInfo(view, user);
-      }
-    });
+    tlFragment.setUserIconClickedListener(userIconClickedListener);
     tlFragment.setTimelineSubscriber(timelineSubscriber);
     tlFragment.setFABHelper(flingableFABHelper);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
   }
+
+  private final OnUserIconClickedListener userIconClickedListener
+      = new OnUserIconClickedListener() {
+    @Override
+    public void onClicked(View view, User user) {
+      showUserInfo(view, user);
+    }
+  };
 
   private void showUserInfo(View view, User user) {
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
@@ -283,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void showStatusDetail(long status) {
     statusDetail = StatusDetailFragment.getInstance(status);
+    statusDetail.setOnUserIconClickedListener(userIconClickedListener);
     getSupportFragmentManager().beginTransaction()
         .hide(tlFragment)
         .add(R.id.main_timeline_container, statusDetail)
@@ -301,6 +305,7 @@ public class MainActivity extends AppCompatActivity {
         .remove(statusDetail)
         .show(tlFragment)
         .commit();
+    statusDetail.setOnUserIconClickedListener(null);
     statusDetail = null;
     tlFragment.startScroll();
     if (tlFragment.isTweetSelected()) {

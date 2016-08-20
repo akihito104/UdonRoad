@@ -27,14 +27,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.MediaContainer.OnMediaClickListener;
+import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 
 import javax.inject.Inject;
 
 import twitter4j.Status;
+import twitter4j.User;
 
 public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
@@ -92,15 +96,37 @@ public class StatusDetailFragment extends Fragment {
     long id = (long) getArguments().get("statusId");
     statusCache.open(getContext());
     status = statusCache.getStatus(id);
-    binding.statusView.bindStatus(status);
+    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
+        new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
+
     arrayAdapter.add(status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
     arrayAdapter.add(status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
     arrayAdapter.add(DetailMenu.REPLY);
     arrayAdapter.add(DetailMenu.QUOTE);
 
-    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
-        new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
-    StatusViewImageHelper.load(status, binding.statusView);
+    final DetailStatusView statusView = binding.statusView;
+    statusView.bindStatus(status);
+    StatusViewImageHelper.load(status, statusView);
+    final User user = StatusViewImageHelper.getBindingUser(status);
+    final ImageView icon = statusView.getIcon();
+    icon.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        userIconClickedListener.onClicked(view, user);
+      }
+    });
+    statusView.getUserName().setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        userIconClickedListener.onClicked(icon, user);
+      }
+    });
+    statusView.getMediaContainer().setOnMediaClickListener(new OnMediaClickListener() {
+      @Override
+      public void onMediaClicked(View view, int index) {
+        MediaViewActivity.start(view.getContext(), status, index);
+      }
+    });
   }
 
   @Override
@@ -117,6 +143,10 @@ public class StatusDetailFragment extends Fragment {
 
   @Override
   public void onDestroyView() {
+    binding.statusView.getIcon().setOnClickListener(null);
+    binding.statusView.getUserName().setOnClickListener(null);
+    binding.statusView.getMediaContainer().setOnMediaClickListener(null);
+    binding.statusView.reset();
     binding.detailMenu.setOnItemClickListener(null);
     binding.detailMenu.setAdapter(null);
     super.onDestroyView();
@@ -178,5 +208,11 @@ public class StatusDetailFragment extends Fragment {
 
   interface DetailMenuInterface {
     void action(TimelineSubscriber<StatusCache> api, Status status);
+  }
+
+  private OnUserIconClickedListener userIconClickedListener;
+
+  public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {
+    this.userIconClickedListener = listener;
   }
 }

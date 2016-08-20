@@ -21,6 +21,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 
 import java.lang.ref.WeakReference;
@@ -104,7 +105,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   private void setupUserIcon(Status status, StatusView itemView) {
     final User user = StatusViewImageHelper.getBindingUser(status);
-    itemView.setUserIconClickListener(new View.OnClickListener() {
+    itemView.getIcon().setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         userIconClickedListener.onClicked(v, user);
@@ -118,19 +119,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       return;
     }
     final MediaContainer mediaContainer = statusView.getMediaContainer();
-    final int mediaCount = mediaContainer.getThumbCount();
     final long statusId = status.getId();
-    for (int i = 0; i < mediaCount; i++) {
-      final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
-      final int num = i;
-      mediaView.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-          itemViewClickListener.onItemViewClicked(statusView, statusId, view);
-          MediaViewActivity.start(view.getContext(), status, num);
-        }
-      });
-    }
+    mediaContainer.setOnMediaClickListener(new MediaContainer.OnMediaClickListener() {
+      @Override
+      public void onMediaClicked(View view, int index) {
+        itemViewClickListener.onItemViewClicked(statusView,statusId, view);
+        MediaViewActivity.start(view.getContext(), status, index);
+      }
+    });
   }
 
   private void setupQuotedStatusView(Status status, final QuotedStatusView quotedStatusView) {
@@ -217,7 +213,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
     v.setOnClickListener(null);
     v.getQuotedStatusView().setOnClickListener(null);
-    v.setUserIconClickListener(null);
+    v.getIcon().setOnClickListener(null);
+    v.getMediaContainer().setOnMediaClickListener(null);
     v.reset();
     holder.onRecycled();
     super.onViewRecycled(holder);
@@ -294,10 +291,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     private void onViewRecycled() {
       view.clear();
     }
-  }
-
-  interface OnUserIconClickedListener {
-    void onClicked(View view, User user);
   }
 
   private OnUserIconClickedListener userIconClickedListener;
