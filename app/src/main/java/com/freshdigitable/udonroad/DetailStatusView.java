@@ -17,26 +17,18 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
-import android.text.style.URLSpan;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
-import twitter4j.URLEntity;
 import twitter4j.User;
 
 /**
@@ -121,60 +113,9 @@ public class DetailStatusView extends StatusViewBase {
     final Status bindingStatus = getBindingStatus(status);
     String text = bindingStatus.getText();
     SpannableStringBuilder ssb = new SpannableStringBuilder(text);
-    final List<SpanningInfo> spannableInfo = createSpanningInfo(bindingStatus);
+    final List<SpanningInfo> spannableInfo = SpanningInfo.create(bindingStatus);
     setupClickableSpans(ssb, spannableInfo);
     return ssb;
-  }
-
-  private List<SpanningInfo> createSpanningInfo(Status bindingStatus) {
-    List<SpanningInfo> info = new ArrayList<>();
-    info.addAll(createURLSpanningInfo(bindingStatus));
-    for (int i = info.size() - 1; i >= 0; i--) {
-      final SpanningInfo spanningInfo = info.get(i);
-      for (int j = 0; j < i; j++) {
-        if (spanningInfo.start == info.get(j).start) {
-          info.remove(spanningInfo);
-          break;
-        }
-      }
-    }
-    // to manipulate changing tweet text length, sort descending
-    Collections.sort(info, new Comparator<SpanningInfo>() {
-      @Override
-      public int compare(SpanningInfo l, SpanningInfo r) {
-        return r.start - l.start;
-      }
-    });
-    return info;
-  }
-
-  private List<SpanningInfo> createURLSpanningInfo(Status bindingStatus) {
-    final String text = bindingStatus.getText();
-    final URLEntity[] urlEntities = bindingStatus.getURLEntities();
-    final String quotedStatusIdStr = Long.toString(bindingStatus.getQuotedStatusId());
-    final List<SpanningInfo> info = new ArrayList<>();
-    for (URLEntity u : urlEntities) {
-      int start = text.indexOf(u.getURL());
-      int end = start + u.getURL().length();
-      if (start < 0 || end > text.length() || start > text.length()) {
-        continue;
-      }
-      if (bindingStatus.getQuotedStatus() != null
-          && u.getExpandedURL().contains(quotedStatusIdStr)) {
-        info.add(new SpanningInfo(null, start, end, ""));
-      }
-      info.add(new SpanningInfo(new URLSpan(u.getExpandedURL()), start, end, u.getDisplayURL()));
-    }
-    final ExtendedMediaEntity[] eme = bindingStatus.getExtendedMediaEntities();
-    for (ExtendedMediaEntity e : eme) {
-      int start = text.indexOf(e.getURL());
-      int end = start + e.getURL().length();
-      if (start < 0 || end > text.length() || start > text.length()) {
-        continue;
-      }
-      info.add(new SpanningInfo(null, start, end, ""));
-    }
-    return info;
   }
 
   private void setupClickableSpans(SpannableStringBuilder ssb, List<SpanningInfo> info) {
@@ -185,28 +126,6 @@ public class DetailStatusView extends StatusViewBase {
       if (si.isReplacing()) {
         ssb.replace(si.start, si.end, si.displayingText);
       }
-    }
-  }
-
-  private static class SpanningInfo {
-    final ClickableSpan span;
-    final int start;
-    final int end;
-    final String displayingText;
-
-    SpanningInfo(@Nullable ClickableSpan span, int start, int end, @Nullable String displayingText) {
-      this.span = span;
-      this.start = start;
-      this.end = end;
-      this.displayingText = displayingText;
-    }
-
-    boolean isSpanning() {
-      return span != null;
-    }
-
-    boolean isReplacing() {
-      return displayingText != null;
     }
   }
 
