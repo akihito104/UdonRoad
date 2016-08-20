@@ -26,18 +26,13 @@ import android.widget.TextView;
 
 import twitter4j.Status;
 import twitter4j.URLEntity;
-import twitter4j.User;
 
 /**
  * Created by akihit on 2016/01/11.
  */
-public class StatusView extends StatusViewBase {
+public class StatusView extends FullStatusView {
   @SuppressWarnings("unused")
   private static final String TAG = StatusView.class.getSimpleName();
-  protected TextView rtUser;
-  protected ImageView rtUserIcon;
-  protected LinearLayout rtUserContainer;
-  private QuotedStatusView quotedStatus;
 
   public StatusView(Context context) {
     this(context, null);
@@ -67,41 +62,6 @@ public class StatusView extends StatusViewBase {
   }
 
   @Override
-  public void bindStatus(final Status status) {
-    super.bindStatus(status);
-    if (status.isRetweet()) {
-      bindRtUser(status.getUser());
-    }
-
-    final Status quotedBindingStatus = getBindingStatus(status).getQuotedStatus();
-    if (quotedBindingStatus != null) {
-      quotedStatus.bindStatus(quotedBindingStatus);
-      quotedStatus.setVisibility(VISIBLE);
-    }
-  }
-
-  private void bindRtUser(User user) {
-    setRetweetedUserVisibility(VISIBLE);
-    final String formattedRtUser = formatString(R.string.tweet_retweeting_user,
-        user.getScreenName());
-    rtUser.setText(formattedRtUser);
-  }
-
-  private void setRetweetedUserVisibility(int visibility) {
-    rtUserContainer.setVisibility(visibility);
-  }
-
-  @Override
-  public void reset() {
-    super.reset();
-    setRetweetedUserVisibility(GONE);
-    rtUserIcon.setImageDrawable(null);
-    quotedStatus.setBackgroundResource(R.drawable.s_quoted_frame);
-    quotedStatus.setVisibility(GONE);
-    quotedStatus.reset();
-  }
-
-  @Override
   protected String parseText(Status status) {
     final Status bindingStatus = getBindingStatus(status);
     String text = bindingStatus.getText();
@@ -116,14 +76,6 @@ public class StatusView extends StatusViewBase {
       }
     }
     return removeMediaUrl(text, status.getExtendedMediaEntities());
-  }
-
-  public ImageView getRtUserIcon() {
-    return rtUserIcon;
-  }
-
-  public QuotedStatusView getQuotedStatusView() {
-    return quotedStatus;
   }
 
   @Override

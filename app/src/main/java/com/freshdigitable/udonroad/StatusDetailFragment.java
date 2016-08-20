@@ -55,7 +55,9 @@ public class StatusDetailFragment extends Fragment {
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater,
+                           @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     binding = FragmentStatusDetailBinding.inflate(inflater, container, false);
     return binding.getRoot();
   }
@@ -98,10 +100,12 @@ public class StatusDetailFragment extends Fragment {
 
     statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
         new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
+    StatusViewImageHelper.load(status, binding.statusView);
   }
 
   @Override
   public void onStop() {
+    StatusViewImageHelper.unload(getContext(), status.getId());
     for (int i = arrayAdapter.getCount() - 1; i >= 0; i--) {
       final DetailMenu item = arrayAdapter.getItem(i);
       arrayAdapter.remove(item);

@@ -22,8 +22,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
 
 import java.lang.ref.WeakReference;
 
@@ -93,17 +91,51 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
       selectedStatusHolder = new SelectedStatus(quotedStatusId, quotedStatusView);
     }
-    loadUserIcon(status, itemView);
-    loadRTUserIcon(status, itemView);
-    loadMediaView(status, itemView);
-    loadQuotedStatusImages(status, itemView);
+    setupUserIcon(status, itemView);
+    setupMediaView(status, itemView);
+    setupQuotedStatusView(status, itemView.getQuotedStatusView());
     itemView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         itemViewClickListener.onItemViewClicked(itemView, statusId, v);
       }
     });
-    final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
+  }
+
+  private void setupUserIcon(Status status, StatusView itemView) {
+    final User user = StatusViewImageHelper.getBindingUser(status);
+    itemView.setUserIconClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        userIconClickedListener.onClicked(v, user);
+      }
+    });
+  }
+
+  private void setupMediaView(final Status status, final StatusViewBase statusView) {
+    ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    if (extendedMediaEntities.length < 1) {
+      return;
+    }
+    final MediaContainer mediaContainer = statusView.getMediaContainer();
+    final int mediaCount = mediaContainer.getThumbCount();
+    final long statusId = status.getId();
+    for (int i = 0; i < mediaCount; i++) {
+      final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
+      final int num = i;
+      mediaView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          itemViewClickListener.onItemViewClicked(statusView, statusId, view);
+          MediaViewActivity.start(view.getContext(), status, num);
+        }
+      });
+    }
+  }
+
+  private void setupQuotedStatusView(Status status, final QuotedStatusView quotedStatusView) {
+    setupMediaView(status, quotedStatusView);
+    final long quotedStatusId = status.getQuotedStatusId();
     if (quotedStatusView.getVisibility() == View.VISIBLE) {
       quotedStatusView.setOnClickListener(new View.OnClickListener() {
         @Override
@@ -114,74 +146,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
   }
 
-  private void loadUserIcon(Status status, StatusView itemView) {
-    final User user = status.isRetweet()
-        ? status.getRetweetedStatus().getUser()
-        : status.getUser();
-    itemView.getIcon().setImageDrawable(null);
-    Picasso.with(itemView.getContext())
-        .load(user.getProfileImageURLHttps())
-        .placeholder(android.R.color.transparent)
-        .tag(status.getId())
-        .fit()
-        .into(itemView.getIcon());
-    itemView.setUserIconClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        userIconClickedListener.onClicked(v, user);
-      }
-    });
-  }
-
-  private void loadRTUserIcon(Status status, StatusView itemView) {
-    if (!status.isRetweet()) {
-      return;
-    }
-    itemView.getRtUserIcon().setImageDrawable(null);
-    Picasso.with(itemView.getContext())
-        .load(status.getUser().getMiniProfileImageURLHttps())
-        .placeholder(android.R.color.transparent)
-        .tag(status.getId())
-        .fit()
-        .into(itemView.getRtUserIcon());
-  }
-
-  private void loadMediaView(final Status status, final StatusViewBase statusView) {
-    ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    if (extendedMediaEntities.length < 1) {
-      return;
-    }
-    final MediaContainer mediaContainer = statusView.getMediaContainer();
-    final int mediaCount = mediaContainer.getThumbCount();
-    for (int i = 0; i < mediaCount; i++) {
-      final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
-      final String type = extendedMediaEntities[i].getType();
-      mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
-
-      final int num = i;
-      final long statusId = status.getId();
-      mediaView.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-          itemViewClickListener.onItemViewClicked(statusView, statusId, view);
-          MediaViewActivity.start(view.getContext(), status, num);
-        }
-      });
-
-      final RequestCreator rc = Picasso.with(mediaContainer.getContext())
-          .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb")
-          .placeholder(android.R.color.transparent)
-          .tag(statusId);
-      if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
-        rc.fit();
-      } else {
-        rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
-      }
-      rc.centerCrop()
-          .into(mediaView);
-    }
-  }
-
   private void unloadMediaView(StatusViewBase v) {
     final MediaContainer mediaContainer = v.getMediaContainer();
     for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
@@ -189,35 +153,17 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
   }
 
-  private void loadQuotedStatusImages(Status status, StatusView itemView) {
-    final Status quotedStatus = status.isRetweet()
-        ? status.getRetweetedStatus().getQuotedStatus()
-        : status.getQuotedStatus();
-    if (quotedStatus == null) {
-      return;
-    }
-    final QuotedStatusView quotedStatusView = itemView.getQuotedStatusView();
-    quotedStatusView.getIcon().setImageDrawable(null);
-    Picasso.with(quotedStatusView.getContext())
-        .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
-        .placeholder(android.R.color.transparent)
-        .tag(status.getId())
-        .fit()
-        .into(quotedStatusView.getIcon());
-    loadMediaView(quotedStatus, quotedStatusView);
-  }
-
   @Override
   public void onViewAttachedToWindow(ViewHolder holder) {
     super.onViewAttachedToWindow(holder);
-//    Log.d(TAG, "onViewAttachedToWindow: " + holder.status.toString());
+    final Status status = timelineStore.findStatus(holder.statusId);
+    StatusViewImageHelper.load(status, (StatusView) holder.itemView);
   }
 
   @Override
   public void onViewDetachedFromWindow(ViewHolder holder) {
     super.onViewDetachedFromWindow(holder);
-//    Log.d(TAG, "onViewDetachedFromWindow: " + holder.status.toString());
-    Picasso.with(holder.itemView.getContext()).cancelTag(holder.statusId);
+    StatusViewImageHelper.unload(holder.itemView.getContext(), holder.statusId);
   }
 
   private SelectedStatus selectedStatusHolder = null;
