@@ -123,23 +123,25 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     mediaContainer.setOnMediaClickListener(new MediaContainer.OnMediaClickListener() {
       @Override
       public void onMediaClicked(View view, int index) {
-        itemViewClickListener.onItemViewClicked(statusView,statusId, view);
+        itemViewClickListener.onItemViewClicked(statusView, statusId, view);
         MediaViewActivity.start(view.getContext(), status, index);
       }
     });
   }
 
   private void setupQuotedStatusView(Status status, final QuotedStatusView quotedStatusView) {
-    setupMediaView(status, quotedStatusView);
-    final long quotedStatusId = status.getQuotedStatusId();
-    if (quotedStatusView.getVisibility() == View.VISIBLE) {
-      quotedStatusView.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-          itemViewClickListener.onItemViewClicked(quotedStatusView, quotedStatusId, view);
-        }
-      });
+    final Status quotedStatus = status.getQuotedStatus();
+    if (quotedStatus == null) {
+      return;
     }
+    final long quotedStatusId = status.getQuotedStatusId();
+    quotedStatusView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        itemViewClickListener.onItemViewClicked(quotedStatusView, quotedStatusId, view);
+      }
+    });
+    setupMediaView(quotedStatus, quotedStatusView);
   }
 
   private void unloadMediaView(StatusViewBase v) {
