@@ -30,6 +30,8 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
+import rx.Subscription;
+import rx.functions.Action1;
 import twitter4j.User;
 
 /**
@@ -39,6 +41,7 @@ public class UserInfoFragment extends Fragment {
   private FragmentUserInfoBinding binding;
   @Inject
   StatusCache statusCache;
+  private Subscription subscription;
 
   @Override
   public void onAttach(Context context) {
@@ -64,12 +67,20 @@ public class UserInfoFragment extends Fragment {
     statusCache.open(getContext());
 
     final long userId = getUserId();
-    final User user = statusCache.getUser(userId);
-    showUserInfo(user);
+    subscription = statusCache.observeUserById(userId)
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User user) {
+            showUserInfo(user);
+          }
+        });
   }
 
   @Override
   public void onStop() {
+    if (subscription != null && subscription.isUnsubscribed()) {
+      subscription.unsubscribe();
+    }
     dismissUserInfo();
     statusCache.close();
     super.onStop();

@@ -39,6 +39,7 @@ import javax.inject.Inject;
 
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
@@ -96,6 +97,10 @@ public class StatusDetailFragment extends Fragment {
     long id = (long) getArguments().get("statusId");
     statusCache.open(getContext());
     status = statusCache.getStatus(id);
+    final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+    for (UserMentionEntity u : userMentionEntities) {
+      statusCache.upsertUser(u);
+    }
     statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
         new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
 

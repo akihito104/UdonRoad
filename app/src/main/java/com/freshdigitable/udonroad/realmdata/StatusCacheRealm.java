@@ -28,9 +28,14 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
+import rx.Observable;
+import rx.Subscriber;
+import rx.functions.Action0;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 
@@ -164,6 +169,7 @@ public class StatusCacheRealm implements StatusCache {
     return res;
   }
 
+  @Override
   public void upsertUser(final User user) {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
@@ -174,10 +180,42 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
+  public void upsertUser(UserMentionEntity mentionEntity) {
+    final User user = getUser(mentionEntity.getId());
+    if (user == null) {
+      upsertUser(new UserRealm(mentionEntity));
+    }
+  }
+
+  @Override
   public User getUser(long id) {
     return cache.where(UserRealm.class)
         .equalTo("id", id)
         .findFirst();
+  }
+
+  @Override
+  public Observable<User> observeUserById(final long userId) {
+    final UserRealm user = cache.where(UserRealm.class)
+        .equalTo("id", userId)
+        .findFirst();
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(final Subscriber<? super User> subscriber) {
+        UserRealm.addChangeListener(user, new RealmChangeListener<UserRealm>() {
+          @Override
+          public void onChange(UserRealm element) {
+            subscriber.onNext(element);
+          }
+        });
+        subscriber.onNext(user);
+      }
+    }).doOnUnsubscribe(new Action0() {
+      @Override
+      public void call() {
+        UserRealm.removeChangeListeners(user);
+      }
+    });
   }
 
   private StatusRealm getStatusInternal(long id) {

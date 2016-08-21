@@ -26,6 +26,7 @@ import twitter4j.RateLimitStatus;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * Twitter user data to store Realm
@@ -59,6 +60,12 @@ public class UserRealm extends RealmObject implements User {
     this.statusesCount = user.getStatusesCount();
     this.followersCount = user.getFollowersCount();
     this.friendsCount = user.getFriendsCount();
+  }
+
+  public UserRealm(UserMentionEntity mentionEntity) {
+    this.id = mentionEntity.getId();
+    this.name = mentionEntity.getName();
+    this.screenName = mentionEntity.getScreenName();
   }
 
   @Override
