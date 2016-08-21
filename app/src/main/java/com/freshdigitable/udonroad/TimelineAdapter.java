@@ -130,11 +130,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   private void setupQuotedStatusView(Status status, final QuotedStatusView quotedStatusView) {
-    final Status quotedStatus = status.getQuotedStatus();
+    final Status quotedStatus = status.isRetweet()
+        ? status.getRetweetedStatus().getQuotedStatus()
+        : status.getQuotedStatus();
     if (quotedStatus == null) {
       return;
     }
-    final long quotedStatusId = status.getQuotedStatusId();
+    final long quotedStatusId = quotedStatus.getQuotedStatusId();
     quotedStatusView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
