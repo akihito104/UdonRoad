@@ -328,24 +328,24 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onStop() {
+    super.onStop();
     configStore.close();
     flingableFABHelper.getFab().setOnFlingListener(null);
-    super.onStop();
   }
 
   @Override
   protected void onDestroy() {
+    super.onDestroy();
     if (binding != null) {
       binding.ffab.setOnFlingListener(null);
       binding.navDrawer.setNavigationItemSelectedListener(null);
     }
     tearDownTweetInputView();
-    homeTimeline.close();
     if (tlFragment != null) {
       tlFragment.setUserIconClickedListener(null);
       tlFragment.setFABHelper(null);
     }
-    super.onDestroy();
+    homeTimeline.close();
   }
 
   @Override

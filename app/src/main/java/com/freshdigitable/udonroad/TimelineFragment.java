@@ -37,7 +37,6 @@ import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
-import twitter4j.Status;
 
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
@@ -48,7 +47,6 @@ public class TimelineFragment extends Fragment {
   private TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Subscription insertEventSubscription;
-  private Subscription updateEventSubscription;
   private Subscription deleteEventSubscription;
   protected TimelineSubscriber<TimelineStore> timelineSubscriber;
 
@@ -60,7 +58,6 @@ public class TimelineFragment extends Fragment {
   @Override
   public void onDetach() {
     insertEventSubscription.unsubscribe();
-    updateEventSubscription.unsubscribe();
     deleteEventSubscription.unsubscribe();
     super.onDetach();
   }
@@ -112,21 +109,14 @@ public class TimelineFragment extends Fragment {
 
     final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
     tlAdapter = new TimelineAdapter(timelineStore);
-    insertEventSubscription = timelineStore.subscribeInsertEvent()
+    insertEventSubscription = timelineStore.observeInsertEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
             tlAdapter.notifyItemInserted(position);
           }
         });
-    updateEventSubscription = timelineStore.subscribeUpdateEvent()
-        .subscribe(new Action1<Integer>() {
-          @Override
-          public void call(Integer position) {
-            tlAdapter.notifyItemChanged(position);
-          }
-        });
-    deleteEventSubscription = timelineStore.subscribeDeleteEvent()
+    deleteEventSubscription = timelineStore.observeDeleteEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
@@ -214,12 +204,6 @@ public class TimelineFragment extends Fragment {
     } else {
       fabHelper.getFab().hide();
     }
-    if (tlAdapter.isStatusViewSelected()) {
-      final long selectedTweetId = tlAdapter.getSelectedTweetId();
-      final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
-      final Status status = timelineStore.findStatus(selectedTweetId);
-      timelineStore.upsert(status);
-    }
   }
 
   public long getSelectedTweetId() {
@@ -254,12 +238,12 @@ public class TimelineFragment extends Fragment {
 
   @Override
   public void onDestroyView() {
+    super.onDestroyView();
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedTweetChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.setAdapter(null);
-    super.onDestroyView();
   }
 
   private boolean stopScroll = false;

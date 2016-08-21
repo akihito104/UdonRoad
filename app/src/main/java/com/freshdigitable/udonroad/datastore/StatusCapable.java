@@ -16,8 +16,11 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.support.annotation.Nullable;
+
 import java.util.List;
 
+import rx.Observable;
 import twitter4j.Status;
 
 /**
@@ -30,5 +33,10 @@ public interface StatusCapable {
 
   void deleteStatus(long statusId);
 
-  void upsertStrong(Status status);
+  void forceUpsert(Status status);
+
+  @Nullable
+  Status findStatus(long statusId);
+
+  Observable<Status> observeStatusById(long statusId);
 }

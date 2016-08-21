@@ -84,17 +84,17 @@ public class TimelineStoreRealm implements TimelineStore {
   }
 
   @Override
-  public Observable<Integer> subscribeInsertEvent() {
+  public Observable<Integer> observeInsertEvent() {
     return insertEvent.onBackpressureBuffer();
   }
 
   @Override
-  public Observable<Integer> subscribeUpdateEvent() {
+  public Observable<Integer> observeUpdateEvent() {
     return updateEvent.onBackpressureBuffer();
   }
 
   @Override
-  public Observable<Integer> subscribeDeleteEvent() {
+  public Observable<Integer> observeDeleteEvent() {
     return deleteEvent.onBackpressureBuffer();
   }
 
@@ -133,7 +133,41 @@ public class TimelineStoreRealm implements TimelineStore {
     return inserts;
   }
 
+  private void insertStatus(List<StatusIDs> inserts) {
+    realm.beginTransaction();
+    final List<StatusIDs> inserted = realm.copyToRealmOrUpdate(inserts);
+    realm.commitTransaction();
+    if (inserted.isEmpty() || !insertEvent.hasObservers()) {
+      return;
+    }
+    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
+      @Override
+      public void onChange(RealmResults<StatusIDs> element) {
+        notifyInserted(inserted, element);
+        element.removeChangeListener(this);
+      }
+    });
+  }
+
+  private void notifyInserted(List<StatusIDs> inserted, RealmResults<StatusIDs> results) {
+    if (inserted.isEmpty()) {
+      return;
+    }
+    final List<Integer> index = searchTimeline(inserted, results);
+    if (index.isEmpty()) {
+      return;
+    }
+    Collections.sort(index);
+    for (int i : index) {
+      insertEvent.onNext(i);
+    }
+  }
+
   private List<StatusIDs> createUpdateList(List<Status> statuses) {
+    if (!updateEvent.hasObservers()) {
+      return Collections.emptyList();
+    }
+
     final List<StatusIDs> updates = new ArrayList<>();
     for (Status s : statuses) {
       final StatusIDs update = findTimeline(s);
@@ -186,14 +220,22 @@ public class TimelineStoreRealm implements TimelineStore {
     return updates;
   }
 
-  @Override
-  public void deleteStatus(long statusId) {
-    delete(statusId);
+  private void notifyChanged(List<StatusIDs> changed, RealmResults<StatusIDs> results) {
+    if (changed.isEmpty()) {
+      return;
+    }
+    final List<Integer> index = searchTimeline(changed, results);
+    if (index.isEmpty()) {
+      return;
+    }
+    for (int i : index) {
+      updateEvent.onNext(i);
+    }
   }
 
   @Override
-  public void upsertStrong(Status status) {
-    statusCache.upsertStrong(status);
+  public void forceUpsert(Status status) {
+    statusCache.forceUpsert(status);
     final List<StatusIDs> updates = createUpdateList(Collections.singletonList(status));
     if (!updates.isEmpty()) {
       notifyChanged(updates, timeline);
@@ -221,47 +263,8 @@ public class TimelineStoreRealm implements TimelineStore {
         .findFirst();
   }
 
-  private void insertStatus(List<StatusIDs> inserts) {
-    realm.beginTransaction();
-    final List<StatusIDs> inserted = realm.copyToRealmOrUpdate(inserts);
-    realm.commitTransaction();
-    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
-      @Override
-      public void onChange(RealmResults<StatusIDs> element) {
-        notifyInserted(inserted, element);
-        element.removeChangeListener(this);
-      }
-    });
-  }
-
-  private void notifyInserted(List<StatusIDs> inserted, RealmResults<StatusIDs> results) {
-    if (inserted.isEmpty()) {
-      return;
-    }
-    final List<Integer> index = searchTimeline(inserted, results);
-    if (index.isEmpty()) {
-      return;
-    }
-    Collections.sort(index);
-    for (int i : index) {
-      insertEvent.onNext(i);
-    }
-  }
-
-  private void notifyChanged(List<StatusIDs> changed, RealmResults<StatusIDs> results) {
-    if (changed.isEmpty()) {
-      return;
-    }
-    final List<Integer> index = searchTimeline(changed, results);
-    if (index.isEmpty()) {
-      return;
-    }
-    for (int i : index) {
-      updateEvent.onNext(i);
-    }
-  }
-
-  private void delete(long statusId) {
+  @Override
+  public void deleteStatus(long statusId) {
     final RealmResults<StatusIDs> res = realm.where(StatusIDs.class)
         .beginGroup()
         .equalTo(KEY_ID, statusId)
@@ -279,7 +282,7 @@ public class TimelineStoreRealm implements TimelineStore {
     res.deleteAllFromRealm();
     realm.commitTransaction();
 
-    if (deleted.isEmpty()) {
+    if (deleted.isEmpty() || !deleteEvent.hasObservers()) {
       return;
     }
     timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
@@ -339,7 +342,7 @@ public class TimelineStoreRealm implements TimelineStore {
   @Override
   public Status get(int position) {
     final StatusIDs ids = timeline.get(position);
-    return statusCache.getStatus(ids.getId());
+    return statusCache.findStatus(ids.getId());
   }
 
   @Override
@@ -349,6 +352,11 @@ public class TimelineStoreRealm implements TimelineStore {
 
   @Override
   public Status findStatus(long statusId) {
-    return statusCache.getStatus(statusId);
+    return statusCache.findStatus(statusId);
+  }
+
+  @Override
+  public Observable<Status> observeStatusById(long statusId) {
+    return statusCache.observeStatusById(statusId);
   }
 }

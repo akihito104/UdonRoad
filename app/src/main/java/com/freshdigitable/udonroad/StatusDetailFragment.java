@@ -29,6 +29,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.freshdigitable.udonroad.MediaContainer.OnMediaClickListener;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
@@ -96,7 +97,11 @@ public class StatusDetailFragment extends Fragment {
     super.onStart();
     long id = (long) getArguments().get("statusId");
     statusCache.open(getContext());
-    status = statusCache.getStatus(id);
+    status = statusCache.findStatus(id);
+    if (status == null) {
+      Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
+      return;
+    }
     final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
     for (UserMentionEntity u : userMentionEntities) {
       statusCache.upsertUser(u);
@@ -136,6 +141,7 @@ public class StatusDetailFragment extends Fragment {
 
   @Override
   public void onStop() {
+    super.onStop();
     StatusViewImageHelper.unload(getContext(), status.getId());
     for (int i = arrayAdapter.getCount() - 1; i >= 0; i--) {
       final DetailMenu item = arrayAdapter.getItem(i);
@@ -143,18 +149,17 @@ public class StatusDetailFragment extends Fragment {
     }
     statusCache.close();
     status = null;
-    super.onStop();
   }
 
   @Override
   public void onDestroyView() {
+    super.onDestroyView();
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
     binding.statusView.reset();
     binding.detailMenu.setOnItemClickListener(null);
     binding.detailMenu.setAdapter(null);
-    super.onDestroyView();
   }
 
 

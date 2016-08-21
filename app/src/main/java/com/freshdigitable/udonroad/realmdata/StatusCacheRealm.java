@@ -139,8 +139,12 @@ public class StatusCacheRealm implements StatusCache {
     });
   }
 
+  /**
+   * to update with response of destroyFavorite or destroy Retweet
+   * @param status new data for update
+   */
   @Override
-  public void upsertStrong(final Status status) {
+  public void forceUpsert(final Status status) {
     final List<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
     cache.executeTransaction(new Realm.Transaction() {
       @Override
@@ -153,11 +157,15 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
-  public Status getStatus(long id) {
+  @Nullable
+  public Status findStatus(long id) {
     final StatusRealm res = getStatusInternal(id);
+    if (res == null) {
+      return null;
+    }
     if (res.isRetweet()) {
       final StatusRealm rtStatus = getStatusInternal(res.getRetweetedStatusId());
-      if (rtStatus.getQuotedStatusId() > 0) {
+      if (rtStatus != null && rtStatus.getQuotedStatusId() > 0) {
         rtStatus.setQuotedStatus(getStatusInternal(rtStatus.getQuotedStatusId()));
       }
       res.setRetweetedStatus(rtStatus);
@@ -167,6 +175,31 @@ public class StatusCacheRealm implements StatusCache {
       res.setQuotedStatus(getStatusInternal(res.getQuotedStatusId()));
     }
     return res;
+  }
+
+  @Override
+  public Observable<Status> observeStatusById(long statusId) {
+    final StatusRealm status = (StatusRealm) findStatus(statusId);
+    if (status == null) {
+      return null;
+    }
+    return Observable.create(new Observable.OnSubscribe<Status>() {
+      @Override
+      public void call(final Subscriber<? super Status> subscriber) {
+        StatusRealm.addChangeListener(status, new RealmChangeListener<StatusRealm>() {
+          @Override
+          public void onChange(StatusRealm element) {
+            subscriber.onNext(element);
+          }
+        });
+        subscriber.onNext(status);
+      }
+    }).doOnUnsubscribe(new Action0() {
+      @Override
+      public void call() {
+        StatusRealm.removeChangeListeners(status);
+      }
+    });
   }
 
   @Override
@@ -218,6 +251,7 @@ public class StatusCacheRealm implements StatusCache {
     });
   }
 
+  @Nullable
   private StatusRealm getStatusInternal(long id) {
     return cache.where(StatusRealm.class)
         .equalTo(KEY_ID, id)

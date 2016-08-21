@@ -39,6 +39,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
@@ -192,7 +193,11 @@ public class MediaViewActivity extends AppCompatActivity {
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
-    final Status status = statusCache.getStatus(statusId);
+    final Status status = statusCache.findStatus(statusId);
+    if (status == null) {
+      Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
+      return;
+    }
     final int startPage = intent.getIntExtra(CREATE_START, 0);
     binding.mediaPager.setAdapter(new MediaPagerAdapter(
         getSupportFragmentManager(),

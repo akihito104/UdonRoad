@@ -19,7 +19,6 @@ package com.freshdigitable.udonroad.datastore;
 import android.content.Context;
 
 import rx.Observable;
-import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -28,8 +27,6 @@ import twitter4j.UserMentionEntity;
  */
 public interface StatusCache extends StatusCapable {
   void open(Context context);
-
-  Status getStatus(long statusId);
 
   void upsertUser(User user);
 

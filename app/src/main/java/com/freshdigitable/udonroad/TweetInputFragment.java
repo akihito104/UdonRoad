@@ -161,7 +161,7 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
-    final Status inReplyTo = statusCache.getStatus(inReplyToStatusId);
+    final Status inReplyTo = statusCache.findStatus(inReplyToStatusId);
     stretchTweetInputViewWithInReplyTo(statusSending, inReplyTo);
   }
 
@@ -243,7 +243,10 @@ public class TweetInputFragment extends Fragment {
       String s = sendingText;
       if (quoteStatusIds.size() > 0) {
         for (long q : quoteStatusIds) {
-          final Status status = statusCache.getStatus(q);
+          final Status status = statusCache.findStatus(q);
+          if (status == null) {
+            continue;
+          }
           s +=" https://twitter.com/" + status.getUser().getScreenName()
               + "/status/" + q;
         }

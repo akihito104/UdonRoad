@@ -26,6 +26,9 @@ import com.freshdigitable.udonroad.datastore.TimelineStore;
 
 import java.lang.ref.WeakReference;
 
+import rx.Observable;
+import rx.Subscription;
+import rx.functions.Action1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
@@ -80,7 +83,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 //      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
       return;
     }
-    holder.bindStatus(status);
+    holder.setStatusId(status);
+    holder.bind(timelineStore.observeStatusById(statusId));
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound(statusId);
     }
@@ -242,13 +246,30 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
     private long statusId;
+    private Subscription subscription;
 
     public ViewHolder(View itemView) {
       super(itemView);
     }
 
-    void bindStatus(final Status status) {
+    void setStatusId(final Status status) {
       this.statusId = status.getId();
+    }
+
+    void bind(Observable<Status> observable) {
+      subscription = observable.subscribe(new Action1<Status>() {
+        @Override
+        public void call(Status status) {
+          ((StatusView) itemView).bindStatus(status);
+          itemView.invalidate();
+        }
+      });
+    }
+
+    void unbind() {
+      if (subscription != null && !subscription.isUnsubscribed()) {
+        subscription.unsubscribe();
+      }
     }
 
     boolean hasSameStatusId(SelectedStatus other) {
@@ -257,6 +278,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
     void onRecycled() {
       this.statusId = -1;
+      unbind();
+      subscription = null;
     }
   }
 

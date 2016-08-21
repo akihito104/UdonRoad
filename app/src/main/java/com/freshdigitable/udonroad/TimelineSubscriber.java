@@ -144,7 +144,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
             new Action1<Status>() {
               @Override
               public void call(Status status) {
-                statusStore.upsertStrong(status);
+                statusStore.forceUpsert(status);
               }
             },
             userFeedback.onErrorDefault(R.string.msg_fav_delete_failed),
@@ -158,7 +158,7 @@ public class TimelineSubscriber<T extends StatusCapable> {
             new Action1<Status>() {
               @Override
               public void call(Status status) {
-                statusStore.upsertStrong(status);
+                statusStore.forceUpsert(status);
               }
             },
             userFeedback.onErrorDefault(R.string.msg_rt_delete_failed),
