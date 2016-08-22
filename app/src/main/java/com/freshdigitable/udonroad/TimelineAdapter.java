@@ -140,7 +140,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     if (quotedStatus == null) {
       return;
     }
-    final long quotedStatusId = quotedStatus.getQuotedStatusId();
+    final long quotedStatusId = quotedStatus.getId();
     quotedStatusView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {

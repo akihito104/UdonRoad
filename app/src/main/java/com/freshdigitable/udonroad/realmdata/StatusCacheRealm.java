@@ -110,17 +110,17 @@ public class StatusCacheRealm implements StatusCache {
     final List<Status> updates = new ArrayList<>();
     for (Status s : statuses) {
       updates.add(s);
-      final Status retweetedStatus = s.getRetweetedStatus();
-      if (retweetedStatus != null) {
-        updates.add(retweetedStatus);
-        final Status quotedStatus = retweetedStatus.getQuotedStatus();
-        if (quotedStatus != null) {
-          updates.add(quotedStatus);
-        }
-      }
       final Status quotedStatus = s.getQuotedStatus();
       if (quotedStatus != null) {
         updates.add(quotedStatus);
+      }
+      final Status retweetedStatus = s.getRetweetedStatus();
+      if (retweetedStatus != null) {
+        updates.add(retweetedStatus);
+        final Status rtQuotedStatus = retweetedStatus.getQuotedStatus();
+        if (rtQuotedStatus != null) {
+          updates.add(rtQuotedStatus);
+        }
       }
     }
     return updates;

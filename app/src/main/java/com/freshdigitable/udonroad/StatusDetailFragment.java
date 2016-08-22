@@ -142,7 +142,9 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    StatusViewImageHelper.unload(getContext(), status.getId());
+    if (status != null) {
+      StatusViewImageHelper.unload(getContext(), status.getId());
+    }
     for (int i = arrayAdapter.getCount() - 1; i >= 0; i--) {
       final DetailMenu item = arrayAdapter.getItem(i);
       arrayAdapter.remove(item);
