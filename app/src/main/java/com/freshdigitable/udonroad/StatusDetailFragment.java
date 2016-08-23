@@ -21,10 +21,13 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -226,5 +229,24 @@ public class StatusDetailFragment extends Fragment {
 
   public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {
     this.userIconClickedListener = listener;
+  }
+
+  @Override
+  public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
+      if (enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in);
+      } else {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out);
+      }
+    }
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
+      if (enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in);
+      } else {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out);
+      }
+    }
+    return super.onCreateAnimation(transit, enter, nextAnim);
   }
 }

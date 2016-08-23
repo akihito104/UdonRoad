@@ -25,6 +25,7 @@ import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -290,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
     getSupportFragmentManager().beginTransaction()
         .hide(tlFragment)
         .add(R.id.main_timeline_container, statusDetail)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
     tlFragment.stopScroll();
     if (tlFragment.isTweetSelected()) {
@@ -304,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
     getSupportFragmentManager().beginTransaction()
         .remove(statusDetail)
         .show(tlFragment)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
         .commit();
     statusDetail.setOnUserIconClickedListener(null);
     statusDetail = null;

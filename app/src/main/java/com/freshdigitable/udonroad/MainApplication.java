@@ -42,7 +42,7 @@ public class MainApplication extends Application {
         .dataStoreModule(new DataStoreModule())
         .build();
   }
-  
+
   public AppComponent getAppComponent() {
     return appComponent;
   }

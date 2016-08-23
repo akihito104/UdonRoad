@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -27,6 +28,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
@@ -335,5 +338,20 @@ public class TimelineFragment extends Fragment {
   @Nullable
   public View getSelectedView() {
     return tlAdapter.getSelectedView();
+  }
+
+  @Override
+  public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
+      if (!enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_out_right);
+      }
+    }
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
+      if (enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_in_left);
+      }
+    }
+    return super.onCreateAnimation(transit, enter, nextAnim);
   }
 }
