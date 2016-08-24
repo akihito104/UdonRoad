@@ -42,6 +42,7 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
@@ -62,7 +63,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TweetSendable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -392,7 +393,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == R.id.action_heading){
+    if (itemId == R.id.action_heading) {
       headingSelected();
     } else if (itemId == R.id.action_write) {
       sendStatusSelected(TYPE_DEFAULT, -1);
@@ -454,5 +455,10 @@ public class MainActivity extends AppCompatActivity {
 
   private void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+  }
+
+  @Override
+  public void setupInput(@TweetType int type, long statusId) {
+    sendStatusSelected(type, statusId);
   }
 }

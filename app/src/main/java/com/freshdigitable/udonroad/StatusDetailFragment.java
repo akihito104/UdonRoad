@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,6 +37,8 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.MediaContainer.OnMediaClickListener;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 
@@ -44,6 +47,9 @@ import javax.inject.Inject;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
+
+import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
+import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
 public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
@@ -90,7 +96,22 @@ public class StatusDetailFragment extends Fragment {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final DetailMenu menu = (DetailMenu) parent.getItemAtPosition(position);
-        menu.action(statusCacheSubscriber, status);
+        if (menu == DetailMenu.REPLY) {
+          setupInput(TYPE_REPLY);
+        } else if (menu == DetailMenu.QUOTE) {
+          setupInput(TYPE_QUOTE);
+        } else {
+          menu.action(statusCacheSubscriber, status);
+        }
+      }
+
+      private void setupInput(@TweetType int type) {
+        final FragmentActivity activity = getActivity();
+        if (activity instanceof TweetSendable) {
+          ((TweetSendable) activity).setupInput(type, status.getId());
+        } else {
+          ReplyActivity.start(activity, status.getId(), type, null);
+        }
       }
     });
   }
@@ -200,12 +221,12 @@ public class StatusDetailFragment extends Fragment {
     }, REPLY(R.string.detail_reply) {
       @Override
       public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        //TODO
+        // nop
       }
     }, QUOTE(R.string.detail_quote) {
       @Override
       public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        //TODO
+        // nop
       }
     },;
 

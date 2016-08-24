@@ -47,6 +47,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * TweetInputFragment provides Appbar with TweetInputView.
@@ -168,7 +169,7 @@ public class TweetInputFragment extends Fragment {
   private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, Status inReplyTo) {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo != null) {
-      inputText.addText("@" + inReplyTo.getUser().getScreenName() + " "); // XXX
+      inputText.addText(ReplyEntity.create(inReplyTo).createReplyString());
       inputText.setInReplyTo();
     }
     stretchTweetInputView(statusSending);
@@ -288,6 +289,10 @@ public class TweetInputFragment extends Fragment {
     void onFailure(Throwable e);
   }
 
+  interface TweetSendable {
+    void setupInput(@TweetType int type, long statusId);
+  }
+
   public static final int TYPE_DEFAULT = 0;
   public static final int TYPE_REPLY = 1;
   public static final int TYPE_QUOTE = 2;
@@ -295,5 +300,43 @@ public class TweetInputFragment extends Fragment {
   @Retention(RetentionPolicy.SOURCE)
   @IntDef(value = {TYPE_DEFAULT, TYPE_REPLY, TYPE_QUOTE})
   public @interface TweetType {
+  }
+
+  private static class ReplyEntity {
+    long inReplyToStatusId;
+    List<String> screenNames;
+
+    static ReplyEntity create(Status status) { // XXX
+      final ReplyEntity res = new ReplyEntity();
+      res.inReplyToStatusId = status.getId();
+      res.screenNames = new ArrayList<>();
+      final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+      for (UserMentionEntity u : userMentionEntities) {
+        res.addScreenName(u.getScreenName());
+      }
+
+      if (status.isRetweet()) {
+        final Status retweetedStatus = status.getRetweetedStatus();
+        res.addScreenName(retweetedStatus.getUser().getScreenName());
+      }
+
+      final User user = status.getUser();
+      res.addScreenName(user.getScreenName());
+      return res;
+    }
+
+    private void addScreenName(String screenName) {
+      if (!screenNames.contains(screenName)) {
+        screenNames.add(screenName);
+      }
+    }
+
+    String createReplyString() {
+      String s = "";
+      for (String sn : screenNames) {
+        s += "@" + sn + " ";
+      }
+      return s;
+    }
   }
 }
