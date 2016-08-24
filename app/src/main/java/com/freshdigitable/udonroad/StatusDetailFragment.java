@@ -17,11 +17,15 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.ColorRes;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +43,8 @@ import com.freshdigitable.udonroad.datastore.StatusCache;
 
 import javax.inject.Inject;
 
+import rx.Subscription;
+import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -53,6 +59,7 @@ public class StatusDetailFragment extends Fragment {
   @Inject
   TwitterApi twitterApi;
   private TimelineSubscriber<StatusCache> statusCacheSubscriber;
+  private Subscription subscription;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -95,7 +102,6 @@ public class StatusDetailFragment extends Fragment {
         new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
 
     final DetailStatusView statusView = binding.statusView;
-    statusView.bindStatus(status);
     StatusViewImageHelper.load(status, statusView);
     final User user = StatusViewImageHelper.getBindingUser(status);
     final ImageView icon = statusView.getIcon();
@@ -118,6 +124,7 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
+    setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
     binding.sdFav.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -128,6 +135,7 @@ public class StatusDetailFragment extends Fragment {
         }
       }
     });
+    setTintList(binding.sdRetweet.getDrawable(), R.color.selector_rt_icon);
     binding.sdRetweet.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -138,18 +146,37 @@ public class StatusDetailFragment extends Fragment {
         }
       }
     });
-    binding.sdRetweet.setOnClickListener(new View.OnClickListener() {
+    DrawableCompat.setTint(binding.sdReply.getDrawable(),
+        ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal));
+    binding.sdReply.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         setupInput(TweetInputFragment.TYPE_REPLY);
       }
     });
+    binding.sdQuote.setTextColor(
+        ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal));
     binding.sdQuote.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         setupInput(TweetInputFragment.TYPE_QUOTE);
       }
     });
+
+    subscription = statusCache.observeStatusById(id)
+        .subscribe(new Action1<Status>() {
+          @Override
+          public void call(Status status) {
+            binding.statusView.bindStatus(status);
+            binding.sdFav.setActivated(status.isFavorited());
+            binding.sdRetweet.setActivated(status.isRetweeted());
+          }
+        });
+  }
+
+  private void setTintList(Drawable drawable, @ColorRes int color) {
+    DrawableCompat.setTintList(drawable,
+        ContextCompat.getColorStateList(getContext(), color));
   }
 
   private void setupInput(@TweetType int type) {
@@ -173,6 +200,9 @@ public class StatusDetailFragment extends Fragment {
     binding.sdRetweet.setOnClickListener(null);
     binding.sdReply.setOnClickListener(null);
     binding.sdQuote.setOnClickListener(null);
+    if (subscription != null && !subscription.isUnsubscribed()) {
+      subscription.unsubscribe();
+    }
 
     if (status != null) {
       StatusViewImageHelper.unload(getContext(), status.getId());

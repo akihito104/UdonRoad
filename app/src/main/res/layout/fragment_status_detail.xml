@@ -44,6 +44,9 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_like"
                     android:layout_weight="1"
+                    android:layout_marginStart="@dimen/grid_margin_detail"
+                    android:layout_marginEnd="@dimen/grid_margin_detail"
+                    android:clickable="true"
                     />
                 <ImageView
                     android:id="@+id/sd_retweet"
@@ -51,6 +54,9 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_retweet"
                     android:layout_weight="1"
+                    android:layout_marginStart="@dimen/grid_margin_detail"
+                    android:layout_marginEnd="@dimen/grid_margin_detail"
+                    android:clickable="true"
                     />
                 <ImageView
                     android:id="@+id/sd_reply"
@@ -58,6 +64,9 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_reply"
                     android:layout_weight="1"
+                    android:layout_marginStart="@dimen/grid_margin_detail"
+                    android:layout_marginEnd="@dimen/grid_margin_detail"
+                    android:clickable="true"
                     />
                 <TextView
                     android:id="@+id/sd_quote"
@@ -67,6 +76,9 @@
                     android:text="QT"
                     android:textSize="20sp"
                     android:gravity="center"
+                    android:layout_marginStart="@dimen/grid_margin_detail"
+                    android:layout_marginEnd="@dimen/grid_margin_detail"
+                    android:clickable="true"
                     />
             </LinearLayout>
         </LinearLayout>
