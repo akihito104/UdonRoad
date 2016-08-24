@@ -19,20 +19,15 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.MediaContainer.OnMediaClickListener;
@@ -48,10 +43,8 @@ import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
-
 public class StatusDetailFragment extends Fragment {
+  @SuppressWarnings("unused")
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   private Status status;
@@ -60,7 +53,14 @@ public class StatusDetailFragment extends Fragment {
   @Inject
   TwitterApi twitterApi;
   private TimelineSubscriber<StatusCache> statusCacheSubscriber;
-  private ArrayAdapter<DetailMenu> arrayAdapter;
+
+  public static StatusDetailFragment getInstance(final long statusId) {
+    Bundle args = new Bundle();
+    args.putLong("statusId", statusId);
+    final StatusDetailFragment statusDetailFragment = new StatusDetailFragment();
+    statusDetailFragment.setArguments(args);
+    return statusDetailFragment;
+  }
 
   @Override
   public void onAttach(Context context) {
@@ -75,45 +75,6 @@ public class StatusDetailFragment extends Fragment {
                            @Nullable Bundle savedInstanceState) {
     binding = FragmentStatusDetailBinding.inflate(inflater, container, false);
     return binding.getRoot();
-  }
-
-  @Override
-  public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    super.onActivityCreated(savedInstanceState);
-    arrayAdapter = new ArrayAdapter<DetailMenu>(getContext(), android.R.layout.simple_list_item_1) {
-      @Override
-      public View getView(int position, View convertView, ViewGroup parent) {
-        Log.d(TAG, "ArrayAdapter.getView: " + getCount());
-        View v = super.getView(position, convertView, parent);
-        final DetailMenu item = getItem(position);
-        final int strres = item.getMenuText();
-        ((TextView) v).setText(strres);
-        return v;
-      }
-    };
-    binding.detailMenu.setAdapter(arrayAdapter);
-    binding.detailMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-      @Override
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        final DetailMenu menu = (DetailMenu) parent.getItemAtPosition(position);
-        if (menu == DetailMenu.REPLY) {
-          setupInput(TYPE_REPLY);
-        } else if (menu == DetailMenu.QUOTE) {
-          setupInput(TYPE_QUOTE);
-        } else {
-          menu.action(statusCacheSubscriber, status);
-        }
-      }
-
-      private void setupInput(@TweetType int type) {
-        final FragmentActivity activity = getActivity();
-        if (activity instanceof TweetSendable) {
-          ((TweetSendable) activity).setupInput(type, status.getId());
-        } else {
-          ReplyActivity.start(activity, status.getId(), type, null);
-        }
-      }
-    });
   }
 
   @Override
@@ -132,11 +93,6 @@ public class StatusDetailFragment extends Fragment {
     }
     statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
         new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
-
-    arrayAdapter.add(status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
-    arrayAdapter.add(status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
-    arrayAdapter.add(DetailMenu.REPLY);
-    arrayAdapter.add(DetailMenu.QUOTE);
 
     final DetailStatusView statusView = binding.statusView;
     statusView.bindStatus(status);
@@ -161,89 +117,68 @@ public class StatusDetailFragment extends Fragment {
         MediaViewActivity.start(view.getContext(), status, index);
       }
     });
+
+    binding.sdFav.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (status.isFavorited()) {
+          statusCacheSubscriber.destroyFavorite(status.getId());
+        } else {
+          statusCacheSubscriber.createFavorite(status.getId());
+        }
+      }
+    });
+    binding.sdRetweet.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (status.isRetweeted()) {
+          statusCacheSubscriber.destroyRetweet(status.getId());
+        } else {
+          statusCacheSubscriber.retweetStatus(status.getId());
+        }
+      }
+    });
+    binding.sdRetweet.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        setupInput(TweetInputFragment.TYPE_REPLY);
+      }
+    });
+    binding.sdQuote.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        setupInput(TweetInputFragment.TYPE_QUOTE);
+      }
+    });
+  }
+
+  private void setupInput(@TweetType int type) {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof TweetSendable) {
+      ((TweetSendable) activity).setupInput(type, status.getId());
+    } else {
+      ReplyActivity.start(activity, status.getId(), type, null);
+    }
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    if (status != null) {
-      StatusViewImageHelper.unload(getContext(), status.getId());
-    }
-    for (int i = arrayAdapter.getCount() - 1; i >= 0; i--) {
-      final DetailMenu item = arrayAdapter.getItem(i);
-      arrayAdapter.remove(item);
-    }
-    statusCache.close();
-    status = null;
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
     binding.statusView.reset();
-    binding.detailMenu.setOnItemClickListener(null);
-    binding.detailMenu.setAdapter(null);
-  }
 
+    binding.sdFav.setOnClickListener(null);
+    binding.sdRetweet.setOnClickListener(null);
+    binding.sdReply.setOnClickListener(null);
+    binding.sdQuote.setOnClickListener(null);
 
-  public static StatusDetailFragment getInstance(final long statusId) {
-    Bundle args = new Bundle();
-    args.putLong("statusId", statusId);
-    final StatusDetailFragment statusDetailFragment = new StatusDetailFragment();
-    statusDetailFragment.setArguments(args);
-    return statusDetailFragment;
-  }
-
-  enum DetailMenu implements DetailMenuInterface {
-    RT_CREATE(R.string.detail_rt_create) {
-      @Override
-      public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        api.retweetStatus(status.getId());
-      }
-    }, RT_DELETE(R.string.detail_rt_delete) {
-      @Override
-      public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        api.destroyRetweet(status.getId());
-      }
-    }, FAV_CREATE(R.string.detail_fav_create) {
-      @Override
-      public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        api.createFavorite(status.getId());
-      }
-    }, FAV_DELETE(R.string.detail_fav_delete) {
-      @Override
-      public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        api.destroyFavorite(status.getId());
-      }
-    }, REPLY(R.string.detail_reply) {
-      @Override
-      public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        // nop
-      }
-    }, QUOTE(R.string.detail_quote) {
-      @Override
-      public void action(TimelineSubscriber<StatusCache> api, Status status) {
-        // nop
-      }
-    },;
-
-    final private int menuText;
-
-    DetailMenu(@StringRes int menu) {
-      this.menuText = menu;
+    if (status != null) {
+      StatusViewImageHelper.unload(getContext(), status.getId());
     }
-
-    @StringRes
-    public int getMenuText() {
-      return menuText;
-    }
-  }
-
-  interface DetailMenuInterface {
-    void action(TimelineSubscriber<StatusCache> api, Status status);
+    statusCache.close();
+    status = null;
   }
 
   private OnUserIconClickedListener userIconClickedListener;
