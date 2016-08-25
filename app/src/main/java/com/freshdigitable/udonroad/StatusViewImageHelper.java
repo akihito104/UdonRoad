@@ -72,10 +72,8 @@ public class StatusViewImageHelper {
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {
     ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    if (extendedMediaEntities.length < 1) {
-      return;
-    }
     final MediaContainer mediaContainer = statusView.getMediaContainer();
+    mediaContainer.bindMediaEntities(extendedMediaEntities);
     final int mediaCount = mediaContainer.getThumbCount();
     for (int i = 0; i < mediaCount; i++) {
       final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);

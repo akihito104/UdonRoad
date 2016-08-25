@@ -211,6 +211,13 @@ public class StatusDetailFragment extends Fragment {
     status = null;
   }
 
+  @Override
+  public void onDetach() {
+    super.onDetach();
+    DrawableCompat.setTintList(binding.sdFav.getDrawable(), null);
+    DrawableCompat.setTintList(binding.sdRetweet.getDrawable(), null);
+  }
+
   private OnUserIconClickedListener userIconClickedListener;
 
   public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {

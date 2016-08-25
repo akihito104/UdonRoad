@@ -202,7 +202,7 @@ public class TimelineFragment extends Fragment {
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
     isAddedUntilStopped();
-    if (tlAdapter.isStatusViewSelected()) {
+    if (tlAdapter.isStatusViewSelected() && isVisible()) {
       fabHelper.getFab().show();
     } else {
       fabHelper.getFab().hide();

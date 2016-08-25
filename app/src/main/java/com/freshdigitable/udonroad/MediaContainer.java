@@ -71,6 +71,7 @@ public class MediaContainer extends LinearLayout {
   public void bindMediaEntities(ExtendedMediaEntity[] extendedMediaEntities) {
     final int thumbCount = Math.min(maxThumbCount, extendedMediaEntities.length);
     if (thumbCount < 1) {
+      setThumbCount(0);
       return;
     }
     setThumbCount(thumbCount);
