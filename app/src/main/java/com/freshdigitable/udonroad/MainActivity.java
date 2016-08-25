@@ -354,16 +354,16 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
 
   @Override
   public void onBackPressed() {
-    if (statusDetail != null && statusDetail.isVisible()) {
-      hideStatusDetail();
-      return;
-    }
     if (binding.navDrawerLayout.isDrawerOpen(binding.navDrawer)) {
       binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       return;
     }
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       cancelWritingSelected();
+      return;
+    }
+    if (statusDetail != null && statusDetail.isVisible()) {
+      hideStatusDetail();
       return;
     }
     if (tlFragment.isTweetSelected()) {
