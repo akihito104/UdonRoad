@@ -22,8 +22,10 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -38,8 +40,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
@@ -60,7 +63,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TweetSendable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -96,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
     binding.navDrawer.setNavigationItemSelectedListener(new OnNavigationItemSelectedListener() {
       @Override
-      public boolean onNavigationItemSelected(MenuItem item) {
+      public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_home) {
           Log.d(TAG, "home is selected");
@@ -145,18 +148,21 @@ public class MainActivity extends AppCompatActivity {
         new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new HomeTimelineFragment();
-    tlFragment.setUserIconClickedListener(new OnUserIconClickedListener() {
-      @Override
-      public void onClicked(View view, User user) {
-        showUserInfo(view, user);
-      }
-    });
+    tlFragment.setUserIconClickedListener(userIconClickedListener);
     tlFragment.setTimelineSubscriber(timelineSubscriber);
     tlFragment.setFABHelper(flingableFABHelper);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
   }
+
+  private final OnUserIconClickedListener userIconClickedListener
+      = new OnUserIconClickedListener() {
+    @Override
+    public void onClicked(View view, User user) {
+      showUserInfo(view, user);
+    }
+  };
 
   private void showUserInfo(View view, User user) {
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
@@ -169,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.draver_close) {
+        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
@@ -282,10 +288,16 @@ public class MainActivity extends AppCompatActivity {
 
   private void showStatusDetail(long status) {
     statusDetail = StatusDetailFragment.getInstance(status);
+    statusDetail.setOnUserIconClickedListener(userIconClickedListener);
     getSupportFragmentManager().beginTransaction()
         .hide(tlFragment)
         .add(R.id.main_timeline_container, statusDetail)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
+    tlFragment.stopScroll();
+    if (tlFragment.isTweetSelected()) {
+      binding.ffab.hide();
+    }
   }
 
   private boolean hideStatusDetail() {
@@ -295,9 +307,14 @@ public class MainActivity extends AppCompatActivity {
     getSupportFragmentManager().beginTransaction()
         .remove(statusDetail)
         .show(tlFragment)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
         .commit();
+    statusDetail.setOnUserIconClickedListener(null);
     statusDetail = null;
     tlFragment.startScroll();
+    if (tlFragment.isTweetSelected()) {
+      binding.ffab.show();
+    }
     return true;
   }
 
@@ -315,38 +332,38 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onStop() {
+    super.onStop();
     configStore.close();
     flingableFABHelper.getFab().setOnFlingListener(null);
-    super.onStop();
   }
 
   @Override
   protected void onDestroy() {
+    super.onDestroy();
     if (binding != null) {
       binding.ffab.setOnFlingListener(null);
       binding.navDrawer.setNavigationItemSelectedListener(null);
     }
     tearDownTweetInputView();
-    homeTimeline.close();
     if (tlFragment != null) {
       tlFragment.setUserIconClickedListener(null);
       tlFragment.setFABHelper(null);
     }
-    super.onDestroy();
+    homeTimeline.close();
   }
 
   @Override
   public void onBackPressed() {
-    if (statusDetail != null && statusDetail.isVisible()) {
-      hideStatusDetail();
-      return;
-    }
     if (binding.navDrawerLayout.isDrawerOpen(binding.navDrawer)) {
       binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       return;
     }
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       cancelWritingSelected();
+      return;
+    }
+    if (statusDetail != null && statusDetail.isVisible()) {
+      hideStatusDetail();
       return;
     }
     if (tlFragment.isTweetSelected()) {
@@ -376,7 +393,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == R.id.action_heading){
+    if (itemId == R.id.action_heading) {
       headingSelected();
     } else if (itemId == R.id.action_write) {
       sendStatusSelected(TYPE_DEFAULT, -1);
@@ -430,7 +447,7 @@ public class MainActivity extends AppCompatActivity {
 
     tlFragment.startScroll();
     tearDownTweetInputView();
-    if (tlFragment.isTweetSelected()) {
+    if (tlFragment.isTweetSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
     binding.mainToolbar.setTitle("Home");
@@ -438,5 +455,10 @@ public class MainActivity extends AppCompatActivity {
 
   private void showToast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+  }
+
+  @Override
+  public void setupInput(@TweetType int type, long statusId) {
+    sendStatusSelected(type, statusId);
   }
 }

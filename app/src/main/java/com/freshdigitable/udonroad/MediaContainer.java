@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -47,7 +48,8 @@ public class MediaContainer extends LinearLayout {
     super(context, attrs, defStyleAttr);
     grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
 
-    final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MediaContainer, defStyleAttr, 0);
+    final TypedArray a = context.obtainStyledAttributes(
+        attrs, R.styleable.MediaContainer, defStyleAttr, 0);
     try {
       maxThumbCount = a.getInt(R.styleable.MediaContainer_thumbCount, 0);
     } finally {
@@ -69,13 +71,25 @@ public class MediaContainer extends LinearLayout {
   public void bindMediaEntities(ExtendedMediaEntity[] extendedMediaEntities) {
     final int thumbCount = Math.min(maxThumbCount, extendedMediaEntities.length);
     if (thumbCount < 1) {
+      setThumbCount(0);
       return;
     }
     setThumbCount(thumbCount);
     thumbWidth = (getWidth() - grid * (thumbCount - 1)) / thumbCount;
     setVisibility(VISIBLE);
     for (int i = 0; i < thumbCount; i++) {
-      getChildAt(i).setVisibility(VISIBLE);
+      final int num = i;
+      final View mediaView = getChildAt(i);
+      mediaView.setVisibility(VISIBLE);
+      mediaView.setOnClickListener(new OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          if (mediaClickListener == null) {
+            return;
+          }
+          mediaClickListener.onMediaClicked(view, num);
+        }
+      });
     }
   }
 
@@ -100,8 +114,19 @@ public class MediaContainer extends LinearLayout {
     for (int i = 0; i < thumbCount; i++) {
       final ImageView mi = (ImageView) getChildAt(i);
       mi.setImageDrawable(null);
+      mi.setOnClickListener(null);
       mi.setVisibility(GONE);
     }
     thumbCount = 0;
+  }
+
+  private OnMediaClickListener mediaClickListener;
+
+  public void setOnMediaClickListener(OnMediaClickListener mediaClickListener) {
+    this.mediaClickListener = mediaClickListener;
+  }
+
+  interface OnMediaClickListener {
+    void onMediaClicked(View view, int index);
   }
 }

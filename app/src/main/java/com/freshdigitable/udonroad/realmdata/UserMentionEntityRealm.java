@@ -16,61 +16,57 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
+import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
-import twitter4j.URLEntity;
+import io.realm.annotations.RealmClass;
+import twitter4j.UserMentionEntity;
 
 /**
- * Created by akihit on 2016/06/23.
+ * Created by akihit on 2016/08/21.
  */
-public class URLEntityRealm extends RealmObject implements URLEntity {
+@RealmClass
+public class UserMentionEntityRealm implements RealmModel, UserMentionEntity {
   @PrimaryKey
-  private String url;
-  private String expendedUrl;
-  private String displayUrl;
-  @Ignore
-  private int start;
-  @Ignore
-  private int end;
+  private long id;
+  private String screenName;
+  private String name;
 
-  public URLEntityRealm() {
+  public UserMentionEntityRealm() {
   }
 
-  public URLEntityRealm(URLEntity urlEntity) {
-    this.url = urlEntity.getURL();
-    this.expendedUrl = urlEntity.getExpandedURL();
-    this.displayUrl = urlEntity.getDisplayURL();
-    this.start = urlEntity.getStart();
-    this.end = urlEntity.getEnd();
+  public UserMentionEntityRealm(UserMentionEntity u) {
+    this.id = u.getId();
+    this.screenName = u.getScreenName();
+    this.name = u.getName();
   }
+
   @Override
   public String getText() {
-    return url;
+    return getScreenName();
   }
 
   @Override
-  public String getURL() {
-    return url;
+  public String getName() {
+    return name;
   }
 
   @Override
-  public String getExpandedURL() {
-    return expendedUrl;
+  public String getScreenName() {
+    return screenName;
   }
 
   @Override
-  public String getDisplayURL() {
-    return displayUrl;
+  public long getId() {
+    return id;
   }
 
   @Override
   public int getStart() {
-    return start;
+    throw new RuntimeException("not implemented yet.");
   }
 
   @Override
   public int getEnd() {
-    return end;
+    throw new RuntimeException("not implemented yet.");
   }
 }

@@ -17,95 +17,49 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.ColorRes;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.TextView;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.MediaContainer.OnMediaClickListener;
+import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
+import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Status;
+import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 public class StatusDetailFragment extends Fragment {
+  @SuppressWarnings("unused")
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   private Status status;
   @Inject
   StatusCache statusCache;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
-  }
-
-  @Nullable
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    binding = FragmentStatusDetailBinding.inflate(inflater, container, false);
-    return binding.getRoot();
-  }
-
-  @Override
-  public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    super.onActivityCreated(savedInstanceState);
-
-    long id = (long) getArguments().get("statusId");
-    statusCache.open(getContext());
-    this.status = statusCache.getStatus(id);
-    binding.statusView.bindStatus(this.status);
-
-    final ArrayAdapter<DetailMenu> arrayAdapter
-        = new ArrayAdapter<DetailMenu>(getContext(), android.R.layout.simple_list_item_1){
-      @Override
-      public View getView(int position, View convertView, ViewGroup parent) {
-        Log.d(TAG, "ArrayAdapter.getView: " + getCount());
-        View v = super.getView(position, convertView, parent);
-        final DetailMenu item = getItem(position);
-        final int strres = item.getMenuText();
-        ((TextView) v).setText(strres);
-        return v;
-      }
-    };
-    arrayAdapter.add(this.status.isRetweetedByMe() ? DetailMenu.RT_DELETE : DetailMenu.RT_CREATE);
-    arrayAdapter.add(this.status.isFavorited() ? DetailMenu.FAV_DELETE : DetailMenu.FAV_CREATE);
-    arrayAdapter.add(DetailMenu.REPLY);
-    arrayAdapter.add(DetailMenu.QUOTE);
-
-    binding.detailMenu.setAdapter(arrayAdapter);
-    binding.detailMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-      @Override
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        final DetailMenu menu = (DetailMenu) parent.getItemAtPosition(position);
-        menu.action(twitterApi, StatusDetailFragment.this.status, getContext());
-      }
-    });
-  }
-
-  @Override
-  public void onDestroyView() {
-    twitterApi = null;
-    statusCache.close();
-    status = null;
-    super.onDestroyView();
-  }
-
-  @Inject TwitterApi twitterApi;
+  @Inject
+  TwitterApi twitterApi;
+  private TimelineSubscriber<StatusCache> statusCacheSubscriber;
+  private Subscription subscription;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -115,96 +69,177 @@ public class StatusDetailFragment extends Fragment {
     return statusDetailFragment;
   }
 
-  enum DetailMenu implements DetailMenuInterface {
-    RT_CREATE(R.string.detail_rt_create,
-        R.string.detail_rt_create_success, R.string.detail_rt_create_failed) {
-      @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.retweetStatus(status.getId()), context);
-      }
-    }, RT_DELETE(R.string.detail_rt_delete,
-        R.string.detail_rt_delete_success, R.string.detail_rt_delete_failed) {
-      @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.destroyStatus(status.getId()), context);
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
-      }
-    }, FAV_CREATE(R.string.detail_fav_create,
-        R.string.detail_fav_create_success, R.string.detail_fav_create_failed) {
-      @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.createFavorite(status.getId()), context);
-      }
-    }, FAV_DELETE(R.string.detail_fav_delete,
-        R.string.detail_fav_delete_success, R.string.detail_fav_delete_failed) {
-      @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        doAction(api.destroyFavorite(status.getId()), context);
-      }
-    }, REPLY(R.string.detail_reply, 0, 0) {
-      @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        //TODO
-      }
-    }, QUOTE(R.string.detail_quote, 0, 0) {
-      @Override
-      public void action(TwitterApi api, Status status, Context context) {
-        //TODO
-      }
-    },;
+  @Nullable
+  @Override
+  public View onCreateView(LayoutInflater inflater,
+                           @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
+    binding = FragmentStatusDetailBinding.inflate(inflater, container, false);
+    return binding.getRoot();
+  }
 
-    final private int menuText;
-    final private int messageOnSuccess;
-    final private int messageOnFailed;
-
-    DetailMenu(@StringRes int menu,
-               @StringRes int messageOnSuccess,
-               @StringRes int messageOnFailed) {
-      this.menuText = menu;
-      this.messageOnSuccess = messageOnSuccess;
-      this.messageOnFailed = messageOnFailed;
+  @Override
+  public void onStart() {
+    super.onStart();
+    long id = (long) getArguments().get("statusId");
+    statusCache.open(getContext());
+    status = statusCache.findStatus(id);
+    if (status == null) {
+      Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
+      return;
     }
-
-    @StringRes
-    public int getMenuText() {
-      return menuText;
+    final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+    for (UserMentionEntity u : userMentionEntities) {
+      statusCache.upsertUser(u);
     }
+    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
+        new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
 
-    protected void doAction(Observable<Status> observable, Context context) {
-      observable.observeOn(AndroidSchedulers.mainThread())
-          .subscribe(onNext(),
-              onErrorToast(context),
-              onCompleteToast(context));
-    }
+    final DetailStatusView statusView = binding.statusView;
+    StatusViewImageHelper.load(status, statusView);
+    final User user = StatusViewImageHelper.getBindingUser(status);
+    final ImageView icon = statusView.getIcon();
+    icon.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        userIconClickedListener.onClicked(view, user);
+      }
+    });
+    statusView.getUserName().setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        userIconClickedListener.onClicked(icon, user);
+      }
+    });
+    statusView.getMediaContainer().setOnMediaClickListener(new OnMediaClickListener() {
+      @Override
+      public void onMediaClicked(View view, int index) {
+        MediaViewActivity.start(view.getContext(), status, index);
+      }
+    });
 
-    private Action0 onCompleteToast(final Context context) {
-      return new Action0() {
-        @Override
-        public void call() {
-          Toast.makeText(context, messageOnSuccess, Toast.LENGTH_SHORT).show();
+    setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
+    binding.sdFav.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (status.isFavorited()) {
+          statusCacheSubscriber.destroyFavorite(status.getId());
+        } else {
+          statusCacheSubscriber.createFavorite(status.getId());
         }
-      };
-    }
-
-    private Action1<Throwable> onErrorToast(final Context context) {
-      return new Action1<Throwable>() {
-        @Override
-        public void call(Throwable o) {
-          Toast.makeText(context, messageOnFailed, Toast.LENGTH_SHORT).show();
+      }
+    });
+    setTintList(binding.sdRetweet.getDrawable(), R.color.selector_rt_icon);
+    binding.sdRetweet.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (status.isRetweeted()) {
+          statusCacheSubscriber.destroyRetweet(status.getId());
+        } else {
+          statusCacheSubscriber.retweetStatus(status.getId());
         }
-      };
-    }
+      }
+    });
+    DrawableCompat.setTint(binding.sdReply.getDrawable(),
+        ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal));
+    binding.sdReply.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        setupInput(TweetInputFragment.TYPE_REPLY);
+      }
+    });
+    binding.sdQuote.setTextColor(
+        ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal));
+    binding.sdQuote.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        setupInput(TweetInputFragment.TYPE_QUOTE);
+      }
+    });
 
-    private Action1<Status> onNext() {
-      return new Action1<Status>() {
-        @Override
-        public void call(Status o) {
-        }
-      };
+    subscription = statusCache.observeStatusById(id)
+        .subscribe(new Action1<Status>() {
+          @Override
+          public void call(Status status) {
+            binding.statusView.bindStatus(status);
+            binding.sdFav.setActivated(status.isFavorited());
+            binding.sdRetweet.setActivated(status.isRetweeted());
+          }
+        });
+  }
+
+  private void setTintList(Drawable drawable, @ColorRes int color) {
+    DrawableCompat.setTintList(drawable,
+        ContextCompat.getColorStateList(getContext(), color));
+  }
+
+  private void setupInput(@TweetType int type) {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof TweetSendable) {
+      ((TweetSendable) activity).setupInput(type, status.getId());
+    } else {
+      ReplyActivity.start(activity, status.getId(), type, null);
     }
   }
 
-  interface DetailMenuInterface {
-    void action(TwitterApi api, Status status, Context context);
+  @Override
+  public void onStop() {
+    super.onStop();
+    binding.statusView.getIcon().setOnClickListener(null);
+    binding.statusView.getUserName().setOnClickListener(null);
+    binding.statusView.getMediaContainer().setOnMediaClickListener(null);
+    binding.statusView.reset();
+
+    binding.sdFav.setOnClickListener(null);
+    binding.sdRetweet.setOnClickListener(null);
+    binding.sdReply.setOnClickListener(null);
+    binding.sdQuote.setOnClickListener(null);
+    if (subscription != null && !subscription.isUnsubscribed()) {
+      subscription.unsubscribe();
+    }
+
+    if (status != null) {
+      StatusViewImageHelper.unload(getContext(), status.getId());
+    }
+    statusCache.close();
+    status = null;
+  }
+
+  @Override
+  public void onDetach() {
+    super.onDetach();
+    DrawableCompat.setTintList(binding.sdFav.getDrawable(), null);
+    DrawableCompat.setTintList(binding.sdRetweet.getDrawable(), null);
+  }
+
+  private OnUserIconClickedListener userIconClickedListener;
+
+  public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {
+    this.userIconClickedListener = listener;
+  }
+
+  @Override
+  public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
+      if (enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in);
+      } else {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out);
+      }
+    }
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
+      if (enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in);
+      } else {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out);
+      }
+    }
+    return super.onCreateAnimation(transit, enter, nextAnim);
   }
 }

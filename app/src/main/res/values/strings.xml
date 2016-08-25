@@ -1,38 +1,40 @@
 <resources>
     <string name="app_name">UdonRoad</string>
-    <string name="callback_url">udonr://twitter</string>
-    <string name="tweet_name">\@%1$s</string>
-    <string name="tweet_name_screenName">&lt;b>%1$s&lt;/b> \@%2$s</string>
-    <string name="tweet_retweeting_user">\@%1$s</string>
-    <string name="tweet_via">via %1$s</string>
-    <string name="tweet_rtby">RT by</string>
+    <string name="callback_url" translatable="false">udonr://twitter</string>
+    <string name="tweet_name" translatable="false">\@%1$s</string>
+    <string name="tweet_name_screenName" translatable="false">&lt;b>%1$s&lt;/b> \@%2$s</string>
+    <string name="tweet_name_screenName_lines" translatable="false">&lt;b>%1$s&lt;/b>&lt;br>\@%2$s</string>
+    <string name="tweet_retweeting_user" translatable="false">\@%1$s</string>
+    <string name="tweet_via" translatable="false">via %1$s</string>
+    <string name="tweet_rtby" translatable="false">RT by</string>
     <string name="tweet_media_descs">user appending image of this tweet</string>
-    <string name="desc_tweet_retweet_icon">Retweet icon</string>
-    <string name="desc_tweet_favorite_icon">Favorite icon</string>
-    <string name="desc_rt_user_icon">RT user icon</string>
-    <string name="timeline_at">\@</string>
-    <string name="update_status">Tweet</string>
-    <string name="desc_icon">user icon</string>
-    <string name="oauth">OAuth</string>
+    <string name="desc_tweet_retweet_icon" translatable="false">Retweet icon</string>
+    <string name="desc_tweet_favorite_icon" translatable="false">Favorite icon</string>
+    <string name="desc_rt_user_icon" translatable="false">RT user icon</string>
+    <string name="timeline_at" translatable="false">\@</string>
+    <string name="update_status" translatable="false">Tweet</string>
+    <string name="desc_icon" translatable="false">user icon</string>
+    <string name="oauth" translatable="false">OAuth</string>
     <string name="drawer_open">open nav drawer</string>
-    <string name="draver_close">close nav drawer</string>
+    <string name="drawer_close">close nav drawer</string>
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>
-    <string name="action_cancel">cancel</string>
     <string name="detail_rt_create">RT</string>
     <string name="detail_rt_delete">cancel RT</string>
     <string name="detail_fav_create">fav</string>
     <string name="detail_fav_delete">cancel fav</string>
     <string name="detail_reply">reply</string>
     <string name="detail_quote">quote</string>
-    <string name="detail_rt_create_failed">RT failure…</string>
-    <string name="detail_rt_create_success">RT successed</string>
-    <string name="detail_rt_delete_success">RT destroyed</string>
-    <string name="detail_rt_delete_failed">RT destroy failed…</string>
-    <string name="detail_fav_create_success">like successed</string>
-    <string name="detail_fav_create_failed">like failure…</string>
-    <string name="detail_fav_delete_failed">like delete failure…</string>
-    <string name="detail_fav_delete_success">like destroy successed</string>
-    <string name="desc_fling_indicator">action indicator</string>
-    <string name="media_remain_time">%1$d:%2$02d</string>
+    <string name="msg_rt_create_failed">RT failure…</string>
+    <string name="msg_rt_create_success">RT successed</string>
+    <string name="msg_rt_delete_success">RT destroyed</string>
+    <string name="msg_rt_delete_failed">RT destroy failed…</string>
+    <string name="msg_fav_create_success">fav successed</string>
+    <string name="msg_fav_create_failed">fav failure…</string>
+    <string name="msg_fav_delete_failed">fav delete failure…</string>
+    <string name="msg_fav_delete_success">fav destroy successed</string>
+    <string name="desc_fling_indicator" translatable="false">action indicator</string>
+    <string name="media_remain_time" translatable="false">%1$d:%2$02d</string>
+    <string name="msg_tweet_not_download">tweet was not downloaded…</string>
+    <string name="msg_already_fav">already faved</string>
 </resources>

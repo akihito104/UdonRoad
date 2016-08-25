@@ -220,13 +220,22 @@ public class UserInfoActivity extends AppCompatActivity {
   }
 
   public static Intent createIntent(Context context, User user) {
+    return createIntent(context, user.getId());
+  }
+
+  public static Intent createIntent(Context context, long userId) {
     Intent intent = new Intent(context, UserInfoActivity.class);
-    intent.putExtra("user", user.getId());
+    intent.putExtra("user", userId);
     return intent;
   }
 
+  public static void start(Context context, long userId) {
+    final Intent intent = createIntent(context, userId);
+    context.startActivity(intent);
+  }
+
   public static void start(Activity activity, User user, View userIcon) {
-    final Intent intent = createIntent(activity.getApplicationContext(), user);
+    final Intent intent = createIntent(activity.getApplicationContext(), user.getId());
     ViewCompat.setTransitionName(userIcon, "user_icon");
     ActivityCompat.startActivity(activity, intent,
         ActivityOptionsCompat.makeSceneTransitionAnimation(activity, userIcon, "user_icon").toBundle());

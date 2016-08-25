@@ -59,6 +59,7 @@ public class StatusRealm extends RealmObject implements Status {
   private UserRealm user;
   private RealmList<URLEntityRealm> urlEntities;
   private RealmList<ExtendedMediaEntityRealm> mediaEntities;
+  private RealmList<UserMentionEntityRealm> userMentionEntities;
   @Ignore
   private Status quotedStatus;
   private long quotedStatusId;
@@ -89,6 +90,11 @@ public class StatusRealm extends RealmObject implements Status {
     final ExtendedMediaEntity[] me = status.getExtendedMediaEntities();
     for (ExtendedMediaEntity m : me) {
       mediaEntities.add(new ExtendedMediaEntityRealm(m));
+    }
+    final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+    this.userMentionEntities = new RealmList<>();
+    for (UserMentionEntity u : userMentionEntities) {
+      this.userMentionEntities.add(new UserMentionEntityRealm(u));
     }
 
     this.quotedStatus = status.getQuotedStatus();
@@ -250,7 +256,7 @@ public class StatusRealm extends RealmObject implements Status {
   }
 
   public UserMentionEntity[] getUserMentionEntities() {
-    throw new RuntimeException("not implement yet.");
+    return userMentionEntities.toArray(new UserMentionEntity[userMentionEntities.size()]);
   }
 
   public URLEntity[] getURLEntities() {

@@ -25,12 +25,15 @@
     <string name="action_send_status">ツイートする</string>
     <string name="action_totop">先頭へ</string>
     <string name="app_name">UdonRoad</string>
-    <string name="detail_rt_create_failed">RTできませんでした…</string>
-    <string name="detail_rt_create_success">RTしました</string>
-    <string name="detail_rt_delete_success">RTを消しました</string>
-    <string name="detail_rt_delete_failed">RTを消せませんでした…</string>
-    <string name="detail_fav_create_success">ふぁぼしました</string>
-    <string name="detail_fav_create_failed">ふぁぼできませんでした…</string>
-    <string name="detail_fav_delete_failed">ふぁぼを消せませんでした…</string>
-    <string name="detail_fav_delete_success">ふぁぼを消しました</string>
+    <string name="msg_rt_create_failed">RTできませんでした…</string>
+    <string name="msg_rt_create_success">RTしました</string>
+    <string name="msg_rt_delete_success">RTを消しました</string>
+    <string name="msg_rt_delete_failed">RTを消せませんでした…</string>
+    <string name="msg_fav_create_success">ふぁぼしました</string>
+    <string name="msg_fav_create_failed">ふぁぼできませんでした…</string>
+    <string name="msg_fav_delete_failed">ふぁぼを消せませんでした…</string>
+    <string name="msg_fav_delete_success">ふぁぼを消しました</string>
+    <string name="msg_already_fav">もうふぁぼしてました</string>
+    <string name="msg_tweet_not_download">ツイートをダウンロードできませんでした…</string>
+    <string name="tweet_media_descs">ツイートに添付されたメディア</string>
 </resources>

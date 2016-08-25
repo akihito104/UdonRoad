@@ -2,11 +2,18 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <dimen name="tweet_small_fontsize">10sp</dimen>
-    <dimen name="tweet_user_icon">40dp</dimen>
-    <dimen name="tweet_main_size">12sp</dimen>
-    <dimen name="grid_margin">4dp</dimen>
-    <dimen name="small_user_icon">16dp</dimen>
+
     <dimen name="selected_indicator_size">24dp</dimen>
     <dimen name="action_bar_elevation">4dp</dimen>
+
+    <dimen name="tweet_small_fontsize">10sp</dimen>
+    <dimen name="tweet_main_size">12sp</dimen>
+    <dimen name="tweet_user_icon">40dp</dimen>
+    <dimen name="small_user_icon">16dp</dimen>
+    <dimen name="grid_margin">4dp</dimen>
+
+    <dimen name="tweet_detail_size">16sp</dimen>
+    <dimen name="tweet_detail_small_size">12sp</dimen>
+    <dimen name="detail_small_user_icon">20dp</dimen>
+    <dimen name="grid_margin_detail">8dp</dimen>
 </resources>

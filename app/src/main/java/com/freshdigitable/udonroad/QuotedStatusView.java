@@ -22,7 +22,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
@@ -63,17 +62,13 @@ public class QuotedStatusView extends StatusViewBase {
   }
 
   @Override
-  protected String parseText(Status status) {
+  protected CharSequence parseText(Status status) {
     String text = getBindingStatus(status).getText();
     final URLEntity[] urlEntities = status.getURLEntities();
     for (URLEntity u : urlEntities) {
       text = text.replace(u.getURL(), u.getDisplayURL());
     }
-    final ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
-    for (ExtendedMediaEntity eme : extendedMediaEntities) {
-      text = text.replace(eme.getURL(), "");
-    }
-    return text;
+    return removeMediaUrl(text, status.getExtendedMediaEntities());
   }
 
   @Override

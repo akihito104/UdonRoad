@@ -81,7 +81,7 @@ public class ReplyActivity extends AppCompatActivity {
 
     final long statusId = getStatusId();
     statusCache.open(getApplicationContext());
-    final Status status = statusCache.getStatus(statusId);
+    final Status status = statusCache.findStatus(statusId);
     binding.replyStatus.bindStatus(status);
 
     tweetInputFragment = (TweetInputFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);

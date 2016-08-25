@@ -37,6 +37,7 @@ import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 import twitter4j.UserStreamListener;
 
 import static org.mockito.Mockito.mock;
@@ -76,6 +77,7 @@ public class TwitterResponseMock {
         .thenReturn("<a href=\"https://twitter.com/akihito104\">Udonroad</a>");
     when(status.getURLEntities()).thenReturn(new URLEntity[0]);
     when(status.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[0]);
+    when(status.getUserMentionEntities()).thenReturn(new UserMentionEntity[0]);
     final User user = mock(User.class);
     when(user.getId()).thenReturn(2000L);
     when(user.getName()).thenReturn("akihito matsuda");

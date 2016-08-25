@@ -31,15 +31,13 @@ public interface TimelineStore extends StatusCapable {
 
   void clear();
 
-  Observable<Integer> subscribeInsertEvent();
+  Observable<Integer> observeInsertEvent();
 
-  Observable<Integer> subscribeUpdateEvent();
+  Observable<Integer> observeUpdateEvent();
 
-  Observable<Integer> subscribeDeleteEvent();
+  Observable<Integer> observeDeleteEvent();
 
   Status get(int position);
 
   int getItemCount();
-
-  Status findStatus(long statusId);
 }

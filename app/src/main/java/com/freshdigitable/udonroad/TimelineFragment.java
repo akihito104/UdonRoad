@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -27,8 +28,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
-import com.freshdigitable.udonroad.TimelineAdapter.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
@@ -37,7 +40,6 @@ import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
-import twitter4j.Status;
 
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
@@ -48,7 +50,6 @@ public class TimelineFragment extends Fragment {
   private TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Subscription insertEventSubscription;
-  private Subscription updateEventSubscription;
   private Subscription deleteEventSubscription;
   protected TimelineSubscriber<TimelineStore> timelineSubscriber;
 
@@ -60,7 +61,6 @@ public class TimelineFragment extends Fragment {
   @Override
   public void onDetach() {
     insertEventSubscription.unsubscribe();
-    updateEventSubscription.unsubscribe();
     deleteEventSubscription.unsubscribe();
     super.onDetach();
   }
@@ -112,21 +112,14 @@ public class TimelineFragment extends Fragment {
 
     final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
     tlAdapter = new TimelineAdapter(timelineStore);
-    insertEventSubscription = timelineStore.subscribeInsertEvent()
+    insertEventSubscription = timelineStore.observeInsertEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
             tlAdapter.notifyItemInserted(position);
           }
         });
-    updateEventSubscription = timelineStore.subscribeUpdateEvent()
-        .subscribe(new Action1<Integer>() {
-          @Override
-          public void call(Integer position) {
-            tlAdapter.notifyItemChanged(position);
-          }
-        });
-    deleteEventSubscription = timelineStore.subscribeDeleteEvent()
+    deleteEventSubscription = timelineStore.observeDeleteEvent()
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(Integer position) {
@@ -209,16 +202,10 @@ public class TimelineFragment extends Fragment {
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
     isAddedUntilStopped();
-    if (tlAdapter.isStatusViewSelected()) {
+    if (tlAdapter.isStatusViewSelected() && isVisible()) {
       fabHelper.getFab().show();
     } else {
       fabHelper.getFab().hide();
-    }
-    if (tlAdapter.isStatusViewSelected()) {
-      final long selectedTweetId = tlAdapter.getSelectedTweetId();
-      final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
-      final Status status = timelineStore.findStatus(selectedTweetId);
-      timelineStore.upsert(status);
     }
   }
 
@@ -254,12 +241,12 @@ public class TimelineFragment extends Fragment {
 
   @Override
   public void onDestroyView() {
+    super.onDestroyView();
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedTweetChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.setAdapter(null);
-    super.onDestroyView();
   }
 
   private boolean stopScroll = false;
@@ -351,5 +338,20 @@ public class TimelineFragment extends Fragment {
   @Nullable
   public View getSelectedView() {
     return tlAdapter.getSelectedView();
+  }
+
+  @Override
+  public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
+      if (!enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_out_right);
+      }
+    }
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
+      if (enter) {
+        return AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_in_left);
+      }
+    }
+    return super.onCreateAnimation(transit, enter, nextAnim);
   }
 }
