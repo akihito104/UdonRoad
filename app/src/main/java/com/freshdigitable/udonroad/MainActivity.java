@@ -447,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
 
     tlFragment.startScroll();
     tearDownTweetInputView();
-    if (tlFragment.isTweetSelected()) {
+    if (tlFragment.isTweetSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
     binding.mainToolbar.setTitle("Home");
