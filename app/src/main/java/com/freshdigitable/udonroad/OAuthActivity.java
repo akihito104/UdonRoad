@@ -47,6 +47,7 @@ public class OAuthActivity extends AppCompatActivity {
   Twitter twitter;
   @Inject
   SharedPreferences prefs;
+  private View oauthButton;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +56,19 @@ public class OAuthActivity extends AppCompatActivity {
     InjectionUtil.getComponent(this).inject(this);
 
     callbackUrl = getString(R.string.callback_url);
-    findViewById(R.id.button_oauth).setOnClickListener(new View.OnClickListener() {
+    oauthButton = findViewById(R.id.button_oauth);
+    oauthButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         startAuthorization();
       }
     });
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    oauthButton.setOnClickListener(null);
   }
 
   private RequestToken requestToken;
