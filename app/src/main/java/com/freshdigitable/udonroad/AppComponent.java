@@ -16,11 +16,15 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.MediaViewActivity.MediaFragment;
+
 import javax.inject.Singleton;
 
 import dagger.Component;
 
 /**
+ * AppComponent provides for dependency injection
+ *
  * Created by akihit on 2016/06/16.
  */
 @Singleton
@@ -45,4 +49,6 @@ public interface AppComponent {
   void inject(TweetInputFragment tweetInputFragment);
 
   void inject(UserInfoPagerFragment userInfoPagerFragment);
+
+  void inject(MediaFragment mediaFragment);
 }

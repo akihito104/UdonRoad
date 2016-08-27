@@ -33,6 +33,7 @@ import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -40,6 +41,8 @@ import twitter4j.UserMentionEntity;
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 
 /**
+ * StatusCacheRealm implements StatusCache for Realm.
+ *
  * Created by akihit on 2016/07/22.
  */
 public class StatusCacheRealm implements StatusCache {
@@ -200,6 +203,13 @@ public class StatusCacheRealm implements StatusCache {
         StatusRealm.removeChangeListeners(status);
       }
     });
+  }
+
+  @Override
+  public ExtendedMediaEntity getMediaEntity(long mediaId) {
+    return cache.where(ExtendedMediaEntityRealm.class)
+        .equalTo("id", mediaId)
+        .findFirst();
   }
 
   @Override

@@ -21,9 +21,12 @@ import android.support.annotation.Nullable;
 import java.util.List;
 
 import rx.Observable;
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
 /**
+ * StatusCapable defines data store for Status capable.
+ *
  * Created by akihit on 2016/08/06.
  */
 public interface StatusCapable {
@@ -39,4 +42,6 @@ public interface StatusCapable {
   Status findStatus(long statusId);
 
   Observable<Status> observeStatusById(long statusId);
+
+  ExtendedMediaEntity getMediaEntity(long mediaId);
 }

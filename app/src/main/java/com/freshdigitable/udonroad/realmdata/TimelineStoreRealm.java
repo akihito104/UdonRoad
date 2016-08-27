@@ -34,6 +34,7 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
 import rx.subjects.PublishSubject;
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
@@ -41,6 +42,8 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_QUOTAD_STATU
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_RETWEETED_STATUS_ID;
 
 /**
+ * TimelineStoreRealm implements TimelineStore for Realm.
+ *
  * Created by akihit on 2016/07/23.
  */
 public class TimelineStoreRealm implements TimelineStore {
@@ -358,5 +361,10 @@ public class TimelineStoreRealm implements TimelineStore {
   @Override
   public Observable<Status> observeStatusById(long statusId) {
     return statusCache.observeStatusById(statusId);
+  }
+
+  @Override
+  public ExtendedMediaEntity getMediaEntity(long mediaId) {
+    return statusCache.getMediaEntity(mediaId);
   }
 }

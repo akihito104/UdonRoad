@@ -26,6 +26,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewCompat;
@@ -54,9 +55,11 @@ import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
 /**
+ * MediaViewActivity shows picture or video in Status.
+ *
  * Created by akihit on 2016/07/12.
  */
-public class MediaViewActivity extends AppCompatActivity {
+public class MediaViewActivity extends AppCompatActivity implements View.OnClickListener {
   @SuppressWarnings("unused")
   private static final String TAG = MediaViewActivity.class.getSimpleName();
   private static final String CREATE_STATUS = "status";
@@ -111,23 +114,23 @@ public class MediaViewActivity extends AppCompatActivity {
     final ActionBar actionBar = getSupportActionBar();
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
         new View.OnSystemUiVisibilityChangeListener() {
-      @Override
-      public void onSystemUiVisibilityChange(int visibility) {
-        Log.d(TAG, "onSystemUiVisibilityChange: " + visibility);
-        if (isSystemUIVisible(visibility)) {
-          if (actionBar != null) {
-            setTitle();
-            actionBar.show();
+          @Override
+          public void onSystemUiVisibilityChange(int visibility) {
+            Log.d(TAG, "onSystemUiVisibilityChange: " + visibility);
+            if (isSystemUIVisible(visibility)) {
+              if (actionBar != null) {
+                setTitle();
+                actionBar.show();
+              }
+              mediaFfab.show();
+            } else {
+              if (actionBar != null) {
+                actionBar.hide();
+              }
+              mediaFfab.hide();
+            }
           }
-          mediaFfab.show();
-        } else {
-          if (actionBar != null) {
-            actionBar.hide();
-          }
-          mediaFfab.hide();
-        }
-      }
-    });
+        });
   }
 
   private boolean isSystemUIVisible() {
@@ -199,20 +202,8 @@ public class MediaViewActivity extends AppCompatActivity {
       return;
     }
     final int startPage = intent.getIntExtra(CREATE_START, 0);
-    binding.mediaPager.setAdapter(new MediaPagerAdapter(
-        getSupportFragmentManager(),
-        status.getExtendedMediaEntities(),
-        new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            Log.d(TAG, "onClick: page");
-            if (isSystemUIVisible()) {
-              hideSystemUI();
-            } else {
-              showSystemUI();
-            }
-          }
-        })
+    binding.mediaPager.setAdapter(
+        new MediaPagerAdapter(getSupportFragmentManager(), status.getExtendedMediaEntities())
     );
     binding.mediaPager.addOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setCurrentItem(startPage);
@@ -267,20 +258,27 @@ public class MediaViewActivity extends AppCompatActivity {
     }
   }
 
+  @Override
+  public void onClick(View view) {
+    Log.d(TAG, "onClick: page");
+    if (isSystemUIVisible()) {
+      hideSystemUI();
+    } else {
+      showSystemUI();
+    }
+  }
+
   private static class MediaPagerAdapter extends FragmentPagerAdapter {
     private ExtendedMediaEntity[] mediaEntities;
-    private View.OnClickListener pageClickListener;
 
-    public MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities,
-                             View.OnClickListener pageClickListener) {
+    public MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities) {
       super(fm);
       this.mediaEntities = mediaEntities;
-      this.pageClickListener = pageClickListener;
     }
 
     @Override
     public Fragment getItem(int position) {
-      return MediaFragment.create(mediaEntities[position], pageClickListener);
+      return MediaFragment.create(mediaEntities[position]);
     }
 
     @Override
@@ -290,8 +288,7 @@ public class MediaViewActivity extends AppCompatActivity {
   }
 
   public static abstract class MediaFragment extends Fragment {
-    private static MediaFragment create(
-        ExtendedMediaEntity mediaEntity, View.OnClickListener pageClickListener) {
+    private static MediaFragment create(ExtendedMediaEntity mediaEntity) {
       final MediaFragment fragment;
       final String type = mediaEntity.getType();
       if ("photo".equals(type)) {
@@ -300,13 +297,22 @@ public class MediaViewActivity extends AppCompatActivity {
         // video and animated_gif are distributed as a mp4
         fragment = new VideoMediaFragment();
       }
-      fragment.mediaEntity = mediaEntity;
-      fragment.pageClickListener = pageClickListener;
+      final Bundle args = new Bundle();
+      args.putLong("media_id", mediaEntity.getId());
+      fragment.setArguments(args);
       return fragment;
     }
 
     protected ExtendedMediaEntity mediaEntity;
     protected View.OnClickListener pageClickListener;
+    @Inject
+    StatusCache statusCache;
+
+    @Override
+    public void onAttach(Context context) {
+      super.onAttach(context);
+      InjectionUtil.getComponent(this).inject(this);
+    }
 
     @Nullable
     @Override
@@ -315,7 +321,25 @@ public class MediaViewActivity extends AppCompatActivity {
       if (container != null) {
         container.setBackgroundColor(Color.BLACK);
       }
+      final FragmentActivity activity = getActivity();
+      if (activity instanceof View.OnClickListener) {
+        pageClickListener = (View.OnClickListener) activity;
+      }
       return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      statusCache.open(getContext());
+      final long mediaId = getArguments().getLong("media_id");
+      mediaEntity = statusCache.getMediaEntity(mediaId);
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      statusCache.close();
     }
 
     protected final View.OnTouchListener touchListener = new View.OnTouchListener() {
