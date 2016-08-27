@@ -104,7 +104,9 @@ public class StatusDetailFragment extends Fragment {
     final DetailStatusView statusView = binding.statusView;
     StatusViewImageHelper.load(status, statusView);
     final User user = StatusViewImageHelper.getBindingUser(status);
+
     final ImageView icon = statusView.getIcon();
+    final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     icon.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -218,10 +220,18 @@ public class StatusDetailFragment extends Fragment {
     DrawableCompat.setTintList(binding.sdRetweet.getDrawable(), null);
   }
 
-  private OnUserIconClickedListener userIconClickedListener;
-
-  public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {
-    this.userIconClickedListener = listener;
+  private OnUserIconClickedListener createUserIconClickedListener() {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof OnUserIconClickedListener) {
+      return (OnUserIconClickedListener) activity;
+    } else {
+      return new OnUserIconClickedListener() {
+        @Override
+        public void onClicked(View view, User user) {
+          UserInfoActivity.start(activity, user, view);
+        }
+      };
+    }
   }
 
   @Override

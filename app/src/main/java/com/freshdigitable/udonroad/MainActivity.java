@@ -66,7 +66,9 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 /**
  * MainActivity shows home timeline for authorized user.
  */
-public class MainActivity extends AppCompatActivity implements TweetSendable {
+public class MainActivity
+    extends AppCompatActivity
+    implements TweetSendable, OnUserIconClickedListener {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -150,7 +152,6 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
         new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new HomeTimelineFragment();
-    tlFragment.setUserIconClickedListener(userIconClickedListener);
     tlFragment.setTimelineSubscriber(timelineSubscriber);
     tlFragment.setFABHelper(flingableFABHelper);
     getSupportFragmentManager().beginTransaction()
@@ -158,15 +159,8 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
         .commit();
   }
 
-  private final OnUserIconClickedListener userIconClickedListener
-      = new OnUserIconClickedListener() {
-    @Override
-    public void onClicked(View view, User user) {
-      showUserInfo(view, user);
-    }
-  };
-
-  private void showUserInfo(View view, User user) {
+  @Override
+  public void onClicked(View view, User user) {
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       return;
     }
@@ -290,7 +284,6 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
 
   private void showStatusDetail(long status) {
     statusDetail = StatusDetailFragment.getInstance(status);
-    statusDetail.setOnUserIconClickedListener(userIconClickedListener);
     getSupportFragmentManager().beginTransaction()
         .hide(tlFragment)
         .add(R.id.main_timeline_container, statusDetail)
@@ -311,7 +304,6 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
         .show(tlFragment)
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
         .commit();
-    statusDetail.setOnUserIconClickedListener(null);
     statusDetail = null;
     tlFragment.startScroll();
     if (tlFragment.isTweetSelected()) {
@@ -348,7 +340,6 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
     }
     tearDownTweetInputView();
     if (tlFragment != null) {
-      tlFragment.setUserIconClickedListener(null);
       tlFragment.setFABHelper(null);
     }
     homeTimeline.close();

@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -40,6 +41,7 @@ import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
+import twitter4j.User;
 
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
@@ -145,6 +147,7 @@ public class TimelineFragment extends Fragment {
         fetchTweet(new Paging(1, 20, 1, statusId - 1));
       }
     });
+    final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     binding.timeline.setAdapter(tlAdapter);
     fetchTweet();
@@ -295,10 +298,18 @@ public class TimelineFragment extends Fragment {
     return tlAdapter.isStatusViewSelected();
   }
 
-  private OnUserIconClickedListener userIconClickedListener;
-
-  public void setUserIconClickedListener(OnUserIconClickedListener listener) {
-    this.userIconClickedListener = listener;
+  private OnUserIconClickedListener createUserIconClickedListener() {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof OnUserIconClickedListener) {
+      return ((OnUserIconClickedListener) activity);
+    } else {
+      return new OnUserIconClickedListener() {
+        @Override
+        public void onClicked(View view, User user) {
+          UserInfoActivity.start(activity, user, view);
+        }
+      };
+    }
   }
 
   protected void fetchTweet() {
