@@ -36,7 +36,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
@@ -45,18 +47,21 @@ import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 
 import javax.inject.Inject;
 
+import rx.Observable;
+import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
 
-import static com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 
 /**
+ * UserInfoActivity shows information and tweets of specified user.
+ *
  * Created by akihit on 2016/01/30.
  */
-public class UserInfoActivity extends AppCompatActivity {
+public class UserInfoActivity extends AppCompatActivity implements TweetSendable {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -205,7 +210,7 @@ public class UserInfoActivity extends AppCompatActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     final int itemId = item.getItemId();
-    switch (itemId){
+    switch (itemId) {
       case R.id.userInfo_heading:
         viewPager.scrollToTop();
         break;
@@ -251,21 +256,10 @@ public class UserInfoActivity extends AppCompatActivity {
         String.format(resources.getString(R.string.tweet_name), user.getScreenName()));
   }
 
-  private final OnStatusSending statusSending = new OnStatusSending() {
-    @Override
-    public void onSuccess(Status status) {
-      closeTwitterInputView();
-    }
-
-    @Override
-    public void onFailure(Throwable e) {
-    }
-  };
-
   private void showTwitterInputview(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
 
-    tweetInputFragment = TweetInputFragment.create(type, statusId, statusSending);
+    tweetInputFragment = TweetInputFragment.create(type, statusId);
     tweetInputFragment.setTweetSendFab(binding.userInfoTweetSend);
     getSupportFragmentManager().beginTransaction()
         .hide(userInfoAppbarFragment)
@@ -310,5 +304,28 @@ public class UserInfoActivity extends AppCompatActivity {
       return;
     }
     super.onBackPressed();
+  }
+
+  @Override
+  public void setupInput(@TweetType int type, long statusId) {
+    showTwitterInputview(type, statusId);
+  }
+
+  @Override
+  public void observeUpdateStatus(Observable<Status> updateStatusObservable) {
+    updateStatusObservable.subscribe(
+        new Action1<Status>() {
+          @Override
+          public void call(Status status) {
+            closeTwitterInputView();
+          }
+        },
+        new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Toast.makeText(getApplicationContext(), "send tweet: failure...", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "send tweet; ", throwable);
+          }
+        });
   }
 }

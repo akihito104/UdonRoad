@@ -22,6 +22,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -42,15 +43,16 @@ import java.util.List;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 /**
- * TweetInputFragment provides Appbar with TweetInputView.
+ * TweetInputFragment provides TweetInputView and logic to send tweet.
  *
  * Created by akihit on 2016/02/06.
  */
@@ -64,17 +66,16 @@ public class TweetInputFragment extends Fragment {
   @Inject
   ConfigStore configStore;
 
-  public static TweetInputFragment create(@TweetType int type, OnStatusSending statusSending) {
-    return create(type, -1, statusSending);
+  public static TweetInputFragment create(@TweetType int type) {
+    return create(type, -1);
   }
 
-  public static TweetInputFragment create(@TweetType int type, long statusId, OnStatusSending statusSending) {
+  public static TweetInputFragment create(@TweetType int type, long statusId) {
     final Bundle args = new Bundle();
     args.putInt("tweet_type", type);
     args.putLong("status_id", statusId);
     final TweetInputFragment tweetInputFragment = new TweetInputFragment();
     tweetInputFragment.setArguments(args);
-    tweetInputFragment.setOnStatusSending(statusSending);
     return tweetInputFragment;
   }
 
@@ -106,7 +107,7 @@ public class TweetInputFragment extends Fragment {
     final Bundle arguments = getArguments();
     final @TweetType int tweetType = arguments.getInt("tweet_type");
     final long statusId = arguments.getLong("status_id", -1);
-    stretchTweetInputView(tweetType, statusId, statusSending);
+    stretchTweetInputView(tweetType, statusId);
   }
 
   @Override
@@ -139,46 +140,41 @@ public class TweetInputFragment extends Fragment {
 
   private long inReplyToStatusId = -1;
   private List<Long> quoteStatusIds = new ArrayList<>(4);
-  private OnStatusSending statusSending;
 
-  public void setOnStatusSending(OnStatusSending statusSending) {
-    this.statusSending = statusSending;
-  }
-
-  public void stretchTweetInputView(@TweetType int type, long statusId, OnStatusSending statusSending) {
+  public void stretchTweetInputView(@TweetType int type, long statusId) {
     if (type == TYPE_DEFAULT) {
-      stretchTweetInputView(statusSending);
+      stretchTweetInputView();
     } else if (type == TYPE_REPLY) {
-      stretchTweetInputViewWithInReplyTo(statusSending, statusId);
+      stretchTweetInputViewWithInReplyTo(statusId);
     } else if (type == TYPE_QUOTE) {
-      stretchTweetInputViewWithQuoteStatus(statusSending, statusId);
+      stretchTweetInputViewWithQuoteStatus(statusId);
     }
   }
 
-  private void stretchTweetInputView(final OnStatusSending statusSending) {
+  private void stretchTweetInputView() {
     setUpTweetInputView();
     setUpTweetSendFab();
     binding.mainTweetInputView.appearing();
   }
 
-  private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, long inReplyToStatusId) {
+  private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
     final Status inReplyTo = statusCache.findStatus(inReplyToStatusId);
-    stretchTweetInputViewWithInReplyTo(statusSending, inReplyTo);
+    stretchTweetInputViewWithInReplyTo(inReplyTo);
   }
 
-  private void stretchTweetInputViewWithInReplyTo(final OnStatusSending statusSending, Status inReplyTo) {
+  private void stretchTweetInputViewWithInReplyTo(Status inReplyTo) {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo != null) {
       inputText.addText(ReplyEntity.create(inReplyTo).createReplyString());
       inputText.setInReplyTo();
     }
-    stretchTweetInputView(statusSending);
+    stretchTweetInputView();
   }
 
-  private void stretchTweetInputViewWithQuoteStatus(final OnStatusSending statusSending, long quotedStatus) {
+  private void stretchTweetInputViewWithQuoteStatus(long quotedStatus) {
     quoteStatusIds.add(quotedStatus);
     binding.mainTweetInputView.setQuote();
-    stretchTweetInputView(statusSending);
+    stretchTweetInputView();
   }
 
   private void setUpTweetInputView() {
@@ -204,34 +200,45 @@ public class TweetInputFragment extends Fragment {
     if (inputText.getText().length() < 1) {
       tweetSendFab.setEnabled(false);
     }
+    tweetSendFab.setOnClickListener(createSendClickListener());
+  }
 
-    tweetSendFab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(final View v) {
-        v.setClickable(false);
-        createSendObservable()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Subscriber<Status>() {
-              @Override
-              public void onNext(Status status) {
-                inputText.getText().clear();
-                inputText.clearFocus();
-                statusSending.onSuccess(status);
-                inputText.disappearing();
-              }
-
-              @Override
-              public void onError(Throwable e) {
-                statusSending.onFailure(e);
-              }
-
-              @Override
-              public void onCompleted() {
-                v.setClickable(true);
-              }
-            });
-      }
-    });
+  private View.OnClickListener createSendClickListener() {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof TweetSendable) {
+      return new View.OnClickListener() {
+        @Override
+        public void onClick(final View v) {
+          v.setClickable(false);
+          ((TweetSendable) activity).observeUpdateStatus(
+              observeUpdateStatus()
+                  .doOnCompleted(new Action0() {
+                    @Override
+                    public void call() {
+                      v.setClickable(true);
+                    }
+                  })
+                  .observeOn(AndroidSchedulers.mainThread())
+          );
+        }
+      };
+    } else {
+      return new View.OnClickListener() {
+        @Override
+        public void onClick(final View view) {
+          view.setClickable(false);
+          observeUpdateStatus()
+              .doOnCompleted(new Action0() {
+                @Override
+                public void call() {
+                  view.setClickable(true);
+                }
+              })
+              .observeOn(AndroidSchedulers.mainThread())
+              .subscribe();
+        }
+      };
+    }
   }
 
   private void tearDownSendTweetFab() {
@@ -262,6 +269,19 @@ public class TweetInputFragment extends Fragment {
     }
   }
 
+  private Observable<Status> observeUpdateStatus() {
+    final TweetInputView inputText = binding.mainTweetInputView;
+    return createSendObservable()
+        .doOnNext(new Action1<Status>() {
+          @Override
+          public void call(Status status) {
+            inputText.getText().clear();
+            inputText.clearFocus();
+            inputText.disappearing();
+          }
+        });
+  }
+
   private boolean isNeedStatusUpdate() {
     return inReplyToStatusId > 0
         || quoteStatusIds.size() > 0;
@@ -283,14 +303,10 @@ public class TweetInputFragment extends Fragment {
     return binding.mainTweetInputView.isVisible();
   }
 
-  interface OnStatusSending {
-    void onSuccess(Status status);
-
-    void onFailure(Throwable e);
-  }
-
   interface TweetSendable {
     void setupInput(@TweetType int type, long statusId);
+
+    void observeUpdateStatus(Observable<Status> updateStatusObservable);
   }
 
   public static final int TYPE_DEFAULT = 0;

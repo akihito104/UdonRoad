@@ -41,7 +41,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.TweetInputFragment.OnStatusSending;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -53,6 +52,7 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Status;
@@ -63,6 +63,9 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
+/**
+ * MainActivity shows home timeline for authorized user.
+ */
 public class MainActivity extends AppCompatActivity implements TweetSendable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
@@ -121,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
   }
 
   private void setupAppBar(@TweetType int type, long statusId) {
-    tweetInputFragment = TweetInputFragment.create(type, statusId, onStatusSending);
+    tweetInputFragment = TweetInputFragment.create(type, statusId);
     tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_appbar_container, tweetInputFragment)
@@ -133,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
       return;
     }
     tweetInputFragment.collapseStatusInputView();
-    tweetInputFragment.setOnStatusSending(null);
     tweetInputFragment.setTweetSendFab(null);
     getSupportFragmentManager().beginTransaction()
         .remove(tweetInputFragment)
@@ -410,19 +412,6 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
     }
   }
 
-  private final OnStatusSending onStatusSending = new OnStatusSending() {
-    @Override
-    public void onSuccess(Status status) {
-      cancelWritingSelected();
-    }
-
-    @Override
-    public void onFailure(Throwable e) {
-      showToast("send tweet: failure...");
-      Log.e(TAG, "update status: " + e);
-    }
-  };
-
   private void sendStatusSelected(@TweetType int type, long statusId) {
     sendStatusMenuItem.setVisible(false);
     cancelMenuItem.setVisible(true);
@@ -460,5 +449,24 @@ public class MainActivity extends AppCompatActivity implements TweetSendable {
   @Override
   public void setupInput(@TweetType int type, long statusId) {
     sendStatusSelected(type, statusId);
+  }
+
+  @Override
+  public void observeUpdateStatus(Observable<Status> updateStatusObservable) {
+    updateStatusObservable.subscribe(
+        new Action1<Status>() {
+          @Override
+          public void call(Status status) {
+            cancelWritingSelected();
+          }
+        },
+        new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            showToast("send tweet: failure...");
+            Log.e(TAG, "update status: " + throwable);
+          }
+        }
+    );
   }
 }

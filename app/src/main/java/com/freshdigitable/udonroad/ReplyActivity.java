@@ -40,6 +40,9 @@ import twitter4j.Status;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
 /**
+ * ReplyActivity provides to input reply or quote tweet. It is started by the context does not have
+ * TweetInputView or its Fragment.
+ *
  * Created by akihit on 2016/07/27.
  */
 public class ReplyActivity extends AppCompatActivity {
@@ -87,15 +90,7 @@ public class ReplyActivity extends AppCompatActivity {
     tweetInputFragment = (TweetInputFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
     tweetInputFragment.setTweetSendFab(binding.replySendTweet);
     final @TweetType int tweetType = getTweetType();
-    tweetInputFragment.stretchTweetInputView(tweetType, statusId, new TweetInputFragment.OnStatusSending() {
-      @Override
-      public void onSuccess(Status status) {
-      }
-
-      @Override
-      public void onFailure(Throwable e) {
-      }
-    });
+    tweetInputFragment.stretchTweetInputView(tweetType, statusId);
   }
 
   @Override
