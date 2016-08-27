@@ -218,7 +218,6 @@ public class TweetInputFragment extends Fragment {
                       v.setClickable(true);
                     }
                   })
-                  .observeOn(AndroidSchedulers.mainThread())
           );
         }
       };
@@ -234,7 +233,6 @@ public class TweetInputFragment extends Fragment {
                   view.setClickable(true);
                 }
               })
-              .observeOn(AndroidSchedulers.mainThread())
               .subscribe();
         }
       };
@@ -272,6 +270,7 @@ public class TweetInputFragment extends Fragment {
   private Observable<Status> observeUpdateStatus() {
     final TweetInputView inputText = binding.mainTweetInputView;
     return createSendObservable()
+        .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(new Action1<Status>() {
           @Override
           public void call(Status status) {
