@@ -83,6 +83,7 @@ public class MainActivity
   @Inject
   TimelineStore homeTimeline;
   private TimelineSubscriber<TimelineStore> timelineSubscriber;
+  private UserStreamUtil userStream;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -94,6 +95,8 @@ public class MainActivity
       finish();
       return;
     }
+    userStream = new UserStreamUtil(homeTimeline);
+    InjectionUtil.getComponent(this).inject(userStream);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
@@ -151,7 +154,7 @@ public class MainActivity
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
         new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
-    tlFragment = new HomeTimelineFragment();
+    tlFragment = new TimelineFragment();
     tlFragment.setTimelineSubscriber(timelineSubscriber);
     tlFragment.setFABHelper(flingableFABHelper);
     getSupportFragmentManager().beginTransaction()
@@ -220,6 +223,7 @@ public class MainActivity
   protected void onStart() {
     super.onStart();
     configStore.open(getApplicationContext());
+    userStream.connect();
     twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<User>() {
@@ -334,6 +338,7 @@ public class MainActivity
   @Override
   protected void onDestroy() {
     super.onDestroy();
+    userStream.disconnect();
     if (binding != null) {
       binding.ffab.setOnFlingListener(null);
       binding.navDrawer.setNavigationItemSelectedListener(null);
