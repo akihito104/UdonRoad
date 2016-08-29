@@ -306,7 +306,7 @@ public class TimelineFragment extends Fragment {
       return new OnUserIconClickedListener() {
         @Override
         public void onClicked(View view, User user) {
-          UserInfoActivity.start(activity, user, view);
+          // nop
         }
       };
     }
