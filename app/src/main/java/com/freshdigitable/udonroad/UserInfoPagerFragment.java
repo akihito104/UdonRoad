@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -29,26 +30,36 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.freshdigitable.udonroad.TimelineSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
+import twitter4j.Paging;
+
 /**
+ * UserInfoPagerFragment provides ViewPager to show specified user tweets.
+ *
  * Created by akihit on 2016/06/06.
  */
 public class UserInfoPagerFragment extends Fragment {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
+  public static final int REQUEST_CODE_USER_HOME = 10;
+  public static final int REQUEST_CODE_USER_FAVS = 11;
   @Inject
   TwitterApi twitterApi;
   @Inject
   TimelineStore userHomeTimeline;
   @Inject
   TimelineStore userFavTimeline;
+  private Map<Integer, TimelineSubscriber<TimelineStore>> timelineSubscriberMap = new HashMap<>();
 
   @Override
   public void onAttach(Context context) {
@@ -80,22 +91,24 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
+    timelineSubscriberMap.put(REQUEST_CODE_USER_HOME,
+        new TimelineSubscriber<>(twitterApi, userHomeTimeline, new SnackbarFeedback(viewPager)));
+    timelineSubscriberMap.put(REQUEST_CODE_USER_FAVS,
+        new TimelineSubscriber<>(twitterApi, userFavTimeline, new SnackbarFeedback(viewPager)));
 
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
 
-    final UserHomeTimelineFragment home = UserHomeTimelineFragment.getInstance(userId);
+    final TimelineFragment home = TimelineFragment.getInstance(this, REQUEST_CODE_USER_HOME);
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
-    home.setTimelineSubscriber(new TimelineSubscriber<>(twitterApi, userHomeTimeline,
-            new TimelineSubscriber.SnackbarFeedback(viewPager)));
+    home.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME));
     home.setFABHelper(fabHelper);
     pagerAdapter.putFragment(home, "Tweets");
 
-    final UserFavsFragment favs = UserFavsFragment.getInstance(userId);
+    final TimelineFragment favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
-    favs.setTimelineSubscriber(new TimelineSubscriber<>(twitterApi, userFavTimeline,
-        new TimelineSubscriber.SnackbarFeedback(viewPager)));
+    favs.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS));
     favs.setFABHelper(fabHelper);
     pagerAdapter.putFragment(favs, "likes");
 
@@ -142,7 +155,31 @@ public class UserInfoPagerFragment extends Fragment {
     viewPager.setAdapter(null);
     userHomeTimeline.close();
     userFavTimeline.close();
+    timelineSubscriberMap.clear();
     super.onDestroyView();
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    final TimelineSubscriber<TimelineStore> timelineSubscriber = timelineSubscriberMap.get(requestCode);
+    final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
+    if (requestCode == REQUEST_CODE_USER_HOME) {
+      if (paging == null) {
+        timelineSubscriber.fetchHomeTimeline(userId);
+      } else {
+        timelineSubscriber.fetchHomeTimeline(userId, paging);
+      }
+      return;
+    }
+    if (requestCode == REQUEST_CODE_USER_FAVS) {
+      if (paging == null) {
+        timelineSubscriber.fetchFavorites(userId);
+      } else {
+        timelineSubscriber.fetchFavorites(userId, paging);
+      }
+      return;
+    }
+    super.onActivityResult(requestCode, resultCode, data);
   }
 
   private long userId;

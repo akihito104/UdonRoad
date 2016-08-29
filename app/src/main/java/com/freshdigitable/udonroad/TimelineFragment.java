@@ -17,7 +17,9 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -43,6 +45,9 @@ import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.User;
 
+/**
+ * TimelineFragment provides RecyclerView to show timeline.
+ */
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
@@ -224,16 +229,6 @@ public class TimelineFragment extends Fragment {
   }
 
   @Override
-  public void onResume() {
-    super.onResume();
-  }
-
-  @Override
-  public void onPause() {
-    super.onPause();
-  }
-
-  @Override
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
@@ -313,11 +308,31 @@ public class TimelineFragment extends Fragment {
   }
 
   protected void fetchTweet() {
-    timelineSubscriber.fetchHomeTimeline();
+    fetchTweet(null);
   }
 
-  protected void fetchTweet(Paging paging) {
-    timelineSubscriber.fetchHomeTimeline(paging);
+  public static final String EXTRA_PAGING = "paging";
+
+  protected void fetchTweet(@Nullable Paging paging) {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof OnFetchTweets) {
+      fetchTweet((OnFetchTweets) activity, paging);
+      return;
+    }
+    final Fragment targetFragment = getTargetFragment();
+    if (targetFragment != null) {
+      final Intent intent = new Intent();
+      intent.putExtra(EXTRA_PAGING, paging);
+      targetFragment.onActivityResult(getTargetRequestCode(), 1, intent);
+    }
+  }
+
+  private void fetchTweet(@NonNull OnFetchTweets fetcher, @Nullable Paging paging) {
+    if (paging == null) {
+      fetcher.fetchTweet();
+    } else {
+      fetcher.fetchTweet(paging);
+    }
   }
 
   private FlingableFABHelper fabHelper;
@@ -326,16 +341,10 @@ public class TimelineFragment extends Fragment {
     this.fabHelper = flingableFABHelper;
   }
 
-  protected static <T extends Fragment> T getInstance(T fragment, long userId) {
-    final Bundle args = new Bundle();
-    args.putLong("user_id", userId);
-    fragment.setArguments(args);
-    return fragment;
-  }
-
-  protected long getUserId() {
-    final Bundle arguments = getArguments();
-    return arguments.getLong("user_id");
+  public static TimelineFragment getInstance(Fragment fragment, int requestCode) {
+    final TimelineFragment timelineFragment = new TimelineFragment();
+    timelineFragment.setTargetFragment(fragment, requestCode);
+    return timelineFragment;
   }
 
   public void setTimelineSubscriber(TimelineSubscriber<TimelineStore> timelineSubscriber) {
@@ -364,5 +373,11 @@ public class TimelineFragment extends Fragment {
       }
     }
     return super.onCreateAnimation(transit, enter, nextAnim);
+  }
+
+  interface OnFetchTweets {
+    void fetchTweet();
+
+    void fetchTweet(Paging paging);
   }
 }

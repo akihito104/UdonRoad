@@ -41,6 +41,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TimelineFragment.OnFetchTweets;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -55,6 +56,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
@@ -68,7 +70,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  */
 public class MainActivity
     extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener {
+    implements TweetSendable, OnUserIconClickedListener, OnFetchTweets {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -464,5 +466,15 @@ public class MainActivity
           }
         }
     );
+  }
+
+  @Override
+  public void fetchTweet() {
+    timelineSubscriber.fetchHomeTimeline();
+  }
+
+  @Override
+  public void fetchTweet(Paging paging) {
+    timelineSubscriber.fetchHomeTimeline(paging);
   }
 }
