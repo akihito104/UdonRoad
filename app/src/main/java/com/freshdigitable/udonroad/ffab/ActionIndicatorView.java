@@ -22,8 +22,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
@@ -32,10 +32,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * ActionIndicatorView shows action icon of FlingableFAB.
+ *
  * Created by akihit on 2016/07/04.
  */
-public class ActionIndicatorView extends RelativeLayout {
-  private Map<Direction, ImageView> icons;
+public class ActionIndicatorView extends FrameLayout {
+  private final Map<Direction, ImageView> icons = new HashMap<>();
+  private final Map<Direction, Drawable> drawables = new HashMap<>();
 
   public ActionIndicatorView(Context context) {
     this(context, null);
@@ -55,7 +58,6 @@ public class ActionIndicatorView extends RelativeLayout {
     final ImageView iconRight = (ImageView) v.findViewById(R.id.indicator_right);
     final ImageView iconDown = (ImageView) v.findViewById(R.id.indicator_down);
     final ImageView iconLeft = (ImageView) v.findViewById(R.id.indicator_left);
-    icons = new HashMap<>();
     icons.put(Direction.UP, iconUp);
     icons.put(Direction.RIGHT, iconRight);
     icons.put(Direction.DOWN, iconDown);
@@ -63,7 +65,10 @@ public class ActionIndicatorView extends RelativeLayout {
   }
 
   public void setDrawable(Direction direction, Drawable drawable) {
-    icons.get(direction).setImageDrawable(drawable);
+    drawables.put(direction, drawable);
+    if (direction.isOnAxis()) {
+      icons.get(direction).setImageDrawable(drawable);
+    }
   }
 
   public void onActionSelected(Direction direction) {
@@ -74,82 +79,59 @@ public class ActionIndicatorView extends RelativeLayout {
       ic.setVisibility(INVISIBLE);
     }
 
-    if (direction.index % 2 == 0) {
-      final ImageView icon = icons.get(direction);
-      toOrigin(icon);
-      scaleUp(direction, 2.0f);
-      icon.setVisibility(VISIBLE);
+    if (direction.isOnAxis()) {
+      translationTo(direction, TransCoefs.ORIGIN);
     } else {
-      if (direction == Direction.UP_RIGHT) {
-        toSecondQuadrant(icons.get(Direction.UP));
-        toForthQuadrant(icons.get(Direction.RIGHT));
-      } else if (direction == Direction.DOWN_RIGHT) {
-        toFirstQuadrant(icons.get(Direction.RIGHT));
-        toThirdQuadrant(icons.get(Direction.DOWN));
-      } else if (direction == Direction.DOWN_LEFT) {
-        toSecondQuadrant(icons.get(Direction.LEFT));
-        toForthQuadrant(icons.get(Direction.DOWN));
-      } else if (direction == Direction.UP_LEFT) {
-        toFirstQuadrant(icons.get(Direction.UP));
-        toThirdQuadrant(icons.get(Direction.LEFT));
+      final Drawable drawable = drawables.get(direction);
+      if (drawable != null) {
+        icons.get(Direction.UP).setImageDrawable(drawable);
+        translationTo(Direction.UP, TransCoefs.ORIGIN);
+        return;
       }
-      for (Direction d : direction.getBothNeighbor()) {
-        scaleUp(d, 1.5f);
-        icons.get(d).setVisibility(VISIBLE);
+      if (direction == Direction.UP_RIGHT) {
+        translationTo(Direction.UP, TransCoefs.SECOND_QUAD);
+        translationTo(Direction.RIGHT, TransCoefs.FORTH_QUAD);
+      } else if (direction == Direction.DOWN_RIGHT) {
+        translationTo(Direction.RIGHT, TransCoefs.FIRST_QUAD);
+        translationTo(Direction.DOWN, TransCoefs.THIRD_QUAD);
+      } else if (direction == Direction.DOWN_LEFT) {
+        translationTo(Direction.LEFT, TransCoefs.SECOND_QUAD);
+        translationTo(Direction.DOWN, TransCoefs.FORTH_QUAD);
+      } else if (direction == Direction.UP_LEFT) {
+        translationTo(Direction.UP, TransCoefs.FIRST_QUAD);
+        translationTo(Direction.LEFT, TransCoefs.THIRD_QUAD);
       }
     }
   }
 
-  private void toOrigin(View ic) {
-    final float dX = getPaddingLeft() + calcContentWidth() / 2 - calcCenterX(ic);
-    final float dY = getPaddingTop() + calcContentHeight() / 2 - calcCenterY(ic);
-    setTranslation(ic, dX, dY);
+  private void translationTo(Direction direction, TransCoefs coefs) {
+    translationTo(icons.get(direction), coefs);
   }
 
-  private void toFirstQuadrant(View ic) {
-    final float dX = getPaddingLeft() + 3 * calcContentWidth() / 4 - calcCenterX(ic);
-    final float dY = getPaddingTop() + calcContentHeight() / 4 - calcCenterY(ic);
+  private void translationTo(View ic, TransCoefs coefs) {
+    final float dX = getPaddingLeft() + coefs.xCoef * calcContentWidth() - calcCenterX(ic);
+    final float dY = getPaddingTop() + coefs.yCoef * calcContentHeight() - calcCenterY(ic);
     setTranslation(ic, dX, dY);
-  }
-
-  private void toSecondQuadrant(View ic) {
-    final float dX = getPaddingLeft() + calcContentWidth() / 4 - calcCenterX(ic);
-    final float dY = getPaddingTop() + calcContentHeight() / 4 - calcCenterY(ic);
-    setTranslation(ic, dX, dY);
-  }
-
-  private void toThirdQuadrant(View ic) {
-    final float dX = getPaddingLeft() + calcContentWidth() / 4 - calcCenterX(ic);
-    final float dY = getPaddingTop() + 3 * calcContentHeight() / 4 - calcCenterY(ic);
-    setTranslation(ic, dX, dY);
-  }
-
-  private void toForthQuadrant(View ic) {
-    final float dX = getPaddingLeft() + 3 * calcContentWidth() / 4 - calcCenterX(ic);
-    final float dY = getPaddingTop() + 3 * calcContentHeight() / 4 - calcCenterY(ic);
-    setTranslation(ic, dX, dY);
+    setScale(ic, coefs.scale);
+    ic.setVisibility(VISIBLE);
   }
 
   public void onActionLeave(Direction direction) {
     if (direction == Direction.UNDEFINED) {
       return;
     }
-    if (direction.index % 2 == 0) {
+    if (direction.isOnAxis()) {
       resetViewTransforms(direction);
     } else {
       for (Direction d : direction.getBothNeighbor()) {
         resetViewTransforms(d);
       }
     }
+    for (Direction d : icons.keySet()) {
+      setDrawable(d, drawables.get(d));
+    }
     for (ImageView ic : icons.values()) {
       ic.setVisibility(VISIBLE);
-    }
-  }
-
-  private void scaleUp(@NonNull Direction direction, float scale) {
-    final ImageView icon = icons.get(direction);
-    if (icon != null) {
-      setScale(icon, scale);
     }
   }
 
@@ -161,11 +143,11 @@ public class ActionIndicatorView extends RelativeLayout {
     }
   }
 
-  private float calcCenterY(View ic) {
+  private static float calcCenterY(View ic) {
     return ic.getY() + ic.getHeight() / 2;
   }
 
-  private float calcCenterX(View ic) {
+  private static float calcCenterX(View ic) {
     return ic.getX() + ic.getWidth() / 2;
   }
 
@@ -177,13 +159,29 @@ public class ActionIndicatorView extends RelativeLayout {
     return getHeight() - getPaddingTop() - getPaddingBottom();
   }
 
-  private void setScale(@NonNull ImageView icon, float scale) {
+  private static void setScale(@NonNull View icon, float scale) {
     ViewCompat.setScaleX(icon, scale);
     ViewCompat.setScaleY(icon, scale);
   }
 
-  private void setTranslation(View ic, float dX, float dY) {
+  private static void setTranslation(View ic, float dX, float dY) {
     ViewCompat.setTranslationX(ic, dX);
     ViewCompat.setTranslationY(ic, dY);
+  }
+
+  private enum TransCoefs {
+    ORIGIN(0.5f, 0.5f, 2f),
+    FIRST_QUAD(0.75f, 0.25f, 1.5f), SECOND_QUAD(0.25f, 0.25f, 1.5f),
+    THIRD_QUAD(0.25f, 0.75f, 1.5f), FORTH_QUAD(0.75f, 0.75f, 1.5f),;
+
+    final float xCoef;
+    final float yCoef;
+    final float scale;
+
+    TransCoefs(float xCoef, float yCoef, float scale) {
+      this.xCoef = xCoef;
+      this.yCoef = yCoef;
+      this.scale = scale;
+    }
   }
 }

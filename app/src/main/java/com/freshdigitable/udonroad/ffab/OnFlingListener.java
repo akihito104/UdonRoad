@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad.ffab;
 import android.view.MotionEvent;
 
 /**
+ * OnFlingListener defines callback method of fling event of FlingableFAB.
+ *
  * Created by akihit on 2016/03/22.
  */
 public interface OnFlingListener {
@@ -101,6 +103,10 @@ public interface OnFlingListener {
         }
       }
       return UNDEFINED;
+    }
+
+    public boolean isOnAxis() {
+      return index >= 0 && index % 2 == 0;
     }
   }
 }
