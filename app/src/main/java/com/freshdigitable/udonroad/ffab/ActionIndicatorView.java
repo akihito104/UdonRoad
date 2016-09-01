@@ -84,8 +84,9 @@ public class ActionIndicatorView extends FrameLayout {
     } else {
       final Drawable drawable = drawables.get(direction);
       if (drawable != null) {
-        icons.get(Direction.UP).setImageDrawable(drawable);
-        translationTo(Direction.UP, TransCoefs.ORIGIN);
+        final Direction neighbor = direction.getBothNeighbor()[0];
+        icons.get(neighbor).setImageDrawable(drawable);
+        translationTo(neighbor, TransCoefs.ORIGIN);
         return;
       }
       if (direction == Direction.UP_RIGHT) {
