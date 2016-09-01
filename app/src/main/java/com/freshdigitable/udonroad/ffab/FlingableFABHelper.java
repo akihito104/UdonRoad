@@ -46,6 +46,7 @@ public class FlingableFABHelper implements OnFlingListener {
     setIndicatorIcon(Direction.RIGHT, R.drawable.ic_retweet);
     setIndicatorIcon(Direction.DOWN, R.drawable.ic_reply);
     setIndicatorIcon(Direction.LEFT, R.drawable.ic_menu);
+    setIndicatorIcon(Direction.DOWN_RIGHT, R.drawable.ic_quote);
     addEnableDirection(Direction.UP_RIGHT);
   }
 
