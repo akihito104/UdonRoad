@@ -49,7 +49,11 @@ import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.squareup.picasso.Picasso;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -261,6 +265,15 @@ public class MainActivity
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
+
+    Map<Direction, ActionResource> actionMap = new HashMap<>();
+    actionMap.put(Direction.UP, ActionResource.FAV);
+    actionMap.put(Direction.RIGHT, ActionResource.RETWEET);
+    actionMap.put(Direction.UP_RIGHT, null);
+    actionMap.put(Direction.LEFT, ActionResource.MENU);
+    actionMap.put(Direction.DOWN, ActionResource.REPLY);
+    actionMap.put(Direction.DOWN_RIGHT, ActionResource.QUOTE);
+    ActionResource.setDefaultIcons(flingableFABHelper, actionMap, getApplicationContext());
     flingableFABHelper.getFab().setOnFlingListener(new OnFlingAdapter() {
       @Override
       public void onFling(Direction direction) {

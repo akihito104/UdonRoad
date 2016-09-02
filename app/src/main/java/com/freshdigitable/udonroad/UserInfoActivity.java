@@ -44,6 +44,10 @@ import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -87,7 +91,15 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
     viewPager = (UserInfoPagerFragment) getSupportFragmentManager().findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setTabLayout(binding.userInfoTabs);
-    viewPager.setFABHelper(new FlingableFABHelper(binding.fabIndicator, binding.ffab));
+    final FlingableFABHelper flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
+    Map<Direction, ActionResource> actionMap = new HashMap<>();
+    actionMap.put(Direction.UP, ActionResource.FAV);
+    actionMap.put(Direction.RIGHT, ActionResource.RETWEET);
+    actionMap.put(Direction.UP_RIGHT, null);
+    actionMap.put(Direction.DOWN, ActionResource.REPLY);
+    actionMap.put(Direction.DOWN_RIGHT, ActionResource.QUOTE);
+    ActionResource.setDefaultIcons(flingableFABHelper, actionMap, getApplicationContext());
+    viewPager.setFABHelper(flingableFABHelper);
     viewPager.setUser(userId);
   }
 

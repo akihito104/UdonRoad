@@ -49,6 +49,9 @@ import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import twitter4j.ExtendedMediaEntity;
@@ -209,8 +212,11 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     binding.mediaPager.setCurrentItem(startPage);
     setTitle();
 
-    ffabHelper.addEnableDirection(Direction.UP);
-    ffabHelper.addEnableDirection(Direction.UP_RIGHT);
+    Map<Direction, ActionResource> actionMap = new HashMap<>();
+    actionMap.put(Direction.UP, ActionResource.FAV);
+    actionMap.put(Direction.RIGHT, ActionResource.RETWEET);
+    actionMap.put(Direction.UP_RIGHT, null);
+    ActionResource.setDefaultIcons(ffabHelper, actionMap, getApplicationContext());
     binding.mediaFfab.setOnFlingListener(new OnFlingAdapter() {
       @Override
       public void onFling(Direction direction) {

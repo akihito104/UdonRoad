@@ -16,16 +16,11 @@
 
 package com.freshdigitable.udonroad.ffab;
 
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.view.View;
-
-import com.freshdigitable.udonroad.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,18 +36,12 @@ public class FlingableFABHelper implements OnFlingListener {
     this.fab = fab;
     fab.setActionIndicatorHelper(this);
     ViewCompat.setElevation(this.indicator, this.fab.getCompatElevation());
-
-    setIndicatorIcon(Direction.UP, R.drawable.ic_like);
-    setIndicatorIcon(Direction.RIGHT, R.drawable.ic_retweet);
-    setIndicatorIcon(Direction.DOWN, R.drawable.ic_reply);
-    setIndicatorIcon(Direction.LEFT, R.drawable.ic_menu);
-    setIndicatorIcon(Direction.DOWN_RIGHT, R.drawable.ic_quote);
-    addEnableDirection(Direction.UP_RIGHT);
   }
 
-  private void setIndicatorIcon(Direction direction, @DrawableRes int drawableId) {
-    final Drawable d = createIndicatorIcon(drawableId);
-    indicator.setDrawable(direction, d);
+  public void setIndicatorIcon(@NonNull Direction direction, @Nullable Drawable drawable) {
+    if (drawable != null) {
+      indicator.setDrawable(direction, drawable);
+    }
     addEnableDirection(direction);
   }
 
@@ -62,13 +51,6 @@ public class FlingableFABHelper implements OnFlingListener {
 
   public void removeEnableDirection(Direction direction) {
     enableDirections.remove(direction);
-  }
-
-  @NonNull
-  private Drawable createIndicatorIcon(@DrawableRes int drawable) {
-    final Drawable d = ContextCompat.getDrawable(indicator.getContext(), drawable);
-    DrawableCompat.setTint(d, Color.WHITE);
-    return d;
   }
 
   @Override
@@ -114,5 +96,4 @@ public class FlingableFABHelper implements OnFlingListener {
   public FlingableFAB getFab() {
     return fab;
   }
-
 }

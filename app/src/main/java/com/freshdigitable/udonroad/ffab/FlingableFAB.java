@@ -20,7 +20,6 @@ import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
 
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
@@ -44,47 +43,41 @@ public class FlingableFAB extends FloatingActionButton {
 
   public FlingableFAB(Context context, AttributeSet attributeSet, int defStyleAttr) {
     super(context, attributeSet, defStyleAttr);
-    setOnTouchListener(new View.OnTouchListener() {
-      private MotionEvent old;
+  }
 
-      @Override
-      public boolean onTouch(View view, MotionEvent motionEvent) {
-        if (flingListener == null) {
-          return false;
-        }
-        final int action = motionEvent.getAction();
-        if (action == MotionEvent.ACTION_DOWN) {
-          old = MotionEvent.obtain(motionEvent);
-          flingListener.onStart();
-          if (actionIndicatorHelper != null) {
-            actionIndicatorHelper.onStart();
-          }
-          return false;
-        }
-        final Direction direction = Direction.getDirection(old, motionEvent);
-        if (action == MotionEvent.ACTION_MOVE) {
+  private MotionEvent old;
+
+  @Override
+  public boolean onTouchEvent(MotionEvent motionEvent) {
+    if (flingListener == null) {
+      return super.onTouchEvent(motionEvent);
+    }
+    final int action = motionEvent.getAction();
+    if (action == MotionEvent.ACTION_DOWN) {
+      old = MotionEvent.obtain(motionEvent);
+      flingListener.onStart();
+      if (actionIndicatorHelper != null) {
+        actionIndicatorHelper.onStart();
+      }
+      return true;
+    }
+    final Direction direction = Direction.getDirection(old, motionEvent);
+    if (action == MotionEvent.ACTION_MOVE) {
 //          Log.d(TAG, "onTouch: " + direction);
-          flingListener.onMoving(direction);
-          if (actionIndicatorHelper != null) {
-            actionIndicatorHelper.onMoving(direction);
-          }
-          return false;
-        } else if (action == MotionEvent.ACTION_UP) {
-          flingListener.onFling(direction);
-          old.recycle();
-          if (actionIndicatorHelper != null) {
-            actionIndicatorHelper.onFling(direction);
-          }
-          return true;
-        }
-        return false;
+      flingListener.onMoving(direction);
+      if (actionIndicatorHelper != null) {
+        actionIndicatorHelper.onMoving(direction);
       }
-    });
-    setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
+      return true;
+    } else if (action == MotionEvent.ACTION_UP) {
+      flingListener.onFling(direction);
+      old.recycle();
+      if (actionIndicatorHelper != null) {
+        actionIndicatorHelper.onFling(direction);
       }
-    });
+      return true;
+    }
+    return super.onTouchEvent(motionEvent);
   }
 
   private OnFlingListener flingListener;
@@ -95,7 +88,7 @@ public class FlingableFAB extends FloatingActionButton {
 
   private OnFlingListener actionIndicatorHelper;
 
-  public void setActionIndicatorHelper(OnFlingListener actionIndicatorHelper) {
+  void setActionIndicatorHelper(OnFlingListener actionIndicatorHelper) {
     this.actionIndicatorHelper = actionIndicatorHelper;
   }
 }
