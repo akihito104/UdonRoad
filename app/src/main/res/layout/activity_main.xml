@@ -75,7 +75,6 @@
                 android:layout_width="52dp"
                 android:layout_height="48dp"
                 android:layout_marginBottom="150dp"
-                android:src="@drawable/ic_add"
                 android:background="#cccc"
                 android:contentDescription="@string/desc_fling_indicator"
                 android:layout_gravity="bottom|center"
