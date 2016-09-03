@@ -119,7 +119,6 @@ public class UserInfoPagerFragment extends Fragment {
   public void onStart() {
     super.onStart();
 
-    final FlingableFAB ffab = fabHelper.getFab();
     viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
       @Override
       public void onPageSelected(int position) {
@@ -127,6 +126,7 @@ public class UserInfoPagerFragment extends Fragment {
         final Fragment item = pagerAdapter.getItem(position);
         if (item instanceof TimelineFragment) {
           TimelineFragment fragment = (TimelineFragment) item;
+          final FlingableFAB ffab = fabHelper.getFab();
           if (fragment.isTweetSelected()) {
             ffab.show();
           } else {

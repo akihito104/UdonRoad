@@ -46,7 +46,6 @@ import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import java.util.HashMap;
@@ -76,6 +75,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   @Inject
   StatusCache statusCache;
   private TimelineSubscriber<StatusCache> userActionSubscriber;
+  private Map<Direction, UserAction> actionMap = new HashMap<>();
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -211,29 +211,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     binding.mediaPager.addOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setCurrentItem(startPage);
     setTitle();
-
-    Map<Direction, ActionResource> actionMap = new HashMap<>();
-    actionMap.put(Direction.UP, ActionResource.FAV);
-    actionMap.put(Direction.RIGHT, ActionResource.RETWEET);
-    actionMap.put(Direction.UP_RIGHT, null);
-    ActionResource.setDefaultIcons(ffabHelper, actionMap, getApplicationContext());
-    binding.mediaFfab.setOnFlingListener(new OnFlingAdapter() {
-      @Override
-      public void onFling(Direction direction) {
-        switch (direction) {
-          case UP:
-            userActionSubscriber.createFavorite(statusId);
-            break;
-          case RIGHT:
-            userActionSubscriber.retweetStatus(statusId);
-            break;
-          case UP_RIGHT:
-            userActionSubscriber.createFavorite(statusId);
-            userActionSubscriber.retweetStatus(statusId);
-            break;
-        }
-      }
-    });
+    setupActionMap(statusId);
+    UserAction.setupFlingableFAB(ffabHelper, actionMap, getApplicationContext());
   }
 
   @Override
@@ -243,6 +222,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     binding.mediaPager.removeOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setAdapter(null);
     binding.mediaFfab.setOnFlingListener(null);
+    actionMap.clear();
     statusCache.close();
     super.onStop();
   }
@@ -381,5 +361,21 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         return false;
       }
     };
+  }
+
+  private void setupActionMap(final long statusId) {
+    actionMap.put(Direction.UP, new UserAction(ActionResource.FAV, new Runnable() {
+      @Override
+      public void run() {
+        userActionSubscriber.createFavorite(statusId);
+      }
+    }));
+    actionMap.put(Direction.RIGHT, new UserAction(ActionResource.RETWEET, new Runnable() {
+      @Override
+      public void run() {
+        userActionSubscriber.retweetStatus(statusId);
+      }
+    }));
+    actionMap.put(Direction.UP_RIGHT, new UserAction());
   }
 }

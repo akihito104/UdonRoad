@@ -17,18 +17,12 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
-
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
-
-import java.util.Map;
 
 /**
  * ActionResource defines resources such as icon drawable or title string for user action.
@@ -58,17 +52,5 @@ public enum ActionResource {
     final Drawable drawable = createDrawable(context);
     DrawableCompat.setTint(drawable, color);
     return drawable;
-  }
-
-  public static void setDefaultIcons(@NonNull FlingableFABHelper flingableFABHelper,
-                                     @NonNull Map<Direction, ActionResource> actionMap,
-                                     @NonNull Context context) {
-    for (Direction d : actionMap.keySet()) {
-      final ActionResource actionResource = actionMap.get(d);
-      flingableFABHelper.setIndicatorIcon(d,
-          actionResource == null
-              ? null
-              : actionResource.createDrawableWithColor(context, Color.WHITE));
-    }
   }
 }
