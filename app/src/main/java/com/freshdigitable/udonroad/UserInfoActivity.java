@@ -24,6 +24,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
@@ -73,6 +74,9 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   private TweetInputFragment tweetInputFragment;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
   private FlingableFABHelper flingableFABHelper;
+  @Inject
+  TwitterApi twitterApi;
+  private UserSubscriber<StatusCache> userSubscriber;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -89,11 +93,14 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     setUpAppbar();
     setUpUserInfoView(userId);
 
-    viewPager = (UserInfoPagerFragment) getSupportFragmentManager().findFragmentById(R.id.userInfo_pagerFragment);
+    viewPager = (UserInfoPagerFragment) getSupportFragmentManager()
+        .findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setTabLayout(binding.userInfoTabs);
     flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
     viewPager.setFABHelper(flingableFABHelper);
     viewPager.setUser(userId);
+    userSubscriber = new UserSubscriber<>(twitterApi, statusCache,
+        new FeedbackSubscriber.SnackbarFeedback(viewPager.getView()));
   }
 
   private void setUpUserInfoView(long userId) {
@@ -107,7 +114,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding.userInfoToolbar.setTitle("");
 
     final TextView toolbarTitle = binding.userInfoToolbarTitle;
-    binding.userInfoAppbarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+    binding.userInfoAppbarLayout.addOnOffsetChangedListener(new OnOffsetChangedListener() {
       private boolean isTitleVisible = toolbarTitle.getVisibility() == View.VISIBLE;
 
       @Override
@@ -143,7 +150,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     super.onStart();
     statusCache.open(getApplicationContext());
     long userId = parseIntent();
-    final User user = statusCache.getUser(userId);
+    final User user = statusCache.findUser(userId);
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
 
     setSupportActionBar(binding.userInfoToolbar);
@@ -200,7 +207,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
         viewPager.scrollToTop();
         break;
       case R.id.userInfo_following:
-        // todo following action
+        userSubscriber.createFriendship(parseIntent());
         break;
       case R.id.userInfo_reply_close:
         closeTwitterInputView();

@@ -30,7 +30,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.TimelineSubscriber.SnackbarFeedback;
+import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 import com.freshdigitable.udonroad.ffab.FlingableFAB;
 import com.freshdigitable.udonroad.ffab.FlingableFABHelper;

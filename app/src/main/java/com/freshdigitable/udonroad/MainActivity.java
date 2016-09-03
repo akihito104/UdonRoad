@@ -158,7 +158,7 @@ public class MainActivity
     homeTimeline.open(getApplicationContext(), "home");
     homeTimeline.clear();
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
-        new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
+        new FeedbackSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new TimelineFragment();
     tlFragment.setTimelineSubscriber(timelineSubscriber);

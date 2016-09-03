@@ -16,17 +16,24 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.Context;
+import android.support.annotation.Nullable;
+
+import rx.Observable;
+import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
- * StatusCache defines interface of Status data store.
+ * UserCapable defines interface for user data store.
  *
- * Created by akihit on 2016/07/25.
+ * Created by akihit on 2016/09/03.
  */
-public interface StatusCache extends StatusCapable, UserCapable {
-  void open(Context context);
+public interface UserCapable {
+  void upsert(User user);
 
-  void clear();
+  void upsert(UserMentionEntity mentionEntity);
 
-  void close();
+  @Nullable
+  User findUser(long userId);
+
+  Observable<User> observeUserById(long userId);
 }

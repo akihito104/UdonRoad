@@ -195,7 +195,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     super.onStart();
     statusCache.open(getApplicationContext());
     userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
-        new TimelineSubscriber.ToastFeedback(getApplicationContext(), Gravity.CENTER, 0, 0));
+        new FeedbackSubscriber.ToastFeedback(getApplicationContext(), Gravity.CENTER, 0, 0));
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);

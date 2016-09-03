@@ -96,10 +96,10 @@ public class StatusDetailFragment extends Fragment {
     }
     final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
     for (UserMentionEntity u : userMentionEntities) {
-      statusCache.upsertUser(u);
+      statusCache.upsert(u);
     }
     statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
-        new TimelineSubscriber.SnackbarFeedback(binding.getRoot()));
+        new FeedbackSubscriber.SnackbarFeedback(binding.getRoot()));
 
     final DetailStatusView statusView = binding.statusView;
     StatusViewImageHelper.load(status, statusView);

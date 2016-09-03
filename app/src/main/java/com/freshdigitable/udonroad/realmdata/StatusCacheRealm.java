@@ -213,7 +213,7 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
-  public void upsertUser(final User user) {
+  public void upsert(final User user) {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
@@ -223,15 +223,16 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
-  public void upsertUser(UserMentionEntity mentionEntity) {
-    final User user = getUser(mentionEntity.getId());
+  public void upsert(UserMentionEntity mentionEntity) {
+    final User user = findUser(mentionEntity.getId());
     if (user == null) {
-      upsertUser(new UserRealm(mentionEntity));
+      upsert(new UserRealm(mentionEntity));
     }
   }
 
   @Override
-  public User getUser(long id) {
+  @Nullable
+  public User findUser(long id) {
     return cache.where(UserRealm.class)
         .equalTo("id", id)
         .findFirst();

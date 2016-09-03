@@ -38,6 +38,7 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
 
 /**
+ * UserInfoActivityInstTest tests UserInfoActivity in device.
  * Created by akihit on 2016/08/11.
  */
 public class UserInfoActivityInstTest extends MainActivityInstTestBase {
@@ -81,7 +82,7 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   protected Intent getIntent() {
     final User user = UserUtil.create();
     statusCache.open(InstrumentationRegistry.getTargetContext());
-    statusCache.upsertUser(user);
+    statusCache.upsert(user);
     statusCache.close();
     return UserInfoActivity.createIntent(
         InstrumentationRegistry.getTargetContext(), user);
