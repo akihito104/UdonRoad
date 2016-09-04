@@ -39,4 +39,14 @@
     <string name="msg_already_fav">already faved</string>
     <string name="msg_create_friendship_success">success followed</string>
     <string name="msg_create_friendship_failed">following failure…</string>
+    <string name="msg_destroy_friendship_success">destroyed friendship</string>
+    <string name="msg_destroy_friendship_failed">failed to destroy friendship…</string>
+    <string name="msg_create_block_success">blocked</string>
+    <string name="msg_create_block_failed">failed to block…</string>
+    <string name="msg_destroy_block_success">destroyed block</string>
+    <string name="msg_destroy_block_failed">failed to destroy block…</string>
+    <string name="msg_report_spam_failed">failed to report spam…</string>
+    <string name="msg_report_spam_success">reported spam</string>
+    <string name="msg_create_mute_failed">failed to mute…</string>
+    <string name="msg_create_mute_success">muted</string>
 </resources>

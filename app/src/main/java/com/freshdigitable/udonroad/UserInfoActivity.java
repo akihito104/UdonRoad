@@ -205,8 +205,23 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
       case R.id.userInfo_heading:
         viewPager.scrollToTop();
         break;
-      case R.id.userInfo_following:
+      case R.id.userInfo_follow:
         userSubscriber.createFriendship(parseIntent());
+        break;
+      case R.id.userInfo_remove:
+        userSubscriber.destroyFriendship(parseIntent());
+        break;
+      case R.id.userInfo_block_retweet:
+        // todo
+        break;
+      case R.id.userInfo_mute:
+        userSubscriber.createMute(parseIntent());
+        break;
+      case R.id.userInfo_block:
+        userSubscriber.createBlock(parseIntent());
+        break;
+      case R.id.userInfo_r4s:
+        userSubscriber.reportSpam(parseIntent());
         break;
       case R.id.userInfo_reply_close:
         closeTwitterInputView();

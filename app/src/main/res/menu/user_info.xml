@@ -28,8 +28,28 @@
         android:id="@+id/userInfo_following"
         android:icon="@drawable/ic_person_add"
         android:title="following"
-        app:showAsAction="ifRoom"
-        />
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/userInfo_follow"
+                android:title="follow"/>
+            <item
+                android:id="@+id/userInfo_remove"
+                android:title="remove"/>
+            <item
+                android:id="@+id/userInfo_block_retweet"
+                android:title="block retweet"/>
+            <item
+                android:id="@+id/userInfo_mute"
+                android:title="mute"/>
+            <item
+                android:id="@+id/userInfo_block"
+                android:title="block"/>
+            <item
+                android:id="@+id/userInfo_r4s"
+                android:title="report for spam"/>
+        </menu>
+    </item>
 
     <item
         android:id="@+id/userInfo_reply_close"
