@@ -27,7 +27,6 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -325,46 +324,28 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     actionMap.put(Direction.UP, new UserAction(ActionResource.FAV, new Runnable() {
       @Override
       public void run() {
-        final Fragment f = viewPager.getCurrentFragment();
-        if (f instanceof TimelineFragment) {
-          final TimelineFragment fragment = (TimelineFragment) f;
-          final long selectedTweetId = fragment.getSelectedTweetId();
-          fragment.getTimelineSubscriber().createFavorite(selectedTweetId);
-        }
+        viewPager.createFavorite();
       }
     }));
     actionMap.put(Direction.RIGHT, new UserAction(ActionResource.RETWEET, new Runnable() {
       @Override
       public void run() {
-        final Fragment f = viewPager.getCurrentFragment();
-        if (f instanceof TimelineFragment) {
-          final TimelineFragment fragment = (TimelineFragment) f;
-          final long selectedTweetId = fragment.getSelectedTweetId();
-          fragment.getTimelineSubscriber().retweetStatus(selectedTweetId);
-        }
+        viewPager.retweetStatus();
       }
     }));
     actionMap.put(Direction.UP_RIGHT, new UserAction());
     actionMap.put(Direction.DOWN, new UserAction(ActionResource.REPLY, new Runnable() {
       @Override
       public void run() {
-        final Fragment f = viewPager.getCurrentFragment();
-        if (f instanceof TimelineFragment) {
-          final TimelineFragment fragment = (TimelineFragment) f;
-          final long selectedTweetId = fragment.getSelectedTweetId();
-          showTwitterInputview(TYPE_REPLY, selectedTweetId);
-        }
+        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+        showTwitterInputview(TYPE_REPLY, selectedTweetId);
       }
     }));
     actionMap.put(Direction.DOWN_RIGHT, new UserAction(ActionResource.QUOTE, new Runnable() {
       @Override
       public void run() {
-        final Fragment f = viewPager.getCurrentFragment();
-        if (f instanceof TimelineFragment) {
-          final TimelineFragment fragment = (TimelineFragment) f;
-          final long selectedTweetId = fragment.getSelectedTweetId();
-          showTwitterInputview(TYPE_QUOTE, selectedTweetId);
-        }
+        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+        showTwitterInputview(TYPE_QUOTE, selectedTweetId);
       }
     }));
   }

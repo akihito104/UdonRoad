@@ -228,10 +228,6 @@ public class UserInfoPagerFragment extends Fragment {
       fragmentsTitle.add(title);
     }
 
-    List<Fragment> getFragments() {
-      return fragments;
-    }
-
     @Override
     public Fragment getItem(int position) {
       return fragments.get(position);
@@ -245,6 +241,46 @@ public class UserInfoPagerFragment extends Fragment {
     @Override
     public CharSequence getPageTitle(int position) {
       return fragmentsTitle.get(position);
+    }
+  }
+
+  long getCurrentSelectedStatusId() {
+    final Fragment currentFragment = getCurrentFragment();
+    if (!(currentFragment instanceof TimelineFragment)) {
+      return -1;
+    }
+    return ((TimelineFragment) currentFragment).getSelectedTweetId();
+  }
+
+  @Nullable
+  private TimelineSubscriber<TimelineStore> getCurrentTimelineSubscriber() {
+    final Fragment currentFragment = getCurrentFragment();
+    if (!(currentFragment instanceof TimelineFragment)) {
+      return null;
+    }
+    final TimelineFragment timelineFragment = (TimelineFragment) currentFragment;
+    return timelineFragment.getTimelineSubscriber();
+  }
+
+  void createFavorite() {
+    final long statusId = getCurrentSelectedStatusId();
+    if (statusId < 0) {
+      return;
+    }
+    final TimelineSubscriber<TimelineStore> timelineSubscriber = getCurrentTimelineSubscriber();
+    if (timelineSubscriber != null) {
+      timelineSubscriber.createFavorite(statusId);
+    }
+  }
+
+  void retweetStatus() {
+    final long statusId = getCurrentSelectedStatusId();
+    if (statusId < 0) {
+      return;
+    }
+    final TimelineSubscriber<TimelineStore> timelineSubscriber = getCurrentTimelineSubscriber();
+    if (timelineSubscriber!=null) {
+      timelineSubscriber.retweetStatus(statusId);
     }
   }
 }
