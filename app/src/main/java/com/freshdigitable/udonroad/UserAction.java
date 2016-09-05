@@ -21,7 +21,7 @@ import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
@@ -45,17 +45,17 @@ public class UserAction {
     this.action = action;
   }
 
-  public static void setupFlingableFAB(@NonNull FlingableFABHelper fabHelper,
+  public static void setupFlingableFAB(@NonNull IndicatableFFAB iffab,
                                        @NonNull final Map<Direction, UserAction> actionMap,
                                        @NonNull Context context) {
     for (Direction d : actionMap.keySet()) {
       final ActionResource resource = actionMap.get(d).resource;
-      fabHelper.setIndicatorIcon(d,
+      iffab.setIndicatorIcon(d,
           resource == null
               ? null
               : resource.createDrawableWithColor(context, Color.WHITE));
     }
-    fabHelper.getFab().setOnFlingListener(new OnFlingAdapter() {
+    iffab.setOnFlingListener(new OnFlingAdapter() {
       @Override
       public void onFling(Direction direction) {
         if (!actionMap.containsKey(direction)) {

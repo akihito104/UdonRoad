@@ -26,7 +26,7 @@ import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 /**
  * FlingibleFloatingActionButton accepts only fling action.<br>
  * It indicates action icon on succeeding user's fling action.
- * <p/>
+ *
  * Created by akihit on 15/11/04.
  */
 public class FlingableFAB extends FloatingActionButton {
@@ -56,25 +56,16 @@ public class FlingableFAB extends FloatingActionButton {
     if (action == MotionEvent.ACTION_DOWN) {
       old = MotionEvent.obtain(motionEvent);
       flingListener.onStart();
-      if (actionIndicatorHelper != null) {
-        actionIndicatorHelper.onStart();
-      }
       return true;
     }
     final Direction direction = Direction.getDirection(old, motionEvent);
     if (action == MotionEvent.ACTION_MOVE) {
 //          Log.d(TAG, "onTouch: " + direction);
       flingListener.onMoving(direction);
-      if (actionIndicatorHelper != null) {
-        actionIndicatorHelper.onMoving(direction);
-      }
       return true;
     } else if (action == MotionEvent.ACTION_UP) {
       flingListener.onFling(direction);
       old.recycle();
-      if (actionIndicatorHelper != null) {
-        actionIndicatorHelper.onFling(direction);
-      }
       return true;
     }
     return super.onTouchEvent(motionEvent);
@@ -84,11 +75,5 @@ public class FlingableFAB extends FloatingActionButton {
 
   public void setOnFlingListener(OnFlingListener listener) {
     this.flingListener = listener;
-  }
-
-  private OnFlingListener actionIndicatorHelper;
-
-  void setActionIndicatorHelper(OnFlingListener actionIndicatorHelper) {
-    this.actionIndicatorHelper = actionIndicatorHelper;
   }
 }

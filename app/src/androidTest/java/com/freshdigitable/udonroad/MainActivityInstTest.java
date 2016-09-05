@@ -95,8 +95,8 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
   @Test
   public void fetchFav_then_favIconAndCountAreDisplayed() throws Exception {
     onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.ffab)).check(matches(isDisplayed()));
-    onView(withId(R.id.ffab)).perform(swipeUp());
+    onView(withId(R.id.iffab_ffab)).check(matches(isDisplayed()));
+    onView(withId(R.id.iffab_ffab)).perform(swipeUp());
     onView(ofStatusView(withText(createText(20))))
         .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
     // TODO tint color check
@@ -106,7 +106,7 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
   public void fetchRT_then_RtIconAndCountAreDisplayed() throws Exception {
     onView(ofStatusView(withText(createText(20)))).perform(click());
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
-    onView(withId(R.id.ffab)).perform(swipeRight());
+    onView(withId(R.id.iffab_ffab)).perform(swipeRight());
     receiveStatuses(createRtStatus(rtStatusId, 20, false));
 
     onView(ofStatusViewAt(R.id.timeline, 0))
@@ -134,7 +134,7 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
   public void receiveStatusDeletionNoticeForRTStatus_then_removedRTStatus()
       throws Exception {
     onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.ffab)).perform(swipeRight());
+    onView(withId(R.id.iffab_ffab)).perform(swipeRight());
     final Status target = createRtStatus(rtStatusId, 20, false);
     receiveStatuses(target);
     onView(withId(R.id.timeline)).perform(swipeDown());
@@ -148,7 +148,7 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
   public void receiveStatusDeletionNoticeForRTingStatus_then_removedOriginalAndRTedStatuses()
       throws Exception {
     onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.ffab)).perform(swipeRight());
+    onView(withId(R.id.iffab_ffab)).perform(swipeRight());
     final Status targetRt = createRtStatus(rtStatusId, 20, false);
     receiveStatuses(targetRt);
     final Status target = createStatus(20);
@@ -163,7 +163,7 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
   public void receiveStatusDeletionNoticeForFavedStatus_then_removedOriginalStatuses()
       throws Exception {
     onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.ffab)).perform(swipeUp());
+    onView(withId(R.id.iffab_ffab)).perform(swipeUp());
     final Status target = createStatus(20);
     receiveDeletionNotice(target);
 

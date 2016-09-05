@@ -41,7 +41,6 @@ import android.widget.Toast;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import java.util.HashMap;
@@ -72,7 +71,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
-  private FlingableFABHelper flingableFABHelper;
   @Inject
   TwitterApi twitterApi;
   private UserSubscriber<StatusCache> userSubscriber;
@@ -86,7 +84,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
     InjectionUtil.getComponent(this).inject(this);
 
-    binding.ffab.hide();
+    binding.userInfoIffab.hide();
 
     long userId = parseIntent();
     setUpAppbar();
@@ -95,8 +93,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     viewPager = (UserInfoPagerFragment) getSupportFragmentManager()
         .findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setTabLayout(binding.userInfoTabs);
-    flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
-    viewPager.setFABHelper(flingableFABHelper);
+    viewPager.setIndicatableFFAB(binding.userInfoIffab);
     viewPager.setUser(userId);
     userSubscriber = new UserSubscriber<>(twitterApi, statusCache,
         new FeedbackSubscriber.SnackbarFeedback(viewPager.getView()));
@@ -154,12 +151,12 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
     setSupportActionBar(binding.userInfoToolbar);
     setupActionMap();
-    UserAction.setupFlingableFAB(flingableFABHelper, actionMap, getApplicationContext());
+    UserAction.setupFlingableFAB(binding.userInfoIffab, actionMap, getApplicationContext());
   }
 
   @Override
   protected void onStop() {
-    flingableFABHelper.getFab().setOnFlingListener(null);
+    binding.userInfoIffab.setOnFlingListener(null);
     actionMap.clear();
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
@@ -301,7 +298,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
   @Override
   public void onBackPressed() {
-    if (binding.ffab.getVisibility() == View.VISIBLE) {
+    if (binding.userInfoIffab.getVisibility() == View.VISIBLE) {
       viewPager.clearSelectedTweet();  // it also hides ffab.
       return;
     }

@@ -70,27 +70,11 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 />
 
-            <com.freshdigitable.udonroad.ffab.ActionIndicatorView
-                android:id="@+id/fab_indicator"
-                android:layout_width="52dp"
-                android:layout_height="48dp"
-                android:layout_marginBottom="150dp"
-                android:background="#cccc"
-                android:contentDescription="@string/desc_fling_indicator"
-                android:layout_gravity="bottom|center"
-                android:visibility="gone"
-                tools:visibility="visible"
-                />
-
-            <com.freshdigitable.udonroad.ffab.FlingableFAB
+            <com.freshdigitable.udonroad.ffab.IndicatableFFAB
                 android:id="@+id/ffab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_gravity="bottom|center"
-                android:src="@drawable/ic_add"
-                android:layout_marginBottom="32dp"
-                app:fabSize="normal"
+                android:layout_gravity="center_horizontal|bottom"
                 />
 
         </android.support.design.widget.CoordinatorLayout>

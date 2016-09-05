@@ -44,8 +44,6 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
-import com.freshdigitable.udonroad.ffab.FlingableFAB;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import java.util.HashMap;
@@ -70,7 +68,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   private ActivityMediaViewBinding binding;
   @Inject
   TwitterApi twitterApi;
-  private FlingableFABHelper ffabHelper;
   private Handler handler;
   @Inject
   StatusCache statusCache;
@@ -110,10 +107,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         getResources().getDimensionPixelOffset(R.dimen.action_bar_elevation));
     setSupportActionBar(binding.mediaToolbar);
 
-    ffabHelper = new FlingableFABHelper(binding.mediaIndicator, binding.mediaFfab);
     handler = new Handler();
 
-    final FlingableFAB mediaFfab = binding.mediaFfab;
     final ActionBar actionBar = getSupportActionBar();
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
         new View.OnSystemUiVisibilityChangeListener() {
@@ -123,14 +118,14 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
             if (isSystemUIVisible(visibility)) {
               if (actionBar != null) {
                 setTitle();
-                actionBar.show();
+                binding.mediaIffab.show();
               }
-              mediaFfab.show();
+              binding.mediaIffab.show();
             } else {
               if (actionBar != null) {
                 actionBar.hide();
               }
-              mediaFfab.hide();
+              binding.mediaIffab.hide();
             }
           }
         });
@@ -212,7 +207,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     binding.mediaPager.setCurrentItem(startPage);
     setTitle();
     setupActionMap(statusId);
-    UserAction.setupFlingableFAB(ffabHelper, actionMap, getApplicationContext());
+    UserAction.setupFlingableFAB(binding.mediaIffab, actionMap, getApplicationContext());
   }
 
   @Override
@@ -221,7 +216,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(null);
     binding.mediaPager.removeOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setAdapter(null);
-    binding.mediaFfab.setOnFlingListener(null);
+    binding.mediaIffab.setOnFlingListener(null);
     actionMap.clear();
     statusCache.close();
     super.onStop();

@@ -32,8 +32,7 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.FlingableFAB;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -102,14 +101,14 @@ public class UserInfoPagerFragment extends Fragment {
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
     home.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME));
-    home.setFABHelper(fabHelper);
+    home.setIndicatableFFAB(iffab);
     pagerAdapter.putFragment(home, "Tweets");
 
     final TimelineFragment favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
     favs.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS));
-    favs.setFABHelper(fabHelper);
+    favs.setIndicatableFFAB(iffab);
     pagerAdapter.putFragment(favs, "likes");
 
     viewPager.setAdapter(pagerAdapter);
@@ -126,11 +125,10 @@ public class UserInfoPagerFragment extends Fragment {
         final Fragment item = pagerAdapter.getItem(position);
         if (item instanceof TimelineFragment) {
           TimelineFragment fragment = (TimelineFragment) item;
-          final FlingableFAB ffab = fabHelper.getFab();
           if (fragment.isTweetSelected()) {
-            ffab.show();
+            iffab.show();
           } else {
-            ffab.hide();
+            iffab.hide();
           }
         }
       }
@@ -199,7 +197,7 @@ public class UserInfoPagerFragment extends Fragment {
     if (currentFragment instanceof TimelineFragment) {
       ((TimelineFragment) currentFragment).clearSelectedTweet();
     }
-    fabHelper.getFab().hide();
+    iffab.hide();
   }
 
   public void scrollToTop() {
@@ -209,10 +207,11 @@ public class UserInfoPagerFragment extends Fragment {
     }
   }
 
-  private FlingableFABHelper fabHelper;
+  private IndicatableFFAB iffab;
 
-  public void setFABHelper(FlingableFABHelper flingableFABHelper) {
-    this.fabHelper = flingableFABHelper;
+  @Deprecated
+  public void setIndicatableFFAB(IndicatableFFAB iffab) {
+    this.iffab = iffab;
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {

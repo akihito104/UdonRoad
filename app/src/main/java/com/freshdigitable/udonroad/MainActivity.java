@@ -47,7 +47,6 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.squareup.picasso.Picasso;
 
@@ -82,7 +81,6 @@ public class MainActivity
 
   @Inject
   TwitterApi twitterApi;
-  private FlingableFABHelper flingableFABHelper;
   @Inject
   ConfigStore configStore;
   @Inject
@@ -130,7 +128,6 @@ public class MainActivity
     });
 
     binding.ffab.hide();
-    flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
     setupHomeTimeline();
   }
 
@@ -162,7 +159,7 @@ public class MainActivity
 
     tlFragment = new TimelineFragment();
     tlFragment.setTimelineSubscriber(timelineSubscriber);
-    tlFragment.setFABHelper(flingableFABHelper);
+    tlFragment.setIndicatableFFAB(binding.ffab);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
@@ -267,7 +264,7 @@ public class MainActivity
     }
 
     setupActionMap();
-    UserAction.setupFlingableFAB(flingableFABHelper, actionMap, getApplicationContext());
+    UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
   }
 
   private StatusDetailFragment statusDetail;
@@ -318,7 +315,7 @@ public class MainActivity
   protected void onStop() {
     super.onStop();
     configStore.close();
-    flingableFABHelper.getFab().setOnFlingListener(null);
+    binding.ffab.setOnFlingListener(null);
     actionMap.clear();
   }
 
@@ -332,7 +329,7 @@ public class MainActivity
     }
     tearDownTweetInputView();
     if (tlFragment != null) {
-      tlFragment.setFABHelper(null);
+      tlFragment.setIndicatableFFAB(null);
     }
     homeTimeline.close();
   }
