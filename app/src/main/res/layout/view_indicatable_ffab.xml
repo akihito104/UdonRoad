@@ -18,17 +18,14 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
        xmlns:app="http://schemas.android.com/apk/res-auto"
        xmlns:tools="http://schemas.android.com/tools"
-       android:layout_width="match_parent"
-       android:layout_height="match_parent"
     >
     <com.freshdigitable.udonroad.ffab.ActionIndicatorView
         android:id="@+id/iffab_indicator"
         android:layout_width="52dp"
         android:layout_height="48dp"
         android:layout_marginBottom="150dp"
-        android:background="#cccc"
         android:contentDescription="@string/desc_fling_indicator"
-        android:layout_gravity="bottom|center"
+        android:layout_gravity="bottom|center_horizontal"
         android:visibility="gone"
         tools:visibility="visible"
         />
@@ -37,9 +34,7 @@
         android:id="@+id/iffab_ffab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="bottom|center"
-        android:src="@drawable/ic_add"
+        android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="32dp"
         app:fabSize="normal"
         />

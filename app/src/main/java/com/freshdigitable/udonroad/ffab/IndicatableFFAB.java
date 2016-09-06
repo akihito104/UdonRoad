@@ -17,6 +17,8 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -27,6 +29,7 @@ import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.freshdigitable.udonroad.R;
@@ -45,13 +48,14 @@ public class IndicatableFFAB extends FrameLayout {
   private final ActionIndicatorView indicator;
   private final FlingableFAB ffab;
   private final List<Direction> enableDirections = new ArrayList<>();
+  private int indicatorMargin;
 
   public IndicatableFFAB(Context context) {
     this(context, null);
   }
 
   public IndicatableFFAB(Context context, AttributeSet attrs) {
-    this(context, attrs, 0);
+    this(context, attrs, R.attr.iffabStyle);
   }
 
   public IndicatableFFAB(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -60,6 +64,22 @@ public class IndicatableFFAB extends FrameLayout {
     indicator = (ActionIndicatorView) v.findViewById(R.id.iffab_indicator);
     ffab = (FlingableFAB) v.findViewById(R.id.iffab_ffab);
     ViewCompat.setElevation(indicator, ffab.getCompatElevation());
+
+    final TypedArray a = context.obtainStyledAttributes(attrs,
+        R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
+    try {
+      final Drawable fabIcon = a.getDrawable(R.styleable.IndicatableFFAB_fabIcon);
+      ffab.setImageDrawable(fabIcon);
+      final int fabTint = a.getColor(R.styleable.IndicatableFFAB_fabTint, NO_ID);
+      if (fabTint != NO_ID) {
+        ViewCompat.setBackgroundTintList(ffab, ColorStateList.valueOf(fabTint));
+      }
+      final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
+      indicator.setBackgroundColor(indicatorTint);
+      indicatorMargin = a.getDimensionPixelSize(R.styleable.IndicatableFFAB_marginFabToIndicator, 0);
+    } finally {
+      a.recycle();
+    }
 
     ffab.setOnTouchListener(new OnTouchListener() {
       private MotionEvent old;
@@ -119,6 +139,25 @@ public class IndicatableFFAB extends FrameLayout {
         }, 200);
       }
     });
+
+    if (isInEditMode()) {
+      indicator.setVisibility(VISIBLE);
+    }
+  }
+
+  @Override
+  protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+    super.onLayout(changed, left, top, right, bottom);
+    setIndicatorMargin();
+  }
+
+  private void setIndicatorMargin() {
+    if (indicator.getVisibility() != VISIBLE) {
+      return;
+    }
+    final ViewGroup.MarginLayoutParams layoutParams = (MarginLayoutParams) indicator.getLayoutParams();
+    final MarginLayoutParams ffabLp = (MarginLayoutParams) ffab.getLayoutParams();
+    layoutParams.bottomMargin = indicatorMargin + ffab.getHeight() + ffabLp.bottomMargin;
   }
 
   public void setIndicatorIcon(@NonNull Direction direction, @Nullable Drawable drawable) {
