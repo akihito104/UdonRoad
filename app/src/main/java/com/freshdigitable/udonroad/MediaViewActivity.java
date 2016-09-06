@@ -118,6 +118,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
             if (isSystemUIVisible(visibility)) {
               if (actionBar != null) {
                 setTitle();
+                actionBar.show();
                 binding.mediaIffab.show();
               }
               binding.mediaIffab.show();
