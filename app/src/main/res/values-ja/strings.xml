@@ -36,4 +36,6 @@
     <string name="msg_already_fav">もうふぁぼしてました</string>
     <string name="msg_tweet_not_download">ツイートをダウンロードできませんでした…</string>
     <string name="tweet_media_descs">ツイートに添付されたメディア</string>
+    <string name="msg_create_friendship_failed">フォローしました</string>
+    <string name="msg_create_friendship_success">フォローできませんでした…</string>
 </resources>

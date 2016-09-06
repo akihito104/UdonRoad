@@ -16,7 +16,6 @@
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
     >
     <FrameLayout
         android:layout_width="match_parent"
@@ -40,27 +39,13 @@
                 android:background="@color/colorImmersiveLayerBackground"
                 app:titleTextColor="#fff"
                 />
-            <com.freshdigitable.udonroad.ffab.ActionIndicatorView
-                android:id="@+id/media_indicator"
-                android:layout_width="52dp"
-                android:layout_height="48dp"
-                android:layout_marginBottom="150dp"
-                android:src="@drawable/ic_add"
-                android:background="@color/colorImmersiveLayerBackground"
-                android:contentDescription="@string/desc_fling_indicator"
-                android:layout_gravity="bottom|center_horizontal"
-                android:visibility="gone"
-                tools:visibility="visible"
-                />
-            <com.freshdigitable.udonroad.ffab.FlingableFAB
-                android:id="@+id/media_ffab"
+            <com.freshdigitable.udonroad.ffab.IndicatableFFAB
+                android:id="@+id/media_iffab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginBottom="32dp"
-                android:src="@drawable/ic_add"
-                app:backgroundTint="@color/colorImmersiveLayerBackground"
-                app:fabSize="normal"
+                android:layout_gravity="bottom|center_horizontal"
+                app:fabTint="@color/colorImmersiveLayerBackground"
+                app:indicatorTint="@color/colorImmersiveLayerBackground"
                 />
         </FrameLayout>
 

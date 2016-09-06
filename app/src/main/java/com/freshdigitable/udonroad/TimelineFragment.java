@@ -37,8 +37,7 @@ import android.view.animation.AnimationUtils;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.FlingableFAB;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -133,17 +132,16 @@ public class TimelineFragment extends Fragment {
             tlAdapter.notifyItemRemoved(position);
           }
         });
-    final FlingableFAB fab = fabHelper.getFab();
     tlAdapter.setOnSelectedTweetChangeListener(
         new TimelineAdapter.OnSelectedTweetChangeListener() {
           @Override
           public void onTweetSelected(long statusId) {
-            fab.show();
+            iffab.show();
           }
 
           @Override
           public void onTweetUnselected() {
-            fab.hide();
+            iffab.hide();
           }
         });
     tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
@@ -211,9 +209,9 @@ public class TimelineFragment extends Fragment {
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
     isAddedUntilStopped();
     if (tlAdapter.isStatusViewSelected() && isVisible()) {
-      fabHelper.getFab().show();
+      iffab.show();
     } else {
-      fabHelper.getFab().hide();
+      iffab.hide();
     }
   }
 
@@ -222,10 +220,10 @@ public class TimelineFragment extends Fragment {
   }
 
   public void tearDownOnFlingListener() {
-    if (fabHelper == null) {
+    if (iffab == null) {
       return;
     }
-    fabHelper.getFab().setOnFlingListener(null);
+    iffab.setOnFlingListener(null);
   }
 
   @Override
@@ -335,10 +333,11 @@ public class TimelineFragment extends Fragment {
     }
   }
 
-  private FlingableFABHelper fabHelper;
+  private IndicatableFFAB iffab;
 
-  public void setFABHelper(FlingableFABHelper flingableFABHelper) {
-    this.fabHelper = flingableFABHelper;
+  @Deprecated
+  public void setIndicatableFFAB(IndicatableFFAB iffab) {
+    this.iffab = iffab;
   }
 
   public static TimelineFragment getInstance(Fragment fragment, int requestCode) {

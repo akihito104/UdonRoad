@@ -15,36 +15,36 @@
   ~ limitations under the License.
   -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
-<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content">-->
+<!--<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent">-->
     <ImageView
         android:id="@+id/indicator_up"
         android:layout_width="@dimen/small_user_icon"
         android:layout_height="@dimen/small_user_icon"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal|top"
+        android:contentDescription="@string/desc_swipe_to_top"
         />
     <ImageView
         android:id="@+id/indicator_right"
         android:layout_width="@dimen/small_user_icon"
         android:layout_height="@dimen/small_user_icon"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
+        android:layout_gravity="center_vertical|right"
+        android:contentDescription="@string/desc_swipe_to_right"
         />
     <ImageView
         android:id="@+id/indicator_down"
         android:layout_width="@dimen/small_user_icon"
         android:layout_height="@dimen/small_user_icon"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal|bottom"
+        android:contentDescription="@string/desc_swipe_to_down"
         />
     <ImageView
         android:id="@+id/indicator_left"
         android:layout_width="@dimen/small_user_icon"
         android:layout_height="@dimen/small_user_icon"
-        android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
+        android:layout_gravity="center_vertical|left"
+        android:contentDescription="@string/desc_swipe_to_left"
         />
-<!--</RelativeLayout>-->
+<!--</FrameLayout>-->
 </merge>

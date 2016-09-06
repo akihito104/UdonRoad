@@ -47,9 +47,11 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.squareup.picasso.Picasso;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -79,13 +81,13 @@ public class MainActivity
 
   @Inject
   TwitterApi twitterApi;
-  private FlingableFABHelper flingableFABHelper;
   @Inject
   ConfigStore configStore;
   @Inject
   TimelineStore homeTimeline;
   private TimelineSubscriber<TimelineStore> timelineSubscriber;
   private UserStreamUtil userStream;
+  private final Map<Direction, UserAction> actionMap = new HashMap<>();
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -126,7 +128,6 @@ public class MainActivity
     });
 
     binding.ffab.hide();
-    flingableFABHelper = new FlingableFABHelper(binding.fabIndicator, binding.ffab);
     setupHomeTimeline();
   }
 
@@ -154,11 +155,11 @@ public class MainActivity
     homeTimeline.open(getApplicationContext(), "home");
     homeTimeline.clear();
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
-        new TimelineSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
+        new FeedbackSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new TimelineFragment();
     tlFragment.setTimelineSubscriber(timelineSubscriber);
-    tlFragment.setFABHelper(flingableFABHelper);
+    tlFragment.setIndicatableFFAB(binding.ffab);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
@@ -261,29 +262,9 @@ public class MainActivity
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
-    flingableFABHelper.getFab().setOnFlingListener(new OnFlingAdapter() {
-      @Override
-      public void onFling(Direction direction) {
-        if (!tlFragment.isTweetSelected()) {
-          return;
-        }
-        final long id = tlFragment.getSelectedTweetId();
-        if (Direction.UP == direction) {
-          timelineSubscriber.createFavorite(id);
-        } else if (Direction.RIGHT == direction) {
-          timelineSubscriber.retweetStatus(id);
-        } else if (Direction.UP_RIGHT == direction) {
-          timelineSubscriber.createFavorite(id);
-          timelineSubscriber.retweetStatus(id);
-        } else if (Direction.LEFT == direction) {
-          showStatusDetail(id);
-        } else if (Direction.DOWN == direction) {
-          sendStatusSelected(TYPE_REPLY, id);
-        } else if (Direction.DOWN_RIGHT == direction) {
-          sendStatusSelected(TYPE_QUOTE, id);
-        }
-      }
-    });
+
+    setupActionMap();
+    UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
   }
 
   private StatusDetailFragment statusDetail;
@@ -334,7 +315,8 @@ public class MainActivity
   protected void onStop() {
     super.onStop();
     configStore.close();
-    flingableFABHelper.getFab().setOnFlingListener(null);
+    binding.ffab.setOnFlingListener(null);
+    actionMap.clear();
   }
 
   @Override
@@ -347,7 +329,7 @@ public class MainActivity
     }
     tearDownTweetInputView();
     if (tlFragment != null) {
-      tlFragment.setFABHelper(null);
+      tlFragment.setIndicatableFFAB(null);
     }
     homeTimeline.close();
   }
@@ -476,5 +458,39 @@ public class MainActivity
   @Override
   public void fetchTweet(Paging paging) {
     timelineSubscriber.fetchHomeTimeline(paging);
+  }
+
+  private void setupActionMap() {
+    actionMap.put(Direction.UP, new UserAction(ActionResource.FAV, new Runnable() {
+      @Override
+      public void run() {
+        timelineSubscriber.createFavorite(tlFragment.getSelectedTweetId());
+      }
+    }));
+    actionMap.put(Direction.RIGHT, new UserAction(ActionResource.RETWEET, new Runnable() {
+      @Override
+      public void run() {
+        timelineSubscriber.retweetStatus(tlFragment.getSelectedTweetId());
+      }
+    }));
+    actionMap.put(Direction.UP_RIGHT, new UserAction());
+    actionMap.put(Direction.LEFT, new UserAction(ActionResource.MENU, new Runnable() {
+      @Override
+      public void run() {
+        showStatusDetail(tlFragment.getSelectedTweetId());
+      }
+    }));
+    actionMap.put(Direction.DOWN, new UserAction(ActionResource.REPLY, new Runnable() {
+      @Override
+      public void run() {
+        sendStatusSelected(TYPE_REPLY, tlFragment.getSelectedTweetId());
+      }
+    }));
+    actionMap.put(Direction.DOWN_RIGHT, new UserAction(ActionResource.QUOTE, new Runnable() {
+      @Override
+      public void run() {
+        sendStatusSelected(TYPE_QUOTE, tlFragment.getSelectedTweetId());
+      }
+    }));
   }
 }

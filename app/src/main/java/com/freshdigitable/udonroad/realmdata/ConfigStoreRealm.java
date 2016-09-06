@@ -26,6 +26,8 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 /**
+ * ConfigStoreRealm is data store for TwitterAPIConfiguration or other config.
+ *
  * Created by akihit on 2016/07/30.
  */
 public class ConfigStoreRealm implements ConfigStore {
@@ -62,14 +64,14 @@ public class ConfigStoreRealm implements ConfigStore {
         realm.insert(userRealm);
       }
     });
-    cache.upsertUser(authenticatedUser);
+    cache.upsert(authenticatedUser);
   }
 
   @Override
   public User getAuthenticatedUser() {
     final UserRealm user = realm.where(UserRealm.class)
         .findFirst();
-    final User cacheUser = cache.getUser(user.getId());
+    final User cacheUser = cache.findUser(user.getId());
     return cacheUser != null
         ? cacheUser
         : user;

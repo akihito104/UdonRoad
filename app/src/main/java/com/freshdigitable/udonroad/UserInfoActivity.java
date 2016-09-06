@@ -24,9 +24,9 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -41,9 +41,10 @@ import android.widget.Toast;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
-import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -69,6 +70,10 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   StatusCache statusCache;
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
+  private Map<Direction, UserAction> actionMap = new HashMap<>();
+  @Inject
+  TwitterApi twitterApi;
+  private UserSubscriber<StatusCache> userSubscriber;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -79,16 +84,19 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
     InjectionUtil.getComponent(this).inject(this);
 
-    binding.ffab.hide();
+    binding.userInfoIffab.hide();
 
     long userId = parseIntent();
     setUpAppbar();
     setUpUserInfoView(userId);
 
-    viewPager = (UserInfoPagerFragment) getSupportFragmentManager().findFragmentById(R.id.userInfo_pagerFragment);
+    viewPager = (UserInfoPagerFragment) getSupportFragmentManager()
+        .findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setTabLayout(binding.userInfoTabs);
-    viewPager.setFABHelper(new FlingableFABHelper(binding.fabIndicator, binding.ffab));
+    viewPager.setIndicatableFFAB(binding.userInfoIffab);
     viewPager.setUser(userId);
+    userSubscriber = new UserSubscriber<>(twitterApi, statusCache,
+        new FeedbackSubscriber.SnackbarFeedback(viewPager.getView()));
   }
 
   private void setUpUserInfoView(long userId) {
@@ -102,7 +110,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding.userInfoToolbar.setTitle("");
 
     final TextView toolbarTitle = binding.userInfoToolbarTitle;
-    binding.userInfoAppbarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+    binding.userInfoAppbarLayout.addOnOffsetChangedListener(new OnOffsetChangedListener() {
       private boolean isTitleVisible = toolbarTitle.getVisibility() == View.VISIBLE;
 
       @Override
@@ -138,38 +146,18 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     super.onStart();
     statusCache.open(getApplicationContext());
     long userId = parseIntent();
-    final User user = statusCache.getUser(userId);
+    final User user = statusCache.findUser(userId);
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
 
     setSupportActionBar(binding.userInfoToolbar);
-    binding.ffab.setOnFlingListener(new OnFlingAdapter() {
-      @Override
-      public void onFling(Direction direction) {
-        final Fragment f = viewPager.getCurrentFragment();
-        if (!(f instanceof TimelineFragment)) {
-          return;
-        }
-        final TimelineFragment fragment = (TimelineFragment) f;
-        final long selectedTweetId = fragment.getSelectedTweetId();
-        final TimelineSubscriber<TimelineStore> timelineSubscriber = fragment.getTimelineSubscriber();
-        if (direction == Direction.UP) {
-          timelineSubscriber.createFavorite(selectedTweetId);
-        } else if (direction == Direction.RIGHT) {
-          timelineSubscriber.retweetStatus(selectedTweetId);
-        } else if (direction == Direction.UP_RIGHT) {
-          timelineSubscriber.createFavorite(selectedTweetId);
-          timelineSubscriber.retweetStatus(selectedTweetId);
-        } else if (direction == Direction.DOWN) {
-          showTwitterInputview(TYPE_REPLY, selectedTweetId);
-        } else if (direction == Direction.DOWN_RIGHT) {
-          showTwitterInputview(TYPE_QUOTE, selectedTweetId);
-        }
-      }
-    });
+    setupActionMap();
+    UserAction.setupFlingableFAB(binding.userInfoIffab, actionMap, getApplicationContext());
   }
 
   @Override
   protected void onStop() {
+    binding.userInfoIffab.setOnFlingListener(null);
+    actionMap.clear();
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
@@ -214,8 +202,23 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
       case R.id.userInfo_heading:
         viewPager.scrollToTop();
         break;
-      case R.id.userInfo_following:
-        // todo following action
+      case R.id.userInfo_follow:
+        userSubscriber.createFriendship(parseIntent());
+        break;
+      case R.id.userInfo_remove:
+        userSubscriber.destroyFriendship(parseIntent());
+        break;
+      case R.id.userInfo_block_retweet:
+        // todo
+        break;
+      case R.id.userInfo_mute:
+        userSubscriber.createMute(parseIntent());
+        break;
+      case R.id.userInfo_block:
+        userSubscriber.createBlock(parseIntent());
+        break;
+      case R.id.userInfo_r4s:
+        userSubscriber.reportSpam(parseIntent());
         break;
       case R.id.userInfo_reply_close:
         closeTwitterInputView();
@@ -295,7 +298,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
   @Override
   public void onBackPressed() {
-    if (binding.ffab.getVisibility() == View.VISIBLE) {
+    if (binding.userInfoIffab.getVisibility() == View.VISIBLE) {
       viewPager.clearSelectedTweet();  // it also hides ffab.
       return;
     }
@@ -327,5 +330,35 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
             Log.e(TAG, "send tweet; ", throwable);
           }
         });
+  }
+
+  private void setupActionMap() {
+    actionMap.put(Direction.UP, new UserAction(ActionResource.FAV, new Runnable() {
+      @Override
+      public void run() {
+        viewPager.createFavorite();
+      }
+    }));
+    actionMap.put(Direction.RIGHT, new UserAction(ActionResource.RETWEET, new Runnable() {
+      @Override
+      public void run() {
+        viewPager.retweetStatus();
+      }
+    }));
+    actionMap.put(Direction.UP_RIGHT, new UserAction());
+    actionMap.put(Direction.DOWN, new UserAction(ActionResource.REPLY, new Runnable() {
+      @Override
+      public void run() {
+        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+        showTwitterInputview(TYPE_REPLY, selectedTweetId);
+      }
+    }));
+    actionMap.put(Direction.DOWN_RIGHT, new UserAction(ActionResource.QUOTE, new Runnable() {
+      @Override
+      public void run() {
+        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+        showTwitterInputview(TYPE_QUOTE, selectedTweetId);
+      }
+    }));
   }
 }

@@ -38,6 +38,7 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
 
 /**
+ * UserInfoActivityInstTest tests UserInfoActivity in device.
  * Created by akihit on 2016/08/11.
  */
 public class UserInfoActivityInstTest extends MainActivityInstTestBase {
@@ -55,7 +56,7 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   @Test
   public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared() {
     onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.ffab)).perform(swipeDown());
+    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
     // verify
     onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
     onView(withId(R.id.userInfo_reply_close)).check(matches(isDisplayed()));
@@ -64,7 +65,7 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   @Test
   public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden() {
     onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.ffab)).perform(swipeDown());
+    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
     onView(withId(R.id.userInfo_reply_close)).perform(click());
     // verify
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
@@ -81,7 +82,7 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   protected Intent getIntent() {
     final User user = UserUtil.create();
     statusCache.open(InstrumentationRegistry.getTargetContext());
-    statusCache.upsertUser(user);
+    statusCache.upsert(user);
     statusCache.close();
     return UserInfoActivity.createIntent(
         InstrumentationRegistry.getTargetContext(), user);

@@ -27,6 +27,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import twitter4j.Paging;
+import twitter4j.Relationship;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
@@ -283,6 +284,128 @@ public class TwitterApi {
       public void call(Subscriber<? super List<Status>> subscriber) {
         try {
           subscriber.onNext(twitter.getFavorites(userId, paging));
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<User> createFriendship(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          final User friendship = twitter.createFriendship(userId);
+          subscriber.onNext(friendship);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<User> destroyFriendship(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          final User user = twitter.destroyFriendship(userId);
+          subscriber.onNext(user);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<Relationship> updateFriendship(final long userId,
+                                                   final boolean enableDeviceNotification,
+                                                   final boolean enableRetweet) {
+    return Observable.create(new Observable.OnSubscribe<Relationship>() {
+      @Override
+      public void call(Subscriber<? super Relationship> subscriber) {
+        try {
+          final Relationship user = twitter.updateFriendship(userId, enableDeviceNotification, enableRetweet);
+          subscriber.onNext(user);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<User> createBlock(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          final User blocked = twitter.createBlock(userId);
+          subscriber.onNext(blocked);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<User> destroyBlock(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          final User blocked = twitter.destroyBlock(userId);
+          subscriber.onNext(blocked);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<User> reportSpam(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          final User reported = twitter.reportSpam(userId);
+          subscriber.onNext(reported);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<User> createMute(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          final User muted = twitter.createMute(userId);
+          subscriber.onNext(muted);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<User> destroyMute(final long userId) {
+    return Observable.create(new Observable.OnSubscribe<User>() {
+      @Override
+      public void call(Subscriber<? super User> subscriber) {
+        try {
+          final User muted = twitter.destroyMute(userId);
+          subscriber.onNext(muted);
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);

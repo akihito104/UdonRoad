@@ -43,6 +43,8 @@ import static com.freshdigitable.udonroad.util.TwitterResponseMock.receiveStatus
 import static org.hamcrest.Matchers.not;
 
 /**
+ * MainActivityResumeInstTest tests MainActivity can resume from home button pushed.
+ *
  * Created by akihit on 2016/07/01.
  */
 @RunWith(AndroidJUnit4.class)
@@ -92,7 +94,7 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
     launchHomeAndBackToApp();
 
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    onView(withId(R.id.ffab)).perform(swipeUp());
+    onView(withId(R.id.iffab_ffab)).perform(swipeUp());
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
   }

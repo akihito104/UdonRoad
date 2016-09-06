@@ -30,10 +30,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.TimelineSubscriber.SnackbarFeedback;
+import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.FlingableFAB;
-import com.freshdigitable.udonroad.ffab.FlingableFABHelper;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -102,14 +101,14 @@ public class UserInfoPagerFragment extends Fragment {
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
     home.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME));
-    home.setFABHelper(fabHelper);
+    home.setIndicatableFFAB(iffab);
     pagerAdapter.putFragment(home, "Tweets");
 
     final TimelineFragment favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
     favs.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS));
-    favs.setFABHelper(fabHelper);
+    favs.setIndicatableFFAB(iffab);
     pagerAdapter.putFragment(favs, "likes");
 
     viewPager.setAdapter(pagerAdapter);
@@ -119,7 +118,6 @@ public class UserInfoPagerFragment extends Fragment {
   public void onStart() {
     super.onStart();
 
-    final FlingableFAB ffab = fabHelper.getFab();
     viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
       @Override
       public void onPageSelected(int position) {
@@ -128,9 +126,9 @@ public class UserInfoPagerFragment extends Fragment {
         if (item instanceof TimelineFragment) {
           TimelineFragment fragment = (TimelineFragment) item;
           if (fragment.isTweetSelected()) {
-            ffab.show();
+            iffab.show();
           } else {
-            ffab.hide();
+            iffab.hide();
           }
         }
       }
@@ -199,7 +197,7 @@ public class UserInfoPagerFragment extends Fragment {
     if (currentFragment instanceof TimelineFragment) {
       ((TimelineFragment) currentFragment).clearSelectedTweet();
     }
-    fabHelper.getFab().hide();
+    iffab.hide();
   }
 
   public void scrollToTop() {
@@ -209,10 +207,11 @@ public class UserInfoPagerFragment extends Fragment {
     }
   }
 
-  private FlingableFABHelper fabHelper;
+  private IndicatableFFAB iffab;
 
-  public void setFABHelper(FlingableFABHelper flingableFABHelper) {
-    this.fabHelper = flingableFABHelper;
+  @Deprecated
+  public void setIndicatableFFAB(IndicatableFFAB iffab) {
+    this.iffab = iffab;
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {
@@ -228,10 +227,6 @@ public class UserInfoPagerFragment extends Fragment {
       fragmentsTitle.add(title);
     }
 
-    List<Fragment> getFragments() {
-      return fragments;
-    }
-
     @Override
     public Fragment getItem(int position) {
       return fragments.get(position);
@@ -245,6 +240,46 @@ public class UserInfoPagerFragment extends Fragment {
     @Override
     public CharSequence getPageTitle(int position) {
       return fragmentsTitle.get(position);
+    }
+  }
+
+  long getCurrentSelectedStatusId() {
+    final Fragment currentFragment = getCurrentFragment();
+    if (!(currentFragment instanceof TimelineFragment)) {
+      return -1;
+    }
+    return ((TimelineFragment) currentFragment).getSelectedTweetId();
+  }
+
+  @Nullable
+  private TimelineSubscriber<TimelineStore> getCurrentTimelineSubscriber() {
+    final Fragment currentFragment = getCurrentFragment();
+    if (!(currentFragment instanceof TimelineFragment)) {
+      return null;
+    }
+    final TimelineFragment timelineFragment = (TimelineFragment) currentFragment;
+    return timelineFragment.getTimelineSubscriber();
+  }
+
+  void createFavorite() {
+    final long statusId = getCurrentSelectedStatusId();
+    if (statusId < 0) {
+      return;
+    }
+    final TimelineSubscriber<TimelineStore> timelineSubscriber = getCurrentTimelineSubscriber();
+    if (timelineSubscriber != null) {
+      timelineSubscriber.createFavorite(statusId);
+    }
+  }
+
+  void retweetStatus() {
+    final long statusId = getCurrentSelectedStatusId();
+    if (statusId < 0) {
+      return;
+    }
+    final TimelineSubscriber<TimelineStore> timelineSubscriber = getCurrentTimelineSubscriber();
+    if (timelineSubscriber!=null) {
+      timelineSubscriber.retweetStatus(statusId);
     }
   }
 }
