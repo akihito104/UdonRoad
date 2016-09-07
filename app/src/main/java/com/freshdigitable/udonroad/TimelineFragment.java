@@ -291,7 +291,13 @@ public class TimelineFragment extends Fragment {
 
   private void scrollTo(int position) {
 //    Log.d(TAG, "scrollTo: ");
-    binding.timeline.smoothScrollToPosition(position);
+    final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
+    if (firstVisibleItemPosition - position < 4) {
+      binding.timeline.smoothScrollToPosition(position);
+    } else {
+      binding.timeline.scrollToPosition(position + 1);
+      binding.timeline.smoothScrollToPosition(position);
+    }
   }
 
   public void clearSelectedTweet() {
