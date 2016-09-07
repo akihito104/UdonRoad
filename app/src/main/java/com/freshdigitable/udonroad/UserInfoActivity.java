@@ -62,7 +62,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  *
  * Created by akihit on 2016/01/30.
  */
-public class UserInfoActivity extends AppCompatActivity implements TweetSendable {
+public class UserInfoActivity extends AppCompatActivity implements TweetSendable, FabHandleable {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -93,7 +93,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     viewPager = (UserInfoPagerFragment) getSupportFragmentManager()
         .findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setTabLayout(binding.userInfoTabs);
-    viewPager.setIndicatableFFAB(binding.userInfoIffab);
     viewPager.setUser(userId);
     userSubscriber = new UserSubscriber<>(twitterApi, statusCache,
         new FeedbackSubscriber.SnackbarFeedback(viewPager.getView()));
@@ -360,5 +359,15 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
         showTwitterInputview(TYPE_QUOTE, selectedTweetId);
       }
     }));
+  }
+
+  @Override
+  public void showFab() {
+    binding.userInfoIffab.show();
+  }
+
+  @Override
+  public void hideFab() {
+    binding.userInfoIffab.hide();
   }
 }

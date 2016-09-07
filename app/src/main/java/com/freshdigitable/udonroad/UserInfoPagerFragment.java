@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -32,7 +33,6 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -101,14 +101,12 @@ public class UserInfoPagerFragment extends Fragment {
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
     home.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME));
-    home.setIndicatableFFAB(iffab);
     pagerAdapter.putFragment(home, "Tweets");
 
     final TimelineFragment favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
     favs.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS));
-    favs.setIndicatableFFAB(iffab);
     pagerAdapter.putFragment(favs, "likes");
 
     viewPager.setAdapter(pagerAdapter);
@@ -117,22 +115,24 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-
-    viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-      @Override
-      public void onPageSelected(int position) {
-        Log.d(TAG, "onPageSelected: " + position);
-        final Fragment item = pagerAdapter.getItem(position);
-        if (item instanceof TimelineFragment) {
-          TimelineFragment fragment = (TimelineFragment) item;
-          if (fragment.isTweetSelected()) {
-            iffab.show();
-          } else {
-            iffab.hide();
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof FabHandleable) {
+      viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        @Override
+        public void onPageSelected(int position) {
+          Log.d(TAG, "onPageSelected: " + position);
+          final Fragment item = pagerAdapter.getItem(position);
+          if (item instanceof TimelineFragment) {
+            TimelineFragment fragment = (TimelineFragment) item;
+            if (fragment.isTweetSelected()) {
+              ((FabHandleable) activity).showFab();
+            } else {
+              ((FabHandleable) activity).hideFab();
+            }
           }
         }
-      }
-    });
+      });
+    }
     tab.setupWithViewPager(viewPager);
   }
 
@@ -197,7 +197,6 @@ public class UserInfoPagerFragment extends Fragment {
     if (currentFragment instanceof TimelineFragment) {
       ((TimelineFragment) currentFragment).clearSelectedTweet();
     }
-    iffab.hide();
   }
 
   public void scrollToTop() {
@@ -205,13 +204,6 @@ public class UserInfoPagerFragment extends Fragment {
     if (item instanceof TimelineFragment) {
       ((TimelineFragment) item).scrollToTop();
     }
-  }
-
-  private IndicatableFFAB iffab;
-
-  @Deprecated
-  public void setIndicatableFFAB(IndicatableFFAB iffab) {
-    this.iffab = iffab;
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {

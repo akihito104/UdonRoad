@@ -72,7 +72,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  */
 public class MainActivity
     extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, OnFetchTweets {
+    implements TweetSendable, OnUserIconClickedListener, OnFetchTweets, FabHandleable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -159,7 +159,6 @@ public class MainActivity
 
     tlFragment = new TimelineFragment();
     tlFragment.setTimelineSubscriber(timelineSubscriber);
-    tlFragment.setIndicatableFFAB(binding.ffab);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
@@ -328,9 +327,6 @@ public class MainActivity
       binding.navDrawer.setNavigationItemSelectedListener(null);
     }
     tearDownTweetInputView();
-    if (tlFragment != null) {
-      tlFragment.setIndicatableFFAB(null);
-    }
     homeTimeline.close();
   }
 
@@ -492,5 +488,15 @@ public class MainActivity
         sendStatusSelected(TYPE_QUOTE, tlFragment.getSelectedTweetId());
       }
     }));
+  }
+
+  @Override
+  public void showFab() {
+    binding.ffab.show();
+  }
+
+  @Override
+  public void hideFab() {
+    binding.ffab.hide();
   }
 }

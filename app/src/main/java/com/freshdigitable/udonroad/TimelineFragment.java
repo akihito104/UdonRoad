@@ -37,7 +37,6 @@ import android.view.animation.AnimationUtils;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -132,18 +131,21 @@ public class TimelineFragment extends Fragment {
             tlAdapter.notifyItemRemoved(position);
           }
         });
-    tlAdapter.setOnSelectedTweetChangeListener(
-        new TimelineAdapter.OnSelectedTweetChangeListener() {
-          @Override
-          public void onTweetSelected(long statusId) {
-            iffab.show();
-          }
 
-          @Override
-          public void onTweetUnselected() {
-            iffab.hide();
-          }
-        });
+    if (getActivity() instanceof FabHandleable) {
+      tlAdapter.setOnSelectedTweetChangeListener(
+          new TimelineAdapter.OnSelectedTweetChangeListener() {
+            @Override
+            public void onTweetSelected(long statusId) {
+              showFab();
+            }
+
+            @Override
+            public void onTweetUnselected() {
+              hideFab();
+            }
+          });
+    }
     tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
       public void onLastItemBound(long statusId) {
@@ -208,22 +210,18 @@ public class TimelineFragment extends Fragment {
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
     isAddedUntilStopped();
-    if (tlAdapter.isStatusViewSelected() && isVisible()) {
-      iffab.show();
-    } else {
-      iffab.hide();
+
+    if (isVisible()) {
+      if (tlAdapter.isStatusViewSelected()) {
+        showFab();
+      } else {
+        hideFab();
+      }
     }
   }
 
   public long getSelectedTweetId() {
     return tlAdapter.getSelectedTweetId();
-  }
-
-  public void tearDownOnFlingListener() {
-    if (iffab == null) {
-      return;
-    }
-    iffab.setOnFlingListener(null);
   }
 
   @Override
@@ -232,7 +230,6 @@ public class TimelineFragment extends Fragment {
     super.onStop();
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
-    tearDownOnFlingListener();
   }
 
   @Override
@@ -243,6 +240,20 @@ public class TimelineFragment extends Fragment {
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.setAdapter(null);
+  }
+
+  private void showFab() {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof FabHandleable) {
+      ((FabHandleable) activity).showFab();
+    }
+  }
+
+  private void hideFab() {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof FabHandleable) {
+      ((FabHandleable) activity).hideFab();
+    }
   }
 
   private boolean stopScroll = false;
@@ -331,13 +342,6 @@ public class TimelineFragment extends Fragment {
     } else {
       fetcher.fetchTweet(paging);
     }
-  }
-
-  private IndicatableFFAB iffab;
-
-  @Deprecated
-  public void setIndicatableFFAB(IndicatableFFAB iffab) {
-    this.iffab = iffab;
   }
 
   public static TimelineFragment getInstance(Fragment fragment, int requestCode) {
