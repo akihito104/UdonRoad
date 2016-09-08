@@ -31,20 +31,22 @@ import java.util.List;
 import twitter4j.Status;
 
 /**
+ * StatusDetailView is a View to show in StatusDetailFragment.
+ *
  * Created by akihit on 2016/08/18.
  */
-public class DetailStatusView extends FullStatusView {
-  public DetailStatusView(Context context) {
+public class StatusDetailView extends FullStatusView {
+  public StatusDetailView(Context context) {
     this(context, null);
   }
 
-  public DetailStatusView(Context context, AttributeSet attrs) {
+  public StatusDetailView(Context context, AttributeSet attrs) {
     this(context, attrs, 0);
   }
 
-  public DetailStatusView(Context context, AttributeSet attrs, int defStyleAttr) {
+  public StatusDetailView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    final View v = View.inflate(context, R.layout.view_detail_status, this);
+    final View v = View.inflate(context, R.layout.view_status_detail, this);
     createdAt = (TextView) v.findViewById(R.id.d_create_at);
     icon = (ImageView) v.findViewById(R.id.d_icon);
     names = (CombinedScreenNameTextView) v.findViewById(R.id.d_names);

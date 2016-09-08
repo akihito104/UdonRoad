@@ -101,7 +101,7 @@ public class StatusDetailFragment extends Fragment {
     statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
         new FeedbackSubscriber.SnackbarFeedback(binding.getRoot()));
 
-    final DetailStatusView statusView = binding.statusView;
+    final StatusDetailView statusView = binding.statusView;
     StatusViewImageHelper.load(status, statusView);
     final User user = StatusViewImageHelper.getBindingUser(status);
 
@@ -156,8 +156,7 @@ public class StatusDetailFragment extends Fragment {
         setupInput(TweetInputFragment.TYPE_REPLY);
       }
     });
-    binding.sdQuote.setTextColor(
-        ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal));
+    setTintList(binding.sdQuote.getDrawable(), R.color.colorTwitterActionNormal);
     binding.sdQuote.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
