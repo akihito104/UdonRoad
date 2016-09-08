@@ -295,7 +295,7 @@ public class TimelineFragment extends Fragment {
     if (firstVisibleItemPosition - position < 4) {
       binding.timeline.smoothScrollToPosition(position);
     } else {
-      binding.timeline.scrollToPosition(position + 1);
+      binding.timeline.scrollToPosition(position + 3);
       binding.timeline.smoothScrollToPosition(position);
     }
   }
