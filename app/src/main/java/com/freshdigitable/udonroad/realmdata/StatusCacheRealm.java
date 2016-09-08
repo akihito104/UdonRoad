@@ -85,7 +85,7 @@ public class StatusCacheRealm implements StatusCache {
           if (update != null) {
             update(update, s);
           } else {
-            realm.copyToRealmOrUpdate(new StatusRealm(s));
+            realm.insertOrUpdate(new StatusRealm(s));
           }
         }
       }
@@ -153,7 +153,7 @@ public class StatusCacheRealm implements StatusCache {
       @Override
       public void execute(Realm realm) {
         for (Status s: statuses) {
-          realm.copyToRealmOrUpdate(new StatusRealm(s));
+          realm.insertOrUpdate(new StatusRealm(s));
         }
       }
     });
@@ -217,7 +217,7 @@ public class StatusCacheRealm implements StatusCache {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
-        realm.insert(new UserRealm(user));
+        realm.insertOrUpdate(new UserRealm(user));
       }
     });
   }

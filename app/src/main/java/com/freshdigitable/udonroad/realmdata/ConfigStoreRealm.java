@@ -61,7 +61,7 @@ public class ConfigStoreRealm implements ConfigStore {
       @Override
       public void execute(Realm realm) {
         final UserRealm userRealm = new UserRealm(authenticatedUser);
-        realm.insert(userRealm);
+        realm.insertOrUpdate(userRealm);
       }
     });
     cache.upsert(authenticatedUser);
