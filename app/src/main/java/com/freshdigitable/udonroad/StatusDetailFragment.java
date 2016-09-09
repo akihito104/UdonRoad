@@ -26,6 +26,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,10 +41,12 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
@@ -87,9 +90,9 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    long id = (long) getArguments().get("statusId");
+    final long statusId = (long) getArguments().get("statusId");
     statusCache.open(getContext());
-    status = statusCache.findStatus(id);
+    status = statusCache.findStatus(statusId);
     if (status == null) {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
@@ -131,9 +134,9 @@ public class StatusDetailFragment extends Fragment {
       @Override
       public void onClick(View view) {
         if (status.isFavorited()) {
-          statusCacheSubscriber.destroyFavorite(status.getId());
+          statusCacheSubscriber.destroyFavorite(statusId);
         } else {
-          statusCacheSubscriber.createFavorite(status.getId());
+          statusCacheSubscriber.createFavorite(statusId);
         }
       }
     });
@@ -142,9 +145,9 @@ public class StatusDetailFragment extends Fragment {
       @Override
       public void onClick(View view) {
         if (status.isRetweeted()) {
-          statusCacheSubscriber.destroyRetweet(status.getId());
+          statusCacheSubscriber.destroyRetweet(statusId);
         } else {
-          statusCacheSubscriber.retweetStatus(status.getId());
+          statusCacheSubscriber.retweetStatus(statusId);
         }
       }
     });
@@ -164,13 +167,38 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
-    subscription = statusCache.observeStatusById(id)
+    subscription = statusCache.observeStatusById(statusId)
         .subscribe(new Action1<Status>() {
           @Override
           public void call(Status status) {
             binding.statusView.bindStatus(status);
             binding.sdFav.setActivated(status.isFavorited());
             binding.sdRetweet.setActivated(status.isRetweeted());
+          }
+        });
+
+    if (status.getURLEntities().length < 1) {
+      return;
+    }
+    TwitterCardFetcher.observeFetch(status.getURLEntities()[0]) // TODO
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<TwitterCard>() {
+          @Override
+          public void call(TwitterCard twitterCard) {
+            if (twitterCard != null) {
+              binding.sdTwitterCard.setVisibility(View.VISIBLE);
+              binding.sdTwitterCard.bindData(twitterCard);
+              Picasso.with(getContext())
+                  .load(twitterCard.imageUrl)
+                  .fit()
+                  .tag(statusId)
+                  .into(binding.sdTwitterCard.getImage());
+            }
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e(TAG, "card fetch: ", throwable);
           }
         });
   }
@@ -196,6 +224,9 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
     binding.statusView.reset();
+
+    binding.sdTwitterCard.setVisibility(View.INVISIBLE);
+    Picasso.with(getContext()).cancelTag(status.getId());
 
     binding.sdFav.setOnClickListener(null);
     binding.sdRetweet.setOnClickListener(null);

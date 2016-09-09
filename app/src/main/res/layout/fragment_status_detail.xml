@@ -33,6 +33,13 @@
                 android:layout_height="wrap_content"
                 tools:layout="@layout/view_status_detail"
                 />
+            <com.freshdigitable.udonroad.TwitterCardView
+                android:id="@+id/sd_twitter_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="36dp"
