@@ -37,6 +37,7 @@
                 android:id="@+id/sd_twitter_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="@dimen/grid_margin_detail"
                 android:visibility="gone"
                 tools:visibility="visible"
                 />

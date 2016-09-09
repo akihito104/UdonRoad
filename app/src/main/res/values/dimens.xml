@@ -16,4 +16,6 @@
     <dimen name="tweet_detail_small_size">12sp</dimen>
     <dimen name="detail_small_user_icon">20dp</dimen>
     <dimen name="grid_margin_detail">8dp</dimen>
+
+    <dimen name="card_summary_image">72dp</dimen>
 </resources>

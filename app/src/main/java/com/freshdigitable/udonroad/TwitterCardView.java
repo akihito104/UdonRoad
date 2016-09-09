@@ -24,6 +24,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
+ * TwitterCardView shows twitter card.
+ *
  * Created by akihit on 2016/09/08.
  */
 public class TwitterCardView extends RelativeLayout {

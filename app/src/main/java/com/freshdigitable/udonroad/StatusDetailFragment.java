@@ -190,7 +190,8 @@ public class StatusDetailFragment extends Fragment {
               binding.sdTwitterCard.bindData(twitterCard);
               Picasso.with(getContext())
                   .load(twitterCard.imageUrl)
-                  .fit()
+                  .resizeDimen(R.dimen.card_summary_image, R.dimen.card_summary_image)
+                  .centerCrop()
                   .tag(statusId)
                   .into(binding.sdTwitterCard.getImage());
             }

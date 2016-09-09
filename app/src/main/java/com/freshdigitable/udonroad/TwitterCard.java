@@ -17,6 +17,8 @@
 package com.freshdigitable.udonroad;
 
 /**
+ * TwitterCard defines data to create TwitterCardView.
+ *
  * Created by akihit on 2016/09/08.
  */
 public class TwitterCard {
