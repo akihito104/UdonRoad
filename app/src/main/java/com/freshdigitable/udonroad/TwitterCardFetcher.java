@@ -72,8 +72,10 @@ public class TwitterCardFetcher {
     Response response = null;
     List<Meta> metadata = null;
     final String host;
+    final String expandedUrl;
     try {
       response = call.execute();
+      expandedUrl = response.request().url().toString();
       host = response.request().url().host();
       final XmlPullParser xmlPullParser = Xml.newPullParser();
       xmlPullParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
@@ -106,7 +108,7 @@ public class TwitterCardFetcher {
 
     String title = null;
     String imageUrl = null;
-    for (Meta m : metadata) { // TODO
+    for (Meta m : metadata) {
       if (!m.isTwitterProperty()) {
         continue;
       }
@@ -129,7 +131,7 @@ public class TwitterCardFetcher {
       }
     }
     return (title != null && imageUrl != null)
-        ? createCard(url, host, title, imageUrl)
+        ? createCard(expandedUrl, host, title, imageUrl)
         : null;
   }
 
