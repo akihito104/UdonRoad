@@ -35,7 +35,6 @@ import okhttp3.Response;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
-import twitter4j.URLEntity;
 
 /**
  * TwitterCardFetcher fetches twitter card or open graph metadata from specified url.
@@ -45,14 +44,12 @@ import twitter4j.URLEntity;
 public class TwitterCardFetcher {
   private static final String TAG = TwitterCardFetcher.class.getSimpleName();
 
-  public static Observable<TwitterCard> observeFetch(final URLEntity urlEntity) {
-    final String expandedURL = urlEntity.getExpandedURL();
-    final String displayURL = urlEntity.getDisplayURL();
+  public static Observable<TwitterCard> observeFetch(final String expandedURL) {
     return Observable.create(new Observable.OnSubscribe<TwitterCard>() {
       @Override
       public void call(Subscriber<? super TwitterCard> subscriber) {
         try {
-          final TwitterCard twitterCard = fetch(expandedURL, displayURL);
+          final TwitterCard twitterCard = fetch(expandedURL);
           subscriber.onNext(twitterCard);
           subscriber.onCompleted();
         } catch (IOException | XmlPullParserException e) {
@@ -63,7 +60,7 @@ public class TwitterCardFetcher {
   }
 
   @Nullable
-  public static TwitterCard fetch(String url, String displayUrl) throws IOException, XmlPullParserException {
+  public static TwitterCard fetch(String url) throws IOException, XmlPullParserException {
     final OkHttpClient httpClient = new OkHttpClient.Builder()
         .followRedirects(true)
         .build();
@@ -74,8 +71,10 @@ public class TwitterCardFetcher {
 
     Response response = null;
     List<Meta> metadata = null;
+    final String host;
     try {
       response = call.execute();
+      host = response.request().url().host();
       final XmlPullParser xmlPullParser = Xml.newPullParser();
       xmlPullParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
       xmlPullParser.setFeature(Xml.FEATURE_RELAXED, true);
@@ -130,7 +129,7 @@ public class TwitterCardFetcher {
       }
     }
     return (title != null && imageUrl != null)
-        ? createCard(url, displayUrl, title, imageUrl)
+        ? createCard(url, host, title, imageUrl)
         : null;
   }
 
@@ -187,7 +186,7 @@ public class TwitterCardFetcher {
       throw new IllegalStateException();
     }
     final String name = xpp.getAttributeValue(null, "name");
-    String property = name != null
+    String property = Meta.isTwitterProperty(name)
         ? name
         : xpp.getAttributeValue(null, "property");
     String content = xpp.getAttributeValue(null, "content");

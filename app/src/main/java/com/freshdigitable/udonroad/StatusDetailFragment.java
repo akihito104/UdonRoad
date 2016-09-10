@@ -180,7 +180,7 @@ public class StatusDetailFragment extends Fragment {
     if (status.getURLEntities().length < 1) {
       return;
     }
-    TwitterCardFetcher.observeFetch(status.getURLEntities()[0]) // TODO
+    TwitterCardFetcher.observeFetch(status.getURLEntities()[0].getExpandedURL()) // TODO
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<TwitterCard>() {
           @Override
