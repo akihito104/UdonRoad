@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -29,6 +30,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -183,14 +185,12 @@ public class StatusDetailFragment extends Fragment {
     if (status.getURLEntities().length < 1) {
       return;
     }
-    TwitterCardFetcher.observeFetch(status.getURLEntities()[0].getExpandedURL()) // TODO
+    TwitterCardFetcher.observeFetch(status.getURLEntities()[0].getExpandedURL())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<TwitterCard>() {
           @Override
           public void call(final TwitterCard twitterCard) {
-            if (twitterCard != null) {
-              setupTwitterCard(twitterCard);
-            }
+            setupTwitterCard(twitterCard);
           }
         }, new Action1<Throwable>() {
           @Override
@@ -201,23 +201,44 @@ public class StatusDetailFragment extends Fragment {
   }
 
   private void setupTwitterCard(@NonNull final TwitterCard twitterCard) {
+    if (!isValidForView(twitterCard)) {
+      return;
+    }
     final long statusId = getStatusId();
     binding.sdTwitterCard.setVisibility(View.VISIBLE);
     binding.sdTwitterCard.bindData(twitterCard);
+    final String imageUrl = twitterCard.getImageUrl();
+    if (!TextUtils.isEmpty(imageUrl)) {
+      Picasso.with(getContext())
+          .load(imageUrl)
+          .resizeDimen(R.dimen.card_summary_image, R.dimen.card_summary_image)
+          .centerCrop()
+          .tag(statusId)
+          .into(binding.sdTwitterCard.getImage());
+    }
+
+    final Intent intent = new Intent(Intent.ACTION_VIEW);
+    final String appUrl = twitterCard.getAppUrl();
+    if (!TextUtils.isEmpty(appUrl)) {
+      intent.setData(Uri.parse(appUrl));
+      final ComponentName componentName = intent.resolveActivity(getContext().getPackageManager());
+      if (componentName == null) {
+        intent.setData(Uri.parse(twitterCard.getUrl()));
+      }
+    } else {
+      intent.setData(Uri.parse(twitterCard.getUrl()));
+    }
     binding.sdTwitterCard.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        final Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(twitterCard.url));
         getContext().startActivity(intent);
       }
     });
-    Picasso.with(getContext())
-        .load(twitterCard.imageUrl)
-        .resizeDimen(R.dimen.card_summary_image, R.dimen.card_summary_image)
-        .centerCrop()
-        .tag(statusId)
-        .into(binding.sdTwitterCard.getImage());
+  }
+
+  private boolean isValidForView(TwitterCard twitterCard) {
+    return !TextUtils.isEmpty(twitterCard.getTitle())
+        && !TextUtils.isEmpty(twitterCard.getUrl());
   }
 
   private void setTintList(Drawable drawable, @ColorRes int color) {

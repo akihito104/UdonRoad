@@ -16,15 +16,62 @@
 
 package com.freshdigitable.udonroad;
 
+import android.net.Uri;
+
 /**
  * TwitterCard defines data to create TwitterCardView.
  *
  * Created by akihit on 2016/09/08.
  */
 public class TwitterCard {
-  String url;
-  String imageUrl;
-  String title;
+  private String tweetedUrl;
+  private String url;
+  private String imageUrl;
+  private String title;
+  private String appUrl;
 //  String description;
-  String displayUrl;
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
+  public String getImageUrl() {
+    return imageUrl;
+  }
+
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public String getDisplayUrl() {
+    return Uri.parse(url).getHost();
+  }
+
+  public String getAppUrl() {
+    return appUrl;
+  }
+
+  public void setAppUrl(String appUrl) {
+    this.appUrl = appUrl;
+  }
+
+  public String getTweetedUrl() {
+    return tweetedUrl;
+  }
+
+  public void setTweetedUrl(String tweetedUrl) {
+    this.tweetedUrl = tweetedUrl;
+  }
 }

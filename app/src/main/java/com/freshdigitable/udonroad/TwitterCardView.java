@@ -51,8 +51,8 @@ public class TwitterCardView extends RelativeLayout {
   }
 
   public void bindData(TwitterCard data) {
-    title.setText(data.title);
-    url.setText(data.displayUrl);
+    title.setText(data.getTitle());
+    url.setText(data.getDisplayUrl());
   }
 
   public ImageView getImage() {

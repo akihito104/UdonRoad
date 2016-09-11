@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Xml;
 
@@ -26,7 +25,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
@@ -59,8 +60,7 @@ public class TwitterCardFetcher {
     }).subscribeOn(Schedulers.io());
   }
 
-  @Nullable
-  public static TwitterCard fetch(String url) throws IOException, XmlPullParserException {
+  private static TwitterCard fetch(String url) throws IOException, XmlPullParserException {
     final OkHttpClient httpClient = new OkHttpClient.Builder()
         .followRedirects(true)
         .build();
@@ -71,12 +71,10 @@ public class TwitterCardFetcher {
 
     Response response = null;
     List<Meta> metadata = null;
-    final String host;
     final String expandedUrl;
     try {
       response = call.execute();
       expandedUrl = response.request().url().toString();
-      host = response.request().url().host();
       final XmlPullParser xmlPullParser = Xml.newPullParser();
       xmlPullParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
       xmlPullParser.setFeature(Xml.FEATURE_RELAXED, true);
@@ -85,12 +83,11 @@ public class TwitterCardFetcher {
       int eventType = xmlPullParser.getEventType();
       while(eventType != XmlPullParser.END_DOCUMENT) {
         if (eventType != XmlPullParser.START_TAG) {
-//          Log.d(TAG, "fetch> ignore:" + xmlPullParser.getName());
           eventType = xmlPullParser.nextTag();
           continue;
         }
         final String name = xmlPullParser.getName();
-        if ("head".equalsIgnoreCase(name)) {
+        if (isHeadTag(name)) {
           Log.d(TAG, "fetch> head:");
           metadata = readHead(xmlPullParser);
           break;
@@ -102,76 +99,72 @@ public class TwitterCardFetcher {
         response.close();
       }
     }
-    if (metadata == null || metadata.isEmpty()) {
-      return null;
-    }
 
-    String title = null;
-    String imageUrl = null;
-    for (Meta m : metadata) {
-      if (!m.isTwitterProperty()) {
-        continue;
-      }
-      if ("twitter:title".equals(m.property)) {
-        title = m.content;
-      } else if (m.property.startsWith("twitter:image")) {
-        imageUrl = m.content;
-      }
-    }
-    if (title == null || imageUrl == null) {
-      for (Meta m : metadata) {
-        if (!m.isOpenGraphProperty()) {
-          continue;
-        }
-        if (title == null && "og:title".equals(m.property)) {
-          title = m.content;
-        } else if (imageUrl == null && "og:image".equals(m.property)) {
-          imageUrl = m.content;
-        }
-      }
-    }
-    return (title != null && imageUrl != null)
-        ? createCard(expandedUrl, host, title, imageUrl)
-        : null;
+    final TwitterCard card = createCard(metadata, expandedUrl);
+    card.setTweetedUrl(url);
+    return card;
   }
 
   @NonNull
-  private static TwitterCard createCard(String url, String displayUrl, String title, String imageUrl) {
-    TwitterCard twitterCard = new TwitterCard();
-    twitterCard.title = title;
-    twitterCard.imageUrl = imageUrl;
-    twitterCard.url = url;
-    twitterCard.displayUrl = displayUrl;
+  private static TwitterCard createCard(List<Meta> metadata, String url) {
+    final TwitterCard twitterCard = new TwitterCard();
+    twitterCard.setUrl(url);
+
+    if (metadata == null || metadata.isEmpty()) {
+      return twitterCard;
+    }
+
+    Map<String, String> maps = new HashMap<>();
+    for (Meta m : metadata) {
+      maps.put(m.property, m.content);
+    }
+    twitterCard.setTitle(getTitle(maps));
+    twitterCard.setImageUrl(getImageUrl(maps));
+    twitterCard.setAppUrl(maps.get("twitter:app:url:googleplay"));
     return twitterCard;
   }
 
+  private static String getTitle(Map<String, String> maps) {
+    return maps.containsKey("twitter:title")
+        ? maps.get("twitter:title") : maps.get("og:title");
+  }
+
+  private static String getImageUrl(Map<String, String> maps) {
+    for (String key : maps.keySet()) {
+      if (key.startsWith("twitter:image")) {
+        return maps.get(key);
+      }
+    }
+    for (String key : maps.keySet()) {
+      if (key.equals("og:image")) {
+        return maps.get(key);
+      }
+    }
+    return "";
+  }
+
   private static List<Meta> readHead(XmlPullParser xpp) throws XmlPullParserException, IOException {
-//    xpp.require(XmlPullParser.START_TAG, null, "head");
     if (xpp.getEventType() != XmlPullParser.START_TAG) {
       throw new IllegalStateException();
     }
-    if (!"head".equalsIgnoreCase(xpp.getName())) {
+    if (!isHeadTag(xpp.getName())) {
       throw new IllegalStateException();
     }
     final List<Meta> metadata = new ArrayList<>();
     int eventType = xpp.nextTag();
     while (eventType != XmlPullParser.END_TAG
-        || !"head".equalsIgnoreCase(xpp.getName())) {
+        || !isHeadTag(xpp.getName())) {
       if (xpp.getEventType() != XmlPullParser.START_TAG) {
-//        Log.d(TAG, "readHead> ignore:" + xpp.getName());
         eventType = xpp.next();
         continue;
       }
-      final String name = xpp.getName();
-      if ("meta".equalsIgnoreCase(name)) {
-//        Log.d(TAG, "readHead> meta:");
+      if (Meta.isMetaTag(xpp.getName())) {
         final Meta meta = readMeta(xpp);
         if (meta != null) {
           metadata.add(meta);
         }
         eventType = xpp.nextTag();
       } else {
-//        Log.d(TAG, "readHead> skip:" + xpp.getName());
         eventType = xpp.next();
       }
     }
@@ -180,11 +173,10 @@ public class TwitterCardFetcher {
   }
 
   private static Meta readMeta(XmlPullParser xpp) throws IOException, XmlPullParserException {
-//    xpp.require(XmlPullParser.START_TAG, null, "meta");
     if (xpp.getEventType() != XmlPullParser.START_TAG) {
       throw new IllegalStateException();
     }
-    if (!"meta".equalsIgnoreCase(xpp.getName())) {
+    if (!Meta.isMetaTag(xpp.getName())) {
       throw new IllegalStateException();
     }
     final String name = xpp.getAttributeValue(null, "name");
@@ -192,11 +184,14 @@ public class TwitterCardFetcher {
         ? name
         : xpp.getAttributeValue(null, "property");
     String content = xpp.getAttributeValue(null, "content");
-//      xpp.require(XmlPullParser.END_TAG, null, "meta");
     Log.d(TAG, "Meta.create> prop:" + property + ", cont:" + content);
     return (Meta.isProperty(property) && content != null)
         ? new Meta(property, content)
         : null;
+  }
+
+  private static boolean isHeadTag(String tag) {
+    return "head".equalsIgnoreCase(tag);
   }
 
   private static class Meta {
@@ -206,6 +201,10 @@ public class TwitterCardFetcher {
     Meta(String property, String content) {
       this.property = property;
       this.content = content;
+    }
+
+    static boolean isMetaTag(String tag) {
+      return "meta".equalsIgnoreCase(tag);
     }
 
     static boolean isTwitterProperty(String property) {
@@ -218,14 +217,6 @@ public class TwitterCardFetcher {
 
     static boolean isProperty(String property) {
       return isTwitterProperty(property) || isOpenGraphProperty(property);
-    }
-
-    boolean isTwitterProperty() {
-      return isTwitterProperty(property);
-    }
-
-    boolean isOpenGraphProperty() {
-      return isOpenGraphProperty(property);
     }
   }
 
