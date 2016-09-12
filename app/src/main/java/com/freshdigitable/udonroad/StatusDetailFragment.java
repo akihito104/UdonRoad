@@ -61,7 +61,6 @@ public class StatusDetailFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
-  private Status status;
   @Inject
   StatusCache statusCache;
   @Inject
@@ -95,9 +94,10 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
+
     final long statusId = getStatusId();
     statusCache.open(getContext());
-    status = statusCache.findStatus(statusId);
+    final Status status = statusCache.findStatus(statusId);
     if (status == null) {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
@@ -106,8 +106,6 @@ public class StatusDetailFragment extends Fragment {
     for (UserMentionEntity u : userMentionEntities) {
       statusCache.upsert(u);
     }
-    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
-        new FeedbackSubscriber.SnackbarFeedback(binding.getRoot()));
 
     final StatusDetailView statusView = binding.statusView;
     StatusViewImageHelper.load(status, statusView);
@@ -134,6 +132,8 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
+    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
+        new FeedbackSubscriber.SnackbarFeedback(binding.getRoot()));
     setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
     binding.sdFav.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -185,22 +185,29 @@ public class StatusDetailFragment extends Fragment {
     if (status.getURLEntities().length < 1) {
       return;
     }
-    TwitterCardFetcher.observeFetch(status.getURLEntities()[0].getExpandedURL())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<TwitterCard>() {
-          @Override
-          public void call(final TwitterCard twitterCard) {
-            setupTwitterCard(twitterCard);
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "card fetch: ", throwable);
-          }
-        });
+    if (twitterCard != null) {
+      setupTwitterCard(twitterCard);
+    } else {
+      TwitterCardFetcher.observeFetch(status.getURLEntities()[0].getExpandedURL())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(new Action1<TwitterCard>() {
+            @Override
+            public void call(final TwitterCard twitterCard) {
+              setupTwitterCard(twitterCard);
+            }
+          }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+              Log.e(TAG, "card fetch: ", throwable);
+            }
+          });
+    }
   }
 
+  private TwitterCard twitterCard;
+
   private void setupTwitterCard(@NonNull final TwitterCard twitterCard) {
+    this.twitterCard = twitterCard;
     if (!isValidForView(twitterCard)) {
       return;
     }
@@ -248,10 +255,11 @@ public class StatusDetailFragment extends Fragment {
 
   private void setupInput(@TweetType int type) {
     final FragmentActivity activity = getActivity();
+    final long statusId = getStatusId();
     if (activity instanceof TweetSendable) {
-      ((TweetSendable) activity).setupInput(type, status.getId());
+      ((TweetSendable) activity).setupInput(type, statusId);
     } else {
-      ReplyActivity.start(activity, status.getId(), type, null);
+      ReplyActivity.start(activity, statusId, type, null);
     }
   }
 
@@ -262,11 +270,7 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
     binding.statusView.reset();
-
-    binding.sdTwitterCard.setVisibility(View.INVISIBLE);
     binding.sdTwitterCard.setOnClickListener(null);
-    Picasso.with(getContext()).cancelTag(status.getId());
-
     binding.sdFav.setOnClickListener(null);
     binding.sdRetweet.setOnClickListener(null);
     binding.sdReply.setOnClickListener(null);
@@ -274,17 +278,16 @@ public class StatusDetailFragment extends Fragment {
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
-
-    if (status != null) {
-      StatusViewImageHelper.unload(getContext(), status.getId());
-    }
+    final long statusId = getStatusId();
+    Picasso.with(getContext()).cancelTag(statusId);
+    StatusViewImageHelper.unload(getContext(), statusId);
     statusCache.close();
-    status = null;
   }
 
   @Override
   public void onDetach() {
     super.onDetach();
+    binding.sdTwitterCard.setVisibility(View.GONE);
     DrawableCompat.setTintList(binding.sdFav.getDrawable(), null);
     DrawableCompat.setTintList(binding.sdRetweet.getDrawable(), null);
   }
