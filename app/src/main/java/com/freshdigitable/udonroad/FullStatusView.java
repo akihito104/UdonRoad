@@ -26,6 +26,8 @@ import twitter4j.Status;
 import twitter4j.User;
 
 /**
+ * FullStatusView defines StatusView which has full of elements.
+ *
  * Created by akihit on 2016/08/20.
  */
 public abstract class FullStatusView extends StatusViewBase {
@@ -75,7 +77,7 @@ public abstract class FullStatusView extends StatusViewBase {
     super.reset();
     setRetweetedUserVisibility(GONE);
     rtUserIcon.setImageDrawable(null);
-    quotedStatus.setBackgroundResource(R.drawable.s_quoted_frame);
+    quotedStatus.setBackgroundResource(R.drawable.s_rounded_frame_default);
     quotedStatus.setVisibility(GONE);
     quotedStatus.reset();
   }

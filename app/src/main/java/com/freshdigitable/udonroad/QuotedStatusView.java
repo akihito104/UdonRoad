@@ -26,6 +26,9 @@ import twitter4j.Status;
 import twitter4j.URLEntity;
 
 /**
+ * QuotedStatusView is for quoted tweet in StatusView and StatusDetailFragment.<br>
+ *   QuotedStatusView does not have QuotedStatusView.
+ *
  * Created by akihit on 2016/06/26.
  */
 public class QuotedStatusView extends StatusViewBase {
@@ -40,7 +43,7 @@ public class QuotedStatusView extends StatusViewBase {
   public QuotedStatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
 
-    setBackgroundResource(R.drawable.s_quoted_frame);
+    setBackgroundResource(R.drawable.s_rounded_frame_default);
 
     final View v = View.inflate(context, R.layout.view_quoted_status, this);
     createdAt = (TextView) v.findViewById(R.id.q_create_at);
@@ -58,7 +61,7 @@ public class QuotedStatusView extends StatusViewBase {
   @Override
   public void reset() {
     super.reset();
-    setBackgroundResource(R.drawable.s_quoted_frame);
+    setBackgroundResource(R.drawable.s_rounded_frame_default);
   }
 
   @Override
@@ -73,11 +76,11 @@ public class QuotedStatusView extends StatusViewBase {
 
   @Override
   public void setSelectedColor() {
-    setBackgroundColor(selectedColor);
+    setBackgroundResource(R.drawable.s_rounded_frame_pressed);
   }
 
   @Override
   public void setUnselectedColor() {
-    setBackgroundResource(R.drawable.s_quoted_frame);
+    setBackgroundResource(R.drawable.s_rounded_frame_default);
   }
 }
