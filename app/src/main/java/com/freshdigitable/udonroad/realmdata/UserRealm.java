@@ -45,6 +45,7 @@ public class UserRealm extends RealmObject implements User {
   private int statusesCount;
   private int followersCount;
   private int friendsCount;
+  private int favoritesCount;
 
   public UserRealm() {
   }
@@ -60,6 +61,7 @@ public class UserRealm extends RealmObject implements User {
     this.statusesCount = user.getStatusesCount();
     this.followersCount = user.getFollowersCount();
     this.friendsCount = user.getFriendsCount();
+    this.favoritesCount = user.getFavouritesCount();
   }
 
   public UserRealm(UserMentionEntity mentionEntity) {
@@ -231,7 +233,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public int getFavouritesCount() {
-    throw new RuntimeException("not implement yet.");
+    return favoritesCount;
   }
 
   @Override

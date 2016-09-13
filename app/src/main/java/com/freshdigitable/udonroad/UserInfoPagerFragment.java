@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
+import com.freshdigitable.udonroad.datastore.StatusCache;
 import com.freshdigitable.udonroad.datastore.TimelineStore;
 
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import twitter4j.Paging;
+import twitter4j.User;
 
 /**
  * UserInfoPagerFragment provides ViewPager to show specified user tweets.
@@ -59,6 +61,8 @@ public class UserInfoPagerFragment extends Fragment {
   @Inject
   TimelineStore userFavTimeline;
   private Map<Integer, TimelineSubscriber<TimelineStore>> timelineSubscriberMap = new HashMap<>();
+  @Inject
+  StatusCache statusCache;
 
   @Override
   public void onAttach(Context context) {
@@ -94,6 +98,11 @@ public class UserInfoPagerFragment extends Fragment {
         new TimelineSubscriber<>(twitterApi, userHomeTimeline, new SnackbarFeedback(viewPager)));
     timelineSubscriberMap.put(REQUEST_CODE_USER_FAVS,
         new TimelineSubscriber<>(twitterApi, userFavTimeline, new SnackbarFeedback(viewPager)));
+    statusCache.open(getContext());
+    final User user = statusCache.findUser(userId);
+    if (user == null) {//XXX
+      return;
+    }
 
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
 
@@ -101,15 +110,16 @@ public class UserInfoPagerFragment extends Fragment {
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
     home.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME));
-    pagerAdapter.putFragment(home, "Tweets");
+    pagerAdapter.putFragment(home, "Tweets\n" + user.getStatusesCount());
 
     final TimelineFragment favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
     favs.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS));
-    pagerAdapter.putFragment(favs, "likes");
+    pagerAdapter.putFragment(favs, "likes\n" + user.getFavouritesCount());
 
     viewPager.setAdapter(pagerAdapter);
+    statusCache.close();
   }
 
   @Override
