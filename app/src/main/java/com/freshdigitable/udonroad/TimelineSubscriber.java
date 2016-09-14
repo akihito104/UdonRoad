@@ -18,7 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.support.annotation.NonNull;
 
-import com.freshdigitable.udonroad.datastore.StatusCapable;
+import com.freshdigitable.udonroad.datastore.BaseOperation;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ import twitter4j.TwitterException;
 
  * Created by akihit on 2016/08/01.
  */
-public class TimelineSubscriber<T extends StatusCapable> {
+public class TimelineSubscriber<T extends BaseOperation<Status>> {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final T statusStore;

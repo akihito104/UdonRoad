@@ -43,7 +43,8 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.MediaCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import java.util.HashMap;
@@ -70,8 +71,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   TwitterApi twitterApi;
   private Handler handler;
   @Inject
-  StatusCache statusCache;
-  private TimelineSubscriber<StatusCache> userActionSubscriber;
+  TypedCache<Status> statusCache;
+  private TimelineSubscriber<TypedCache<Status>> userActionSubscriber;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
@@ -195,7 +196,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
-    final Status status = statusCache.findStatus(statusId);
+    final Status status = statusCache.find(statusId);
     if (status == null) {
       Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
@@ -288,7 +289,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     protected ExtendedMediaEntity mediaEntity;
     protected View.OnClickListener pageClickListener;
     @Inject
-    StatusCache statusCache;
+    MediaCache mediaCache;
 
     @Override
     public void onAttach(Context context) {
@@ -313,15 +314,15 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     @Override
     public void onStart() {
       super.onStart();
-      statusCache.open(getContext());
+      mediaCache.open(getContext());
       final long mediaId = getArguments().getLong("media_id");
-      mediaEntity = statusCache.getMediaEntity(mediaId);
+      mediaEntity = mediaCache.getMediaEntity(mediaId);
     }
 
     @Override
     public void onStop() {
       super.onStop();
-      statusCache.close();
+      mediaCache.close();
     }
 
     protected final View.OnTouchListener touchListener = new View.OnTouchListener() {

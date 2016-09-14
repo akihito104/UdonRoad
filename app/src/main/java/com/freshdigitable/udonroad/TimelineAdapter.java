@@ -22,7 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import java.lang.ref.WeakReference;
 
@@ -34,14 +34,16 @@ import twitter4j.Status;
 import twitter4j.User;
 
 /**
+ * TimelineAdapter is a adapter for RecyclerView.
+ *
  * Created by akihit on 15/10/18.
  */
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
-  private final TimelineStore timelineStore;
+  private final SortedCache<Status> timelineStore;
 
-  public TimelineAdapter(TimelineStore timelineStore) {
+  public TimelineAdapter(SortedCache<Status> timelineStore) {
     this.timelineStore = timelineStore;
   }
 
@@ -84,7 +86,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       return;
     }
     holder.setStatusId(status);
-    holder.bind(timelineStore.observeStatusById(statusId));
+    holder.bind(timelineStore.observeById(statusId));
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound(statusId);
     }
@@ -160,7 +162,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   @Override
   public void onViewAttachedToWindow(ViewHolder holder) {
     super.onViewAttachedToWindow(holder);
-    final Status status = timelineStore.findStatus(holder.statusId);
+    final Status status = timelineStore.find(holder.statusId);
     StatusViewImageHelper.load(status, (StatusView) holder.itemView);
   }
 

@@ -18,22 +18,26 @@ package com.freshdigitable.udonroad.datastore;
 
 import android.support.annotation.Nullable;
 
+import java.util.List;
+
 import rx.Observable;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
 /**
- * UserCapable defines interface for user data store.
+ * BaseOperation defines basic CRUD operation for data store.
  *
- * Created by akihit on 2016/09/03.
+ * Created by akihit on 2016/09/14.
  */
-public interface UserCapable {
-  void upsert(User user);
+public interface BaseOperation<T> {
+  void upsert(T entity);
 
-  void upsert(UserMentionEntity mentionEntity);
+  void upsert(List<T> entities);
+
+  void forceUpsert(T entity);
 
   @Nullable
-  User findUser(long userId);
+  T find(long id);
 
-  Observable<User> observeUserById(long userId);
+  Observable<T> observeById(long id);
+
+  void delete(long id);
 }

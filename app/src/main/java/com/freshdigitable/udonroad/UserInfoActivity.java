@@ -40,7 +40,7 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
 import java.util.HashMap;
@@ -67,13 +67,13 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
   @Inject
-  StatusCache statusCache;
+  TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
   TwitterApi twitterApi;
-  private UserSubscriber<StatusCache> userSubscriber;
+  private UserSubscriber<TypedCache<User>> userSubscriber;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +94,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
         .findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setTabLayout(binding.userInfoTabs);
     viewPager.setUser(userId);
-    userSubscriber = new UserSubscriber<>(twitterApi, statusCache,
+    userSubscriber = new UserSubscriber<>(twitterApi, userCache,
         new FeedbackSubscriber.SnackbarFeedback(viewPager.getView()));
   }
 
@@ -143,9 +143,9 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   @Override
   protected void onStart() {
     super.onStart();
-    statusCache.open(getApplicationContext());
+    userCache.open(getApplicationContext());
     long userId = parseIntent();
-    final User user = statusCache.findUser(userId);
+    final User user = userCache.find(userId);
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
 
     setSupportActionBar(binding.userInfoToolbar);
@@ -160,7 +160,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
-    statusCache.close();
+    userCache.close();
     closeTwitterInputView();
     super.onStop();
   }

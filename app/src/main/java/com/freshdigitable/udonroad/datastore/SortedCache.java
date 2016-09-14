@@ -18,15 +18,27 @@ package com.freshdigitable.udonroad.datastore;
 
 import android.content.Context;
 
+import rx.Observable;
+
 /**
- * StatusCache defines interface of Status data store.
+ * SortedCache defines to access storage of sorted data specified type parameter.
  *
- * Created by akihit on 2016/07/25.
+ * Created by akihit on 2016/09/14.
  */
-public interface StatusCache extends StatusCapable, UserCapable {
-  void open(Context context);
+public interface SortedCache<T> extends BaseOperation<T> {
+  void open(Context context, String storeName);
+
+  void close();
 
   void clear();
 
-  void close();
+  Observable<Integer> observeInsertEvent();
+
+  Observable<Integer> observeUpdateEvent();
+
+  Observable<Integer> observeDeleteEvent();
+
+  T get(int position);
+
+  int getItemCount();
 }

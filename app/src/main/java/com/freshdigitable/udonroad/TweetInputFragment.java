@@ -32,7 +32,7 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.squareup.picasso.Picasso;
 
 import java.lang.annotation.Retention;
@@ -62,7 +62,7 @@ public class TweetInputFragment extends Fragment {
   @Inject
   TwitterApi twitterApi;
   @Inject
-  StatusCache statusCache;
+  TypedCache<Status> statusCache;
   @Inject
   ConfigStore configStore;
 
@@ -158,7 +158,7 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
-    final Status inReplyTo = statusCache.findStatus(inReplyToStatusId);
+    final Status inReplyTo = statusCache.find(inReplyToStatusId);
     stretchTweetInputViewWithInReplyTo(inReplyTo);
   }
 
@@ -249,7 +249,7 @@ public class TweetInputFragment extends Fragment {
       String s = sendingText;
       if (quoteStatusIds.size() > 0) {
         for (long q : quoteStatusIds) {
-          final Status status = statusCache.findStatus(q);
+          final Status status = statusCache.find(q);
           if (status == null) {
             continue;
           }

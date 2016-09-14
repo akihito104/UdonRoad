@@ -17,27 +17,43 @@
 package com.freshdigitable.udonroad;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
-import com.freshdigitable.udonroad.datastore.StatusCache;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.MediaCache;
+import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.realmdata.ConfigStoreRealm;
 import com.freshdigitable.udonroad.realmdata.StatusCacheRealm;
 import com.freshdigitable.udonroad.realmdata.TimelineStoreRealm;
+import com.freshdigitable.udonroad.realmdata.UserCacheRealm;
 
 import dagger.Module;
 import dagger.Provides;
+import twitter4j.Status;
+import twitter4j.User;
 
 /**
+ * DataStoreModule defines injected modules for data store.
+ *
  * Created by akihit on 2016/07/25.
  */
 @Module
 public class DataStoreModule {
   @Provides
-  public StatusCache provideStatusCache() {
+  public TypedCache<Status> provideTypedCacheStatus() {
     return new StatusCacheRealm();
   }
 
   @Provides
-  public TimelineStore provideTimelineStore() {
+  public MediaCache provideMediaCache() {
+    return new StatusCacheRealm();
+  }
+
+  @Provides
+  public TypedCache<User> provideTypedCacheUser() {
+    return new UserCacheRealm();
+  }
+
+  @Provides
+  public SortedCache<Status> provideSortedStore() {
     return new TimelineStoreRealm();
   }
 

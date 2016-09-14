@@ -18,7 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.support.annotation.NonNull;
 
-import com.freshdigitable.udonroad.datastore.UserCapable;
+import com.freshdigitable.udonroad.datastore.BaseOperation;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -30,7 +30,7 @@ import twitter4j.User;
  *
  * Created by akihit on 2016/09/03.
  */
-public class UserSubscriber<T extends UserCapable> {
+public class UserSubscriber<T extends BaseOperation<User>> {
   private final TwitterApi twitterApi;
   private final T userStore;
   private final FeedbackSubscriber feedback;

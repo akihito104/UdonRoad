@@ -22,8 +22,8 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
-import com.freshdigitable.udonroad.datastore.StatusCache;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
@@ -66,6 +66,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
+ * MainActivityTestBase provides setup and tearDown method for tests of MainActivity.
+ *
  * Created by akihit on 2016/07/03.
  */
 public abstract class MainActivityInstTestBase {
@@ -74,13 +76,15 @@ public abstract class MainActivityInstTestBase {
   @Inject
   Twitter twitter;
   @Inject
-  StatusCache statusCache;
+  TypedCache<Status> statusCache;
   @Inject
-  TimelineStore homeTLStore;
+  TypedCache<User> userCache;
   @Inject
-  TimelineStore userHomeTLStore;
+  SortedCache<Status> homeTLStore;
   @Inject
-  TimelineStore userFavsTLStore;
+  SortedCache<Status> userHomeTLStore;
+  @Inject
+  SortedCache<Status> userFavsTLStore;
 
   protected MockMainApplication app;
   protected long rtStatusId;
@@ -95,6 +99,9 @@ public abstract class MainActivityInstTestBase {
     statusCache.open(applicationContext);
     statusCache.clear();
     statusCache.close();
+    userCache.open(applicationContext);
+    userCache.clear();
+    userCache.close();
     homeTLStore.open(applicationContext, "home");
     homeTLStore.clear();
     homeTLStore.close();

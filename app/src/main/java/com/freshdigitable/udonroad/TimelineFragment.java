@@ -36,15 +36,18 @@ import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
+import twitter4j.Status;
 import twitter4j.User;
 
 /**
  * TimelineFragment provides RecyclerView to show timeline.
+ *
+ * Created by Akihit.
  */
 public class TimelineFragment extends Fragment {
   @SuppressWarnings("unused")
@@ -56,7 +59,7 @@ public class TimelineFragment extends Fragment {
   private LinearLayoutManager tlLayoutManager;
   private Subscription insertEventSubscription;
   private Subscription deleteEventSubscription;
-  protected TimelineSubscriber<TimelineStore> timelineSubscriber;
+  protected TimelineSubscriber<SortedCache<Status>> timelineSubscriber;
 
   @Override
   public void onAttach(Context context) {
@@ -115,7 +118,7 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
+    final SortedCache<Status> timelineStore = timelineSubscriber.getStatusStore();
     tlAdapter = new TimelineAdapter(timelineStore);
     insertEventSubscription = timelineStore.observeInsertEvent()
         .subscribe(new Action1<Integer>() {
@@ -356,11 +359,11 @@ public class TimelineFragment extends Fragment {
     return timelineFragment;
   }
 
-  public void setTimelineSubscriber(TimelineSubscriber<TimelineStore> timelineSubscriber) {
+  public void setTimelineSubscriber(TimelineSubscriber<SortedCache<Status>> timelineSubscriber) {
     this.timelineSubscriber = timelineSubscriber;
   }
 
-  public TimelineSubscriber<TimelineStore> getTimelineSubscriber() {
+  public TimelineSubscriber<SortedCache<Status>> getTimelineSubscriber() {
     return timelineSubscriber;
   }
 

@@ -46,7 +46,7 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.squareup.picasso.Picasso;
 
@@ -69,6 +69,8 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
 /**
  * MainActivity shows home timeline for authorized user.
+ *
+ * Created by akihit
  */
 public class MainActivity
     extends AppCompatActivity
@@ -84,8 +86,8 @@ public class MainActivity
   @Inject
   ConfigStore configStore;
   @Inject
-  TimelineStore homeTimeline;
-  private TimelineSubscriber<TimelineStore> timelineSubscriber;
+  SortedCache<Status> homeTimeline;
+  private TimelineSubscriber<SortedCache<Status>> timelineSubscriber;
   private UserStreamUtil userStream;
   private final Map<Direction, UserAction> actionMap = new HashMap<>();
 
@@ -321,7 +323,9 @@ public class MainActivity
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    userStream.disconnect();
+    if (userStream != null) {
+      userStream.disconnect();
+    }
     if (binding != null) {
       binding.ffab.setOnFlingListener(null);
       binding.navDrawer.setNavigationItemSelectedListener(null);

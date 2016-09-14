@@ -18,7 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.util.Log;
 
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +37,8 @@ import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
 /**
+ * UserStreamUtil transforms twitter stream to observable subscription.
+ *
  * Created by akihit on 2016/06/07.
  */
 public class UserStreamUtil {
@@ -44,9 +46,9 @@ public class UserStreamUtil {
 
   @Inject
   TwitterStreamApi streamApi;
-  private TimelineStore timelineStore;
+  private SortedCache<Status> timelineStore;
 
-  public UserStreamUtil(TimelineStore timelineStore) {
+  public UserStreamUtil(SortedCache<Status> timelineStore) {
     this.timelineStore = timelineStore;
   }
 
@@ -106,7 +108,7 @@ public class UserStreamUtil {
           .subscribe(new Action1<Long>() {
             @Override
             public void call(Long deletedStatusId) {
-              timelineStore.deleteStatus(deletedStatusId);
+              timelineStore.delete(deletedStatusId);
             }
           }, new Action1<Throwable>() {
             @Override

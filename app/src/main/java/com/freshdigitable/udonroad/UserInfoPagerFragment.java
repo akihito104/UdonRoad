@@ -32,8 +32,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
-import com.freshdigitable.udonroad.datastore.StatusCache;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +43,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import twitter4j.Paging;
+import twitter4j.Status;
 import twitter4j.User;
 
 /**
@@ -57,12 +58,12 @@ public class UserInfoPagerFragment extends Fragment {
   @Inject
   TwitterApi twitterApi;
   @Inject
-  TimelineStore userHomeTimeline;
+  SortedCache<Status> userHomeTimeline;
   @Inject
-  TimelineStore userFavTimeline;
-  private Map<Integer, TimelineSubscriber<TimelineStore>> timelineSubscriberMap = new HashMap<>();
+  SortedCache<Status> userFavTimeline;
+  private Map<Integer, TimelineSubscriber<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
   @Inject
-  StatusCache statusCache;
+  TypedCache<User> userCache;
 
   @Override
   public void onAttach(Context context) {
@@ -98,8 +99,8 @@ public class UserInfoPagerFragment extends Fragment {
         new TimelineSubscriber<>(twitterApi, userHomeTimeline, new SnackbarFeedback(viewPager)));
     timelineSubscriberMap.put(REQUEST_CODE_USER_FAVS,
         new TimelineSubscriber<>(twitterApi, userFavTimeline, new SnackbarFeedback(viewPager)));
-    statusCache.open(getContext());
-    final User user = statusCache.findUser(userId);
+    userCache.open(getContext());
+    final User user = userCache.find(userId);
     if (user == null) {//XXX
       return;
     }
@@ -119,7 +120,7 @@ public class UserInfoPagerFragment extends Fragment {
     pagerAdapter.putFragment(favs, "likes\n" + user.getFavouritesCount());
 
     viewPager.setAdapter(pagerAdapter);
-    statusCache.close();
+    userCache.close();
   }
 
   @Override
@@ -169,7 +170,7 @@ public class UserInfoPagerFragment extends Fragment {
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    final TimelineSubscriber<TimelineStore> timelineSubscriber = timelineSubscriberMap.get(requestCode);
+    final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(requestCode);
     final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
     if (requestCode == REQUEST_CODE_USER_HOME) {
       if (paging == null) {
@@ -254,7 +255,7 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   @Nullable
-  private TimelineSubscriber<TimelineStore> getCurrentTimelineSubscriber() {
+  private TimelineSubscriber<SortedCache<Status>> getCurrentTimelineSubscriber() {
     final Fragment currentFragment = getCurrentFragment();
     if (!(currentFragment instanceof TimelineFragment)) {
       return null;
@@ -268,7 +269,7 @@ public class UserInfoPagerFragment extends Fragment {
     if (statusId < 0) {
       return;
     }
-    final TimelineSubscriber<TimelineStore> timelineSubscriber = getCurrentTimelineSubscriber();
+    final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = getCurrentTimelineSubscriber();
     if (timelineSubscriber != null) {
       timelineSubscriber.createFavorite(statusId);
     }
@@ -279,7 +280,7 @@ public class UserInfoPagerFragment extends Fragment {
     if (statusId < 0) {
       return;
     }
-    final TimelineSubscriber<TimelineStore> timelineSubscriber = getCurrentTimelineSubscriber();
+    final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = getCurrentTimelineSubscriber();
     if (timelineSubscriber!=null) {
       timelineSubscriber.retweetStatus(statusId);
     }

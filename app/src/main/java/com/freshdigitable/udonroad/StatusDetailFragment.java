@@ -45,7 +45,7 @@ import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -55,17 +55,21 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
+/**
+ * StatusDetailFragment shows Status with link text and twitter card.
+ *
+ * Created by Akihit.
+ */
 public class StatusDetailFragment extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   @Inject
-  StatusCache statusCache;
+  TypedCache<Status> statusCache;
   @Inject
   TwitterApi twitterApi;
-  private TimelineSubscriber<StatusCache> statusCacheSubscriber;
+  private TimelineSubscriber<TypedCache<Status>> statusCacheSubscriber;
   private Subscription subscription;
 
   public static StatusDetailFragment getInstance(final long statusId) {
@@ -97,15 +101,15 @@ public class StatusDetailFragment extends Fragment {
 
     final long statusId = getStatusId();
     statusCache.open(getContext());
-    final Status status = statusCache.findStatus(statusId);
+    final Status status = statusCache.find(statusId);
     if (status == null) {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
     }
-    final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-    for (UserMentionEntity u : userMentionEntities) {
-      statusCache.upsert(u);
-    }
+//    final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+//    for (UserMentionEntity u : userMentionEntities) {
+//      statusCache.upsert(u);
+//    }
 
     final StatusDetailView statusView = binding.statusView;
     StatusViewImageHelper.load(status, statusView);
@@ -172,7 +176,7 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
-    subscription = statusCache.observeStatusById(statusId)
+    subscription = statusCache.observeById(statusId)
         .subscribe(new Action1<Status>() {
           @Override
           public void call(Status status) {

@@ -21,7 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,7 +34,6 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
 import rx.subjects.PublishSubject;
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
@@ -46,8 +45,8 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_RETWEETED_ST
  *
  * Created by akihit on 2016/07/23.
  */
-public class TimelineStoreRealm implements TimelineStore {
-  public static final String TAG = TimelineStoreRealm.class.getSimpleName();
+public class TimelineStoreRealm implements SortedCache<Status> {
+  private static final String TAG = TimelineStoreRealm.class.getSimpleName();
   private Realm realm;
   private RealmResults<StatusIDs> timeline;
   private StatusCacheRealm statusCache;
@@ -267,7 +266,7 @@ public class TimelineStoreRealm implements TimelineStore {
   }
 
   @Override
-  public void deleteStatus(long statusId) {
+  public void delete(long statusId) {
     final RealmResults<StatusIDs> res = realm.where(StatusIDs.class)
         .beginGroup()
         .equalTo(KEY_ID, statusId)
@@ -294,7 +293,7 @@ public class TimelineStoreRealm implements TimelineStore {
         Log.d(TAG, "call: deletedStatus");
         for (int d : deleted) {
           deleteEvent.onNext(d);
-          statusCache.deleteStatus(d);
+          statusCache.delete(d);
         }
         element.removeChangeListener(this);
       }
@@ -345,7 +344,7 @@ public class TimelineStoreRealm implements TimelineStore {
   @Override
   public Status get(int position) {
     final StatusIDs ids = timeline.get(position);
-    return statusCache.findStatus(ids.getId());
+    return statusCache.find(ids.getId());
   }
 
   @Override
@@ -354,17 +353,12 @@ public class TimelineStoreRealm implements TimelineStore {
   }
 
   @Override
-  public Status findStatus(long statusId) {
-    return statusCache.findStatus(statusId);
+  public Status find(long statusId) {
+    return statusCache.find(statusId);
   }
 
   @Override
-  public Observable<Status> observeStatusById(long statusId) {
-    return statusCache.observeStatusById(statusId);
-  }
-
-  @Override
-  public ExtendedMediaEntity getMediaEntity(long mediaId) {
-    return statusCache.getMediaEntity(mediaId);
+  public Observable<Status> observeById(long statusId) {
+    return statusCache.observeById(statusId);
   }
 }
