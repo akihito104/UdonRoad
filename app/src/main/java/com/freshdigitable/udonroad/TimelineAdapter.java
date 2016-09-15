@@ -28,6 +28,7 @@ import java.lang.ref.WeakReference;
 
 import rx.Observable;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -259,13 +260,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
 
     void bind(Observable<Status> observable) {
-      subscription = observable.subscribe(new Action1<Status>() {
-        @Override
-        public void call(Status status) {
-          ((StatusView) itemView).bindStatus(status);
-          itemView.invalidate();
-        }
-      });
+      subscription = observable
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(new Action1<Status>() {
+            @Override
+            public void call(Status status) {
+              ((StatusView) itemView).bindStatus(status);
+            }
+          });
     }
 
     void unbind() {
