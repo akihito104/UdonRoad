@@ -95,10 +95,11 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
+    final SnackbarFeedback userFeedback = new SnackbarFeedback(viewPager);
     timelineSubscriberMap.put(REQUEST_CODE_USER_HOME,
-        new TimelineSubscriber<>(twitterApi, userHomeTimeline, new SnackbarFeedback(viewPager)));
+        new TimelineSubscriber<>(twitterApi, userHomeTimeline, userFeedback));
     timelineSubscriberMap.put(REQUEST_CODE_USER_FAVS,
-        new TimelineSubscriber<>(twitterApi, userFavTimeline, new SnackbarFeedback(viewPager)));
+        new TimelineSubscriber<>(twitterApi, userFavTimeline, userFeedback));
     userCache.open(getContext());
     final User user = userCache.find(userId);
     if (user == null) {//XXX
@@ -110,14 +111,14 @@ public class UserInfoPagerFragment extends Fragment {
     final TimelineFragment home = TimelineFragment.getInstance(this, REQUEST_CODE_USER_HOME);
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
-    home.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME));
-    pagerAdapter.putFragment(home, "Tweets\n" + user.getStatusesCount());
+    home.setSortedCache(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME).getStatusStore());
+    pagerAdapter.addFragment(home, "Tweets\n" + user.getStatusesCount(), REQUEST_CODE_USER_HOME);
 
     final TimelineFragment favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
-    favs.setTimelineSubscriber(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS));
-    pagerAdapter.putFragment(favs, "likes\n" + user.getFavouritesCount());
+    favs.setSortedCache(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS).getStatusStore());
+    pagerAdapter.addFragment(favs, "likes\n" + user.getFavouritesCount(), REQUEST_CODE_USER_FAVS);
 
     viewPager.setAdapter(pagerAdapter);
     userCache.close();
@@ -218,32 +219,44 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {
-    private final List<String> fragmentsTitle = new ArrayList<>();
-    private final List<Fragment> fragments = new ArrayList<>();
+    private final List<FragmentPage> pages = new ArrayList<>();
 
     public PagerAdapter(FragmentManager fm) {
       super(fm);
     }
 
-    public void putFragment(Fragment fragment, String title) {
-      fragments.add(fragment);
-      fragmentsTitle.add(title);
+    public void addFragment(Fragment fragment, String title, int requestCode) {
+      final FragmentPage fragmentPage = new FragmentPage();
+      fragmentPage.fragment = fragment;
+      fragmentPage.title = title;
+      fragmentPage.requestCode = requestCode;
+      pages.add(fragmentPage);
     }
 
     @Override
     public Fragment getItem(int position) {
-      return fragments.get(position);
+      return pages.get(position).fragment;
     }
 
     @Override
     public int getCount() {
-      return fragments.size();
+      return pages.size();
     }
 
     @Override
     public CharSequence getPageTitle(int position) {
-      return fragmentsTitle.get(position);
+      return pages.get(position).title;
     }
+
+    int getPageRequestCode(int position) {
+      return pages.get(position).requestCode;
+    }
+  }
+
+  private static class FragmentPage {
+    Fragment fragment;
+    String title;
+    int requestCode;
   }
 
   long getCurrentSelectedStatusId() {
@@ -256,12 +269,9 @@ public class UserInfoPagerFragment extends Fragment {
 
   @Nullable
   private TimelineSubscriber<SortedCache<Status>> getCurrentTimelineSubscriber() {
-    final Fragment currentFragment = getCurrentFragment();
-    if (!(currentFragment instanceof TimelineFragment)) {
-      return null;
-    }
-    final TimelineFragment timelineFragment = (TimelineFragment) currentFragment;
-    return timelineFragment.getTimelineSubscriber();
+    final int currentItem = viewPager.getCurrentItem();
+    final int pageRequestCode = pagerAdapter.getPageRequestCode(currentItem);
+    return timelineSubscriberMap.get(pageRequestCode);
   }
 
   void createFavorite() {

@@ -160,7 +160,7 @@ public class MainActivity
         new FeedbackSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new TimelineFragment();
-    tlFragment.setTimelineSubscriber(timelineSubscriber);
+    tlFragment.setSortedCache(homeTimeline);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();

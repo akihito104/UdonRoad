@@ -59,7 +59,7 @@ public class TimelineFragment extends Fragment {
   private LinearLayoutManager tlLayoutManager;
   private Subscription insertEventSubscription;
   private Subscription deleteEventSubscription;
-  protected TimelineSubscriber<SortedCache<Status>> timelineSubscriber;
+  private SortedCache<Status> timelineStore;
 
   @Override
   public void onAttach(Context context) {
@@ -118,7 +118,6 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    final SortedCache<Status> timelineStore = timelineSubscriber.getStatusStore();
     tlAdapter = new TimelineAdapter(timelineStore);
     insertEventSubscription = timelineStore.observeInsertEvent()
         .subscribe(new Action1<Integer>() {
@@ -325,13 +324,13 @@ public class TimelineFragment extends Fragment {
     }
   }
 
-  protected void fetchTweet() {
+  private void fetchTweet() {
     fetchTweet(null);
   }
 
   public static final String EXTRA_PAGING = "paging";
 
-  protected void fetchTweet(@Nullable Paging paging) {
+  private void fetchTweet(@Nullable Paging paging) {
     final FragmentActivity activity = getActivity();
     if (activity instanceof OnFetchTweets) {
       fetchTweet((OnFetchTweets) activity, paging);
@@ -359,15 +358,11 @@ public class TimelineFragment extends Fragment {
     return timelineFragment;
   }
 
-  public void setTimelineSubscriber(TimelineSubscriber<SortedCache<Status>> timelineSubscriber) {
-    this.timelineSubscriber = timelineSubscriber;
+  public void setSortedCache(SortedCache<Status> sortedCache) {
+    this.timelineStore = sortedCache;
   }
 
-  public TimelineSubscriber<SortedCache<Status>> getTimelineSubscriber() {
-    return timelineSubscriber;
-  }
-
-  @Nullable
+  @Nullable @SuppressWarnings("unused")
   public View getSelectedView() {
     return tlAdapter.getSelectedView();
   }
