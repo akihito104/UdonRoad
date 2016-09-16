@@ -41,7 +41,6 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
-import twitter4j.Status;
 import twitter4j.User;
 
 /**
@@ -49,17 +48,17 @@ import twitter4j.User;
  *
  * Created by Akihit.
  */
-public class TimelineFragment extends Fragment {
+public class TimelineFragment<T> extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
   public static final String BUNDLE_STOP_SCROLL = "stop_scroll";
   private FragmentTimelineBinding binding;
-  private TimelineAdapter tlAdapter;
+  private TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Subscription insertEventSubscription;
   private Subscription deleteEventSubscription;
-  private SortedCache<Status> timelineStore;
+  private SortedCache<T> timelineStore;
 
   @Override
   public void onAttach(Context context) {
@@ -118,7 +117,7 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    tlAdapter = new TimelineAdapter(timelineStore);
+    tlAdapter = new TimelineAdapter<>(timelineStore);
     insertEventSubscription = timelineStore.observeInsertEvent()
         .subscribe(new Action1<Integer>() {
           @Override
@@ -135,23 +134,23 @@ public class TimelineFragment extends Fragment {
         });
 
     if (getActivity() instanceof FabHandleable) {
-      tlAdapter.setOnSelectedTweetChangeListener(
-          new TimelineAdapter.OnSelectedTweetChangeListener() {
+      tlAdapter.setOnSelectedEntityChangeListener(
+          new TimelineAdapter.OnSelectedEntityChangeListener() {
             @Override
-            public void onTweetSelected(long statusId) {
+            public void onEntitySelected(long entityId) {
               showFab();
             }
 
             @Override
-            public void onTweetUnselected() {
+            public void onEntityUnselected() {
               hideFab();
             }
           });
     }
     tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
-      public void onLastItemBound(long statusId) {
-        fetchTweet(new Paging(1, 20, 1, statusId - 1));
+      public void onLastItemBound(long entityId) {
+        fetchTweet(new Paging(1, 20, 1, entityId - 1));
       }
     });
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
@@ -223,7 +222,7 @@ public class TimelineFragment extends Fragment {
   }
 
   public long getSelectedTweetId() {
-    return tlAdapter.getSelectedTweetId();
+    return tlAdapter.getSelectedEntityId();
   }
 
   @Override
@@ -238,7 +237,7 @@ public class TimelineFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     tlAdapter.setLastItemBoundListener(null);
-    tlAdapter.setOnSelectedTweetChangeListener(null);
+    tlAdapter.setOnSelectedEntityChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.setAdapter(null);
@@ -303,7 +302,7 @@ public class TimelineFragment extends Fragment {
   }
 
   public void clearSelectedTweet() {
-    tlAdapter.clearSelectedTweet();
+    tlAdapter.clearSelectedEntity();
   }
 
   public boolean isTweetSelected() {
@@ -352,13 +351,13 @@ public class TimelineFragment extends Fragment {
     }
   }
 
-  public static TimelineFragment getInstance(Fragment fragment, int requestCode) {
-    final TimelineFragment timelineFragment = new TimelineFragment();
+  public static <T> TimelineFragment<T> getInstance(Fragment fragment, int requestCode) {
+    final TimelineFragment<T> timelineFragment = new TimelineFragment<>();
     timelineFragment.setTargetFragment(fragment, requestCode);
     return timelineFragment;
   }
 
-  public void setSortedCache(SortedCache<Status> sortedCache) {
+  public void setSortedCache(SortedCache<T> sortedCache) {
     this.timelineStore = sortedCache;
   }
 

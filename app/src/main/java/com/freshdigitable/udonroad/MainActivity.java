@@ -78,7 +78,7 @@ public class MainActivity
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
-  private TimelineFragment tlFragment;
+  private TimelineFragment<Status> tlFragment;
   private TweetInputFragment tweetInputFragment;
 
   @Inject
@@ -159,7 +159,7 @@ public class MainActivity
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
         new FeedbackSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
 
-    tlFragment = new TimelineFragment();
+    tlFragment = new TimelineFragment<>();
     tlFragment.setSortedCache(homeTimeline);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)

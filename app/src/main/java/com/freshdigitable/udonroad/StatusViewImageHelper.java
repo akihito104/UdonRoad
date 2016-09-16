@@ -36,17 +36,25 @@ public class StatusViewImageHelper {
     loadQuotedStatusImages(status, itemView.getQuotedStatusView());
   }
 
+  public static void load(User user, FullStatusView itemView) {
+    loadUserIcon(user, user.getId(), itemView);
+  }
+
   public static void unload(Context context, long statusId) {
     Picasso.with(context).cancelTag(statusId);
   }
 
   private static void loadUserIcon(Status status, FullStatusView itemView) {
     final User user = getBindingUser(status);
+    loadUserIcon(user, status.getId(), itemView);
+  }
+
+  private static void loadUserIcon(User user, long tagId, FullStatusView itemView) {
     itemView.getIcon().setImageDrawable(null);
     Picasso.with(itemView.getContext())
         .load(user.getProfileImageURLHttps())
         .placeholder(android.R.color.transparent)
-        .tag(status.getId())
+        .tag(tagId)
         .fit()
         .into(itemView.getIcon());
   }

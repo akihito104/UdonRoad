@@ -108,13 +108,13 @@ public class UserInfoPagerFragment extends Fragment {
 
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
 
-    final TimelineFragment home = TimelineFragment.getInstance(this, REQUEST_CODE_USER_HOME);
+    final TimelineFragment<Status> home = TimelineFragment.getInstance(this, REQUEST_CODE_USER_HOME);
     userHomeTimeline.open(getContext(), "user_home");
     userHomeTimeline.clear();
     home.setSortedCache(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME).getStatusStore());
     pagerAdapter.addFragment(home, "Tweets\n" + user.getStatusesCount(), REQUEST_CODE_USER_HOME);
 
-    final TimelineFragment favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
+    final TimelineFragment<Status> favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
     userFavTimeline.open(getContext(), "user_favs");
     userFavTimeline.clear();
     favs.setSortedCache(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS).getStatusStore());
