@@ -40,6 +40,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -85,6 +86,10 @@ public abstract class MainActivityInstTestBase {
   SortedCache<Status> userHomeTLStore;
   @Inject
   SortedCache<Status> userFavsTLStore;
+  @Inject
+  SortedCache<User> userFollowers;
+  @Inject
+  SortedCache<User> userFriends;
 
   protected MockMainApplication app;
   protected long rtStatusId;
@@ -111,6 +116,12 @@ public abstract class MainActivityInstTestBase {
     userFavsTLStore.open(applicationContext, "user_fabs");
     userFavsTLStore.clear();
     userFavsTLStore.close();
+    userFollowers.open(applicationContext, "user_followers");
+    userFollowers.clear();
+    userFollowers.close();
+    userFriends.open(applicationContext, "user_friends");
+    userFriends.clear();
+    userFriends.close();
 
     final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
@@ -162,7 +173,10 @@ public abstract class MainActivityInstTestBase {
             subscriber.onCompleted();
           }
         }));
-
+    when(twitterApi.getFollowersList(anyLong(), anyLong()))
+        .thenReturn(Observable.<PagableResponseList<User>>empty());
+    when(twitterApi.getFriendsList(anyLong(), anyLong()))
+        .thenReturn(Observable.<PagableResponseList<User>>empty());
     getRule().launchActivity(getIntent());
     verifyAfterLaunch();
   }

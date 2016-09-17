@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.realmdata.ConfigStoreRealm;
 import com.freshdigitable.udonroad.realmdata.StatusCacheRealm;
 import com.freshdigitable.udonroad.realmdata.TimelineStoreRealm;
 import com.freshdigitable.udonroad.realmdata.UserCacheRealm;
+import com.freshdigitable.udonroad.realmdata.UserSortedCacheRealm;
 
 import dagger.Module;
 import dagger.Provides;
@@ -53,8 +54,13 @@ public class DataStoreModule {
   }
 
   @Provides
-  public SortedCache<Status> provideSortedStore() {
+  public SortedCache<Status> provideSortedCacheStatus() {
     return new TimelineStoreRealm();
+  }
+
+  @Provides
+  public SortedCache<User> provideSortedCacheUser() {
+    return new UserSortedCacheRealm();
   }
 
   @Provides

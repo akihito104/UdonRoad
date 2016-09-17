@@ -20,6 +20,8 @@ import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
@@ -38,33 +40,52 @@ import twitter4j.UserMentionEntity;
 public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
   @Override
   public void upsert(final User user) {
+    if (user == null) {
+      return;
+    }
+    upsert(Collections.singletonList(user));
+  }
+
+  @Override
+  public void upsert(final List<User> entities) {
+    if (entities == null || entities.isEmpty()) {
+      return;
+    }
+    final List<UserRealm> upserts = new ArrayList<>(entities.size());
+    for (User u : entities) {
+      upserts.add(new UserRealm(u));
+    }
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
-        realm.insertOrUpdate(new UserRealm(user));
+        realm.insertOrUpdate(upserts);
       }
     });
   }
 
   @Override
-  public void upsert(List<User> entities) {
-
-  }
-
-  @Override
   public void forceUpsert(User entity) {
-
+    upsert(entity);
   }
 
   void upsert(UserMentionEntity[] mentionEntity) {
     if (mentionEntity == null || mentionEntity.length < 1) {
       return;
     }
+    final List<UserRealm> upserts = new ArrayList<>();
     for (UserMentionEntity ume : mentionEntity) {
       final User user = find(ume.getId());
       if (user == null) {
-        upsert(new UserRealm(ume));
+        upserts.add(new UserRealm(ume));
       }
+    }
+    if (!upserts.isEmpty()) {
+      cache.executeTransaction(new Realm.Transaction() {
+        @Override
+        public void execute(Realm realm) {
+          realm.insertOrUpdate(upserts);
+        }
+      });
     }
   }
 
@@ -102,6 +123,6 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
 
   @Override
   public void delete(long id) {
-
+    //todo
   }
 }

@@ -53,15 +53,8 @@ import twitter4j.User;
  */
 public class UserInfoPagerFragment extends Fragment {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
-  public static final int REQUEST_CODE_USER_HOME = 10;
-  public static final int REQUEST_CODE_USER_FAVS = 11;
   @Inject
   TwitterApi twitterApi;
-  @Inject
-  SortedCache<Status> userHomeTimeline;
-  @Inject
-  SortedCache<Status> userFavTimeline;
-  private Map<Integer, TimelineSubscriber<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
   @Inject
   TypedCache<User> userCache;
 
@@ -95,33 +88,82 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
-    final SnackbarFeedback userFeedback = new SnackbarFeedback(viewPager);
-    timelineSubscriberMap.put(REQUEST_CODE_USER_HOME,
-        new TimelineSubscriber<>(twitterApi, userHomeTimeline, userFeedback));
-    timelineSubscriberMap.put(REQUEST_CODE_USER_FAVS,
-        new TimelineSubscriber<>(twitterApi, userFavTimeline, userFeedback));
     userCache.open(getContext());
     final User user = userCache.find(userId);
     if (user == null) {//XXX
       return;
     }
-
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
-
-    final TimelineFragment<Status> home = TimelineFragment.getInstance(this, REQUEST_CODE_USER_HOME);
-    userHomeTimeline.open(getContext(), "user_home");
-    userHomeTimeline.clear();
-    home.setSortedCache(timelineSubscriberMap.get(REQUEST_CODE_USER_HOME).getStatusStore());
-    pagerAdapter.addFragment(home, "Tweets\n" + user.getStatusesCount(), REQUEST_CODE_USER_HOME);
-
-    final TimelineFragment<Status> favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
-    userFavTimeline.open(getContext(), "user_favs");
-    userFavTimeline.clear();
-    favs.setSortedCache(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS).getStatusStore());
-    pagerAdapter.addFragment(favs, "likes\n" + user.getFavouritesCount(), REQUEST_CODE_USER_FAVS);
-
+    setupHomeTimeline(user);
+    setupFriendsList(user);
+    setupFollowerList(user);
+    setupFavTimeline(user);
     viewPager.setAdapter(pagerAdapter);
     userCache.close();
+  }
+
+  final SnackbarFeedback userFeedback = new SnackbarFeedback(viewPager);
+  private Map<Integer, TimelineSubscriber<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
+
+  public static final int REQUEST_CODE_USER_HOME = 10;
+  @Inject
+  SortedCache<Status> userHomeTimeline;
+
+  private void setupHomeTimeline(User user) {
+    userHomeTimeline.open(getContext(), "user_home");
+    userHomeTimeline.clear();
+    timelineSubscriberMap.put(REQUEST_CODE_USER_HOME,
+        new TimelineSubscriber<>(twitterApi, userHomeTimeline, userFeedback));
+
+    final TimelineFragment<Status> home = TimelineFragment.getInstance(this, REQUEST_CODE_USER_HOME);
+    home.setSortedCache(userHomeTimeline);
+    pagerAdapter.addFragment(home, "tweet\n" + user.getStatusesCount(), REQUEST_CODE_USER_HOME);
+  }
+
+  public static final int REQUEST_CODE_USER_FAVS = 11;
+  @Inject
+  SortedCache<Status> userFavTimeline;
+
+  private void setupFavTimeline(User user) {
+    userFavTimeline.open(getContext(), "user_favs");
+    userFavTimeline.clear();
+    timelineSubscriberMap.put(REQUEST_CODE_USER_FAVS,
+        new TimelineSubscriber<>(twitterApi, userFavTimeline, userFeedback));
+
+    final TimelineFragment<Status> favs = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FAVS);
+    favs.setSortedCache(timelineSubscriberMap.get(REQUEST_CODE_USER_FAVS).getStatusStore());
+    pagerAdapter.addFragment(favs, "fav\n" + user.getFavouritesCount(), REQUEST_CODE_USER_FAVS);
+  }
+
+  private Map<Integer, UserSubscriber<SortedCache<User>>> userSubscriberMap = new HashMap<>();
+  public static final int REQUEST_CODE_USER_FOLLOWERS = 12;
+  @Inject
+  SortedCache<User> userFollowers;
+
+  private void setupFollowerList(User user) {
+    userFollowers.open(getContext(), "user_followers");
+    userFollowers.clear();
+    userSubscriberMap.put(REQUEST_CODE_USER_FOLLOWERS,
+        new UserSubscriber<>(twitterApi, userFollowers, userFeedback));
+
+    final TimelineFragment<User> followers = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FOLLOWERS);
+    followers.setSortedCache(userFollowers);
+    pagerAdapter.addFragment(followers, "follower\n" + user.getFollowersCount(), REQUEST_CODE_USER_FOLLOWERS);
+  }
+
+  public static final int REQUEST_CODE_USER_FRIENDS = 13;
+  @Inject
+  SortedCache<User> userFriends;
+
+  private void setupFriendsList(User user) {
+    userFriends.open(getContext(), "user_friends");
+    userFriends.clear();
+    userSubscriberMap.put(REQUEST_CODE_USER_FRIENDS,
+        new UserSubscriber<>(twitterApi, userFriends, userFeedback));
+
+    final TimelineFragment<User> friends = TimelineFragment.getInstance(this, REQUEST_CODE_USER_FRIENDS);
+    friends.setSortedCache(userFriends);
+    pagerAdapter.addFragment(friends, "friend\n" + user.getFriendsCount(), REQUEST_CODE_USER_FRIENDS);
   }
 
   @Override
@@ -133,14 +175,11 @@ public class UserInfoPagerFragment extends Fragment {
         @Override
         public void onPageSelected(int position) {
           Log.d(TAG, "onPageSelected: " + position);
-          final Fragment item = pagerAdapter.getItem(position);
-          if (item instanceof TimelineFragment) {
-            TimelineFragment fragment = (TimelineFragment) item;
-            if (fragment.isTweetSelected()) {
-              ((FabHandleable) activity).showFab();
-            } else {
-              ((FabHandleable) activity).hideFab();
-            }
+          TimelineFragment fragment = (TimelineFragment) pagerAdapter.getItem(position);
+          if (fragment.isTweetSelected()) {
+            ((FabHandleable) activity).showFab();
+          } else {
+            ((FabHandleable) activity).hideFab();
           }
         }
       });
@@ -166,28 +205,33 @@ public class UserInfoPagerFragment extends Fragment {
     userHomeTimeline.close();
     userFavTimeline.close();
     timelineSubscriberMap.clear();
+    userFollowers.close();
+    userFriends.close();
+    userSubscriberMap.clear();
     super.onDestroyView();
   }
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(requestCode);
-    final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
-    if (requestCode == REQUEST_CODE_USER_HOME) {
-      if (paging == null) {
-        timelineSubscriber.fetchHomeTimeline(userId);
-      } else {
+    if (isStatusRequest(requestCode)) {
+      final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
+      final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(requestCode);
+      if (requestCode == REQUEST_CODE_USER_HOME) {
         timelineSubscriber.fetchHomeTimeline(userId, paging);
+        return;
       }
-      return;
-    }
-    if (requestCode == REQUEST_CODE_USER_FAVS) {
-      if (paging == null) {
-        timelineSubscriber.fetchFavorites(userId);
-      } else {
+      if (requestCode == REQUEST_CODE_USER_FAVS) {
         timelineSubscriber.fetchFavorites(userId, paging);
+        return;
       }
-      return;
+    } else if (isUserRequest(requestCode)) {
+      final UserSubscriber<SortedCache<User>> userSubscriber = userSubscriberMap.get(requestCode);
+      if (requestCode == REQUEST_CODE_USER_FOLLOWERS) {
+        userSubscriber.fetchFollowers(userId, -1); //todo
+      }
+      if (requestCode == REQUEST_CODE_USER_FRIENDS) {
+        userSubscriber.fetchFriends(userId, -1);//todo
+      }
     }
     super.onActivityResult(requestCode, resultCode, data);
   }
@@ -260,10 +304,12 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   long getCurrentSelectedStatusId() {
-    final Fragment currentFragment = getCurrentFragment();
-    if (!(currentFragment instanceof TimelineFragment)) {
+    final int currentItem = viewPager.getCurrentItem();
+    final int pageRequestCode = pagerAdapter.getPageRequestCode(currentItem);
+    if (!isStatusRequest(pageRequestCode)) {
       return -1;
     }
+    final Fragment currentFragment = getCurrentFragment();
     return ((TimelineFragment) currentFragment).getSelectedTweetId();
   }
 
@@ -294,5 +340,13 @@ public class UserInfoPagerFragment extends Fragment {
     if (timelineSubscriber!=null) {
       timelineSubscriber.retweetStatus(statusId);
     }
+  }
+
+  private boolean isStatusRequest(int reqCode) {
+    return reqCode == REQUEST_CODE_USER_HOME || reqCode == REQUEST_CODE_USER_FAVS;
+  }
+
+  private boolean isUserRequest(int reqCode) {
+    return reqCode == REQUEST_CODE_USER_FOLLOWERS || reqCode == REQUEST_CODE_USER_FRIENDS;
   }
 }
