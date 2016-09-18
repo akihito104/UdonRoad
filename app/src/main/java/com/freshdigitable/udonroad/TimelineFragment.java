@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -77,7 +78,7 @@ public class TimelineFragment<T> extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    binding = FragmentTimelineBinding.inflate(inflater, container, false);
+    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
 
     if (savedInstanceState != null) {
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);

@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -89,7 +90,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    binding = FragmentTweetInputBinding.inflate(inflater, container, false);
+    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
     return binding.getRoot();
   }
 

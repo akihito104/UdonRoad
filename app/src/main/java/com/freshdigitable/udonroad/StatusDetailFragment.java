@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -91,7 +92,7 @@ public class StatusDetailFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    binding = FragmentStatusDetailBinding.inflate(inflater, container, false);
+    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_status_detail, container, false);
     return binding.getRoot();
   }
 
@@ -106,10 +107,6 @@ public class StatusDetailFragment extends Fragment {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
     }
-//    final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-//    for (UserMentionEntity u : userMentionEntities) {
-//      statusCache.upsert(u);
-//    }
 
     final StatusDetailView statusView = binding.statusView;
     StatusViewImageHelper.load(status, statusView);
