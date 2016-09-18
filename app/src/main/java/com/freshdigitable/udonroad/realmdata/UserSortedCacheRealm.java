@@ -34,6 +34,8 @@ import rx.subjects.PublishSubject;
 import twitter4j.User;
 
 /**
+ * UserSortedCacheRealm implements User SortedCache for Realm.
+
  * Created by akihit on 2016/09/17.
  */
 public class UserSortedCacheRealm implements SortedCache<User> {
@@ -139,6 +141,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
         for (ListedUserIDs ids: inserted) {
           insertEvent.onNext(ids.order);
         }
+        element.removeChangeListener(this);
       }
     });
   }

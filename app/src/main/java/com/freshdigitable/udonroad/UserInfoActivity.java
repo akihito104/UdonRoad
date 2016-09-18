@@ -25,6 +25,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.ViewCompat;
@@ -39,6 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
+import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
@@ -49,6 +51,8 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
@@ -74,6 +78,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   @Inject
   TwitterApi twitterApi;
   private UserSubscriber<TypedCache<User>> userSubscriber;
+  private Subscription subscription;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +97,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
     viewPager = (UserInfoPagerFragment) getSupportFragmentManager()
         .findFragmentById(R.id.userInfo_pagerFragment);
-    viewPager.setTabLayout(binding.userInfoTabs);
     viewPager.setUser(userId);
     userSubscriber = new UserSubscriber<>(twitterApi, userCache,
         new FeedbackSubscriber.SnackbarFeedback(viewPager.getView()));
@@ -148,6 +152,21 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     final User user = userCache.find(userId);
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
 
+    binding.userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    subscription = userCache.observeById(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User user) {
+            for (UserPageInfo p : UserPageInfo.values()) {
+              final TabLayout.Tab tab = binding.userInfoTabs.getTabAt(p.ordinal());
+              if (tab != null) {
+                tab.setText(p.createTitle(user));
+              }
+            }
+          }
+        });
+
     setSupportActionBar(binding.userInfoToolbar);
     setupActionMap();
     UserAction.setupFlingableFAB(binding.userInfoIffab, actionMap, getApplicationContext());
@@ -160,6 +179,8 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
+    binding.userInfoTabs.setupWithViewPager(null);
+    subscription.unsubscribe();
     userCache.close();
     closeTwitterInputView();
     super.onStop();
@@ -363,7 +384,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
   @Override
   public void showFab() {
-    final UserInfoPagerFragment.Page currentPage = viewPager.getCurrentPage();
+    final UserPageInfo currentPage = viewPager.getCurrentPage();
     if (currentPage.isStatus()) {
       binding.userInfoIffab.show();
     }

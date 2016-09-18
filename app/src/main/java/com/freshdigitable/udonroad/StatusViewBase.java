@@ -111,6 +111,9 @@ public abstract class StatusViewBase extends RelativeLayout {
   }
 
   protected void updateCreatedAt(Date createdAtDate) {
+    if (createdAtDate == null) {
+      return;
+    }
     createdAt.setText(timeSpanConv.toTimeSpanString(createdAtDate));
   }
 

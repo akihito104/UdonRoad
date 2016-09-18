@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -88,16 +87,16 @@ public class UserInfoPagerFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    setupTimeline(Page.TWEET, userHomeTimeline);
-    setupUserList(Page.FOLLOWER, userFollowers);
-    setupUserList(Page.FRIEND, userFriends);
-    setupTimeline(Page.FAV, userFavTimeline);
+    setupTimeline(UserPageInfo.TWEET, userHomeTimeline);
+    setupUserList(UserPageInfo.FOLLOWER, userFollowers);
+    setupUserList(UserPageInfo.FRIEND, userFriends);
+    setupTimeline(UserPageInfo.FAV, userFavTimeline);
     viewPager.setAdapter(pagerAdapter);
   }
 
   private final SnackbarFeedback userFeedback = new SnackbarFeedback(viewPager);
-  private Map<Page, TimelineSubscriber<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
-  private Map<Page, UserSubscriber<SortedCache<User>>> userSubscriberMap = new HashMap<>();
+  private Map<UserPageInfo, TimelineSubscriber<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
+  private Map<UserPageInfo, UserSubscriber<SortedCache<User>>> userSubscriberMap = new HashMap<>();
 
   @Inject
   SortedCache<Status> userHomeTimeline;
@@ -108,7 +107,7 @@ public class UserInfoPagerFragment extends Fragment {
   @Inject
   SortedCache<User> userFriends;
 
-  private void setupTimeline(@NonNull Page page, SortedCache<Status> sortedCache) {
+  private void setupTimeline(@NonNull UserPageInfo page, SortedCache<Status> sortedCache) {
     if (!page.isStatus()) {
       throw new IllegalArgumentException("page must be for Status. passed: " + page.name());
     }
@@ -117,7 +116,7 @@ public class UserInfoPagerFragment extends Fragment {
     putToPagerAdapter(page, sortedCache);
   }
 
-  private void setupUserList(@NonNull Page page, SortedCache<User> sortedCache) {
+  private void setupUserList(@NonNull UserPageInfo page, SortedCache<User> sortedCache) {
     if (!page.isUser()) {
       throw new IllegalArgumentException("page must be for User. passed: " + page.name());
     }
@@ -126,7 +125,7 @@ public class UserInfoPagerFragment extends Fragment {
     putToPagerAdapter(page, sortedCache);
   }
 
-  private void putToPagerAdapter(@NonNull Page page, SortedCache sortedCache) {
+  private void putToPagerAdapter(@NonNull UserPageInfo page, SortedCache sortedCache) {
     final TimelineFragment fragment = page.setup(sortedCache, this);
     pagerAdapter.putFragment(page, fragment);
   }
@@ -149,7 +148,6 @@ public class UserInfoPagerFragment extends Fragment {
         }
       });
     }
-    tab.setupWithViewPager(viewPager);
   }
 
   private TimelineFragment getCurrentFragment() {
@@ -160,7 +158,6 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onStop() {
     viewPager.clearOnPageChangeListeners();
-    tab.removeAllTabs();
     super.onStop();
   }
 
@@ -178,7 +175,7 @@ public class UserInfoPagerFragment extends Fragment {
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    final Page reqPage = Page.findByRequestCode(requestCode);
+    final UserPageInfo reqPage = UserPageInfo.findByRequestCode(requestCode);
     if (reqPage == null) {
       super.onActivityResult(requestCode, resultCode, data);
       return;
@@ -186,16 +183,16 @@ public class UserInfoPagerFragment extends Fragment {
     if (reqPage.isStatus()) {
       final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
       final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(reqPage);
-      if (reqPage == Page.TWEET) {
+      if (reqPage == UserPageInfo.TWEET) {
         timelineSubscriber.fetchHomeTimeline(userId, paging);
-      } else if (reqPage == Page.FAV) {
+      } else if (reqPage == UserPageInfo.FAV) {
         timelineSubscriber.fetchFavorites(userId, paging);
       }
     } else if (reqPage.isUser()) {
       final UserSubscriber<SortedCache<User>> userSubscriber = userSubscriberMap.get(reqPage);
-      if (reqPage == Page.FOLLOWER) {
+      if (reqPage == UserPageInfo.FOLLOWER) {
         userSubscriber.fetchFollowers(userId, -1); //todo
-      } else if (reqPage == Page.FRIEND) {
+      } else if (reqPage == UserPageInfo.FRIEND) {
         userSubscriber.fetchFriends(userId, -1);//todo
       }
     }
@@ -207,10 +204,8 @@ public class UserInfoPagerFragment extends Fragment {
     this.userId = userId;
   }
 
-  private TabLayout tab;
-
-  public void setTabLayout(TabLayout tab) {
-    this.tab = tab;
+  public ViewPager getViewPager() {
+    return viewPager;
   }
 
   public void clearSelectedTweet() {
@@ -228,15 +223,15 @@ public class UserInfoPagerFragment extends Fragment {
       super(fm);
     }
 
-    private Map<Page, TimelineFragment> pages = new HashMap<>();
+    private Map<UserPageInfo, TimelineFragment> pages = new HashMap<>();
 
-    public void putFragment(Page page, TimelineFragment<?> fragment) {
+    public void putFragment(UserPageInfo page, TimelineFragment<?> fragment) {
       pages.put(page, fragment);
     }
 
     @Override
     public TimelineFragment getItem(int position) {
-      return pages.get(Page.values()[position]);
+      return pages.get(UserPageInfo.values()[position]);
     }
 
     @Override
@@ -246,12 +241,12 @@ public class UserInfoPagerFragment extends Fragment {
 
     @Override
     public CharSequence getPageTitle(int position) {
-      return Page.values()[position].name();
+      return UserPageInfo.values()[position].name();
     }
   }
 
   long getCurrentSelectedStatusId() {
-    final Page currentPage = getCurrentPage();
+    final UserPageInfo currentPage = getCurrentPage();
     if (!currentPage.isStatus()) {
       return -1;
     }
@@ -259,7 +254,7 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   void createFavorite() {
-    final Page currentPage = getCurrentPage();
+    final UserPageInfo currentPage = getCurrentPage();
     if (!currentPage.isStatus()) {
       return;
     }
@@ -275,7 +270,7 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   void retweetStatus() {
-    final Page currentPage = getCurrentPage();
+    final UserPageInfo currentPage = getCurrentPage();
     if (!currentPage.isStatus()) {
       return;
     }
@@ -290,9 +285,10 @@ public class UserInfoPagerFragment extends Fragment {
     }
   }
 
-  @NonNull Page getCurrentPage() {
+  @NonNull
+  UserPageInfo getCurrentPage() {
     final int currentItem = viewPager.getCurrentItem();
-    return Page.values()[currentItem];
+    return UserPageInfo.values()[currentItem];
   }
 
   public static final int REQUEST_CODE_USER_HOME = 10;
@@ -306,16 +302,36 @@ public class UserInfoPagerFragment extends Fragment {
   @interface RequestCodeEnum {
   }
 
-  enum Page {
-    TWEET(REQUEST_CODE_USER_HOME, "user_home"),
-    FOLLOWER(REQUEST_CODE_USER_FOLLOWERS, "user_followers"),
-    FRIEND(REQUEST_CODE_USER_FRIENDS, "user_friends"),
-    FAV(REQUEST_CODE_USER_FAVS, "user_favs"),;
+  enum UserPageInfo {
+    TWEET(REQUEST_CODE_USER_HOME, "user_home") {
+      @Override
+      public String createTitle(User user) {
+        return name() + "\n" + user.getStatusesCount();
+      }
+    },
+    FOLLOWER(REQUEST_CODE_USER_FOLLOWERS, "user_followers") {
+      @Override
+      public String createTitle(User user) {
+        return name() + "\n" + user.getFollowersCount();
+      }
+    },
+    FRIEND(REQUEST_CODE_USER_FRIENDS, "user_friends") {
+      @Override
+      public String createTitle(User user) {
+        return name() + "\n" + user.getFriendsCount();
+      }
+    },
+    FAV(REQUEST_CODE_USER_FAVS, "user_favs") {
+      @Override
+      public String createTitle(User user) {
+        return name() + "\n" + user.getFavouritesCount();
+      }
+    },;
 
     final @RequestCodeEnum int requestCode;
     final String cacheName;
 
-    Page(@RequestCodeEnum int requestCode, String cacheName) {
+    UserPageInfo(@RequestCodeEnum int requestCode, String cacheName) {
       this.requestCode = requestCode;
       this.cacheName = cacheName;
     }
@@ -329,8 +345,8 @@ public class UserInfoPagerFragment extends Fragment {
     }
 
     @Nullable
-    static Page findByRequestCode(int requestCode) {
-      for (Page p : values()) {
+    static UserPageInfo findByRequestCode(int requestCode) {
+      for (UserPageInfo p : values()) {
         if (p.requestCode == requestCode) {
           return p;
         }
@@ -345,5 +361,7 @@ public class UserInfoPagerFragment extends Fragment {
     public boolean isUser() {
       return this == FOLLOWER || this == FRIEND;
     }
+
+    public abstract String createTitle(User user);
   }
 }
