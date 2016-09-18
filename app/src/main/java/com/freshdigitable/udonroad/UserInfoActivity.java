@@ -363,7 +363,10 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
   @Override
   public void showFab() {
-    binding.userInfoIffab.show();
+    final UserInfoPagerFragment.Page currentPage = viewPager.getCurrentPage();
+    if (currentPage.isStatus()) {
+      binding.userInfoIffab.show();
+    }
   }
 
   @Override
