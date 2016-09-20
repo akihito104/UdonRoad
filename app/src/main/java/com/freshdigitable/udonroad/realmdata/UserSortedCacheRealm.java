@@ -31,6 +31,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import rx.Observable;
 import rx.subjects.PublishSubject;
+import twitter4j.PagableResponseList;
 import twitter4j.User;
 
 /**
@@ -135,6 +136,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     if (inserted.isEmpty() || !insertEvent.hasObservers()) {
       return;
     }
+    updateCursorList(entities);
     ordered.addChangeListener(new RealmChangeListener<RealmResults<ListedUserIDs>>() {
       @Override
       public void onChange(RealmResults<ListedUserIDs> element) {
@@ -144,6 +146,21 @@ public class UserSortedCacheRealm implements SortedCache<User> {
         element.removeChangeListener(this);
       }
     });
+  }
+
+  private long lastPageCursor;
+
+  @Override
+  public long getLastPageCursor() {
+    return lastPageCursor;
+  }
+
+  private void updateCursorList(List<User> users) {
+    if (!(users instanceof PagableResponseList)) {
+      return;
+    }
+    final PagableResponseList page = (PagableResponseList) users;
+    lastPageCursor = page.getNextCursor();
   }
 
   @Override

@@ -353,6 +353,15 @@ public class TimelineStoreRealm implements SortedCache<Status> {
   }
 
   @Override
+  public long getLastPageCursor() {
+    if (timeline.size() < 1) {
+      return -1;
+    }
+    final StatusIDs lastStatus = timeline.last();
+    return lastStatus.getId() - 1;
+  }
+
+  @Override
   public Status find(long statusId) {
     return statusCache.find(statusId);
   }

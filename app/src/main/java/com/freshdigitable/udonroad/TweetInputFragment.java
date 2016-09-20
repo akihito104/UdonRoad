@@ -113,9 +113,9 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onStop() {
+    super.onStop();
     configStore.close();
     statusCache.close();
-    super.onStop();
   }
 
   private FloatingActionButton tweetSendFab;

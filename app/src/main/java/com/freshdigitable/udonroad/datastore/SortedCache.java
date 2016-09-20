@@ -41,4 +41,6 @@ public interface SortedCache<T> extends BaseOperation<T> {
   T get(int position);
 
   int getItemCount();
+
+  long getLastPageCursor();
 }

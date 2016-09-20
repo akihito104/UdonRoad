@@ -100,7 +100,6 @@ public class UserSubscriber<T extends BaseOperation<User>> {
   }
 
   public void fetchFollowers(final long userId, final long cursor) {
-    //todo: pass cursor to caller or memory as inner data
     twitterApi.getFollowersList(userId, cursor)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(createUpsertListAction(),
@@ -108,7 +107,6 @@ public class UserSubscriber<T extends BaseOperation<User>> {
   }
 
   public void fetchFriends(long userId, long cursor) {
-    //todo: pass cursor to caller or memory as inner data
     twitterApi.getFriendsList(userId, cursor)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(createUpsertListAction(),

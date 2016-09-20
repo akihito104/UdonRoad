@@ -180,8 +180,8 @@ public class UserInfoPagerFragment extends Fragment {
       super.onActivityResult(requestCode, resultCode, data);
       return;
     }
+    final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
     if (reqPage.isStatus()) {
-      final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
       final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(reqPage);
       if (reqPage == UserPageInfo.TWEET) {
         timelineSubscriber.fetchHomeTimeline(userId, paging);
@@ -190,10 +190,13 @@ public class UserInfoPagerFragment extends Fragment {
       }
     } else if (reqPage.isUser()) {
       final UserSubscriber<SortedCache<User>> userSubscriber = userSubscriberMap.get(reqPage);
+      final long nextCursor = paging != null
+          ? paging.getMaxId()
+          : -1;
       if (reqPage == UserPageInfo.FOLLOWER) {
-        userSubscriber.fetchFollowers(userId, -1); //todo
+        userSubscriber.fetchFollowers(userId, nextCursor);
       } else if (reqPage == UserPageInfo.FRIEND) {
-        userSubscriber.fetchFriends(userId, -1);//todo
+        userSubscriber.fetchFriends(userId, nextCursor);
       }
     }
   }
@@ -309,16 +312,16 @@ public class UserInfoPagerFragment extends Fragment {
         return name() + "\n" + user.getStatusesCount();
       }
     },
-    FOLLOWER(REQUEST_CODE_USER_FOLLOWERS, "user_followers") {
-      @Override
-      public String createTitle(User user) {
-        return name() + "\n" + user.getFollowersCount();
-      }
-    },
     FRIEND(REQUEST_CODE_USER_FRIENDS, "user_friends") {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFriendsCount();
+      }
+    },
+    FOLLOWER(REQUEST_CODE_USER_FOLLOWERS, "user_followers") {
+      @Override
+      public String createTitle(User user) {
+        return name() + "\n" + user.getFollowersCount();
       }
     },
     FAV(REQUEST_CODE_USER_FAVS, "user_favs") {

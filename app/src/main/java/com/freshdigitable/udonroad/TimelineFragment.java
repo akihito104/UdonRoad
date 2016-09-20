@@ -151,7 +151,11 @@ public class TimelineFragment<T> extends Fragment {
     tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
       @Override
       public void onLastItemBound(long entityId) {
-        fetchTweet(new Paging(1, 20, 1, entityId - 1));
+        final long lastPageCursor = timelineStore.getLastPageCursor();
+        final Paging p = lastPageCursor > 0
+            ? new Paging(1, 20, 1, lastPageCursor)
+            : null;
+        fetchTweet(p);
       }
     });
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
