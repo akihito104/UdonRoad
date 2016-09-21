@@ -37,8 +37,6 @@ public class UserInfoView extends RelativeLayout {
   private TextView screenName;
   private ImageView icon;
   private TextView description;
-  private TextView followerCount;
-  private TextView friendsCount;
 
   public UserInfoView(Context context) {
     this(context, null);
@@ -58,8 +56,6 @@ public class UserInfoView extends RelativeLayout {
     banner = (ImageView) v.findViewById(R.id.user_banner);
     icon = (ImageView) v.findViewById(R.id.user_icon);
     ViewCompat.setTransitionName(icon, "user_icon");
-    followerCount = (TextView) v.findViewById(R.id.user_follower_count);
-    friendsCount = (TextView) v.findViewById(R.id.user_friends_count);
   }
 
   public void bindData(User user) {
@@ -67,8 +63,6 @@ public class UserInfoView extends RelativeLayout {
 
     UserInfoActivity.bindUserScreenName(screenName, user);
     description.setText(user.getDescription());
-    followerCount.setText("< " + user.getFollowersCount());
-    friendsCount.setText("> " + user.getFriendsCount());
   }
 
   public ImageView getBanner() {

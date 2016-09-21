@@ -91,27 +91,5 @@
         android:paddingRight="@dimen/grid_margin"
         tools:text="user description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore"
         />
-
-    <TextView
-        android:id="@+id/user_follower_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:layout_below="@+id/user_icon"
-        android:layout_alignStart="@+id/user_icon"
-        android:textSize="@dimen/tweet_main_size"
-        tools:text="followers"
-        />
-
-    <TextView
-        android:id="@+id/user_friends_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:layout_below="@+id/user_follower_count"
-        android:layout_alignStart="@+id/user_follower_count"
-        android:textSize="@dimen/tweet_main_size"
-        tools:text="friends"
-        />
 <!--</RelativeLayout>-->
 </merge>
