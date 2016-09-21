@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.realmdata;
 import android.content.Context;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -33,12 +34,12 @@ import twitter4j.User;
 public class ConfigStoreRealm implements ConfigStore {
 
   private Realm realm;
-  private StatusCacheRealm cache;
+  private TypedCache<User> cache;
 
   @Override
   public void open(Context context) {
     if (cache == null) {
-      cache = new StatusCacheRealm();
+      cache = new UserCacheRealm();
     }
     cache.open(context);
 
@@ -71,7 +72,7 @@ public class ConfigStoreRealm implements ConfigStore {
   public User getAuthenticatedUser() {
     final UserRealm user = realm.where(UserRealm.class)
         .findFirst();
-    final User cacheUser = cache.findUser(user.getId());
+    final User cacheUser = cache.find(user.getId());
     return cacheUser != null
         ? cacheUser
         : user;

@@ -17,8 +17,9 @@
 package com.freshdigitable.udonroad;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-import com.freshdigitable.udonroad.datastore.StatusCapable;
+import com.freshdigitable.udonroad.datastore.BaseOperation;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ import twitter4j.TwitterException;
 
  * Created by akihit on 2016/08/01.
  */
-public class TimelineSubscriber<T extends StatusCapable> {
+public class TimelineSubscriber<T extends BaseOperation<Status>> {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final T statusStore;
@@ -78,7 +79,11 @@ public class TimelineSubscriber<T extends StatusCapable> {
             userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
-  public void fetchHomeTimeline(long userId, Paging paging) {
+  public void fetchHomeTimeline(long userId, @Nullable Paging paging) {
+    if (paging == null) {
+      fetchHomeTimeline(userId);
+      return;
+    }
     twitterApi.getUserTimeline(userId, paging)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
@@ -94,7 +99,11 @@ public class TimelineSubscriber<T extends StatusCapable> {
             userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
-  public void fetchFavorites(long userId, Paging paging) {
+  public void fetchFavorites(long userId, @Nullable Paging paging) {
+    if (paging == null) {
+      fetchFavorites(userId);
+      return;
+    }
     twitterApi.getFavorites(userId, paging)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(

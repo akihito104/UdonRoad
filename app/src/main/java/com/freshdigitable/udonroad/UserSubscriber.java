@@ -18,7 +18,9 @@ package com.freshdigitable.udonroad;
 
 import android.support.annotation.NonNull;
 
-import com.freshdigitable.udonroad.datastore.UserCapable;
+import com.freshdigitable.udonroad.datastore.BaseOperation;
+
+import java.util.List;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -30,7 +32,7 @@ import twitter4j.User;
  *
  * Created by akihit on 2016/09/03.
  */
-public class UserSubscriber<T extends UserCapable> {
+public class UserSubscriber<T extends BaseOperation<User>> {
   private final TwitterApi twitterApi;
   private final T userStore;
   private final FeedbackSubscriber feedback;
@@ -59,16 +61,6 @@ public class UserSubscriber<T extends UserCapable> {
             createUpsertAction(),
             feedback.onErrorDefault(R.string.msg_destroy_friendship_failed),
             feedback.onCompleteDefault(R.string.msg_destroy_friendship_success));
-  }
-
-  @NonNull
-  private Action1<User> createUpsertAction() {
-    return new Action1<User>() {
-      @Override
-      public void call(User user) {
-        userStore.upsert(user);
-      }
-    };
   }
 
   public void createBlock(final long userId) {
@@ -105,5 +97,39 @@ public class UserSubscriber<T extends UserCapable> {
             createUpsertAction(),
             feedback.onErrorDefault(R.string.msg_create_mute_failed),
             feedback.onCompleteDefault(R.string.msg_create_mute_success));
+  }
+
+  public void fetchFollowers(final long userId, final long cursor) {
+    twitterApi.getFollowersList(userId, cursor)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(createUpsertListAction(),
+            feedback.onErrorDefault(R.string.msg_follower_list_failed));
+  }
+
+  public void fetchFriends(long userId, long cursor) {
+    twitterApi.getFriendsList(userId, cursor)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(createUpsertListAction(),
+            feedback.onErrorDefault(R.string.msg_friends_list_failed));
+  }
+
+  @NonNull
+  private Action1<User> createUpsertAction() {
+    return new Action1<User>() {
+      @Override
+      public void call(User user) {
+        userStore.upsert(user);
+      }
+    };
+  }
+
+  @NonNull
+  private Action1<List<User>> createUpsertListAction() {
+    return new Action1<List<User>>() {
+      @Override
+      public void call(List<User> users) {
+        userStore.upsert(users);
+      }
+    };
   }
 }

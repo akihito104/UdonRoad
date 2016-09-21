@@ -22,8 +22,8 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
-import com.freshdigitable.udonroad.datastore.StatusCache;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
@@ -40,6 +40,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -66,6 +67,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
+ * MainActivityTestBase provides setup and tearDown method for tests of MainActivity.
+ *
  * Created by akihit on 2016/07/03.
  */
 public abstract class MainActivityInstTestBase {
@@ -74,13 +77,19 @@ public abstract class MainActivityInstTestBase {
   @Inject
   Twitter twitter;
   @Inject
-  StatusCache statusCache;
+  TypedCache<Status> statusCache;
   @Inject
-  TimelineStore homeTLStore;
+  TypedCache<User> userCache;
   @Inject
-  TimelineStore userHomeTLStore;
+  SortedCache<Status> homeTLStore;
   @Inject
-  TimelineStore userFavsTLStore;
+  SortedCache<Status> userHomeTLStore;
+  @Inject
+  SortedCache<Status> userFavsTLStore;
+  @Inject
+  SortedCache<User> userFollowers;
+  @Inject
+  SortedCache<User> userFriends;
 
   protected MockMainApplication app;
   protected long rtStatusId;
@@ -92,18 +101,13 @@ public abstract class MainActivityInstTestBase {
     component.inject(this);
 
     final Context applicationContext = app.getApplicationContext();
-    statusCache.open(applicationContext);
-    statusCache.clear();
-    statusCache.close();
-    homeTLStore.open(applicationContext, "home");
-    homeTLStore.clear();
-    homeTLStore.close();
-    userHomeTLStore.open(applicationContext, "user_home");
-    userHomeTLStore.clear();
-    userHomeTLStore.close();
-    userFavsTLStore.open(applicationContext, "user_fabs");
-    userFavsTLStore.clear();
-    userFavsTLStore.close();
+    clearCache(statusCache, applicationContext);
+    clearCache(userCache, applicationContext);
+    clearCache(homeTLStore, "home", applicationContext);
+    clearCache(userHomeTLStore, "user_home", applicationContext);
+    clearCache(userFavsTLStore, "user_fabs", applicationContext);
+    clearCache(userFollowers, "user_followers", applicationContext);
+    clearCache(userFriends, "user_friends", applicationContext);
 
     final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
@@ -155,7 +159,10 @@ public abstract class MainActivityInstTestBase {
             subscriber.onCompleted();
           }
         }));
-
+    when(twitterApi.getFollowersList(anyLong(), anyLong()))
+        .thenReturn(Observable.<PagableResponseList<User>>empty());
+    when(twitterApi.getFriendsList(anyLong(), anyLong()))
+        .thenReturn(Observable.<PagableResponseList<User>>empty());
     getRule().launchActivity(getIntent());
     verifyAfterLaunch();
   }
@@ -189,5 +196,17 @@ public abstract class MainActivityInstTestBase {
 
   protected Intent getIntent() {
     return new Intent();
+  }
+
+  private static void clearCache(TypedCache cache, Context context) {
+    cache.open(context);
+    cache.clear();
+    cache.close();
+  }
+
+  private static void clearCache(SortedCache cache, String name, Context context) {
+    cache.open(context, name);
+    cache.clear();
+    cache.close();
   }
 }

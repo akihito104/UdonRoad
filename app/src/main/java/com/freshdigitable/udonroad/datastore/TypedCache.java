@@ -16,28 +16,10 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.Context;
-
-import rx.Observable;
-import twitter4j.Status;
-
 /**
- * Created by akihit on 2016/07/25.
+ * TypedCache defines to access for cache specified type.
+ *
+ * Created by akihit on 2016/09/14.
  */
-public interface TimelineStore extends StatusCapable {
-  void open(Context context, String storeName);
-
-  void close();
-
-  void clear();
-
-  Observable<Integer> observeInsertEvent();
-
-  Observable<Integer> observeUpdateEvent();
-
-  Observable<Integer> observeDeleteEvent();
-
-  Status get(int position);
-
-  int getItemCount();
+public interface TypedCache<T> extends BaseCache, BaseOperation<T> {
 }

@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -35,8 +36,10 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TimelineAdapter.LastItemBoundListener;
+import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -45,18 +48,20 @@ import twitter4j.User;
 
 /**
  * TimelineFragment provides RecyclerView to show timeline.
+ *
+ * Created by Akihit.
  */
-public class TimelineFragment extends Fragment {
+public class TimelineFragment<T> extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
   public static final String BUNDLE_STOP_SCROLL = "stop_scroll";
   private FragmentTimelineBinding binding;
-  private TimelineAdapter tlAdapter;
+  private TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Subscription insertEventSubscription;
   private Subscription deleteEventSubscription;
-  protected TimelineSubscriber<TimelineStore> timelineSubscriber;
+  private SortedCache<T> timelineStore;
 
   @Override
   public void onAttach(Context context) {
@@ -75,7 +80,7 @@ public class TimelineFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    binding = FragmentTimelineBinding.inflate(inflater, container, false);
+    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
 
     if (savedInstanceState != null) {
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
@@ -115,8 +120,7 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    final TimelineStore timelineStore = timelineSubscriber.getStatusStore();
-    tlAdapter = new TimelineAdapter(timelineStore);
+    tlAdapter = new TimelineAdapter<>(timelineStore);
     insertEventSubscription = timelineStore.observeInsertEvent()
         .subscribe(new Action1<Integer>() {
           @Override
@@ -133,29 +137,28 @@ public class TimelineFragment extends Fragment {
         });
 
     if (getActivity() instanceof FabHandleable) {
-      tlAdapter.setOnSelectedTweetChangeListener(
-          new TimelineAdapter.OnSelectedTweetChangeListener() {
-            @Override
-            public void onTweetSelected(long statusId) {
-              showFab();
-            }
+      tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
+        @Override
+        public void onEntitySelected(long entityId) {
+          showFab();
+        }
 
-            @Override
-            public void onTweetUnselected() {
-              hideFab();
-            }
-          });
+        @Override
+        public void onEntityUnselected() {
+          hideFab();
+        }
+      });
     }
-    tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
+    tlAdapter.setLastItemBoundListener(new LastItemBoundListener() {
       @Override
-      public void onLastItemBound(long statusId) {
-        fetchTweet(new Paging(1, 20, 1, statusId - 1));
+      public void onLastItemBound(long lastPageCursor) {
+        fetchTweet(new Paging(1, 20, 1, lastPageCursor));
       }
     });
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     binding.timeline.setAdapter(tlAdapter);
-    fetchTweet();
+    fetchTweet(null);
   }
 
   private final RecyclerView.AdapterDataObserver itemInsertedObserver
@@ -221,7 +224,7 @@ public class TimelineFragment extends Fragment {
   }
 
   public long getSelectedTweetId() {
-    return tlAdapter.getSelectedTweetId();
+    return tlAdapter.getSelectedEntityId();
   }
 
   @Override
@@ -236,7 +239,7 @@ public class TimelineFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     tlAdapter.setLastItemBoundListener(null);
-    tlAdapter.setOnSelectedTweetChangeListener(null);
+    tlAdapter.setOnSelectedEntityChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.setAdapter(null);
@@ -301,7 +304,7 @@ public class TimelineFragment extends Fragment {
   }
 
   public void clearSelectedTweet() {
-    tlAdapter.clearSelectedTweet();
+    tlAdapter.clearSelectedEntity();
   }
 
   public boolean isTweetSelected() {
@@ -322,13 +325,9 @@ public class TimelineFragment extends Fragment {
     }
   }
 
-  protected void fetchTweet() {
-    fetchTweet(null);
-  }
-
   public static final String EXTRA_PAGING = "paging";
 
-  protected void fetchTweet(@Nullable Paging paging) {
+  private void fetchTweet(@Nullable Paging paging) {
     final FragmentActivity activity = getActivity();
     if (activity instanceof OnFetchTweets) {
       fetchTweet((OnFetchTweets) activity, paging);
@@ -350,21 +349,17 @@ public class TimelineFragment extends Fragment {
     }
   }
 
-  public static TimelineFragment getInstance(Fragment fragment, int requestCode) {
-    final TimelineFragment timelineFragment = new TimelineFragment();
+  public static <T> TimelineFragment<T> getInstance(Fragment fragment, int requestCode) {
+    final TimelineFragment<T> timelineFragment = new TimelineFragment<>();
     timelineFragment.setTargetFragment(fragment, requestCode);
     return timelineFragment;
   }
 
-  public void setTimelineSubscriber(TimelineSubscriber<TimelineStore> timelineSubscriber) {
-    this.timelineSubscriber = timelineSubscriber;
+  public void setSortedCache(SortedCache<T> sortedCache) {
+    this.timelineStore = sortedCache;
   }
 
-  public TimelineSubscriber<TimelineStore> getTimelineSubscriber() {
-    return timelineSubscriber;
-  }
-
-  @Nullable
+  @Nullable @SuppressWarnings("unused")
   public View getSelectedView() {
     return tlAdapter.getSelectedView();
   }

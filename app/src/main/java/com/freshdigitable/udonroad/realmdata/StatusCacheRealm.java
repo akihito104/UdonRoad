@@ -19,9 +19,9 @@ package com.freshdigitable.udonroad.realmdata;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.MediaCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,14 +29,11 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 
@@ -45,19 +42,18 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
  *
  * Created by akihit on 2016/07/22.
  */
-public class StatusCacheRealm implements StatusCache {
+public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Status>, MediaCache {
   @SuppressWarnings("unused")
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
-  private Realm cache;
+  private UserCacheRealm userTypedCache;
+
+  public StatusCacheRealm() {
+  }
 
   @Override
   public void open(Context context) {
-    Log.d(TAG, "StatusCacheRealm: open");
-    final RealmConfiguration config = new RealmConfiguration.Builder(context)
-        .name("cache")
-        .deleteRealmIfMigrationNeeded()
-        .build();
-    cache = Realm.getInstance(config);
+    super.open(context);
+    userTypedCache = new UserCacheRealm(this);
   }
 
   @Override
@@ -106,6 +102,9 @@ public class StatusCacheRealm implements StatusCache {
         }
       }
     });
+    for (Status s : updates) {
+      userTypedCache.upsert(s.getUserMentionEntities());
+    }
   }
 
   @NonNull
@@ -130,7 +129,7 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
-  public void deleteStatus(final long statusId) {
+  public void delete(final long statusId) {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
@@ -161,7 +160,7 @@ public class StatusCacheRealm implements StatusCache {
 
   @Override
   @Nullable
-  public Status findStatus(long id) {
+  public Status find(long id) {
     final StatusRealm res = getStatusInternal(id);
     if (res == null) {
       return null;
@@ -181,8 +180,8 @@ public class StatusCacheRealm implements StatusCache {
   }
 
   @Override
-  public Observable<Status> observeStatusById(long statusId) {
-    final StatusRealm status = (StatusRealm) findStatus(statusId);
+  public Observable<Status> observeById(long statusId) {
+    final StatusRealm status = (StatusRealm) find(statusId);
     if (status == null) {
       return null;
     }
@@ -212,79 +211,10 @@ public class StatusCacheRealm implements StatusCache {
         .findFirst();
   }
 
-  @Override
-  public void upsert(final User user) {
-    cache.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.insertOrUpdate(new UserRealm(user));
-      }
-    });
-  }
-
-  @Override
-  public void upsert(UserMentionEntity mentionEntity) {
-    final User user = findUser(mentionEntity.getId());
-    if (user == null) {
-      upsert(new UserRealm(mentionEntity));
-    }
-  }
-
-  @Override
-  @Nullable
-  public User findUser(long id) {
-    return cache.where(UserRealm.class)
-        .equalTo("id", id)
-        .findFirst();
-  }
-
-  @Override
-  public Observable<User> observeUserById(final long userId) {
-    final UserRealm user = cache.where(UserRealm.class)
-        .equalTo("id", userId)
-        .findFirst();
-    return Observable.create(new Observable.OnSubscribe<User>() {
-      @Override
-      public void call(final Subscriber<? super User> subscriber) {
-        UserRealm.addChangeListener(user, new RealmChangeListener<UserRealm>() {
-          @Override
-          public void onChange(UserRealm element) {
-            subscriber.onNext(element);
-          }
-        });
-        subscriber.onNext(user);
-      }
-    }).doOnUnsubscribe(new Action0() {
-      @Override
-      public void call() {
-        UserRealm.removeChangeListeners(user);
-      }
-    });
-  }
-
   @Nullable
   private StatusRealm getStatusInternal(long id) {
     return cache.where(StatusRealm.class)
         .equalTo(KEY_ID, id)
         .findFirst();
-  }
-
-  @Override
-  public void clear() {
-    cache.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        cache.deleteAll();
-      }
-    });
-  }
-
-  @Override
-  public void close() {
-    if (cache == null || cache.isClosed()) {
-      return;
-    }
-    Log.d(TAG, "close: " + cache.getConfiguration().getRealmFileName());
-    cache.close();
   }
 }

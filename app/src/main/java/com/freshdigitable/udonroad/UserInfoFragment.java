@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -25,7 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -35,12 +36,14 @@ import rx.functions.Action1;
 import twitter4j.User;
 
 /**
+ * UserInfoFragment wraps UserInfoView.
+ *
  * Created by akihit on 2016/02/07.
  */
 public class UserInfoFragment extends Fragment {
   private FragmentUserInfoBinding binding;
   @Inject
-  StatusCache statusCache;
+  TypedCache<User> userCache;
   private Subscription subscription;
 
   @Override
@@ -52,7 +55,7 @@ public class UserInfoFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    binding = FragmentUserInfoBinding.inflate(inflater, container, false);
+    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user_info, container, false);
     return binding.getRoot();
   }
 
@@ -64,10 +67,10 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    statusCache.open(getContext());
+    userCache.open(getContext());
 
     final long userId = getUserId();
-    subscription = statusCache.observeUserById(userId)
+    subscription = userCache.observeById(userId)
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
@@ -82,7 +85,7 @@ public class UserInfoFragment extends Fragment {
       subscription.unsubscribe();
     }
     dismissUserInfo();
-    statusCache.close();
+    userCache.close();
     super.onStop();
   }
 

@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -32,7 +33,7 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.squareup.picasso.Picasso;
 
 import java.lang.annotation.Retention;
@@ -62,7 +63,7 @@ public class TweetInputFragment extends Fragment {
   @Inject
   TwitterApi twitterApi;
   @Inject
-  StatusCache statusCache;
+  TypedCache<Status> statusCache;
   @Inject
   ConfigStore configStore;
 
@@ -89,7 +90,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    binding = FragmentTweetInputBinding.inflate(inflater, container, false);
+    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
     return binding.getRoot();
   }
 
@@ -112,9 +113,9 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onStop() {
+    super.onStop();
     configStore.close();
     statusCache.close();
-    super.onStop();
   }
 
   private FloatingActionButton tweetSendFab;
@@ -158,7 +159,7 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
-    final Status inReplyTo = statusCache.findStatus(inReplyToStatusId);
+    final Status inReplyTo = statusCache.find(inReplyToStatusId);
     stretchTweetInputViewWithInReplyTo(inReplyTo);
   }
 
@@ -249,7 +250,7 @@ public class TweetInputFragment extends Fragment {
       String s = sendingText;
       if (quoteStatusIds.size() > 0) {
         for (long q : quoteStatusIds) {
-          final Status status = statusCache.findStatus(q);
+          final Status status = statusCache.find(q);
           if (status == null) {
             continue;
           }

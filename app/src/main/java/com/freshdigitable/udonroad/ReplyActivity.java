@@ -31,7 +31,7 @@ import android.view.Window;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityReplyBinding;
-import com.freshdigitable.udonroad.datastore.StatusCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import javax.inject.Inject;
 
@@ -51,7 +51,7 @@ public class ReplyActivity extends AppCompatActivity {
   public static final String EXTRA_TWEET_TYPE = "tweet_type";
   private ActivityReplyBinding binding;
   @Inject
-  StatusCache statusCache;
+  TypedCache<Status> statusCache;
   private TweetInputFragment tweetInputFragment;
 
   @Override
@@ -84,7 +84,7 @@ public class ReplyActivity extends AppCompatActivity {
 
     final long statusId = getStatusId();
     statusCache.open(getApplicationContext());
-    final Status status = statusCache.findStatus(statusId);
+    final Status status = statusCache.find(statusId);
     binding.replyStatus.bindStatus(status);
 
     tweetInputFragment = (TweetInputFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);

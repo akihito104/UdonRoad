@@ -18,7 +18,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     >
-
+<!--<RelativeLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content">-->
     <ImageView
         android:id="@+id/user_banner"
         android:layout_width="match_parent"
@@ -36,7 +38,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
-        android:layout_marginTop="76dp"
+        android:layout_marginTop="77dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="6dp"
         android:contentDescription="@string/desc_icon"
@@ -51,9 +53,14 @@
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        tools:text="user name"
         android:layout_below="@+id/user_screen_name"
         android:layout_toEndOf="@+id/user_icon"
+        android:paddingStart="@dimen/grid_margin"
+        android:paddingLeft="@dimen/grid_margin"
+        android:paddingEnd="@dimen/grid_margin"
+        android:paddingRight="@dimen/grid_margin"
+        android:background="#8fff"
+        tools:text="user name"
         />
 
     <TextView
@@ -61,9 +68,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        tools:text="\@screenname"
         android:layout_alignTop="@+id/user_icon"
         android:layout_toEndOf="@+id/user_icon"
+        android:paddingStart="@dimen/grid_margin"
+        android:paddingLeft="@dimen/grid_margin"
+        android:paddingEnd="@dimen/grid_margin"
+        android:paddingRight="@dimen/grid_margin"
+        android:background="#8fff"
+        tools:text="\@screenname"
         />
 
     <TextView
@@ -73,18 +85,11 @@
         android:layout_below="@+id/user_name"
         android:layout_toEndOf="@+id/user_icon"
         android:textSize="@dimen/tweet_main_size"
-        tools:text="user description"
-        />
-
-    <TextView
-        android:id="@+id/user_tweets_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:layout_below="@+id/user_icon"
-        android:layout_alignStart="@+id/user_icon"
-        android:textSize="@dimen/tweet_main_size"
-        tools:text="tweets"
+        android:paddingStart="@dimen/grid_margin"
+        android:paddingLeft="@dimen/grid_margin"
+        android:paddingEnd="@dimen/grid_margin"
+        android:paddingRight="@dimen/grid_margin"
+        tools:text="user description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore"
         />
 
     <TextView
@@ -92,8 +97,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:layout_below="@+id/user_tweets_count"
-        android:layout_alignStart="@+id/user_tweets_count"
+        android:layout_below="@+id/user_icon"
+        android:layout_alignStart="@+id/user_icon"
         android:textSize="@dimen/tweet_main_size"
         tools:text="followers"
         />
@@ -108,4 +113,5 @@
         android:textSize="@dimen/tweet_main_size"
         tools:text="friends"
         />
+<!--</RelativeLayout>-->
 </merge>

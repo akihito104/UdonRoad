@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad.realmdata;
 
-import android.support.annotation.Nullable;
-
-import rx.Observable;
+import io.realm.RealmModel;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
 /**
- * UserCapable defines interface for user data store.
- *
- * Created by akihit on 2016/09/03.
+ * Created by akihit on 2016/09/17.
  */
-public interface UserCapable {
-  void upsert(User user);
+@RealmClass
+public class ListedUserIDs implements RealmModel {
+  @PrimaryKey
+  int order;
 
-  void upsert(UserMentionEntity mentionEntity);
+  long userId;
 
-  @Nullable
-  User findUser(long userId);
+  public ListedUserIDs() {
+  }
 
-  Observable<User> observeUserById(long userId);
+  public ListedUserIDs(User user, int order) {
+    this.order = order;
+    this.userId = user.getId();
+  }
 }

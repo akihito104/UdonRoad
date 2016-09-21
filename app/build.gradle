@@ -18,7 +18,8 @@ android {
     buildTypes {
         debug {
             debuggable true
-            shrinkResources true
+// https://code.google.com/p/android/issues/detail?id=206259
+//            shrinkResources true
             zipAlignEnabled true
         }
         release {
@@ -54,7 +55,7 @@ android {
     }
 }
 
-def supportLibVer = '24.2.0'
+def supportLibVer = '24.2.1'
 def t4jVer = '4.0.4'
 def rxVer = '1.1.6'
 def rxAndroidVer = '1.2.1'

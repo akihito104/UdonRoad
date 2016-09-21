@@ -49,4 +49,6 @@
     <string name="msg_report_spam_success">reported spam</string>
     <string name="msg_create_mute_failed">failed to mute…</string>
     <string name="msg_create_mute_success">muted</string>
+    <string name="msg_follower_list_failed">failed to fetch followers…</string>
+    <string name="msg_friends_list_failed">failed to fetch friends…</string>
 </resources>

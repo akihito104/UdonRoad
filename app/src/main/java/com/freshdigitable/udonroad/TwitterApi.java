@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.Relationship;
 import twitter4j.Status;
@@ -406,6 +407,38 @@ public class TwitterApi {
         try {
           final User muted = twitter.destroyMute(userId);
           subscriber.onNext(muted);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<PagableResponseList<User>> getFollowersList(final long userId, final long cursor) {
+    return Observable.create(new Observable.OnSubscribe<PagableResponseList<User>>() {
+      @Override
+      public void call(Subscriber<? super PagableResponseList<User>> subscriber) {
+        try {
+          final PagableResponseList<User> followers
+              = twitter.getFollowersList(userId, cursor, 20, true, false);
+          subscriber.onNext(followers);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<PagableResponseList<User>> getFriendsList(final long userId, final long cursor) {
+    return Observable.create(new Observable.OnSubscribe<PagableResponseList<User>>() {
+      @Override
+      public void call(Subscriber<? super PagableResponseList<User>> subscriber) {
+        try {
+          final PagableResponseList<User> friendsList
+              = twitter.getFriendsList(userId, cursor, 20, true, false);
+          subscriber.onNext(friendsList);
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);

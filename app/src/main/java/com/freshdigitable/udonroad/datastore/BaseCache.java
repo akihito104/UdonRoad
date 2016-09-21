@@ -16,32 +16,17 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.support.annotation.Nullable;
-
-import java.util.List;
-
-import rx.Observable;
-import twitter4j.ExtendedMediaEntity;
-import twitter4j.Status;
+import android.content.Context;
 
 /**
- * StatusCapable defines data store for Status capable.
+ * BaseCache defines basic operation for name-defined data store.
  *
- * Created by akihit on 2016/08/06.
+ * Created by akihit on 2016/09/14.
  */
-public interface StatusCapable {
-  void upsert(Status status);
+public interface BaseCache {
+  void open(Context context);
 
-  void upsert(List<Status> statuses);
+  void clear();
 
-  void deleteStatus(long statusId);
-
-  void forceUpsert(Status status);
-
-  @Nullable
-  Status findStatus(long statusId);
-
-  Observable<Status> observeStatusById(long statusId);
-
-  ExtendedMediaEntity getMediaEntity(long mediaId);
+  void close();
 }

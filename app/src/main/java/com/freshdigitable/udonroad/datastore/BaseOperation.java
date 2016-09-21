@@ -16,17 +16,28 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.Context;
+import android.support.annotation.Nullable;
+
+import java.util.List;
+
+import rx.Observable;
 
 /**
- * StatusCache defines interface of Status data store.
+ * BaseOperation defines basic CRUD operation for data store.
  *
- * Created by akihit on 2016/07/25.
+ * Created by akihit on 2016/09/14.
  */
-public interface StatusCache extends StatusCapable, UserCapable {
-  void open(Context context);
+public interface BaseOperation<T> {
+  void upsert(T entity);
 
-  void clear();
+  void upsert(List<T> entities);
 
-  void close();
+  void forceUpsert(T entity);
+
+  @Nullable
+  T find(long id);
+
+  Observable<T> observeById(long id);
+
+  void delete(long id);
 }

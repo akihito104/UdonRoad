@@ -96,6 +96,13 @@ public abstract class StatusViewBase extends RelativeLayout {
     bindMediaEntities(status);
   }
 
+  public void bindUser(final User user) {
+    bindTweetUserName(user);
+    tweet.setText(user.getDescription());
+    createdAt.setVisibility(GONE);
+    clientName.setVisibility(GONE);
+  }
+
   protected Date createdAtDate;
 
   protected void bindCreatedAt(Date bindingStatus) {
@@ -104,6 +111,9 @@ public abstract class StatusViewBase extends RelativeLayout {
   }
 
   protected void updateCreatedAt(Date createdAtDate) {
+    if (createdAtDate == null) {
+      return;
+    }
     createdAt.setText(timeSpanConv.toTimeSpanString(createdAtDate));
   }
 

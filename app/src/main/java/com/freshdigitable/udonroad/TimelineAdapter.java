@@ -22,93 +22,96 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.datastore.TimelineStore;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import java.lang.ref.WeakReference;
 
 import rx.Observable;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 
 /**
+ * TimelineAdapter is a adapter for RecyclerView.
+ *
  * Created by akihit on 15/10/18.
  */
-public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
+public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.ViewHolder<T>> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
-  private final TimelineStore timelineStore;
 
-  public TimelineAdapter(TimelineStore timelineStore) {
+  private final SortedCache<T> timelineStore;
+
+  public TimelineAdapter(SortedCache<T> timelineStore) {
     this.timelineStore = timelineStore;
   }
 
   @Override
-  public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    return new ViewHolder(new StatusView(parent.getContext()));
-  }
-
-  public long getSelectedTweetId() {
-    return isStatusViewSelected() ? selectedStatusHolder.statusId : -1;
-  }
-
-  public boolean isStatusViewSelected() {
-    return selectedStatusHolder != null;
-  }
-
-  @Nullable
-  public View getSelectedView() {
-    return selectedStatusHolder.view.get();
-  }
-
-  public interface LastItemBoundListener {
-    void onLastItemBound(long statusId);
-  }
-
-  private LastItemBoundListener lastItemBoundListener;
-
-  public void setLastItemBoundListener(LastItemBoundListener listener) {
-    this.lastItemBoundListener = listener;
+  public ViewHolder<T> onCreateViewHolder(ViewGroup parent, int viewType) {
+    return new ViewHolder<>(new StatusView(parent.getContext()));
   }
 
   @Override
-  public void onBindViewHolder(final ViewHolder holder, int position) {
-    final Status status = timelineStore.get(position);
+  public void onBindViewHolder(final ViewHolder<T> holder, int position) {
+    final T entity = timelineStore.get(position);
     final StatusView itemView = (StatusView) holder.itemView;
-    itemView.bindStatus(status);
-    final long statusId = status.getId();
-    if (holder.statusId == statusId) {
-//      Log.d(TAG, "onBindViewHolder: pos:" + position + ", " + status.toString());
-      return;
-    }
-    holder.setStatusId(status);
-    holder.bind(timelineStore.observeStatusById(statusId));
+    final long entityId = getEntityId(entity);
+    holder.setEntityId(entityId);
+    holder.bind(timelineStore.observeById(entityId));
     if (position == getItemCount() - 1) {
-      lastItemBoundListener.onLastItemBound(statusId);
+      final long nextCursor = timelineStore.getLastPageCursor();
+      if (nextCursor > 0) {
+        lastItemBoundListener.onLastItemBound(nextCursor);
+      }
     }
-
-    final long quotedStatusId = status.getQuotedStatusId();
-    if (statusId == getSelectedTweetId()) {
-      selectedStatusHolder = new SelectedStatus(holder);
-    } else if (quotedStatusId != -1 && quotedStatusId == getSelectedTweetId()) {
-      final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
-      selectedStatusHolder = new SelectedStatus(quotedStatusId, quotedStatusView);
-    }
-    setupUserIcon(status, itemView);
-    setupMediaView(status, itemView);
-    setupQuotedStatusView(status, itemView.getQuotedStatusView());
     itemView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        itemViewClickListener.onItemViewClicked(itemView, statusId, v);
+        itemViewClickListener.onItemViewClicked(itemView, entityId, v);
       }
     });
+
+    if (entity instanceof Status) {
+      final Status status = (Status) entity;
+      itemView.bindStatus(status);
+      final long quotedStatusId = status.getQuotedStatusId();
+      if (entityId == getSelectedEntityId()) {
+        selectedEntityHolder = new SelectedEntity(holder);
+      } else if (quotedStatusId != -1 && quotedStatusId == getSelectedEntityId()) {
+        final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
+        selectedEntityHolder = new SelectedEntity(quotedStatusId, quotedStatusView);
+      }
+      setupUserIcon(status, itemView);
+      setupMediaView(status, itemView);
+      setupQuotedStatusView(status, itemView.getQuotedStatusView());
+    } else if (entity instanceof User) {
+      final User user = (User) entity;
+      itemView.bindUser(user);
+      if (entityId == getSelectedEntityId()) {
+        selectedEntityHolder = new SelectedEntity(holder);
+      }
+      setupUserIcon(user, itemView);
+    }
+  }
+
+  private long getEntityId(T entity) {
+    if (entity instanceof Status) {
+      return ((Status) entity).getId();
+    } else if (entity instanceof User) {
+      return ((User) entity).getId();
+    }
+    return -1;
   }
 
   private void setupUserIcon(Status status, StatusView itemView) {
     final User user = StatusViewImageHelper.getBindingUser(status);
+    setupUserIcon(user, itemView);
+  }
+
+  private void setupUserIcon(final User user, StatusView itemView) {
     itemView.getIcon().setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -158,57 +161,26 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   @Override
-  public void onViewAttachedToWindow(ViewHolder holder) {
+  public void onViewAttachedToWindow(ViewHolder<T> holder) {
     super.onViewAttachedToWindow(holder);
-    final Status status = timelineStore.findStatus(holder.statusId);
-    StatusViewImageHelper.load(status, (StatusView) holder.itemView);
+    final T entity = timelineStore.find(holder.entityId);
+    if (entity instanceof Status) {
+      final Status status = (Status) entity;
+      StatusViewImageHelper.load(status, (StatusView) holder.itemView);
+    } else if (entity instanceof User) {
+      final User user = (User) entity;
+      StatusViewImageHelper.load(user, ((StatusView) holder.itemView));
+    }
   }
 
   @Override
-  public void onViewDetachedFromWindow(ViewHolder holder) {
+  public void onViewDetachedFromWindow(ViewHolder<T> holder) {
     super.onViewDetachedFromWindow(holder);
-    StatusViewImageHelper.unload(holder.itemView.getContext(), holder.statusId);
-  }
-
-  private SelectedStatus selectedStatusHolder = null;
-
-  private final OnItemViewClickListener itemViewClickListener = new OnItemViewClickListener() {
-    @Override
-    public void onItemViewClicked(StatusViewBase itemView, long statusId, View clickedItem) {
-      if (isStatusViewSelected()
-          && statusId == selectedStatusHolder.statusId) {
-        if (clickedItem instanceof MediaImageView) {
-          return;
-        }
-        clearSelectedTweet();
-      } else {
-        fixSelectedTweet(statusId, itemView);
-      }
-    }
-  };
-
-  public void clearSelectedTweet() {
-    if (isStatusViewSelected()) {
-      selectedStatusHolder.setUnselectedBackground();
-    }
-    selectedStatusHolder = null;
-    if (selectedTweetChangeListener != null) {
-      selectedTweetChangeListener.onTweetUnselected();
-    }
-  }
-
-  private void fixSelectedTweet(long selectedStatusId, StatusViewBase selectedView) {
-    if (isStatusViewSelected()) {
-      selectedStatusHolder.setUnselectedBackground();
-    }
-    selectedStatusHolder = new SelectedStatus(selectedStatusId, selectedView);
-    if (selectedTweetChangeListener != null) {
-      selectedTweetChangeListener.onTweetSelected(selectedStatusId);
-    }
+    StatusViewImageHelper.unload(holder.itemView.getContext(), holder.entityId);
   }
 
   @Override
-  public void onViewRecycled(ViewHolder holder) {
+  public void onViewRecycled(ViewHolder<T> holder) {
     final StatusView v = (StatusView) holder.itemView;
     unloadMediaView(v);
 
@@ -216,8 +188,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     if (quotedStatusView.getVisibility() == View.VISIBLE) {
       unloadMediaView(quotedStatusView);
     }
-    if (holder.hasSameStatusId(selectedStatusHolder)) {
-      selectedStatusHolder.onViewRecycled();
+    if (holder.hasSameEntityId(selectedEntityHolder)) {
+      selectedEntityHolder.onViewRecycled();
     }
     v.setOnClickListener(null);
     v.getQuotedStatusView().setOnClickListener(null);
@@ -228,42 +200,31 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     super.onViewRecycled(holder);
   }
 
-  private OnSelectedTweetChangeListener selectedTweetChangeListener;
-
-  public void setOnSelectedTweetChangeListener(OnSelectedTweetChangeListener listener) {
-    this.selectedTweetChangeListener = listener;
-  }
-
-  interface OnSelectedTweetChangeListener {
-    void onTweetSelected(long statusId);
-    void onTweetUnselected();
-  }
-
-  @Override
-  public int getItemCount() {
-    return timelineStore.getItemCount();
-  }
-
-  public static class ViewHolder extends RecyclerView.ViewHolder {
-    private long statusId;
+  public static class ViewHolder<T> extends RecyclerView.ViewHolder {
+    private long entityId;
     private Subscription subscription;
 
     public ViewHolder(View itemView) {
       super(itemView);
     }
 
-    void setStatusId(final Status status) {
-      this.statusId = status.getId();
+    void setEntityId(long id) {
+      entityId = id;
     }
 
-    void bind(Observable<Status> observable) {
-      subscription = observable.subscribe(new Action1<Status>() {
-        @Override
-        public void call(Status status) {
-          ((StatusView) itemView).bindStatus(status);
-          itemView.invalidate();
-        }
-      });
+    void bind(Observable<T> observable) {
+      subscription = observable
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(new Action1<T>() {
+            @Override
+            public void call(T entity) {
+              if (entity instanceof Status) {
+                ((StatusView) itemView).bindStatus(((Status) entity));
+              } else if (entity instanceof User) {
+                ((StatusView) itemView).bindUser(((User) entity));
+              }
+            }
+          });
     }
 
     void unbind() {
@@ -272,27 +233,103 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
       }
     }
 
-    boolean hasSameStatusId(SelectedStatus other) {
-      return other != null && this.statusId == other.statusId;
+    boolean hasSameEntityId(SelectedEntity other) {
+      return other != null && this.entityId == other.entityId;
     }
 
     void onRecycled() {
-      this.statusId = -1;
+      this.entityId = -1;
       unbind();
       subscription = null;
     }
   }
 
-  private static class SelectedStatus {
-    private final long statusId;
+  private SelectedEntity selectedEntityHolder = null;
+
+  private final OnItemViewClickListener itemViewClickListener = new OnItemViewClickListener() {
+    @Override
+    public void onItemViewClicked(StatusViewBase itemView, long entityId, View clickedItem) {
+      if (isStatusViewSelected()
+          && entityId == selectedEntityHolder.entityId) {
+        if (clickedItem instanceof MediaImageView) {
+          return;
+        }
+        clearSelectedEntity();
+      } else {
+        fixSelectedEntity(entityId, itemView);
+      }
+    }
+  };
+
+  public void clearSelectedEntity() {
+    if (isStatusViewSelected()) {
+      selectedEntityHolder.setUnselectedBackground();
+    }
+    selectedEntityHolder = null;
+    if (selectedEntityChangeListener != null) {
+      selectedEntityChangeListener.onEntityUnselected();
+    }
+  }
+
+  private void fixSelectedEntity(long selectedEntityId, StatusViewBase selectedView) {
+    if (isStatusViewSelected()) {
+      selectedEntityHolder.setUnselectedBackground();
+    }
+    selectedEntityHolder = new SelectedEntity(selectedEntityId, selectedView);
+    if (selectedEntityChangeListener != null) {
+      selectedEntityChangeListener.onEntitySelected(selectedEntityId);
+    }
+  }
+
+  public long getSelectedEntityId() {
+    return isStatusViewSelected() ? selectedEntityHolder.entityId : -1;
+  }
+
+  public boolean isStatusViewSelected() {
+    return selectedEntityHolder != null;
+  }
+
+  @Nullable
+  public View getSelectedView() {
+    return selectedEntityHolder.view.get();
+  }
+
+  public interface LastItemBoundListener {
+    void onLastItemBound(long entityId);
+  }
+
+  private LastItemBoundListener lastItemBoundListener;
+
+  public void setLastItemBoundListener(LastItemBoundListener listener) {
+    this.lastItemBoundListener = listener;
+  }
+
+  private OnSelectedEntityChangeListener selectedEntityChangeListener;
+
+  public void setOnSelectedEntityChangeListener(OnSelectedEntityChangeListener listener) {
+    this.selectedEntityChangeListener = listener;
+  }
+
+  interface OnSelectedEntityChangeListener {
+    void onEntitySelected(long entityId);
+    void onEntityUnselected();
+  }
+
+  @Override
+  public int getItemCount() {
+    return timelineStore.getItemCount();
+  }
+
+  private static class SelectedEntity {
+    private final long entityId;
     private final WeakReference<? extends StatusViewBase> view;
 
-    private SelectedStatus(ViewHolder viewHolder) {
-      this(viewHolder.statusId, (StatusViewBase) viewHolder.itemView);
+    private SelectedEntity(ViewHolder viewHolder) {
+      this(viewHolder.entityId, (StatusViewBase) viewHolder.itemView);
     }
 
-    private SelectedStatus(long statusId, StatusViewBase view) {
-      this.statusId = statusId;
+    private SelectedEntity(long entityId, StatusViewBase view) {
+      this.entityId = entityId;
       this.view = view == null
           ? null
           : new WeakReference<>(view);
@@ -327,6 +364,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
   }
 
   interface OnItemViewClickListener {
-    void onItemViewClicked(StatusViewBase itemView, long statusId, View clickedItem);
+    void onItemViewClicked(StatusViewBase itemView, long entityId, View clickedItem);
   }
 }
