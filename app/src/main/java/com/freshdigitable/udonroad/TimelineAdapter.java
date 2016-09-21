@@ -176,7 +176,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   @Override
   public void onViewDetachedFromWindow(ViewHolder<T> holder) {
     super.onViewDetachedFromWindow(holder);
-    StatusViewImageHelper.unload(holder.itemView.getContext(), holder.entityId);
+    StatusViewImageHelper.unload((FullStatusView) holder.itemView, holder.entityId);
   }
 
   @Override

@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
-
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 
@@ -26,6 +24,8 @@ import twitter4j.Status;
 import twitter4j.User;
 
 /**
+ * StatusViewImageHelper provides image loader for StatusView.
+ *
  * Created by akihit on 2016/08/20.
  */
 public class StatusViewImageHelper {
@@ -40,8 +40,12 @@ public class StatusViewImageHelper {
     loadUserIcon(user, user.getId(), itemView);
   }
 
-  public static void unload(Context context, long statusId) {
-    Picasso.with(context).cancelTag(statusId);
+  public static void unload(FullStatusView itemView, long entityId) {
+    Picasso.with(itemView.getContext()).cancelTag(entityId);
+    unloadRTUserIcon(itemView);
+    unloadUserIcon(itemView);
+    unloadMediaView(itemView);
+    unloadQuotedStatusImages(itemView.getQuotedStatusView());
   }
 
   private static void loadUserIcon(Status status, FullStatusView itemView) {
@@ -50,13 +54,16 @@ public class StatusViewImageHelper {
   }
 
   private static void loadUserIcon(User user, long tagId, FullStatusView itemView) {
-    itemView.getIcon().setImageDrawable(null);
     Picasso.with(itemView.getContext())
         .load(user.getProfileImageURLHttps())
         .placeholder(android.R.color.transparent)
         .tag(tagId)
         .fit()
         .into(itemView.getIcon());
+  }
+
+  private static void unloadUserIcon(FullStatusView itemView) {
+    itemView.getIcon().setImageDrawable(null);
   }
 
   public static User getBindingUser(Status status) {
@@ -69,7 +76,6 @@ public class StatusViewImageHelper {
     if (!status.isRetweet()) {
       return;
     }
-    itemView.getRtUserIcon().setImageDrawable(null);
     Picasso.with(itemView.getContext())
         .load(status.getUser().getMiniProfileImageURLHttps())
         .placeholder(android.R.color.transparent)
@@ -78,17 +84,21 @@ public class StatusViewImageHelper {
         .into(itemView.getRtUserIcon());
   }
 
+  private static void unloadRTUserIcon(FullStatusView itemView) {
+    itemView.getRtUserIcon().setImageDrawable(null);
+  }
+
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {
     ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
     final MediaContainer mediaContainer = statusView.getMediaContainer();
     mediaContainer.bindMediaEntities(extendedMediaEntities);
     final int mediaCount = mediaContainer.getThumbCount();
+    final long statusId = status.getId();
     for (int i = 0; i < mediaCount; i++) {
       final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
       final String type = extendedMediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
-      final long statusId = status.getId();
       final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb")
           .placeholder(android.R.color.transparent)
@@ -103,6 +113,15 @@ public class StatusViewImageHelper {
     }
   }
 
+  private static void unloadMediaView(StatusViewBase statusView) {
+    final MediaContainer mediaContainer = statusView.getMediaContainer();
+    final int thumbCount = mediaContainer.getThumbCount();
+    for (int i=0; i<thumbCount;i++) {
+      final MediaImageView childAt = (MediaImageView) mediaContainer.getChildAt(i);
+      childAt.setImageDrawable(null);
+    }
+  }
+
   private static void loadQuotedStatusImages(Status status, QuotedStatusView quotedStatusView) {
     final Status quotedStatus = status.isRetweet()
         ? status.getRetweetedStatus().getQuotedStatus()
@@ -110,7 +129,6 @@ public class StatusViewImageHelper {
     if (quotedStatus == null) {
       return;
     }
-    quotedStatusView.getIcon().setImageDrawable(null);
     Picasso.with(quotedStatusView.getContext())
         .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
         .placeholder(android.R.color.transparent)
@@ -118,6 +136,11 @@ public class StatusViewImageHelper {
         .fit()
         .into(quotedStatusView.getIcon());
     loadMediaView(quotedStatus, quotedStatusView);
+  }
+
+  private static void unloadQuotedStatusImages(QuotedStatusView quotedStatusView) {
+    quotedStatusView.getIcon().setImageDrawable(null);
+    unloadMediaView(quotedStatusView);
   }
 
   private StatusViewImageHelper() {

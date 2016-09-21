@@ -281,7 +281,7 @@ public class StatusDetailFragment extends Fragment {
     }
     final long statusId = getStatusId();
     Picasso.with(getContext()).cancelTag(statusId);
-    StatusViewImageHelper.unload(getContext(), statusId);
+    StatusViewImageHelper.unload(binding.statusView, statusId);
     statusCache.close();
   }
 
