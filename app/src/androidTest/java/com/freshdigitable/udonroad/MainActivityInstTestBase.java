@@ -101,27 +101,13 @@ public abstract class MainActivityInstTestBase {
     component.inject(this);
 
     final Context applicationContext = app.getApplicationContext();
-    statusCache.open(applicationContext);
-    statusCache.clear();
-    statusCache.close();
-    userCache.open(applicationContext);
-    userCache.clear();
-    userCache.close();
-    homeTLStore.open(applicationContext, "home");
-    homeTLStore.clear();
-    homeTLStore.close();
-    userHomeTLStore.open(applicationContext, "user_home");
-    userHomeTLStore.clear();
-    userHomeTLStore.close();
-    userFavsTLStore.open(applicationContext, "user_fabs");
-    userFavsTLStore.clear();
-    userFavsTLStore.close();
-    userFollowers.open(applicationContext, "user_followers");
-    userFollowers.clear();
-    userFollowers.close();
-    userFriends.open(applicationContext, "user_friends");
-    userFriends.clear();
-    userFriends.close();
+    clearCache(statusCache, applicationContext);
+    clearCache(userCache, applicationContext);
+    clearCache(homeTLStore, "home", applicationContext);
+    clearCache(userHomeTLStore, "user_home", applicationContext);
+    clearCache(userFavsTLStore, "user_fabs", applicationContext);
+    clearCache(userFollowers, "user_followers", applicationContext);
+    clearCache(userFriends, "user_friends", applicationContext);
 
     final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
@@ -210,5 +196,17 @@ public abstract class MainActivityInstTestBase {
 
   protected Intent getIntent() {
     return new Intent();
+  }
+
+  private static void clearCache(TypedCache cache, Context context) {
+    cache.open(context);
+    cache.clear();
+    cache.close();
+  }
+
+  private static void clearCache(SortedCache cache, String name, Context context) {
+    cache.open(context, name);
+    cache.clear();
+    cache.close();
   }
 }
