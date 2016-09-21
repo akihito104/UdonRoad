@@ -62,7 +62,10 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     holder.setEntityId(entityId);
     holder.bind(timelineStore.observeById(entityId));
     if (position == getItemCount() - 1) {
-      lastItemBoundListener.onLastItemBound(entityId);
+      final long nextCursor = timelineStore.getLastPageCursor();
+      if (nextCursor > 0) {
+        lastItemBoundListener.onLastItemBound(nextCursor);
+      }
     }
     itemView.setOnClickListener(new View.OnClickListener() {
       @Override

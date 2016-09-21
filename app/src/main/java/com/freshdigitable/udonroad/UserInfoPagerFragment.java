@@ -157,12 +157,13 @@ public class UserInfoPagerFragment extends Fragment {
 
   @Override
   public void onStop() {
-    viewPager.clearOnPageChangeListeners();
     super.onStop();
+    viewPager.clearOnPageChangeListeners();
   }
 
   @Override
   public void onDestroyView() {
+    super.onDestroyView();
     viewPager.setAdapter(null);
     userHomeTimeline.close();
     userFavTimeline.close();
@@ -170,7 +171,6 @@ public class UserInfoPagerFragment extends Fragment {
     userFollowers.close();
     userFriends.close();
     userSubscriberMap.clear();
-    super.onDestroyView();
   }
 
   @Override

@@ -148,7 +148,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     });
   }
 
-  private long lastPageCursor;
+  private long lastPageCursor = -1;
 
   @Override
   public long getLastPageCursor() {

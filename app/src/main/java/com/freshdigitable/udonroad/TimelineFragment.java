@@ -36,6 +36,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TimelineAdapter.LastItemBoundListener;
+import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 
@@ -135,33 +137,28 @@ public class TimelineFragment<T> extends Fragment {
         });
 
     if (getActivity() instanceof FabHandleable) {
-      tlAdapter.setOnSelectedEntityChangeListener(
-          new TimelineAdapter.OnSelectedEntityChangeListener() {
-            @Override
-            public void onEntitySelected(long entityId) {
-              showFab();
-            }
+      tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
+        @Override
+        public void onEntitySelected(long entityId) {
+          showFab();
+        }
 
-            @Override
-            public void onEntityUnselected() {
-              hideFab();
-            }
-          });
+        @Override
+        public void onEntityUnselected() {
+          hideFab();
+        }
+      });
     }
-    tlAdapter.setLastItemBoundListener(new TimelineAdapter.LastItemBoundListener() {
+    tlAdapter.setLastItemBoundListener(new LastItemBoundListener() {
       @Override
-      public void onLastItemBound(long entityId) {
-        final long lastPageCursor = timelineStore.getLastPageCursor();
-        final Paging p = lastPageCursor > 0
-            ? new Paging(1, 20, 1, lastPageCursor)
-            : null;
-        fetchTweet(p);
+      public void onLastItemBound(long lastPageCursor) {
+        fetchTweet(new Paging(1, 20, 1, lastPageCursor));
       }
     });
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     binding.timeline.setAdapter(tlAdapter);
-    fetchTweet();
+    fetchTweet(null);
   }
 
   private final RecyclerView.AdapterDataObserver itemInsertedObserver
@@ -326,10 +323,6 @@ public class TimelineFragment<T> extends Fragment {
         }
       };
     }
-  }
-
-  private void fetchTweet() {
-    fetchTweet(null);
   }
 
   public static final String EXTRA_PAGING = "paging";
