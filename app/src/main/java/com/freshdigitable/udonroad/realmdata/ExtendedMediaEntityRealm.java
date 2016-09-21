@@ -26,6 +26,8 @@ import io.realm.annotations.PrimaryKey;
 import twitter4j.ExtendedMediaEntity;
 
 /**
+ * ExtendedMediaEntityRealm is a data class to store Realm.
+ *
  * Created by akihit on 2016/06/23.
  */
 public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMediaEntity {
@@ -190,5 +192,10 @@ public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMed
   @Override
   public Variant[] getVideoVariants() {
     return videoVariants.toArray(new Variant[videoVariants.size()]);
+  }
+
+  @Override
+  public String getExtAltText() {
+    throw new RuntimeException("not implemented yet...");
   }
 }

@@ -25,6 +25,8 @@ import twitter4j.RateLimitStatus;
 import twitter4j.TwitterAPIConfiguration;
 
 /**
+ * TwitterAPIConfigurationRealm is a data class to store Realm.
+ *
  * Created by akihit on 2016/07/30.
  */
 @RealmClass
@@ -64,6 +66,11 @@ public class TwitterAPIConfigurationRealm implements TwitterAPIConfiguration, Re
   @Override
   public int getCharactersReservedPerMedia() {
     return charactersReservedPerMedia;
+  }
+
+  @Override
+  public int getDmTextCharacterLimit() {
+    throw new RuntimeException("not implemented yet...");
   }
 
   @Override

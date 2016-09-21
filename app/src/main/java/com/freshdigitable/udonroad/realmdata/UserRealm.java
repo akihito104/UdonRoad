@@ -84,6 +84,11 @@ public class UserRealm extends RealmObject implements User {
     return name;
   }
 
+  @Override
+  public String getEmail() {
+    throw new RuntimeException("not implemented yet...");
+  }
+
   public void setName(String name) {
     this.name = name;
   }
