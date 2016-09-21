@@ -68,7 +68,7 @@ public class StatusView extends FullStatusView {
     final Status bindingStatus = getBindingStatus(status);
     String text = bindingStatus.getText();
     final String quotedStatusIdStr = Long.toString(bindingStatus.getQuotedStatusId());
-    final URLEntity[] urlEntities = status.getURLEntities();
+    final URLEntity[] urlEntities = bindingStatus.getURLEntities();
     for (URLEntity u : urlEntities) {
       if (bindingStatus.getQuotedStatus() != null
           && u.getExpandedURL().contains(quotedStatusIdStr)) {
