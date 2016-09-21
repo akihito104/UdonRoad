@@ -121,7 +121,8 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   }
 
   private void setupMediaView(final Status status, final StatusViewBase statusView) {
-    ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    final ExtendedMediaEntity[] extendedMediaEntities
+        = StatusViewImageHelper.getBindingStatus(status).getExtendedMediaEntities();
     if (extendedMediaEntities.length < 1) {
       return;
     }

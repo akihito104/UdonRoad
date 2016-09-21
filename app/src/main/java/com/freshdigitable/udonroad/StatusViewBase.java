@@ -38,6 +38,8 @@ import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
 
 /**
+ * StatusViewBase defines how to bind Status and StatusView.
+ *
  * Created by akihit on 2016/06/28.
  */
 public abstract class StatusViewBase extends RelativeLayout {
@@ -164,7 +166,9 @@ public abstract class StatusViewBase extends RelativeLayout {
   }
 
   protected void bindMediaEntities(Status status) {
-    mediaContainer.bindMediaEntities(status.getExtendedMediaEntities());
+    final ExtendedMediaEntity[] extendedMediaEntities
+        = getBindingStatus(status).getExtendedMediaEntities();
+    mediaContainer.bindMediaEntities(extendedMediaEntities);
   }
 
   protected Status getBindingStatus(Status status) {

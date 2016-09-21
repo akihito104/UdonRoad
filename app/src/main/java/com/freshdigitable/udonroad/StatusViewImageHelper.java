@@ -67,9 +67,13 @@ public class StatusViewImageHelper {
   }
 
   public static User getBindingUser(Status status) {
+    return getBindingStatus(status).getUser();
+  }
+
+  public static Status getBindingStatus(Status status) {
     return status.isRetweet()
-        ? status.getRetweetedStatus().getUser()
-        : status.getUser();
+        ? status.getRetweetedStatus()
+        : status;
   }
 
   private static void loadRTUserIcon(Status status, FullStatusView itemView) {
@@ -89,7 +93,8 @@ public class StatusViewImageHelper {
   }
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {
-    ExtendedMediaEntity[] extendedMediaEntities = status.getExtendedMediaEntities();
+    final ExtendedMediaEntity[] extendedMediaEntities
+        = getBindingStatus(status).getExtendedMediaEntities();
     final MediaContainer mediaContainer = statusView.getMediaContainer();
     mediaContainer.bindMediaEntities(extendedMediaEntities);
     final int mediaCount = mediaContainer.getThumbCount();

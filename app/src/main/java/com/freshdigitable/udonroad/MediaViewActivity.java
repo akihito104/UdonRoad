@@ -80,7 +80,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   public static Intent create(@NonNull Context context, @NonNull Status status, int startPage) {
-    if (status.getExtendedMediaEntities().length < startPage + 1) {
+    final Status bindingStatus = StatusViewImageHelper.getBindingStatus(status);
+    if (bindingStatus.getExtendedMediaEntities().length < startPage + 1) {
       throw new IllegalArgumentException(
           "startPage number exceeded ExtendedMediaEntities length: " + startPage);
     }
@@ -201,9 +202,10 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
     }
+    final Status bindingStatus = StatusViewImageHelper.getBindingStatus(status);
     final int startPage = intent.getIntExtra(CREATE_START, 0);
     binding.mediaPager.setAdapter(
-        new MediaPagerAdapter(getSupportFragmentManager(), status.getExtendedMediaEntities())
+        new MediaPagerAdapter(getSupportFragmentManager(), bindingStatus.getExtendedMediaEntities())
     );
     binding.mediaPager.addOnPageChangeListener(pageChangeListener);
     binding.mediaPager.setCurrentItem(startPage);

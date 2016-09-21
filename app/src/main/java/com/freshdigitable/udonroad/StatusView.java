@@ -28,6 +28,8 @@ import twitter4j.Status;
 import twitter4j.URLEntity;
 
 /**
+ * StatusView shows Status data in RecyclerView.
+ *
  * Created by akihit on 2016/01/11.
  */
 public class StatusView extends FullStatusView {
@@ -75,7 +77,7 @@ public class StatusView extends FullStatusView {
         text = text.replace(u.getURL(), u.getDisplayURL());
       }
     }
-    return removeMediaUrl(text, status.getExtendedMediaEntities());
+    return removeMediaUrl(text, bindingStatus.getExtendedMediaEntities());
   }
 
   @Override
