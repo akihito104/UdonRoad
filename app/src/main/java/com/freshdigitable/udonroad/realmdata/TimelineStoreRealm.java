@@ -21,19 +21,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
-import rx.subjects.PublishSubject;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
@@ -45,37 +41,16 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_RETWEETED_ST
  *
  * Created by akihit on 2016/07/23.
  */
-public class TimelineStoreRealm implements SortedCache<Status> {
+public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   private static final String TAG = TimelineStoreRealm.class.getSimpleName();
-  private Realm realm;
   private RealmResults<StatusIDs> timeline;
   private StatusCacheRealm statusCache;
-  private PublishSubject<Integer> insertEvent;
-  private PublishSubject<Integer> updateEvent;
-  private PublishSubject<Integer> deleteEvent;
-
-  public void open(Context context) {
-    final RealmConfiguration config = new RealmConfiguration.Builder(context).build();
-    open(context, config);
-  }
 
   @Override
   public void open(Context context, String storeName) {
-    final RealmConfiguration config = new RealmConfiguration.Builder(context)
-        .name(storeName)
-        .deleteRealmIfMigrationNeeded()
-        .build();
-    open(context, config);
-  }
-
-  private void open(Context context, RealmConfiguration config) {
-    Log.d(TAG, "openRealm: " + config.getRealmFileName());
-    insertEvent = PublishSubject.create();
-    updateEvent = PublishSubject.create();
-    deleteEvent = PublishSubject.create();
+    super.open(context, storeName);
     statusCache = new StatusCacheRealm();
     statusCache.open(context);
-    realm = Realm.getInstance(config);
     defaultTimeline();
   }
 
@@ -83,21 +58,6 @@ public class TimelineStoreRealm implements SortedCache<Status> {
     timeline = realm
         .where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
-  }
-
-  @Override
-  public Observable<Integer> observeInsertEvent() {
-    return insertEvent.onBackpressureBuffer();
-  }
-
-  @Override
-  public Observable<Integer> observeUpdateEvent() {
-    return updateEvent.onBackpressureBuffer();
-  }
-
-  @Override
-  public Observable<Integer> observeDeleteEvent() {
-    return deleteEvent.onBackpressureBuffer();
   }
 
   @Override
@@ -329,15 +289,8 @@ public class TimelineStoreRealm implements SortedCache<Status> {
 
   @Override
   public void close() {
-    if (realm == null || realm.isClosed()) {
-      return;
-    }
-    Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
-    insertEvent.onCompleted();
-    updateEvent.onCompleted();
-    deleteEvent.onCompleted();
     timeline.removeChangeListeners();
-    realm.close();
+    super.close();
     statusCache.close();
   }
 

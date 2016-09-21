@@ -19,18 +19,14 @@ package com.freshdigitable.udonroad.realmdata;
 import android.content.Context;
 import android.support.annotation.Nullable;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import rx.Observable;
-import rx.subjects.PublishSubject;
 import twitter4j.PagableResponseList;
 import twitter4j.User;
 
@@ -39,22 +35,13 @@ import twitter4j.User;
 
  * Created by akihit on 2016/09/17.
  */
-public class UserSortedCacheRealm implements SortedCache<User> {
-  private Realm realm;
+public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   private UserCacheRealm userCache;
   private RealmResults<ListedUserIDs> ordered;
-  private PublishSubject<Integer> insertEvent;
-  private PublishSubject<Integer> deletionEvent;
 
   @Override
   public void open(Context context, String storeName) {
-    insertEvent = PublishSubject.create();
-    deletionEvent = PublishSubject.create();
-    final RealmConfiguration config = new RealmConfiguration.Builder(context)
-        .name(storeName)
-        .deleteRealmIfMigrationNeeded()
-        .build();
-    realm = Realm.getInstance(config);
+    super.open(context, storeName);
     userCache = new UserCacheRealm();
     userCache.open(context);
     ordered = realm.where(ListedUserIDs.class)
@@ -63,9 +50,9 @@ public class UserSortedCacheRealm implements SortedCache<User> {
 
   @Override
   public void close() {
+    ordered.removeChangeListeners();
+    super.close();
     userCache.close();
-    realm.close();
-    insertEvent.onCompleted();
   }
 
   @Override
@@ -76,21 +63,6 @@ public class UserSortedCacheRealm implements SortedCache<User> {
         realm.deleteAll();
       }
     });
-  }
-
-  @Override
-  public Observable<Integer> observeInsertEvent() {
-    return insertEvent.onBackpressureBuffer();
-  }
-
-  @Override
-  public Observable<Integer> observeUpdateEvent() {
-    return null;
-  }
-
-  @Override
-  public Observable<Integer> observeDeleteEvent() {
-    return deletionEvent.onBackpressureBuffer();
   }
 
   @Override

@@ -38,6 +38,13 @@ import twitter4j.UserMentionEntity;
  * Created by akihit on 2016/09/14.
  */
 public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
+  public UserCacheRealm() {
+  }
+
+  UserCacheRealm(BaseCacheRealm baseCacheRealm) {
+    super(baseCacheRealm);
+  }
+
   @Override
   public void upsert(final User user) {
     if (user == null) {

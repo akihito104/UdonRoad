@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.realmdata;
 
 import android.content.Context;
+import android.support.annotation.CallSuper;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.BaseCache;
@@ -33,7 +34,15 @@ abstract class BaseCacheRealm implements BaseCache {
   private static final String TAG = BaseCacheRealm.class.getSimpleName();
   protected Realm cache;
 
+  BaseCacheRealm() {
+  }
+
+  BaseCacheRealm(BaseCacheRealm realm) {
+    cache = realm.cache;
+  }
+
   @Override
+  @CallSuper
   public void open(Context context) {
     Log.d(TAG, "StatusCacheRealm: open");
     final RealmConfiguration config = new RealmConfiguration.Builder(context)
@@ -54,6 +63,7 @@ abstract class BaseCacheRealm implements BaseCache {
   }
 
   @Override
+  @CallSuper
   public void close() {
     if (cache == null || cache.isClosed()) {
       return;

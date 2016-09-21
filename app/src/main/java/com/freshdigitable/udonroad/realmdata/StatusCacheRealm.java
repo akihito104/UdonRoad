@@ -47,17 +47,13 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
   private UserCacheRealm userTypedCache;
 
-  @Override
-  public void open(Context context) {
-    super.open(context);
-    userTypedCache = new UserCacheRealm();
-    userTypedCache.open(context);
+  public StatusCacheRealm() {
   }
 
   @Override
-  public void close() {
-    super.close();
-    userTypedCache.close();
+  public void open(Context context) {
+    super.open(context);
+    userTypedCache = new UserCacheRealm(this);
   }
 
   @Override
