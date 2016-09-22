@@ -16,8 +16,17 @@
 
 package com.freshdigitable.udonroad;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Shader;
+import android.widget.ImageView;
+
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Transformation;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -53,17 +62,19 @@ public class StatusViewImageHelper {
     loadUserIcon(user, status.getId(), itemView);
   }
 
-  private static void loadUserIcon(User user, long tagId, FullStatusView itemView) {
+  private static RoundedCornerTrans userIconTransformer = new RoundedCornerTrans(10);
+
+  private static void loadUserIcon(User user, final long tagId, final FullStatusView itemView) {
     Picasso.with(itemView.getContext())
         .load(user.getProfileImageURLHttps())
-        .placeholder(android.R.color.transparent)
         .tag(tagId)
         .fit()
+        .transform(userIconTransformer)
         .into(itemView.getIcon());
   }
 
   private static void unloadUserIcon(FullStatusView itemView) {
-    itemView.getIcon().setImageDrawable(null);
+    unloadImage(itemView.getIcon());
   }
 
   public static User getBindingUser(Status status) {
@@ -76,20 +87,22 @@ public class StatusViewImageHelper {
         : status;
   }
 
+  private static RoundedCornerTrans smallUserIconTransformer = new RoundedCornerTrans(4);
+
   private static void loadRTUserIcon(Status status, FullStatusView itemView) {
     if (!status.isRetweet()) {
       return;
     }
     Picasso.with(itemView.getContext())
         .load(status.getUser().getMiniProfileImageURLHttps())
-        .placeholder(android.R.color.transparent)
         .tag(status.getId())
         .fit()
+        .transform(smallUserIconTransformer)
         .into(itemView.getRtUserIcon());
   }
 
   private static void unloadRTUserIcon(FullStatusView itemView) {
-    itemView.getRtUserIcon().setImageDrawable(null);
+    unloadImage(itemView.getRtUserIcon());
   }
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {
@@ -106,7 +119,6 @@ public class StatusViewImageHelper {
 
       final RequestCreator rc = Picasso.with(mediaContainer.getContext())
           .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb")
-          .placeholder(android.R.color.transparent)
           .tag(statusId);
       if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
@@ -122,33 +134,66 @@ public class StatusViewImageHelper {
     final MediaContainer mediaContainer = statusView.getMediaContainer();
     final int thumbCount = mediaContainer.getThumbCount();
     for (int i=0; i<thumbCount;i++) {
-      final MediaImageView childAt = (MediaImageView) mediaContainer.getChildAt(i);
-      childAt.setImageDrawable(null);
+      final MediaImageView media = (MediaImageView) mediaContainer.getChildAt(i);
+      unloadImage(media);
     }
   }
 
   private static void loadQuotedStatusImages(Status status, QuotedStatusView quotedStatusView) {
-    final Status quotedStatus = status.isRetweet()
-        ? status.getRetweetedStatus().getQuotedStatus()
-        : status.getQuotedStatus();
+    final Status quotedStatus = getBindingStatus(status).getQuotedStatus();
     if (quotedStatus == null) {
       return;
     }
     Picasso.with(quotedStatusView.getContext())
         .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
-        .placeholder(android.R.color.transparent)
         .tag(status.getId())
         .fit()
+        .transform(smallUserIconTransformer)
         .into(quotedStatusView.getIcon());
     loadMediaView(quotedStatus, quotedStatusView);
   }
 
   private static void unloadQuotedStatusImages(QuotedStatusView quotedStatusView) {
-    quotedStatusView.getIcon().setImageDrawable(null);
+    unloadImage(quotedStatusView.getIcon());
     unloadMediaView(quotedStatusView);
+  }
+
+  private static void unloadImage(ImageView v) {
+    v.setImageDrawable(null);
+    v.setImageResource(android.R.color.transparent);
   }
 
   private StatusViewImageHelper() {
     throw new AssertionError();
+  }
+
+  private static class RoundedCornerTrans implements Transformation {
+    private final float radius;
+    private final String key;
+    private final Paint paint;
+
+    private RoundedCornerTrans(float radius) {
+      this.radius = radius;
+      this.key = "roundedCorner(" + Float.toString(radius) + ")";
+      this.paint = new Paint();
+      this.paint.setAntiAlias(true);
+    }
+
+    @Override
+    public Bitmap transform(Bitmap source) {
+      final int width = source.getWidth();
+      final int height = source.getHeight();
+      final Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+      final Canvas canvas = new Canvas(bitmap);
+      paint.setShader(new BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+      canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius, paint);
+      source.recycle();
+      return bitmap;
+    }
+
+    @Override
+    public String key() {
+      return key;
+    }
   }
 }

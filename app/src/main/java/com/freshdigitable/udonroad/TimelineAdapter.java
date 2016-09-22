@@ -182,6 +182,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
 
   @Override
   public void onViewRecycled(ViewHolder<T> holder) {
+    super.onViewRecycled(holder);
     final StatusView v = (StatusView) holder.itemView;
     unloadMediaView(v);
 
@@ -198,7 +199,6 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     v.getMediaContainer().setOnMediaClickListener(null);
     v.reset();
     holder.onRecycled();
-    super.onViewRecycled(holder);
   }
 
   public static class ViewHolder<T> extends RecyclerView.ViewHolder {

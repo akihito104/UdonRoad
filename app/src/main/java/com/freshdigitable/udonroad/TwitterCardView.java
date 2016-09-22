@@ -48,6 +48,9 @@ public class TwitterCardView extends RelativeLayout {
     image = (ImageView) v.findViewById(R.id.card_image);
     title = (TextView) v.findViewById(R.id.card_title);
     url = (TextView) v.findViewById(R.id.card_url);
+    setBackgroundResource(R.drawable.selector_rounded_frame);
+    final int padding = getResources().getDimensionPixelSize(R.dimen.frame_border_width);
+    setPadding(padding, padding, padding, padding);
   }
 
   public void bindData(TwitterCard data) {
