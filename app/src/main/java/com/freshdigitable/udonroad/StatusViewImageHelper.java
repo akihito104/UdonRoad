@@ -16,17 +16,10 @@
 
 package com.freshdigitable.udonroad;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.RectF;
-import android.graphics.Shader;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
-import com.squareup.picasso.Transformation;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -62,14 +55,11 @@ public class StatusViewImageHelper {
     loadUserIcon(user, status.getId(), itemView);
   }
 
-  private static RoundedCornerTrans userIconTransformer = new RoundedCornerTrans(10);
-
   private static void loadUserIcon(User user, final long tagId, final FullStatusView itemView) {
     Picasso.with(itemView.getContext())
         .load(user.getProfileImageURLHttps())
         .tag(tagId)
         .fit()
-        .transform(userIconTransformer)
         .into(itemView.getIcon());
   }
 
@@ -87,8 +77,6 @@ public class StatusViewImageHelper {
         : status;
   }
 
-  private static RoundedCornerTrans smallUserIconTransformer = new RoundedCornerTrans(4);
-
   private static void loadRTUserIcon(Status status, FullStatusView itemView) {
     if (!status.isRetweet()) {
       return;
@@ -97,7 +85,6 @@ public class StatusViewImageHelper {
         .load(status.getUser().getMiniProfileImageURLHttps())
         .tag(status.getId())
         .fit()
-        .transform(smallUserIconTransformer)
         .into(itemView.getRtUserIcon());
   }
 
@@ -148,7 +135,6 @@ public class StatusViewImageHelper {
         .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
         .tag(status.getId())
         .fit()
-        .transform(smallUserIconTransformer)
         .into(quotedStatusView.getIcon());
     loadMediaView(quotedStatus, quotedStatusView);
   }
@@ -165,35 +151,5 @@ public class StatusViewImageHelper {
 
   private StatusViewImageHelper() {
     throw new AssertionError();
-  }
-
-  private static class RoundedCornerTrans implements Transformation {
-    private final float radius;
-    private final String key;
-    private final Paint paint;
-
-    private RoundedCornerTrans(float radius) {
-      this.radius = radius;
-      this.key = "roundedCorner(" + Float.toString(radius) + ")";
-      this.paint = new Paint();
-      this.paint.setAntiAlias(true);
-    }
-
-    @Override
-    public Bitmap transform(Bitmap source) {
-      final int width = source.getWidth();
-      final int height = source.getHeight();
-      final Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-      final Canvas canvas = new Canvas(bitmap);
-      paint.setShader(new BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
-      canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius, paint);
-      source.recycle();
-      return bitmap;
-    }
-
-    @Override
-    public String key() {
-      return key;
-    }
   }
 }

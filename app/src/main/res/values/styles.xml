@@ -8,6 +8,7 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="drawerArrowStyle">@style/AppDrawerArrowToggle</item>
         <item name="iffabStyle">@style/Widget.FFAB.IndicatableFFAB</item>
+        <item name="roundedCornerImageViewStyle">@style/Widget.RoundedCornerImageView</item>
     </style>
 
     <style name="AppDrawerArrowToggle" parent="Base.Widget.AppCompat.DrawerArrowToggle">

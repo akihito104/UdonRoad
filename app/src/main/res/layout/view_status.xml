@@ -46,13 +46,14 @@
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:layout_gravity="center_vertical"
                 />
-            <ImageView
+            <com.freshdigitable.udonroad.RoundedCornerImageView
                 android:id="@+id/tl_rt_user_icon"
                 android:layout_width="@dimen/small_user_icon"
                 android:layout_height="@dimen/small_user_icon"
                 android:layout_marginRight="@dimen/grid_margin"
                 android:layout_marginEnd="@dimen/grid_margin"
                 android:contentDescription="@string/desc_rt_user_icon"
+                app:maskerShape="@drawable/s_rounded_mask_small"
                 />
             <TextView
                 android:id="@+id/tl_rt_user"
@@ -65,7 +66,7 @@
                 />
         </LinearLayout>
 
-        <ImageView
+        <com.freshdigitable.udonroad.RoundedCornerImageView
             android:id="@+id/tl_icon"
             android:layout_width="@dimen/tweet_user_icon"
             android:layout_height="@dimen/tweet_user_icon"
