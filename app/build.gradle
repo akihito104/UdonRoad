@@ -62,7 +62,7 @@ def rxAndroidVer = '1.2.1'
 def daggerVer = "2.5"
 def supportTestVer = "0.5"
 def dexmakerVer = '1.4'
-def leakcanaryVer= '1.4-beta2'
+def leakcanaryVer= '1.4'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
