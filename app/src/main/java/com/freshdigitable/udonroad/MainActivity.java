@@ -45,7 +45,6 @@ import com.freshdigitable.udonroad.TimelineFragment.OnFetchTweets;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
-import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.squareup.picasso.Picasso;
@@ -56,11 +55,9 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
-import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
@@ -84,12 +81,12 @@ public class MainActivity
   @Inject
   TwitterApi twitterApi;
   @Inject
-  ConfigStore configStore;
-  @Inject
   SortedCache<Status> homeTimeline;
   private TimelineSubscriber<SortedCache<Status>> timelineSubscriber;
   private UserStreamUtil userStream;
   private final Map<Direction, UserAction> actionMap = new HashMap<>();
+  @Inject
+  ConfigSubscriber configSubscriber;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -198,7 +195,7 @@ public class MainActivity
   }
 
   private void setupNavigationDrawer() {
-    final User authenticatedUser = configStore.getAuthenticatedUser();
+    final User authenticatedUser = configSubscriber.getConfigStore().getAuthenticatedUser();
     setupNavigationDrawer(authenticatedUser);
   }
 
@@ -226,35 +223,10 @@ public class MainActivity
   @Override
   protected void onStart() {
     super.onStart();
-    configStore.open(getApplicationContext());
+    configSubscriber.open(getApplicationContext());
     userStream.connect();
-    twitterApi.verifyCredentials()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            configStore.setAuthenticatedUser(user);
-            setupNavigationDrawer(user);
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "call: ", throwable);
-          }
-        });
-    twitterApi.getTwitterAPIConfiguration()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<TwitterAPIConfiguration>() {
-          @Override
-          public void call(TwitterAPIConfiguration configuration) {
-            configStore.setTwitterAPIConfig(configuration);
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "call: ", throwable);
-          }
-        });
+    configSubscriber.verifyCredencials();
+    configSubscriber.fetchTwitterAPIConfig();
 
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
@@ -315,7 +287,7 @@ public class MainActivity
   @Override
   protected void onStop() {
     super.onStop();
-    configStore.close();
+    configSubscriber.close();
     binding.ffab.setOnFlingListener(null);
     actionMap.clear();
   }
