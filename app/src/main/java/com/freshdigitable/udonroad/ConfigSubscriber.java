@@ -27,8 +27,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
@@ -67,9 +69,20 @@ public class ConfigSubscriber {
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
-            configStore.setAuthenticatedUser(user);
+            configStore.addAuthenticatedUser(user);
           }
         }, onErrorAction);
+  }
+
+  public Observable<User> getAuthenticatedUser() {
+    return twitterApi.getId()
+        .observeOn(AndroidSchedulers.mainThread())
+        .map(new Func1<Long, User>() {
+          @Override
+          public User call(Long aLong) {
+            return configStore.getAuthenticatedUser(aLong);
+          }
+        });
   }
 
   public void fetchTwitterAPIConfig() {

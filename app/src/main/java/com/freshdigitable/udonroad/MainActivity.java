@@ -195,8 +195,13 @@ public class MainActivity
   }
 
   private void setupNavigationDrawer() {
-    final User authenticatedUser = configSubscriber.getConfigStore().getAuthenticatedUser();
-    setupNavigationDrawer(authenticatedUser);
+    configSubscriber.getAuthenticatedUser()
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User user) {
+            setupNavigationDrawer(user);
+          }
+        });
   }
 
   private void setupNavigationDrawer(@Nullable User user) {
@@ -225,7 +230,7 @@ public class MainActivity
     super.onStart();
     configSubscriber.open(getApplicationContext());
     userStream.connect();
-    configSubscriber.verifyCredencials();
+    setupNavigationDrawer();
     configSubscriber.fetchTwitterAPIConfig();
 
     binding.mainToolbar.setTitle("Home");

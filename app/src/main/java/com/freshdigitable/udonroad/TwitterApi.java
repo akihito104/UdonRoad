@@ -66,6 +66,21 @@ public class TwitterApi {
     return true;
   }
 
+  public Observable<Long> getId() {
+    return Observable.create(new Observable.OnSubscribe<Long>() {
+      @Override
+      public void call(Subscriber<? super Long> subscriber) {
+        try {
+          final long userId = twitter.getId();
+          subscriber.onNext(userId);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
   public Observable<User> verifyCredentials() {
     return Observable.create(new Observable.OnSubscribe<User>() {
       @Override

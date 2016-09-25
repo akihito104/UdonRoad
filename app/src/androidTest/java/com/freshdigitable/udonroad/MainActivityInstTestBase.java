@@ -163,6 +163,8 @@ public abstract class MainActivityInstTestBase {
         .thenReturn(Observable.<PagableResponseList<User>>empty());
     when(twitterApi.getFriendsList(anyLong(), anyLong()))
         .thenReturn(Observable.<PagableResponseList<User>>empty());
+    when(twitterApi.getId())
+        .thenReturn(Observable.just(2000L));
     getRule().launchActivity(getIntent());
     verifyAfterLaunch();
   }

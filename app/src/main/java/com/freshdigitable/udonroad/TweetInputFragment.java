@@ -32,7 +32,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
-import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.squareup.picasso.Picasso;
 
@@ -65,7 +64,7 @@ public class TweetInputFragment extends Fragment {
   @Inject
   TypedCache<Status> statusCache;
   @Inject
-  ConfigStore configStore;
+  ConfigSubscriber configSubscriber;
 
   public static TweetInputFragment create(@TweetType int type) {
     return create(type, -1);
@@ -104,7 +103,7 @@ public class TweetInputFragment extends Fragment {
   public void onStart() {
     super.onStart();
     statusCache.open(getContext());
-    configStore.open(getContext());
+    configSubscriber.open(getContext());
     final Bundle arguments = getArguments();
     final @TweetType int tweetType = arguments.getInt("tweet_type");
     final long statusId = arguments.getLong("status_id", -1);
@@ -114,7 +113,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    configStore.close();
+    configSubscriber.close();
     statusCache.close();
   }
 
@@ -180,15 +179,20 @@ public class TweetInputFragment extends Fragment {
 
   private void setUpTweetInputView() {
     final TweetInputView inputText = binding.mainTweetInputView;
-    final User authenticatedUser = configStore.getAuthenticatedUser();
-    inputText.setUserInfo(authenticatedUser);
-    Picasso.with(inputText.getContext())
-        .load(authenticatedUser.getMiniProfileImageURLHttps())
-        .fit()
-        .into(inputText.getIcon());
+    configSubscriber.getAuthenticatedUser()
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User authenticatedUser) {
+            inputText.setUserInfo(authenticatedUser);
+            Picasso.with(inputText.getContext())
+                .load(authenticatedUser.getMiniProfileImageURLHttps())
+                .fit()
+                .into(inputText.getIcon());
+          }
+        });
     inputText.addTextWatcher(textWatcher);
     inputText.setShortUrlLength(
-        configStore.getTwitterAPIConfig().getShortURLLengthHttps());
+        configSubscriber.getConfigStore().getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
   public void tearDownTweetInputView() {
