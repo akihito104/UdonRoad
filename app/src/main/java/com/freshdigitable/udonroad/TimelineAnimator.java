@@ -28,6 +28,7 @@ import java.util.List;
 
 /**
  * customized animation for RecyclerView as a Twitter Timeline
+ *
  * Created by akihit on 2015/11/21.
  */
 public class TimelineAnimator extends SimpleItemAnimator {
@@ -54,7 +55,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
 //    Log.d(TAG, "animateRemoveImpl: ");
     removeAnimations.add(holder);
     ViewCompat.animate(holder.itemView)
-        .translationY(-holder.itemView.getHeight())
+        .translationYBy(-holder.itemView.getHeight())
         .alpha(0)
         .setDuration(getRemoveDuration())
         .setListener(new ViewPropertyAnimatorListenerAdapter() {
@@ -218,7 +219,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
     private int toLeft;
     private int toTop;
 
-    public Change(ViewHolder oldHolder, ViewHolder newHolder,
+    private Change(ViewHolder oldHolder, ViewHolder newHolder,
                   int fromLeft, int fromTop, int toLeft, int toTop) {
       this.oldHolder = oldHolder;
       this.newHolder = newHolder;
@@ -242,15 +243,15 @@ public class TimelineAnimator extends SimpleItemAnimator {
           : null;
     }
 
-    public float deltaX() {
+    private float deltaX() {
       return toTop - fromTop;
     }
 
-    public float deltaY() {
+    private float deltaY() {
       return toLeft - fromLeft;
     }
 
-    public boolean removeViewHolderIfMatch(ViewHolder holder) {
+    private boolean removeViewHolderIfMatch(ViewHolder holder) {
       if (holder == oldHolder) {
         oldHolder = null;
         return true;
@@ -261,7 +262,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
       return false;
     }
 
-    public boolean isDone() {
+    private boolean isDone() {
       return oldHolder == null && newHolder == null;
     }
   }
