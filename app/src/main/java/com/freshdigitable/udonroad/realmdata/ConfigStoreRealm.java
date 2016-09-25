@@ -57,7 +57,7 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
-  public void setAuthenticatedUser(final User authenticatedUser) {
+  public void addAuthenticatedUser(final User authenticatedUser) {
     realm.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
@@ -69,9 +69,13 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
-  public User getAuthenticatedUser() {
+  public User getAuthenticatedUser(long userId) {
     final UserRealm user = realm.where(UserRealm.class)
+        .equalTo("id", userId)
         .findFirst();
+    if (user == null) {
+      return null;
+    }
     final User cacheUser = cache.find(user.getId());
     return cacheUser != null
         ? cacheUser

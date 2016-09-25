@@ -50,7 +50,7 @@ public class UserRealm extends RealmObject implements User {
   public UserRealm() {
   }
 
-  public UserRealm(final User user) {
+  UserRealm(final User user) {
     this.id = user.getId();
     this.profileImageURLHttps = user.getProfileImageURLHttps();
     this.miniProfileImageURLHttps = user.getMiniProfileImageURLHttps();
@@ -64,7 +64,7 @@ public class UserRealm extends RealmObject implements User {
     this.favoritesCount = user.getFavouritesCount();
   }
 
-  public UserRealm(UserMentionEntity mentionEntity) {
+  UserRealm(UserMentionEntity mentionEntity) {
     this.id = mentionEntity.getId();
     this.name = mentionEntity.getName();
     this.screenName = mentionEntity.getScreenName();

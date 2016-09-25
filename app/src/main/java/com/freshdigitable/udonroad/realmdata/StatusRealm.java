@@ -38,9 +38,9 @@ import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 public class StatusRealm extends RealmObject implements Status {
-  public static final String KEY_ID = "id";
-  public static final String KEY_RETWEETED_STATUS_ID = "retweetedStatusId";
-  public static final String KEY_QUOTAD_STATUS_ID = "quotedStatusId";
+  static final String KEY_ID = "id";
+  static final String KEY_RETWEETED_STATUS_ID = "retweetedStatusId";
+  static final String KEY_QUOTAD_STATUS_ID = "quotedStatusId";
 
   @PrimaryKey
   private long id;
@@ -67,7 +67,7 @@ public class StatusRealm extends RealmObject implements Status {
   public StatusRealm() {
   }
 
-  public StatusRealm(Status status) {
+  StatusRealm(Status status) {
     this.id = status.getId();
     this.createdAt = status.getCreatedAt();
     this.retweetedStatus = status.getRetweetedStatus();

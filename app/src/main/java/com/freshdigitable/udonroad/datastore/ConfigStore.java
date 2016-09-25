@@ -22,6 +22,8 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 /**
+ * ConfigStore defines scheme to store user configurations.
+ *
  * Created by akihit on 2016/07/30.
  */
 public interface ConfigStore {
@@ -29,9 +31,9 @@ public interface ConfigStore {
 
   void close();
 
-  void setAuthenticatedUser(User authenticatedUser);
+  void addAuthenticatedUser(User authenticatedUser);
 
-  User getAuthenticatedUser();
+  User getAuthenticatedUser(long userId);
 
   void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
 
