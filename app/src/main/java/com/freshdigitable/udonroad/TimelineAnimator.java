@@ -419,7 +419,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
     }
     final boolean isPendingChange = !pendingChange.isEmpty();
     if (isPendingChange) {
-      final List<Change> changes = new ArrayList<>();
+      final List<Change> changes = new ArrayList<>(pendingChange.size());
       changes.addAll(pendingChange);
       changeAnimList.add(changes);
       pendingChange.clear();

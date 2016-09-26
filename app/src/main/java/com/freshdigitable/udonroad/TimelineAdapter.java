@@ -84,6 +84,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
         final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
         selectedEntityHolder = new SelectedEntity(quotedStatusId, quotedStatusView);
       }
+      StatusViewImageHelper.load(status, (StatusView) holder.itemView);
       setupUserIcon(status, itemView);
       setupMediaView(status, itemView);
       setupQuotedStatusView(status, itemView.getQuotedStatusView());
@@ -93,6 +94,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
       if (entityId == getSelectedEntityId()) {
         selectedEntityHolder = new SelectedEntity(holder);
       }
+      StatusViewImageHelper.load(user, (StatusView) holder.itemView);
       setupUserIcon(user, itemView);
     }
   }
@@ -162,25 +164,6 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   }
 
   @Override
-  public void onViewAttachedToWindow(ViewHolder<T> holder) {
-    super.onViewAttachedToWindow(holder);
-    final T entity = timelineStore.find(holder.entityId);
-    if (entity instanceof Status) {
-      final Status status = (Status) entity;
-      StatusViewImageHelper.load(status, (StatusView) holder.itemView);
-    } else if (entity instanceof User) {
-      final User user = (User) entity;
-      StatusViewImageHelper.load(user, ((StatusView) holder.itemView));
-    }
-  }
-
-  @Override
-  public void onViewDetachedFromWindow(ViewHolder<T> holder) {
-    super.onViewDetachedFromWindow(holder);
-    StatusViewImageHelper.unload((FullStatusView) holder.itemView, holder.entityId);
-  }
-
-  @Override
   public void onViewRecycled(ViewHolder<T> holder) {
     super.onViewRecycled(holder);
     final StatusView v = (StatusView) holder.itemView;
@@ -193,6 +176,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     if (holder.hasSameEntityId(selectedEntityHolder)) {
       selectedEntityHolder.onViewRecycled();
     }
+    StatusViewImageHelper.unload((FullStatusView) holder.itemView, holder.entityId);
     v.setOnClickListener(null);
     v.getQuotedStatusView().setOnClickListener(null);
     v.getIcon().setOnClickListener(null);
@@ -205,7 +189,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     private long entityId;
     private Subscription subscription;
 
-    public ViewHolder(View itemView) {
+    ViewHolder(View itemView) {
       super(itemView);
     }
 

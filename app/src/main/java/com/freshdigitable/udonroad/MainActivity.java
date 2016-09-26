@@ -55,6 +55,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
@@ -194,8 +195,10 @@ public class MainActivity
     actionBarDrawerToggle.syncState();
   }
 
+  private Subscription subscription;
+
   private void setupNavigationDrawer() {
-    configSubscriber.getAuthenticatedUser()
+    subscription = configSubscriber.getAuthenticatedUser()
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
@@ -295,6 +298,9 @@ public class MainActivity
     configSubscriber.close();
     binding.ffab.setOnFlingListener(null);
     actionMap.clear();
+    if (subscription != null && !subscription.isUnsubscribed()) {
+      subscription.unsubscribe();
+    }
   }
 
   @Override
