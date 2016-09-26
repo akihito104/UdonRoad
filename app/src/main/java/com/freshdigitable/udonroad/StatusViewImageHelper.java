@@ -16,8 +16,10 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.widget.ImageView;
 
+import com.android.annotations.NonNull;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 
@@ -56,10 +58,9 @@ public class StatusViewImageHelper {
   }
 
   private static void loadUserIcon(User user, final long tagId, final FullStatusView itemView) {
-    Picasso.with(itemView.getContext())
-        .load(user.getProfileImageURLHttps())
-        .tag(tagId)
+    getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
         .fit()
+        .placeholder(R.drawable.ic_person_outline_black)
         .into(itemView.getIcon());
   }
 
@@ -81,10 +82,9 @@ public class StatusViewImageHelper {
     if (!status.isRetweet()) {
       return;
     }
-    Picasso.with(itemView.getContext())
-        .load(status.getUser().getMiniProfileImageURLHttps())
-        .tag(status.getId())
+    getRequest(itemView.getContext(), status.getUser().getMiniProfileImageURLHttps(), status.getId())
         .fit()
+        .placeholder(R.drawable.ic_person_outline_black)
         .into(itemView.getRtUserIcon());
   }
 
@@ -104,9 +104,9 @@ public class StatusViewImageHelper {
       final String type = extendedMediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
-      final RequestCreator rc = Picasso.with(mediaContainer.getContext())
-          .load(extendedMediaEntities[i].getMediaURLHttps() + ":thumb")
-          .tag(statusId);
+      final RequestCreator rc = getRequest(mediaContainer.getContext(),
+          extendedMediaEntities[i].getMediaURLHttps() + ":thumb",
+          statusId);
       if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {
@@ -131,10 +131,10 @@ public class StatusViewImageHelper {
     if (quotedStatus == null) {
       return;
     }
-    Picasso.with(quotedStatusView.getContext())
-        .load(quotedStatus.getUser().getMiniProfileImageURLHttps())
-        .tag(status.getId())
+    getRequest(quotedStatusView.getContext(), quotedStatus.getUser().getMiniProfileImageURLHttps(),
+        status.getId())
         .fit()
+        .placeholder(R.drawable.ic_person_outline_black)
         .into(quotedStatusView.getIcon());
     loadMediaView(quotedStatus, quotedStatusView);
   }
@@ -147,6 +147,14 @@ public class StatusViewImageHelper {
   private static void unloadImage(ImageView v) {
     v.setImageDrawable(null);
     v.setImageResource(android.R.color.transparent);
+  }
+
+  private static RequestCreator getRequest(@NonNull Context context,
+                                           @NonNull String url,
+                                           long tag) {
+    return Picasso.with(context)
+        .load(url)
+        .tag(tag);
   }
 
   private StatusViewImageHelper() {
