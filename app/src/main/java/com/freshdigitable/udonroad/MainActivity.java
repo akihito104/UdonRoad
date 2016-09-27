@@ -84,7 +84,8 @@ public class MainActivity
   @Inject
   SortedCache<Status> homeTimeline;
   private TimelineSubscriber<SortedCache<Status>> timelineSubscriber;
-  private UserStreamUtil userStream;
+  @Inject
+  UserStreamUtil userStream;
   private final Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
   ConfigSubscriber configSubscriber;
@@ -99,8 +100,6 @@ public class MainActivity
       finish();
       return;
     }
-    userStream = new UserStreamUtil(homeTimeline);
-    InjectionUtil.getComponent(this).inject(userStream);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
@@ -232,7 +231,7 @@ public class MainActivity
   protected void onStart() {
     super.onStart();
     configSubscriber.open(getApplicationContext());
-    userStream.connect();
+    userStream.connect(homeTimeline);
     setupNavigationDrawer();
     configSubscriber.fetchTwitterAPIConfig();
 

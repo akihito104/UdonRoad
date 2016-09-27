@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.util.Log;
 
+import com.android.annotations.NonNull;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import java.util.List;
@@ -29,6 +30,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -43,21 +45,23 @@ import twitter4j.UserStreamListener;
  */
 public class UserStreamUtil {
   private static final String TAG = UserStreamUtil.class.getSimpleName();
+  private final TwitterStreamApi streamApi;
 
   @Inject
-  TwitterStreamApi streamApi;
-  private SortedCache<Status> timelineStore;
-
-  public UserStreamUtil(SortedCache<Status> timelineStore) {
-    this.timelineStore = timelineStore;
+  public UserStreamUtil(@NonNull TwitterStreamApi streamApi) {
+    this.streamApi = streamApi;
   }
 
   private boolean isConnectedUserStream = false;
+  private PublishSubject<Status> statusPublishSubject;
+  private Subscription onStatusSubscription;
+  private PublishSubject<Long> deletionPublishSubject;
+  private Subscription onDeletionSubscription;
 
-  public void connect() {
-    if (subscription == null || subscription.isUnsubscribed()) {
+  public void connect(final SortedCache<Status> timelineStore) {
+    if (onStatusSubscription == null || onStatusSubscription.isUnsubscribed()) {
       statusPublishSubject = PublishSubject.create();
-      subscription = statusPublishSubject
+      onStatusSubscription = statusPublishSubject
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
@@ -66,12 +70,26 @@ public class UserStreamUtil {
             public void call(List<Status> statuses) {
               timelineStore.upsert(statuses);
             }
-          }, new Action1<Throwable>() {
+          }, onErrorAction);
+    }
+    if (onDeletionSubscription == null || onDeletionSubscription.isUnsubscribed()) {
+      deletionPublishSubject = PublishSubject.create();
+      onDeletionSubscription = deletionPublishSubject
+          .buffer(500, TimeUnit.MILLISECONDS)
+          .onBackpressureBuffer()
+          .observeOn(AndroidSchedulers.mainThread())
+          .flatMap(new Func1<List<Long>, Observable<Long>>() {
             @Override
-            public void call(Throwable throwable) {
-              Log.d(TAG, "error: " + throwable);
+            public Observable<Long> call(List<Long> deletionIds) {
+              return Observable.from(deletionIds);
             }
-          });
+          })
+          .subscribe(new Action1<Long>() {
+            @Override
+            public void call(Long deletionId) {
+              timelineStore.delete(deletionId);
+            }
+          }, onErrorAction);
     }
     if (!isConnectedUserStream) {
       streamApi.loadAccessToken();
@@ -85,13 +103,13 @@ public class UserStreamUtil {
     isConnectedUserStream = false;
 
     statusPublishSubject.onCompleted();
-    if (subscription != null && !subscription.isUnsubscribed()) {
-      subscription.unsubscribe();
+    if (onStatusSubscription != null && !onStatusSubscription.isUnsubscribed()) {
+      onStatusSubscription.unsubscribe();
+    }
+    if (onDeletionSubscription != null && !onDeletionSubscription.isUnsubscribed()) {
+      onDeletionSubscription.unsubscribe();
     }
   }
-
-  private PublishSubject<Status> statusPublishSubject;
-  private Subscription subscription;
 
   private final UserStreamListener statusListener = new UserStreamAdapter() {
 
@@ -103,19 +121,7 @@ public class UserStreamUtil {
     @Override
     public void onDeletionNotice(final StatusDeletionNotice statusDeletionNotice) {
       Log.d(TAG, statusDeletionNotice.toString());
-      Observable.just(statusDeletionNotice.getStatusId())
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<Long>() {
-            @Override
-            public void call(Long deletedStatusId) {
-              timelineStore.delete(deletedStatusId);
-            }
-          }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-              Log.e(TAG, "error: ", throwable);
-            }
-          });
+      deletionPublishSubject.onNext(statusDeletionNotice.getStatusId());
     }
 
     @Override
@@ -136,6 +142,13 @@ public class UserStreamUtil {
     @Override
     public void onException(Exception ex) {
       Log.d(TAG, "onException: " + ex.toString());
+    }
+  };
+
+  private final Action1<Throwable> onErrorAction = new Action1<Throwable>() {
+    @Override
+    public void call(Throwable throwable) {
+      Log.d(TAG, "error: " + throwable);
     }
   };
 }
