@@ -27,6 +27,8 @@ import android.util.AttributeSet;
 import twitter4j.User;
 
 /**
+ * CombinedScreenNameTextView combines screen name and account with specified format.
+ *
  * Created by akihit on 2016/07/09.
  */
 public class CombinedScreenNameTextView extends AppCompatTextView {
@@ -41,13 +43,15 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
 
   public CombinedScreenNameTextView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-  }
-
-  public void setNames(User user) {
     final int maxLines = TextViewCompat.getMaxLines(this);
-    final String template = maxLines == 2
+    template = maxLines == 2
         ? getResources().getString(R.string.tweet_name_screenName_lines)
         : getResources().getString(R.string.tweet_name_screenName);
+  }
+
+  private final String template;
+
+  public void setNames(User user) {
     final String formatted = String.format(template, user.getName(), user.getScreenName());
     setText(fromHtmlCompat(formatted));
   }
