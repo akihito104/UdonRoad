@@ -183,13 +183,14 @@ public class StatusDetailFragment extends Fragment {
           }
         });
 
-    if (status.getURLEntities().length < 1) {
+    final Status bindingStatus = StatusViewImageHelper.getBindingStatus(status);
+    if (bindingStatus.getURLEntities().length < 1) {
       return;
     }
     if (twitterCard != null) {
       setupTwitterCard(twitterCard);
     } else {
-      TwitterCardFetcher.observeFetch(status.getURLEntities()[0].getExpandedURL())
+      TwitterCardFetcher.observeFetch(bindingStatus.getURLEntities()[0].getExpandedURL())
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(new Action1<TwitterCard>() {
             @Override
