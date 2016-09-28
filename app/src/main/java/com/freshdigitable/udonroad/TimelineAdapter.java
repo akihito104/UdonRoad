@@ -204,7 +204,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
             @Override
             public void call(T entity) {
               if (entity instanceof Status) {
-                ((StatusView) itemView).bindStatus(((Status) entity));
+                ((StatusView) itemView).update(((Status) entity));
               } else if (entity instanceof User) {
                 ((StatusView) itemView).bindUser(((User) entity));
               }

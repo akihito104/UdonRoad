@@ -98,6 +98,17 @@ public abstract class StatusViewBase extends RelativeLayout {
     bindMediaEntities(status);
   }
 
+  @CallSuper
+  public void update(Status status) {
+    final Status bindingStatus = getBindingStatus(status);
+    bindCreatedAt(bindingStatus.getCreatedAt());
+    bindRT(bindingStatus);
+    bindFavorite(bindingStatus);
+    final User user = bindingStatus.getUser();
+    bindTweetUserName(user);
+  }
+
+  @CallSuper
   public void bindUser(final User user) {
     bindTweetUserName(user);
     tweet.setText(user.getDescription());

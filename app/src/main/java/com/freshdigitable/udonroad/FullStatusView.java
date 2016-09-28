@@ -61,6 +61,17 @@ public abstract class FullStatusView extends StatusViewBase {
       quotedStatus.setVisibility(VISIBLE);
     }
   }
+
+  @Override
+  public void update(Status status) {
+    super.update(status);
+    final Status quotedBindingStatus = getBindingStatus(status).getQuotedStatus();
+    if (quotedBindingStatus != null) {
+      quotedStatus.update(quotedBindingStatus);
+      quotedStatus.setVisibility(VISIBLE);
+    }
+  }
+
   private void bindRtUser(User user) {
     setRetweetedUserVisibility(VISIBLE);
     final String formattedRtUser = formatString(R.string.tweet_retweeting_user,

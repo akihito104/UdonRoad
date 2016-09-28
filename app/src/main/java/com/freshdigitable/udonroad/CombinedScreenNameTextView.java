@@ -50,10 +50,20 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
   }
 
   private final String template;
+  private String name;
+  private String screenName;
 
   public void setNames(User user) {
-    final String formatted = String.format(template, user.getName(), user.getScreenName());
+    final String name = user.getName();
+    final String screenName = user.getScreenName();
+    if (this.name != null && this.name.equals(name)
+        && this.screenName != null && this.screenName.equals(screenName)) {
+      return;
+    }
+    final String formatted = String.format(template, name, screenName);
     setText(fromHtmlCompat(formatted));
+    this.name = name;
+    this.screenName = screenName;
   }
 
   private static Spanned fromHtmlCompat(String html) {
