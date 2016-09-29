@@ -25,11 +25,13 @@ import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
 /**
+ * MediaImageView shows uploaded media such as photo and video thumbnail.
+ *
  * Created by akihit on 2016/07/10.
  */
 public class MediaImageView extends AppCompatImageView {
   public static final String TAG = MediaImageView.class.getSimpleName();
-  private Bitmap playIcon;
+  private static Bitmap playIcon;
 
   public MediaImageView(Context context) {
     this(context, null);
@@ -44,12 +46,14 @@ public class MediaImageView extends AppCompatImageView {
     setContentDescription(getResources().getString(R.string.tweet_media_descs));
     setVisibility(GONE);
 
-    final Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.ld_play_icon);
-    playIcon = Bitmap.createBitmap(
-        drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-    Canvas canvas = new Canvas(playIcon);
-    drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-    drawable.draw(canvas);
+    if (playIcon == null) {
+      final Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.ld_play_icon);
+      playIcon = Bitmap.createBitmap(
+          drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+      Canvas canvas = new Canvas(playIcon);
+      drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+      drawable.draw(canvas);
+    }
   }
 
   private boolean showIcon = false;
