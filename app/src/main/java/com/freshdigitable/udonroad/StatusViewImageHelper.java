@@ -33,6 +33,9 @@ import twitter4j.User;
  * Created by akihit on 2016/08/20.
  */
 public class StatusViewImageHelper {
+  @SuppressWarnings("unused")
+  private static final String TAG = StatusViewImageHelper.class.getSimpleName();
+
   public static void load(Status status, FullStatusView itemView) {
     loadUserIcon(status, itemView);
     loadRTUserIcon(status, itemView);
@@ -59,7 +62,7 @@ public class StatusViewImageHelper {
 
   private static void loadUserIcon(User user, final long tagId, final FullStatusView itemView) {
     getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
-        .fit()
+        .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
         .into(itemView.getIcon());
   }
@@ -83,7 +86,7 @@ public class StatusViewImageHelper {
       return;
     }
     getRequest(itemView.getContext(), status.getUser().getMiniProfileImageURLHttps(), status.getId())
-        .fit()
+        .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
         .into(itemView.getRtUserIcon());
   }
@@ -133,7 +136,7 @@ public class StatusViewImageHelper {
     }
     getRequest(quotedStatusView.getContext(), quotedStatus.getUser().getMiniProfileImageURLHttps(),
         status.getId())
-        .fit()
+        .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
         .into(quotedStatusView.getIcon());
     loadMediaView(quotedStatus, quotedStatusView);
@@ -146,7 +149,6 @@ public class StatusViewImageHelper {
 
   private static void unloadImage(ImageView v) {
     v.setImageDrawable(null);
-    v.setImageResource(android.R.color.transparent);
   }
 
   private static RequestCreator getRequest(@NonNull Context context,
