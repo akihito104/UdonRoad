@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
@@ -100,14 +99,13 @@ public abstract class MainActivityInstTestBase {
     final MockAppComponent component = (MockAppComponent) app.getAppComponent();
     component.inject(this);
 
-    final Context applicationContext = app.getApplicationContext();
-    clearCache(statusCache, applicationContext);
-    clearCache(userCache, applicationContext);
-    clearCache(homeTLStore, "home", applicationContext);
-    clearCache(userHomeTLStore, "user_home", applicationContext);
-    clearCache(userFavsTLStore, "user_fabs", applicationContext);
-    clearCache(userFollowers, "user_followers", applicationContext);
-    clearCache(userFriends, "user_friends", applicationContext);
+    clearCache(statusCache);
+    clearCache(userCache);
+    clearCache(homeTLStore, "home");
+    clearCache(userHomeTLStore, "user_home");
+    clearCache(userFavsTLStore, "user_fabs");
+    clearCache(userFollowers, "user_followers");
+    clearCache(userFriends, "user_friends");
 
     final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
@@ -200,14 +198,14 @@ public abstract class MainActivityInstTestBase {
     return new Intent();
   }
 
-  private static void clearCache(TypedCache cache, Context context) {
-    cache.open(context);
+  private static void clearCache(TypedCache cache) {
+    cache.open();
     cache.clear();
     cache.close();
   }
 
-  private static void clearCache(SortedCache cache, String name, Context context) {
-    cache.open(context, name);
+  private static void clearCache(SortedCache cache, String name) {
+    cache.open(name);
     cache.clear();
     cache.close();
   }

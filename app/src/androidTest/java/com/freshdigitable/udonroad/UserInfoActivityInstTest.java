@@ -82,7 +82,7 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   @Override
   protected Intent getIntent() {
     final User user = UserUtil.create();
-    userCache.open(InstrumentationRegistry.getTargetContext());
+    userCache.open();
     userCache.upsert(user);
     userCache.close();
     return UserInfoActivity.createIntent(

@@ -147,7 +147,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   @Override
   protected void onStart() {
     super.onStart();
-    userCache.open(getApplicationContext());
+    userCache.open();
     long userId = parseIntent();
     final User user = userCache.find(userId);
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);

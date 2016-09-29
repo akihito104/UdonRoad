@@ -40,7 +40,7 @@ public class TwitterAPIConfigurationRealm implements TwitterAPIConfiguration, Re
   public TwitterAPIConfigurationRealm() {
   }
 
-  public TwitterAPIConfigurationRealm(TwitterAPIConfiguration configuration) {
+  TwitterAPIConfigurationRealm(TwitterAPIConfiguration configuration) {
     this.photoSizeLimit = configuration.getPhotoSizeLimit();
     this.shortURLLength = configuration.getShortURLLength();
     this.shortURLLengthHttps = configuration.getShortURLLengthHttps();

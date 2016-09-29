@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.Context;
-
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
@@ -27,7 +25,7 @@ import twitter4j.User;
  * Created by akihit on 2016/07/30.
  */
 public interface ConfigStore {
-  void open(Context context);
+  void open();
 
   void close();
 

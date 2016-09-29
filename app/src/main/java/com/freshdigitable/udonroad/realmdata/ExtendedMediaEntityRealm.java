@@ -53,7 +53,7 @@ public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMed
   public ExtendedMediaEntityRealm() {
   }
 
-  public ExtendedMediaEntityRealm(ExtendedMediaEntity m) {
+  ExtendedMediaEntityRealm(ExtendedMediaEntity m) {
     this.id = m.getId();
     this.url = m.getURL();
     this.mediaUrlHttps = m.getMediaURLHttps();

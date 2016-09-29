@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.content.Context;
 import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -40,10 +39,10 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   private RealmResults<ListedUserIDs> ordered;
 
   @Override
-  public void open(Context context, String storeName) {
-    super.open(context, storeName);
+  public void open(String storeName) {
+    super.open(storeName);
     userCache = new UserCacheRealm();
-    userCache.open(context);
+    userCache.open();
     ordered = realm.where(ListedUserIDs.class)
         .findAllSorted("order");
   }

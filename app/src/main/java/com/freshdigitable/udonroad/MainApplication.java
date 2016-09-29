@@ -21,6 +21,8 @@ import android.support.annotation.VisibleForTesting;
 
 import com.squareup.leakcanary.LeakCanary;
 
+import io.realm.Realm;
+
 /**
  * Created by akihit on 2016/06/16.
  */
@@ -33,6 +35,7 @@ public class MainApplication extends Application {
     super.onCreate();
     appComponent = createAppComponent();
     LeakCanary.install(this);
+    Realm.init(getApplicationContext());
   }
 
   @VisibleForTesting

@@ -67,7 +67,7 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    userCache.open(getContext());
+    userCache.open();
 
     final long userId = getUserId();
     subscription = userCache.observeById(userId)

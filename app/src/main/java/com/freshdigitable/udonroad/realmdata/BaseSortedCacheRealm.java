@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.content.Context;
 import android.support.annotation.CallSuper;
 import android.util.Log;
 
@@ -42,11 +41,11 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
 
   @Override
   @CallSuper
-  public void open(Context context, String storeName) {
+  public void open(String storeName) {
     insertEvent = PublishSubject.create();
     updateEvent = PublishSubject.create();
     deleteEvent = PublishSubject.create();
-    final RealmConfiguration config = new RealmConfiguration.Builder(context)
+    final RealmConfiguration config = new RealmConfiguration.Builder()
         .name(storeName)
         .deleteRealmIfMigrationNeeded()
         .build();

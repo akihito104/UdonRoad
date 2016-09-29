@@ -101,7 +101,7 @@ public class StatusDetailFragment extends Fragment {
     super.onStart();
 
     final long statusId = getStatusId();
-    statusCache.open(getContext());
+    statusCache.open();
     final Status status = statusCache.find(statusId);
     if (status == null) {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();

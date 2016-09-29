@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -55,8 +54,8 @@ public class ConfigSubscriber {
     this.prefs = prefs;
   }
 
-  public void open(Context context) {
-    configStore.open(context);
+  public void open() {
+    configStore.open();
   }
 
   public void close() {

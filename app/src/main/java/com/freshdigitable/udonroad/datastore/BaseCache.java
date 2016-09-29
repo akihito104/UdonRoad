@@ -16,15 +16,13 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.Context;
-
 /**
  * BaseCache defines basic operation for name-defined data store.
  *
  * Created by akihit on 2016/09/14.
  */
 public interface BaseCache {
-  void open(Context context);
+  void open();
 
   void clear();
 

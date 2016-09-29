@@ -32,7 +32,7 @@ public class VariantRealm extends RealmObject implements ExtendedMediaEntity.Var
   public VariantRealm() {
   }
 
-  public VariantRealm(ExtendedMediaEntity.Variant variant) {
+  VariantRealm(ExtendedMediaEntity.Variant variant) {
     this.bitrate = variant.getBitrate();
     this.contentType = variant.getContentType();
     this.url = variant.getUrl();

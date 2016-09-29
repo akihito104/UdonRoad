@@ -34,7 +34,7 @@ public class UserMentionEntityRealm implements RealmModel, UserMentionEntity {
   public UserMentionEntityRealm() {
   }
 
-  public UserMentionEntityRealm(UserMentionEntity u) {
+  UserMentionEntityRealm(UserMentionEntity u) {
     this.id = u.getId();
     this.screenName = u.getScreenName();
     this.name = u.getName();

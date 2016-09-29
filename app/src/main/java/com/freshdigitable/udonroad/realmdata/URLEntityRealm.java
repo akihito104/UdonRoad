@@ -37,7 +37,7 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
   public URLEntityRealm() {
   }
 
-  public URLEntityRealm(URLEntity urlEntity) {
+  URLEntityRealm(URLEntity urlEntity) {
     this.url = urlEntity.getURL();
     this.expendedUrl = urlEntity.getExpandedURL();
     this.displayUrl = urlEntity.getDisplayURL();

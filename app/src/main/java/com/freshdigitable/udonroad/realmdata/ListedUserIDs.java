@@ -34,7 +34,7 @@ public class ListedUserIDs implements RealmModel {
   public ListedUserIDs() {
   }
 
-  public ListedUserIDs(User user, int order) {
+  ListedUserIDs(User user, int order) {
     this.order = order;
     this.userId = user.getId();
   }

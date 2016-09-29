@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -51,8 +50,8 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   }
 
   @Override
-  public void open(Context context) {
-    super.open(context);
+  public void open() {
+    super.open();
     userTypedCache = new UserCacheRealm(this);
   }
 

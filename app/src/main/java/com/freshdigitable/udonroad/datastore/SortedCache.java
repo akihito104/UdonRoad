@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.Context;
-
 import rx.Observable;
 
 /**
@@ -26,7 +24,7 @@ import rx.Observable;
  * Created by akihit on 2016/09/14.
  */
 public interface SortedCache<T> extends BaseOperation<T> {
-  void open(Context context, String storeName);
+  void open(String storeName);
 
   void close();
 

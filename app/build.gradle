@@ -53,6 +53,10 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    realm {
+        syncEnabled false
+    }
 }
 
 def supportLibVer = '24.2.1'

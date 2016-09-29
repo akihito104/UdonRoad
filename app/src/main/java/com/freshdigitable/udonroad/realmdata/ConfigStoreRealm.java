@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.content.Context;
-
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
@@ -37,13 +35,13 @@ public class ConfigStoreRealm implements ConfigStore {
   private TypedCache<User> cache;
 
   @Override
-  public void open(Context context) {
+  public void open() {
     if (cache == null) {
       cache = new UserCacheRealm();
     }
-    cache.open(context);
+    cache.open();
 
-    final RealmConfiguration config = new RealmConfiguration.Builder(context)
+    final RealmConfiguration config = new RealmConfiguration.Builder()
         .name("config")
         .deleteRealmIfMigrationNeeded()
         .build();

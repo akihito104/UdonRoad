@@ -83,7 +83,7 @@ public class ReplyActivity extends AppCompatActivity {
     super.onStart();
 
     final long statusId = getStatusId();
-    statusCache.open(getApplicationContext());
+    statusCache.open();
     final Status status = statusCache.find(statusId);
     binding.replyStatus.bindStatus(status);
 

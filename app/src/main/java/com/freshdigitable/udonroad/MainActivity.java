@@ -151,7 +151,7 @@ public class MainActivity
   }
 
   private void setupHomeTimeline() {
-    homeTimeline.open(getApplicationContext(), "home");
+    homeTimeline.open("home");
     homeTimeline.clear();
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
         new FeedbackSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
@@ -230,7 +230,7 @@ public class MainActivity
   @Override
   protected void onStart() {
     super.onStart();
-    configSubscriber.open(getApplicationContext());
+    configSubscriber.open();
     userStream.connect(homeTimeline);
     setupNavigationDrawer();
     configSubscriber.fetchTwitterAPIConfig();

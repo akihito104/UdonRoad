@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import android.content.Context;
 import android.support.annotation.CallSuper;
 import android.util.Log;
 
@@ -43,9 +42,9 @@ abstract class BaseCacheRealm implements BaseCache {
 
   @Override
   @CallSuper
-  public void open(Context context) {
+  public void open() {
     Log.d(TAG, "StatusCacheRealm: open");
-    final RealmConfiguration config = new RealmConfiguration.Builder(context)
+    final RealmConfiguration config = new RealmConfiguration.Builder()
         .name("cache")
         .deleteRealmIfMigrationNeeded()
         .build();

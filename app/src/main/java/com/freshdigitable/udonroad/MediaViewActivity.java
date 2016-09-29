@@ -191,7 +191,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   @Override
   protected void onStart() {
     super.onStart();
-    statusCache.open(getApplicationContext());
+    statusCache.open();
     userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
         new FeedbackSubscriber.ToastFeedback(getApplicationContext(), Gravity.CENTER, 0, 0));
 
@@ -256,7 +256,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   private static class MediaPagerAdapter extends FragmentPagerAdapter {
     private ExtendedMediaEntity[] mediaEntities;
 
-    public MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities) {
+    MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities) {
       super(fm);
       this.mediaEntities = mediaEntities;
     }
@@ -316,7 +316,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     @Override
     public void onStart() {
       super.onStart();
-      mediaCache.open(getContext());
+      mediaCache.open();
       final long mediaId = getArguments().getLong("media_id");
       mediaEntity = mediaCache.getMediaEntity(mediaId);
     }

@@ -102,8 +102,8 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    statusCache.open(getContext());
-    configSubscriber.open(getContext());
+    statusCache.open();
+    configSubscriber.open();
     final Bundle arguments = getArguments();
     final @TweetType int tweetType = arguments.getInt("tweet_type");
     final long statusId = arguments.getLong("status_id", -1);

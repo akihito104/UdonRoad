@@ -340,7 +340,7 @@ public class UserInfoPagerFragment extends Fragment {
     }
 
     <T> TimelineFragment<T> setup(SortedCache<T> cache, UserInfoPagerFragment target) {
-      cache.open(target.getContext(), cacheName);
+      cache.open(cacheName);
       cache.clear();
       final TimelineFragment<T> fragment = TimelineFragment.getInstance(target, requestCode);
       fragment.setSortedCache(cache);
