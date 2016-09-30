@@ -20,6 +20,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.freshdigitable.udonroad.datastore.TypedCache;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,12 +45,15 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_RETWEETED_ST
 public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   private static final String TAG = TimelineStoreRealm.class.getSimpleName();
   private RealmResults<StatusIDs> timeline;
-  private StatusCacheRealm statusCache;
+  private final TypedCache<Status> statusCache;
+
+  public TimelineStoreRealm(TypedCache<Status> statusCacheRealm) {
+    this.statusCache = statusCacheRealm;
+  }
 
   @Override
   public void open(String storeName) {
     super.open(storeName);
-    statusCache = new StatusCacheRealm();
     statusCache.open();
     defaultTimeline();
   }

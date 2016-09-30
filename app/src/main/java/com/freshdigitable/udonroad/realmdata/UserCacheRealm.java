@@ -39,6 +39,7 @@ import twitter4j.UserMentionEntity;
  */
 public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
   public UserCacheRealm() {
+    this(null);
   }
 
   UserCacheRealm(BaseCacheRealm baseCacheRealm) {

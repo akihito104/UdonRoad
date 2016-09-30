@@ -55,16 +55,19 @@ public class DataStoreModule {
 
   @Provides
   public SortedCache<Status> provideSortedCacheStatus() {
-    return new TimelineStoreRealm();
+    final StatusCacheRealm statusCacheRealm = new StatusCacheRealm();
+    return new TimelineStoreRealm(statusCacheRealm);
   }
 
   @Provides
   public SortedCache<User> provideSortedCacheUser() {
-    return new UserSortedCacheRealm();
+    final UserCacheRealm userCacheRealm = new UserCacheRealm();
+    return new UserSortedCacheRealm(userCacheRealm);
   }
 
   @Provides
   public ConfigStore provideConfigStore() {
-    return new ConfigStoreRealm();
+    final UserCacheRealm userCacheRealm = new UserCacheRealm();
+    return new ConfigStoreRealm(userCacheRealm);
   }
 }

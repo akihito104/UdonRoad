@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad.realmdata;
 
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.datastore.TypedCache;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,13 +37,16 @@ import twitter4j.User;
  * Created by akihit on 2016/09/17.
  */
 public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
-  private UserCacheRealm userCache;
+  private TypedCache<User> userCache;
   private RealmResults<ListedUserIDs> ordered;
+
+  public UserSortedCacheRealm(TypedCache<User> userCacheRealm) {
+    this.userCache = userCacheRealm;
+  }
 
   @Override
   public void open(String storeName) {
     super.open(storeName);
-    userCache = new UserCacheRealm();
     userCache.open();
     ordered = realm.where(ListedUserIDs.class)
         .findAllSorted("order");

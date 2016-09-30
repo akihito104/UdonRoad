@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.realmdata;
 
 import android.support.annotation.CallSuper;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.BaseCache;
@@ -32,22 +33,26 @@ import io.realm.RealmConfiguration;
 abstract class BaseCacheRealm implements BaseCache {
   private static final String TAG = BaseCacheRealm.class.getSimpleName();
   protected Realm cache;
+  private final RealmConfiguration config;
 
   BaseCacheRealm() {
+    this(null);
   }
 
-  BaseCacheRealm(BaseCacheRealm realm) {
-    cache = realm.cache;
+  BaseCacheRealm(@Nullable BaseCacheRealm realm) {
+    if (realm != null) {
+      cache = realm.cache;
+    }
+    config = new RealmConfiguration.Builder()
+        .name("cache")
+        .deleteRealmIfMigrationNeeded()
+        .build();
   }
 
   @Override
   @CallSuper
   public void open() {
     Log.d(TAG, "StatusCacheRealm: open");
-    final RealmConfiguration config = new RealmConfiguration.Builder()
-        .name("cache")
-        .deleteRealmIfMigrationNeeded()
-        .build();
     cache = Realm.getInstance(config);
   }
 

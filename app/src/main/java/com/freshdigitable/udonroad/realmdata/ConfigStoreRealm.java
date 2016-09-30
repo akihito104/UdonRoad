@@ -32,19 +32,20 @@ import twitter4j.User;
 public class ConfigStoreRealm implements ConfigStore {
 
   private Realm realm;
-  private TypedCache<User> cache;
+  private final TypedCache<User> cache;
+  private final RealmConfiguration config;
 
-  @Override
-  public void open() {
-    if (cache == null) {
-      cache = new UserCacheRealm();
-    }
-    cache.open();
-
-    final RealmConfiguration config = new RealmConfiguration.Builder()
+  public ConfigStoreRealm(TypedCache<User> userCacheRealm) {
+    this.cache = userCacheRealm;
+    config = new RealmConfiguration.Builder()
         .name("config")
         .deleteRealmIfMigrationNeeded()
         .build();
+  }
+
+  @Override
+  public void open() {
+    cache.open();
     realm = Realm.getInstance(config);
   }
 
