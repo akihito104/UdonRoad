@@ -39,7 +39,6 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.receiveStatuses;
 import static org.hamcrest.Matchers.not;
 
 /**
@@ -56,8 +55,7 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
   @Test
   public void heading_then_latestTweetAppears() throws Exception {
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    receiveStatuses(app.getUserStreamListener(),
-        createStatus(21), createStatus(22));
+    receiveStatuses(createStatus(21), createStatus(22));
     onView(withId(R.id.action_heading)).perform(click());
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(createText(22)))));
@@ -69,8 +67,7 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
     launchHomeAndBackToApp();
     Thread.sleep(200);
 
-    receiveStatuses(app.getUserStreamListener(),
-        createStatus(21), createStatus(22));
+    receiveStatuses(createStatus(21), createStatus(22));
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(createText(22)))));
   }
@@ -81,8 +78,7 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
 
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
-    receiveStatuses(app.getUserStreamListener(),
-        createStatus(26), createStatus(28));
+    receiveStatuses(createStatus(26), createStatus(28));
     onView(withId(R.id.action_heading)).perform(click());
     onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
     onView(ofStatusViewAt(R.id.timeline, 0))
@@ -103,7 +99,7 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
   public void receiveStatusWhenStatusIsSelected_then_timelineIsNotScrolled() throws Exception {
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click())
         .check(matches(ofStatusView(withText(createText(20)))));
-    receiveStatuses(app.getUserStreamListener(), createStatus(22));
+    receiveStatuses(createStatus(22));
 
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(createText(20)))));
     onView(withId(R.id.action_heading)).perform(click());
@@ -112,15 +108,15 @@ public class MainActivityResumeInstTest extends MainActivityInstTestBase {
   }
 
   @Test
-  public void receiveStatusWhenUserInfoIsAppeared_then_timelineIsNotScrolled() throws InterruptedException {
+  public void receiveStatusWhenUserInfoIsAppeared_then_timelineIsNotScrolled() throws Exception {
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(createText(20)))));
     onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
-    receiveStatuses(app.getUserStreamListener(), createStatus(22));
+    receiveStatuses(createStatus(22));
     Espresso.pressBack();
 
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(createText(20)))));
 
-    receiveStatuses(app.getUserStreamListener(), createStatus(25));
+    receiveStatuses(createStatus(25));
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(createText(20)))));
 
     onView(withId(R.id.action_heading)).perform(click());

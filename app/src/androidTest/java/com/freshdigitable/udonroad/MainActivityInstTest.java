@@ -19,8 +19,6 @@ package com.freshdigitable.udonroad;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.freshdigitable.udonroad.util.TwitterResponseMock;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -192,14 +190,6 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
     onView(ofStatusView(withText(createText(20)))).check(doesNotExist());
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(createText(19)))));
-  }
-
-  private void receiveDeletionNotice(Status... target) throws InterruptedException {
-    TwitterResponseMock.receiveDeletionNotice(app.getUserStreamListener(), target);
-  }
-
-  private void receiveStatuses(final Status... statuses) throws InterruptedException {
-    TwitterResponseMock.receiveStatuses(app.getUserStreamListener(), statuses);
   }
 
   @Test

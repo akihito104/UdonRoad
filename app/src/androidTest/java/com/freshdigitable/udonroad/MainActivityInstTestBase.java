@@ -23,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
@@ -208,5 +209,13 @@ public abstract class MainActivityInstTestBase {
     cache.open(name);
     cache.clear();
     cache.close();
+  }
+
+  protected void receiveDeletionNotice(Status... target) throws Exception {
+    TwitterResponseMock.receiveDeletionNotice(app.getUserStreamListener(), target);
+  }
+
+  protected void receiveStatuses(final Status... statuses) throws Exception {
+    TwitterResponseMock.receiveStatuses(app.getUserStreamListener(), statuses);
   }
 }

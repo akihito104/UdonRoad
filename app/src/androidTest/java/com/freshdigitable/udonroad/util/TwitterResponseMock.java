@@ -240,8 +240,8 @@ public class TwitterResponseMock {
     };
   }
 
-  public static void receiveDeletionNotice(final UserStreamListener listener, Status... statuses)
-      throws InterruptedException {
+  public static void receiveDeletionNotice(final UserStreamListener listener,
+                                           Status... statuses) throws Exception {
     Observable.just(Arrays.asList(statuses))
         .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
           @Override
@@ -265,8 +265,8 @@ public class TwitterResponseMock {
     Thread.sleep(600);
   }
 
-  public static void receiveStatuses(final UserStreamListener listener, Status... statuses)
-      throws InterruptedException {
+  public static void receiveStatuses(final UserStreamListener listener,
+                                     Status... statuses) throws Exception {
     Observable.just(Arrays.asList(statuses))
         .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
           @Override
