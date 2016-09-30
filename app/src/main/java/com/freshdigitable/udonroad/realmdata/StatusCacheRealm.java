@@ -44,9 +44,14 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Status>, MediaCache {
   @SuppressWarnings("unused")
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
-  private final UserCacheRealm userTypedCache;
+  private UserCacheRealm userTypedCache;
 
   public StatusCacheRealm() {
+  }
+
+  @Override
+  public void open() {
+    super.open();
     this.userTypedCache = new UserCacheRealm(this);
   }
 
