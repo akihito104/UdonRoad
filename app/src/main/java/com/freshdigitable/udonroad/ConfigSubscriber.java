@@ -78,8 +78,8 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .map(new Func1<Long, User>() {
           @Override
-          public User call(Long aLong) {
-            return configStore.getAuthenticatedUser(aLong);
+          public User call(Long userId) {
+            return configStore.getAuthenticatedUser(userId);
           }
         });
   }

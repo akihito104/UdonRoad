@@ -232,8 +232,9 @@ public class MainActivity
     super.onStart();
     configSubscriber.open();
     userStream.connect(homeTimeline);
-    setupNavigationDrawer();
+    configSubscriber.verifyCredencials();
     configSubscriber.fetchTwitterAPIConfig();
+    setupNavigationDrawer();
 
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
