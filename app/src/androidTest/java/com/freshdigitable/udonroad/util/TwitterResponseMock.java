@@ -78,10 +78,7 @@ public class TwitterResponseMock {
     when(status.getURLEntities()).thenReturn(new URLEntity[0]);
     when(status.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[0]);
     when(status.getUserMentionEntities()).thenReturn(new UserMentionEntity[0]);
-    final User user = mock(User.class);
-    when(user.getId()).thenReturn(2000L);
-    when(user.getName()).thenReturn("akihito matsuda");
-    when(user.getScreenName()).thenReturn("akihito104");
+    final User user = UserUtil.create();
     when(status.getUser()).thenReturn(user);
     return status;
   }
