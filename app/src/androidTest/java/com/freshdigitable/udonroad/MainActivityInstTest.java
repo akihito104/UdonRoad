@@ -105,7 +105,7 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
     onView(ofStatusView(withText(createText(20)))).perform(click());
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
-    receiveStatuses(createRtStatus(rtStatusId, 20, false));
+    receiveStatuses(false, createRtStatus(rtStatusId, 20, false));
 
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(createText(20)))));
@@ -134,7 +134,7 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
     onView(ofStatusView(withText(createText(20)))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
     final Status target = createRtStatus(rtStatusId, 20, false);
-    receiveStatuses(target);
+    receiveStatuses(false, target);
     onView(withId(R.id.timeline)).perform(swipeDown());
     receiveDeletionNotice(target);
 
@@ -148,7 +148,7 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
     onView(ofStatusView(withText(createText(20)))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
     final Status targetRt = createRtStatus(rtStatusId, 20, false);
-    receiveStatuses(targetRt);
+    receiveStatuses(false, targetRt);
     final Status target = createStatus(20);
     receiveDeletionNotice(target, targetRt);
 

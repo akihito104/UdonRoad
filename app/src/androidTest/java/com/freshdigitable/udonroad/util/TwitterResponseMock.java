@@ -44,6 +44,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
+ * TwitterResponseMock is utility to create Twitter response mock and entity mock.
+ *
  * Created by akihit on 2016/07/01.
  */
 public class TwitterResponseMock {
@@ -262,7 +264,6 @@ public class TwitterResponseMock {
             listener.onDeletionNotice(statusDeletionNotice);
           }
         });
-    Thread.sleep(600);
   }
 
   public static void receiveStatuses(final UserStreamListener listener,
@@ -281,6 +282,5 @@ public class TwitterResponseMock {
             listener.onStatus(status);
           }
         });
-    Thread.sleep(600); // buffering tweets in 500ms
   }
 }

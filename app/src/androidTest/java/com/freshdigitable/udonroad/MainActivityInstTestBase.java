@@ -18,11 +18,15 @@ package com.freshdigitable.udonroad;
 
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.util.StreamIdlingResource;
+import com.freshdigitable.udonroad.util.StreamIdlingResource.Operation;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -178,11 +182,11 @@ public abstract class MainActivityInstTestBase {
 
   @After
   public void tearDown() throws Exception {
+    unregisterStreamIdlingResource();
     reset(twitter, twitterApi);
     final AppCompatActivity activity = getRule().getActivity();
     if (activity != null) {
       activity.finish();
-      Thread.sleep(1000);
     }
   }
 
@@ -211,11 +215,43 @@ public abstract class MainActivityInstTestBase {
     cache.close();
   }
 
-  protected void receiveDeletionNotice(Status... target) throws Exception {
+  private StreamIdlingResource streamIdlingResource;
+
+  private void registerStreamIdlingResource(StreamIdlingResource streamIdlingResource) {
+    if (this.streamIdlingResource != null) {
+      unregisterStreamIdlingResource();
+    }
+    Espresso.registerIdlingResources(streamIdlingResource);
+    this.streamIdlingResource = streamIdlingResource;
+  }
+
+  private void unregisterStreamIdlingResource() {
+    if (this.streamIdlingResource == null) {
+      return;
+    }
+    Espresso.unregisterIdlingResources(this.streamIdlingResource);
+    this.streamIdlingResource = null;
+  }
+
+  protected void receiveDeletionNotice(final Status... target) throws Exception {
+    final RecyclerView recyclerView = (RecyclerView) getRule().getActivity().findViewById(R.id.timeline);
+    StreamIdlingResource streamIdlingResource
+        = new StreamIdlingResource(recyclerView, Operation.DELETE, target.length);
+    registerStreamIdlingResource(streamIdlingResource);
     TwitterResponseMock.receiveDeletionNotice(app.getUserStreamListener(), target);
   }
 
   protected void receiveStatuses(final Status... statuses) throws Exception {
+    receiveStatuses(true, statuses);
+  }
+
+  protected void receiveStatuses(boolean isIdlingResourceUsed, final Status... statuses) throws Exception {
+    if (isIdlingResourceUsed) {
+      final RecyclerView recyclerView = (RecyclerView) getRule().getActivity().findViewById(R.id.timeline);
+      final StreamIdlingResource streamIdlingResource
+          = new StreamIdlingResource(recyclerView, Operation.ADD, statuses.length);
+      registerStreamIdlingResource(streamIdlingResource);
+    }
     TwitterResponseMock.receiveStatuses(app.getUserStreamListener(), statuses);
   }
 }
