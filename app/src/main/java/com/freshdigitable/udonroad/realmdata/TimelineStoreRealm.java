@@ -109,6 +109,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
       @Override
       public void onChange(RealmResults<StatusIDs> element) {
+        setItemCount(element.size());
         notifyInserted(inserted, element);
         element.removeChangeListener(this);
       }
@@ -255,6 +256,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
       @Override
       public void onChange(RealmResults<StatusIDs> element) {
         Log.d(TAG, "call: deletedStatus");
+        setItemCount(element.size());
         for (int d : deleted) {
           deleteEvent.onNext(d);
           statusCache.delete(d);
@@ -305,8 +307,14 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @Override
-  public int getItemCount() {
-    return timeline.size();
+  public synchronized int getItemCount() {
+    return itemCount;
+  }
+
+  private volatile int itemCount;
+
+  private synchronized void setItemCount(int count) {
+    itemCount = count;
   }
 
   @Override
