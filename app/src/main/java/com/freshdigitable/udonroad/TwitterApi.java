@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.Relationship;
@@ -460,6 +461,44 @@ public class TwitterApi {
         }
       }
     }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<IDs> getBlocksIDs() {
+    return getBlocksIDs(-1);
+  }
+
+  public Observable<IDs> getBlocksIDs(final long cursor) {
+    return Observable.create(new Observable.OnSubscribe<IDs>() {
+      @Override
+      public void call(Subscriber<? super IDs> subscriber) {
+        try {
+          final IDs blocksIDs = twitter.getBlocksIDs(cursor);
+          subscriber.onNext(blocksIDs);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<IDs> getMutesIDs() {
+    return getMutesIDs(-1);
+  }
+
+  public Observable<IDs> getMutesIDs(final long cursor) {
+    return Observable.create(new Observable.OnSubscribe<IDs>() {
+      @Override
+      public void call(Subscriber<? super IDs> subscriber) {
+        try {
+          final IDs mutesIDs = twitter.getMutesIDs(cursor);
+          subscriber.onNext(mutesIDs);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    });
   }
 
   public Twitter getTwitter() {
