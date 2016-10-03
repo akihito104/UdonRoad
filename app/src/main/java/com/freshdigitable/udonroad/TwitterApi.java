@@ -463,17 +463,19 @@ public class TwitterApi {
     }).subscribeOn(Schedulers.io());
   }
 
-  public Observable<IDs> getBlocksIDs() {
-    return getBlocksIDs(-1);
-  }
-
-  public Observable<IDs> getBlocksIDs(final long cursor) {
+  public Observable<IDs> getAllBlocksIDs() {
     return Observable.create(new Observable.OnSubscribe<IDs>() {
       @Override
       public void call(Subscriber<? super IDs> subscriber) {
         try {
-          final IDs blocksIDs = twitter.getBlocksIDs(cursor);
-          subscriber.onNext(blocksIDs);
+          IDs blocksIDs = null;
+          while (blocksIDs == null || blocksIDs.hasNext()) {
+            final long cursor = blocksIDs == null
+                ? -1
+                : blocksIDs.getNextCursor();
+            blocksIDs = twitter.getBlocksIDs(cursor);
+            subscriber.onNext(blocksIDs);
+          }
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
@@ -482,23 +484,25 @@ public class TwitterApi {
     }).subscribeOn(Schedulers.io());
   }
 
-  public Observable<IDs> getMutesIDs() {
-    return getMutesIDs(-1);
-  }
-
-  public Observable<IDs> getMutesIDs(final long cursor) {
+  public Observable<IDs> getAllMutesIDs() {
     return Observable.create(new Observable.OnSubscribe<IDs>() {
       @Override
       public void call(Subscriber<? super IDs> subscriber) {
         try {
-          final IDs mutesIDs = twitter.getMutesIDs(cursor);
-          subscriber.onNext(mutesIDs);
+          IDs mutesIDs = null;
+          while (mutesIDs == null || mutesIDs.hasNext()) {
+            final long cursor = mutesIDs == null
+                ? -1
+                : mutesIDs.getNextCursor();
+            mutesIDs = twitter.getMutesIDs(cursor);
+            subscriber.onNext(mutesIDs);
+          }
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);
         }
       }
-    });
+    }).subscribeOn(Schedulers.io());
   }
 
   public Twitter getTwitter() {

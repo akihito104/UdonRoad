@@ -32,7 +32,6 @@ import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
 import org.junit.Before;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -44,6 +43,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.Status;
@@ -65,6 +65,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -168,6 +169,19 @@ public abstract class MainActivityInstTestBase {
         .thenReturn(Observable.<PagableResponseList<User>>empty());
     when(twitterApi.getId())
         .thenReturn(Observable.just(2000L));
+
+    final IDs ignoringUserIDsMock = mock(IDs.class);
+    when(ignoringUserIDsMock.getIDs())
+        .thenReturn(new long[0]);
+    when(ignoringUserIDsMock.getNextCursor())
+        .thenReturn(0L);
+    when(ignoringUserIDsMock.getPreviousCursor())
+        .thenReturn(0L);
+    when(twitterApi.getAllBlocksIDs())
+        .thenReturn(Observable.just(ignoringUserIDsMock));
+    when(twitterApi.getAllMutesIDs())
+        .thenReturn(Observable.just(ignoringUserIDsMock));
+
     getRule().launchActivity(getIntent());
     verifyAfterLaunch();
   }
@@ -191,7 +205,7 @@ public abstract class MainActivityInstTestBase {
   }
 
   private static TwitterAPIConfiguration createTwitterAPIConfigMock() {
-    final TwitterAPIConfiguration mock = Mockito.mock(TwitterAPIConfiguration.class);
+    final TwitterAPIConfiguration mock = mock(TwitterAPIConfiguration.class);
     when(mock.getShortURLLength()).thenReturn(23);
     when(mock.getShortURLLengthHttps()).thenReturn(23);
     return mock;

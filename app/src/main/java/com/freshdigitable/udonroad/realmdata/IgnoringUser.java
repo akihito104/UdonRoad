@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad.realmdata;
 
-import java.util.Collection;
-
-import twitter4j.TwitterAPIConfiguration;
-import twitter4j.User;
+import io.realm.RealmModel;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 
 /**
- * ConfigStore defines scheme to store user configurations.
+ * IgnoringUser is blocked / muted user by authenticated user.
  *
- * Created by akihit on 2016/07/30.
+ * Created by akihit on 2016/10/03.
  */
-public interface ConfigStore {
-  void open();
+@RealmClass
+public class IgnoringUser implements RealmModel {
+  @PrimaryKey
+  private long id;
 
-  void close();
+  public IgnoringUser() {
+  }
 
-  void addAuthenticatedUser(User authenticatedUser);
+  IgnoringUser(long userId) {
+    this.id = userId;
+  }
 
-  User getAuthenticatedUser(long userId);
-
-  void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
-
-  TwitterAPIConfiguration getTwitterAPIConfig();
-
-  void addIgnoringUsers(Collection<Long> iDs);
+  long getId() {
+    return id;
+  }
 }

@@ -19,6 +19,10 @@ package com.freshdigitable.udonroad.realmdata;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import twitter4j.TwitterAPIConfiguration;
@@ -97,5 +101,20 @@ public class ConfigStoreRealm implements ConfigStore {
   public TwitterAPIConfiguration getTwitterAPIConfig() {
     return realm.where(TwitterAPIConfigurationRealm.class)
         .findFirst();
+  }
+
+  @Override
+  public void addIgnoringUsers(final Collection<Long> iDs) {
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        List<IgnoringUser> ignoringUsers = new ArrayList<>(iDs.size());
+        for (Long id : iDs) {
+          final IgnoringUser iUser = new IgnoringUser(id);
+          ignoringUsers.add(iUser);
+        }
+        realm.insertOrUpdate(ignoringUsers);
+      }
+    });
   }
 }

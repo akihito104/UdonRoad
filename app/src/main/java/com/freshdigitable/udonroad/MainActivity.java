@@ -234,6 +234,7 @@ public class MainActivity
     userStream.connect(homeTimeline);
     configSubscriber.verifyCredencials();
     configSubscriber.fetchTwitterAPIConfig();
+    configSubscriber.fetchAllIgnoringUsers();
     setupNavigationDrawer();
 
     binding.mainToolbar.setTitle("Home");

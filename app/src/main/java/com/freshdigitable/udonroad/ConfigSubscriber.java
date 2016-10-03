@@ -22,6 +22,8 @@ import android.util.Log;
 import com.android.annotations.NonNull;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 
+import java.util.Collection;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -29,7 +31,10 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Action2;
+import rx.functions.Func0;
 import rx.functions.Func1;
+import twitter4j.IDs;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
@@ -130,4 +135,35 @@ public class ConfigSubscriber {
       Log.e(TAG, "call: ", throwable);
     }
   };
+
+  public void fetchAllIgnoringUsers() {
+    Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
+        .map(new Func1<IDs, long[]>() {
+          @Override
+          public long[] call(IDs iDs) {
+            return iDs.getIDs();
+          }
+        })
+        .collect(new Func0<TreeSet<Long>>() {
+                   @Override
+                   public TreeSet<Long> call() {
+                     return new TreeSet<>();
+                   }
+                 },
+            new Action2<TreeSet<Long>, long[]>() {
+              @Override
+              public void call(TreeSet<Long> longs, long[] longs2) {
+                for (long l : longs2) {
+                  longs.add(l);
+                }
+              }
+            })
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Collection<Long>>() {
+          @Override
+          public void call(Collection<Long> longs) {
+            configStore.addIgnoringUsers(longs);
+          }
+        }, onErrorAction);
+  }
 }
