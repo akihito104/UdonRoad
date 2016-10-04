@@ -117,7 +117,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     itemView.getIcon().setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        userIconClickedListener.onClicked(v, user);
+        userIconClickedListener.onUserIconClicked(v, user);
       }
     });
   }

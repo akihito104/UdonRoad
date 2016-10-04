@@ -164,7 +164,7 @@ public class MainActivity
   }
 
   @Override
-  public void onClicked(View view, User user) {
+  public void onUserIconClicked(View view, User user) {
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       return;
     }

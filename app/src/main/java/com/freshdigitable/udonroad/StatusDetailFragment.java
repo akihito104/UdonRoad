@@ -117,13 +117,13 @@ public class StatusDetailFragment extends Fragment {
     icon.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        userIconClickedListener.onClicked(view, user);
+        userIconClickedListener.onUserIconClicked(view, user);
       }
     });
     statusView.getUserName().setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        userIconClickedListener.onClicked(icon, user);
+        userIconClickedListener.onUserIconClicked(icon, user);
       }
     });
     statusView.getMediaContainer().setOnMediaClickListener(new OnMediaClickListener() {
@@ -301,7 +301,7 @@ public class StatusDetailFragment extends Fragment {
     } else {
       return new OnUserIconClickedListener() {
         @Override
-        public void onClicked(View view, User user) {
+        public void onUserIconClicked(View view, User user) {
           UserInfoActivity.start(activity, user, view);
         }
       };
