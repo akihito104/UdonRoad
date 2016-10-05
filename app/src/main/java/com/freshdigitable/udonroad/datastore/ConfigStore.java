@@ -42,4 +42,8 @@ public interface ConfigStore {
   void replaceIgnoringUsers(Collection<Long> iDs);
 
   boolean isIgnoredUser(long userId);
+
+  void addIgnoringUser(User user);
+
+  void removeIgnoringUser(User user);
 }

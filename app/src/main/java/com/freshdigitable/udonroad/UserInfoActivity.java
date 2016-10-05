@@ -39,6 +39,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
@@ -79,6 +80,8 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   TwitterApi twitterApi;
   private UserSubscriber<TypedCache<User>> userSubscriber;
   private Subscription subscription;
+  @Inject
+  ConfigSubscriber configSubscriber;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -98,8 +101,9 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     viewPager = (UserInfoPagerFragment) getSupportFragmentManager()
         .findFragmentById(R.id.userInfo_pagerFragment);
     viewPager.setUser(userId);
-    userSubscriber = new UserSubscriber<>(twitterApi, userCache,
-        new FeedbackSubscriber.SnackbarFeedback(viewPager.getView()));
+    final SnackbarFeedback feedback = new SnackbarFeedback(viewPager.getView());
+    userSubscriber = new UserSubscriber<>(twitterApi, userCache, feedback);
+    configSubscriber.setFeedbackSubscriber(feedback);
   }
 
   private void setUpUserInfoView(long userId) {
@@ -232,13 +236,13 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
         // todo
         break;
       case R.id.userInfo_mute:
-        userSubscriber.createMute(parseIntent());
+        configSubscriber.createMute(parseIntent());
         break;
       case R.id.userInfo_block:
-        userSubscriber.createBlock(parseIntent());
+        configSubscriber.createBlock(parseIntent());
         break;
       case R.id.userInfo_r4s:
-        userSubscriber.reportSpam(parseIntent());
+        configSubscriber.reportSpam(parseIntent());
         break;
       case R.id.userInfo_reply_close:
         closeTwitterInputView();

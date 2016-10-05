@@ -125,4 +125,29 @@ public class ConfigStoreRealm implements ConfigStore {
         .equalTo("id", userId)
         .findFirst() != null;
   }
+
+  @Override
+  public void addIgnoringUser(User user) {
+    final long userId = user.getId();
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.insertOrUpdate(new IgnoringUser(userId));
+      }
+    });
+  }
+
+  @Override
+  public void removeIgnoringUser(User user) {
+    final long userId = user.getId();
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.where(IgnoringUser.class)
+            .equalTo("id", userId)
+            .findAll()
+            .deleteAllFromRealm();
+      }
+    });
+  }
 }

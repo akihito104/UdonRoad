@@ -166,4 +166,66 @@ public class ConfigSubscriber {
           }
         }, onErrorAction);
   }
+
+  private FeedbackSubscriber feedback;
+
+  public void setFeedbackSubscriber(FeedbackSubscriber feedback) {
+    this.feedback = feedback;
+  }
+
+  public void createBlock(final long userId) {
+    twitterApi.createBlock(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            addIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_create_block_failed),
+            feedback.onCompleteDefault(R.string.msg_create_block_success));
+  }
+
+  public void destroyBlock(final long userId) {
+    twitterApi.destroyBlock(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            removeIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_create_block_failed),
+            feedback.onCompleteDefault(R.string.msg_create_block_success));
+  }
+
+  public void reportSpam(long userId) {
+    twitterApi.reportSpam(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            addIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_report_spam_failed),
+            feedback.onCompleteDefault(R.string.msg_report_spam_success));
+  }
+
+  public void createMute(long userId) {
+    twitterApi.createMute(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            addIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_create_mute_failed),
+            feedback.onCompleteDefault(R.string.msg_create_mute_success));
+  }
+
+  @NonNull
+  private Action1<User> addIgnoringUserAction() {
+    return new Action1<User>() {
+      @Override
+      public void call(User user) {
+        configStore.addIgnoringUser(user);
+      }
+    };
+  }
+
+  @NonNull
+  private Action1<User> removeIgnoringUserAction() {
+    return new Action1<User>() {
+      @Override
+      public void call(User user) {
+        configStore.removeIgnoringUser(user);
+      }
+    };
+  }
 }

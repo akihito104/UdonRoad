@@ -63,42 +63,6 @@ public class UserSubscriber<T extends BaseOperation<User>> {
             feedback.onCompleteDefault(R.string.msg_destroy_friendship_success));
   }
 
-  public void createBlock(final long userId) {
-    twitterApi.createBlock(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            feedback.onErrorDefault(R.string.msg_create_block_failed),
-            feedback.onCompleteDefault(R.string.msg_create_block_success));
-  }
-
-  public void destroyBlock(final long userId) {
-    twitterApi.destroyBlock(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            feedback.onErrorDefault(R.string.msg_create_block_failed),
-            feedback.onCompleteDefault(R.string.msg_create_block_success));
-  }
-
-  public void reportSpam(long userId) {
-    twitterApi.reportSpam(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            feedback.onErrorDefault(R.string.msg_report_spam_failed),
-            feedback.onCompleteDefault(R.string.msg_report_spam_success));
-  }
-
-  public void createMute(long userId) {
-    twitterApi.createMute(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            feedback.onErrorDefault(R.string.msg_create_mute_failed),
-            feedback.onCompleteDefault(R.string.msg_create_mute_success));
-  }
-
   public void fetchFollowers(final long userId, final long cursor) {
     twitterApi.getFollowersList(userId, cursor)
         .observeOn(AndroidSchedulers.mainThread())
