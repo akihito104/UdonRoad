@@ -152,17 +152,17 @@ public class ConfigSubscriber {
                  },
             new Action2<TreeSet<Long>, long[]>() {
               @Override
-              public void call(TreeSet<Long> longs, long[] longs2) {
-                for (long l : longs2) {
-                  longs.add(l);
+              public void call(TreeSet<Long> collector, long[] ids) {
+                for (long l : ids) {
+                  collector.add(l);
                 }
               }
             })
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<Collection<Long>>() {
           @Override
-          public void call(Collection<Long> longs) {
-            configStore.addIgnoringUsers(longs);
+          public void call(Collection<Long> ids) {
+            configStore.replaceIgnoringUsers(ids);
           }
         }, onErrorAction);
   }

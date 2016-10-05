@@ -130,27 +130,12 @@ public class MainActivity
     setupHomeTimeline();
   }
 
-  private void setupAppBar(@TweetType int type, long statusId) {
-    tweetInputFragment = TweetInputFragment.create(type, statusId);
-    tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
-    getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_appbar_container, tweetInputFragment)
-        .commit();
-  }
-
-  private void tearDownTweetInputView() {
-    if (tweetInputFragment == null) {
-      return;
-    }
-    tweetInputFragment.collapseStatusInputView();
-    tweetInputFragment.setTweetSendFab(null);
-    getSupportFragmentManager().beginTransaction()
-        .remove(tweetInputFragment)
-        .commit();
-    tweetInputFragment = null;
-  }
-
   private void setupHomeTimeline() {
+    configSubscriber.open();
+    configSubscriber.verifyCredencials();
+    configSubscriber.fetchTwitterAPIConfig();
+    configSubscriber.fetchAllIgnoringUsers();
+
     homeTimeline.open("home");
     homeTimeline.clear();
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
@@ -161,16 +146,6 @@ public class MainActivity
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit();
-  }
-
-  @Override
-  public void onUserIconClicked(View view, User user) {
-    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
-      return;
-    }
-    binding.ffab.hide();
-    tlFragment.stopScroll();
-    UserInfoActivity.start(this, user, view);
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -230,11 +205,7 @@ public class MainActivity
   @Override
   protected void onStart() {
     super.onStart();
-    configSubscriber.open();
     userStream.connect(homeTimeline);
-    configSubscriber.verifyCredencials();
-    configSubscriber.fetchTwitterAPIConfig();
-    configSubscriber.fetchAllIgnoringUsers();
     setupNavigationDrawer();
 
     binding.mainToolbar.setTitle("Home");
@@ -296,7 +267,6 @@ public class MainActivity
   @Override
   protected void onStop() {
     super.onStop();
-    configSubscriber.close();
     binding.ffab.setOnFlingListener(null);
     actionMap.clear();
     if (subscription != null && !subscription.isUnsubscribed()) {
@@ -315,6 +285,7 @@ public class MainActivity
       binding.navDrawer.setNavigationItemSelectedListener(null);
     }
     tearDownTweetInputView();
+    configSubscriber.close();
     homeTimeline.close();
   }
 
@@ -384,7 +355,7 @@ public class MainActivity
       binding.ffab.hide();
     }
     tlFragment.stopScroll();
-    setupAppBar(type, statusId);
+    setupTweetInputView(type, statusId);
     if (type == TYPE_REPLY) {
       binding.mainToolbar.setTitle("返信する");
     } else if (type == TYPE_QUOTE) {
@@ -404,6 +375,26 @@ public class MainActivity
       binding.ffab.show();
     }
     binding.mainToolbar.setTitle("Home");
+  }
+
+  private void setupTweetInputView(@TweetType int type, long statusId) {
+    tweetInputFragment = TweetInputFragment.create(type, statusId);
+    tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_appbar_container, tweetInputFragment)
+        .commit();
+  }
+
+  private void tearDownTweetInputView() {
+    if (tweetInputFragment == null) {
+      return;
+    }
+    tweetInputFragment.collapseStatusInputView();
+    tweetInputFragment.setTweetSendFab(null);
+    getSupportFragmentManager().beginTransaction()
+        .remove(tweetInputFragment)
+        .commit();
+    tweetInputFragment = null;
   }
 
   private void showToast(String text) {
@@ -486,5 +477,15 @@ public class MainActivity
   @Override
   public void hideFab() {
     binding.ffab.hide();
+  }
+
+  @Override
+  public void onUserIconClicked(View view, User user) {
+    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
+      return;
+    }
+    binding.ffab.hide();
+    tlFragment.stopScroll();
+    UserInfoActivity.start(this, user, view);
   }
 }
