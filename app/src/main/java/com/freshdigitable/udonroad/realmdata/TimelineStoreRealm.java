@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
@@ -46,15 +47,18 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   private static final String TAG = TimelineStoreRealm.class.getSimpleName();
   private RealmResults<StatusIDs> timeline;
   private final TypedCache<Status> statusCache;
+  private final ConfigStore configStore;
 
-  public TimelineStoreRealm(TypedCache<Status> statusCacheRealm) {
+  public TimelineStoreRealm(TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
     this.statusCache = statusCacheRealm;
+    this.configStore = configStore;
   }
 
   @Override
   public void open(String storeName) {
     super.open(storeName);
     statusCache.open();
+    configStore.open();
     defaultTimeline();
   }
 
@@ -66,17 +70,32 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
 
   @Override
   public void upsert(Status status) {
-    if (status == null) {
+    if (status == null || isIgnorable(status)) {
       return;
     }
     upsert(Collections.singletonList(status));
   }
 
+  private boolean isIgnorable(Status status) {
+    return configStore.isIgnoredUser(status.getUser().getId())
+        || (status.isRetweet() && configStore.isIgnoredUser(status.getRetweetedStatus().getUser().getId()));
+  }
+
   @Override
   public void upsert(List<Status> statuses) {
-    if (statuses == null || statuses.isEmpty()) {
+    if (statuses == null) {
       return;
     }
+    for (int i = statuses.size() - 1; i >= 0; i--) {
+      final Status status = statuses.get(i);
+      if (isIgnorable(status)) {
+        statuses.remove(status);
+      }
+    }
+    if (statuses.isEmpty()) {
+      return;
+    }
+
     statusCache.upsert(statuses);
     final List<StatusIDs> inserts = createInsertList(statuses);
     if (!inserts.isEmpty()) {
@@ -298,6 +317,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     timeline.removeChangeListeners();
     super.close();
     statusCache.close();
+    configStore.close();
   }
 
   @Override

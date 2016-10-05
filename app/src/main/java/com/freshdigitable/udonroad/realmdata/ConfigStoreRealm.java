@@ -104,10 +104,11 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
-  public void addIgnoringUsers(final Collection<Long> iDs) {
+  public void replaceIgnoringUsers(final Collection<Long> iDs) {
     realm.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
+        realm.delete(IgnoringUser.class);
         List<IgnoringUser> ignoringUsers = new ArrayList<>(iDs.size());
         for (Long id : iDs) {
           final IgnoringUser iUser = new IgnoringUser(id);
@@ -116,5 +117,12 @@ public class ConfigStoreRealm implements ConfigStore {
         realm.insertOrUpdate(ignoringUsers);
       }
     });
+  }
+
+  @Override
+  public boolean isIgnoredUser(long userId) {
+    return realm.where(IgnoringUser.class)
+        .equalTo("id", userId)
+        .findFirst() != null;
   }
 }

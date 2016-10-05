@@ -39,5 +39,7 @@ public interface ConfigStore {
 
   TwitterAPIConfiguration getTwitterAPIConfig();
 
-  void addIgnoringUsers(Collection<Long> iDs);
+  void replaceIgnoringUsers(Collection<Long> iDs);
+
+  boolean isIgnoredUser(long userId);
 }
