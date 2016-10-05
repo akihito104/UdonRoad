@@ -260,7 +260,7 @@ public abstract class StatusViewBase extends RelativeLayout {
   public abstract void setUnselectedColor();
 
   interface OnUserIconClickedListener {
-    void onClicked(View view, User user);
+    void onUserIconClicked(View view, User user);
   }
 
   public TextView getUserName() {

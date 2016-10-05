@@ -40,12 +40,14 @@ import twitter4j.User;
 public class DataStoreModule {
   @Provides
   public TypedCache<Status> provideTypedCacheStatus() {
-    return new StatusCacheRealm();
+    final ConfigStore configStore = provideConfigStore();
+    return new StatusCacheRealm(configStore);
   }
 
   @Provides
   public MediaCache provideMediaCache() {
-    return new StatusCacheRealm();
+    final ConfigStore configStore = provideConfigStore();
+    return new StatusCacheRealm(configStore);
   }
 
   @Provides
@@ -55,13 +57,14 @@ public class DataStoreModule {
 
   @Provides
   public SortedCache<Status> provideSortedCacheStatus() {
-    final StatusCacheRealm statusCacheRealm = new StatusCacheRealm();
-    return new TimelineStoreRealm(statusCacheRealm);
+    final TypedCache<Status> statusCacheRealm = provideTypedCacheStatus();
+    final ConfigStore configStore = provideConfigStore();
+    return new TimelineStoreRealm(statusCacheRealm, configStore);
   }
 
   @Provides
   public SortedCache<User> provideSortedCacheUser() {
-    final UserCacheRealm userCacheRealm = new UserCacheRealm();
+    final TypedCache<User> userCacheRealm = provideTypedCacheUser();
     return new UserSortedCacheRealm(userCacheRealm);
   }
 

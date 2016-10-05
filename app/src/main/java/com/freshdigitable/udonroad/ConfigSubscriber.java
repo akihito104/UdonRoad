@@ -22,6 +22,8 @@ import android.util.Log;
 import com.android.annotations.NonNull;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 
+import java.util.Collection;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -29,7 +31,10 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Action2;
+import rx.functions.Func0;
 import rx.functions.Func1;
+import twitter4j.IDs;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
@@ -130,4 +135,97 @@ public class ConfigSubscriber {
       Log.e(TAG, "call: ", throwable);
     }
   };
+
+  public void fetchAllIgnoringUsers() {
+    Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
+        .map(new Func1<IDs, long[]>() {
+          @Override
+          public long[] call(IDs iDs) {
+            return iDs.getIDs();
+          }
+        })
+        .collect(new Func0<TreeSet<Long>>() {
+                   @Override
+                   public TreeSet<Long> call() {
+                     return new TreeSet<>();
+                   }
+                 },
+            new Action2<TreeSet<Long>, long[]>() {
+              @Override
+              public void call(TreeSet<Long> collector, long[] ids) {
+                for (long l : ids) {
+                  collector.add(l);
+                }
+              }
+            })
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Collection<Long>>() {
+          @Override
+          public void call(Collection<Long> ids) {
+            configStore.replaceIgnoringUsers(ids);
+          }
+        }, onErrorAction);
+  }
+
+  private FeedbackSubscriber feedback;
+
+  public void setFeedbackSubscriber(FeedbackSubscriber feedback) {
+    this.feedback = feedback;
+  }
+
+  public void createBlock(final long userId) {
+    twitterApi.createBlock(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            addIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_create_block_failed),
+            feedback.onCompleteDefault(R.string.msg_create_block_success));
+  }
+
+  public void destroyBlock(final long userId) {
+    twitterApi.destroyBlock(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            removeIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_create_block_failed),
+            feedback.onCompleteDefault(R.string.msg_create_block_success));
+  }
+
+  public void reportSpam(long userId) {
+    twitterApi.reportSpam(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            addIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_report_spam_failed),
+            feedback.onCompleteDefault(R.string.msg_report_spam_success));
+  }
+
+  public void createMute(long userId) {
+    twitterApi.createMute(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            addIgnoringUserAction(),
+            feedback.onErrorDefault(R.string.msg_create_mute_failed),
+            feedback.onCompleteDefault(R.string.msg_create_mute_success));
+  }
+
+  @NonNull
+  private Action1<User> addIgnoringUserAction() {
+    return new Action1<User>() {
+      @Override
+      public void call(User user) {
+        configStore.addIgnoringUser(user);
+      }
+    };
+  }
+
+  @NonNull
+  private Action1<User> removeIgnoringUserAction() {
+    return new Action1<User>() {
+      @Override
+      public void call(User user) {
+        configStore.removeIgnoringUser(user);
+      }
+    };
+  }
 }

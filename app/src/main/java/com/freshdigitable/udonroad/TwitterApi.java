@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.Relationship;
@@ -454,6 +455,48 @@ public class TwitterApi {
           final PagableResponseList<User> friendsList
               = twitter.getFriendsList(userId, cursor, 20, true, false);
           subscriber.onNext(friendsList);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<IDs> getAllBlocksIDs() {
+    return Observable.create(new Observable.OnSubscribe<IDs>() {
+      @Override
+      public void call(Subscriber<? super IDs> subscriber) {
+        try {
+          IDs blocksIDs = null;
+          while (blocksIDs == null || blocksIDs.hasNext()) {
+            final long cursor = blocksIDs == null
+                ? -1
+                : blocksIDs.getNextCursor();
+            blocksIDs = twitter.getBlocksIDs(cursor);
+            subscriber.onNext(blocksIDs);
+          }
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
+  public Observable<IDs> getAllMutesIDs() {
+    return Observable.create(new Observable.OnSubscribe<IDs>() {
+      @Override
+      public void call(Subscriber<? super IDs> subscriber) {
+        try {
+          IDs mutesIDs = null;
+          while (mutesIDs == null || mutesIDs.hasNext()) {
+            final long cursor = mutesIDs == null
+                ? -1
+                : mutesIDs.getNextCursor();
+            mutesIDs = twitter.getMutesIDs(cursor);
+            subscriber.onNext(mutesIDs);
+          }
           subscriber.onCompleted();
         } catch (TwitterException e) {
           subscriber.onError(e);

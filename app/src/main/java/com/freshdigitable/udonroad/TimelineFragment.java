@@ -318,7 +318,7 @@ public class TimelineFragment<T> extends Fragment {
     } else {
       return new OnUserIconClickedListener() {
         @Override
-        public void onClicked(View view, User user) {
+        public void onUserIconClicked(View view, User user) {
           // nop
         }
       };

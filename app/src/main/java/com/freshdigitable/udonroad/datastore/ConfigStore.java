@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import java.util.Collection;
+
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
@@ -36,4 +38,12 @@ public interface ConfigStore {
   void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
 
   TwitterAPIConfiguration getTwitterAPIConfig();
+
+  void replaceIgnoringUsers(Collection<Long> iDs);
+
+  boolean isIgnoredUser(long userId);
+
+  void addIgnoringUser(User user);
+
+  void removeIgnoringUser(User user);
 }

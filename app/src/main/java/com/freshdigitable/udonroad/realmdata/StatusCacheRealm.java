@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.realmdata;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
@@ -44,15 +45,24 @@ import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Status>, MediaCache {
   @SuppressWarnings("unused")
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
+  private final ConfigStore configStore;
   private UserCacheRealm userTypedCache;
 
-  public StatusCacheRealm() {
+  public StatusCacheRealm(ConfigStore configStore) {
+    this.configStore = configStore;
   }
 
   @Override
   public void open() {
     super.open();
     this.userTypedCache = new UserCacheRealm(this);
+    configStore.open();
+  }
+
+  @Override
+  public void close() {
+    super.close();
+    configStore.close();
   }
 
   @Override
@@ -110,16 +120,21 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   private List<Status> splitUpsertingStatus(List<Status> statuses) {
     final List<Status> updates = new ArrayList<>();
     for (Status s : statuses) {
-      updates.add(s);
+      if (!configStore.isIgnoredUser(s.getUser().getId())) {
+        updates.add(s);
+      }
       final Status quotedStatus = s.getQuotedStatus();
-      if (quotedStatus != null) {
+      if (quotedStatus != null
+          && !configStore.isIgnoredUser(quotedStatus.getUser().getId())) {
         updates.add(quotedStatus);
       }
       final Status retweetedStatus = s.getRetweetedStatus();
-      if (retweetedStatus != null) {
+      if (retweetedStatus != null
+          && !configStore.isIgnoredUser(retweetedStatus.getUser().getId())) {
         updates.add(retweetedStatus);
         final Status rtQuotedStatus = retweetedStatus.getQuotedStatus();
-        if (rtQuotedStatus != null) {
+        if (rtQuotedStatus != null
+            && !configStore.isIgnoredUser(rtQuotedStatus.getUser().getId())) {
           updates.add(rtQuotedStatus);
         }
       }
