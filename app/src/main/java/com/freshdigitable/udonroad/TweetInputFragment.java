@@ -325,7 +325,7 @@ public class TweetInputFragment extends Fragment {
     long inReplyToStatusId;
     Set<String> screenNames;
 
-    static ReplyEntity create(@NonNull Status status) { // XXX
+    static ReplyEntity create(@NonNull Status status) {
       final ReplyEntity res = new ReplyEntity();
       res.inReplyToStatusId = status.getId();
       res.screenNames = new LinkedHashSet<>();
