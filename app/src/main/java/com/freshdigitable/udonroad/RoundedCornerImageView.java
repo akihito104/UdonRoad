@@ -29,6 +29,8 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 /**
+ * RoundedCornerImageView is acceptable custom shape.
+ *
  * Created by akihit on 2016/09/22.
  */
 
@@ -66,7 +68,8 @@ public class RoundedCornerImageView extends ImageView {
 
   @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    bound = new Rect(0, 0, w, h);
+    bound = new Rect(getPaddingLeft(), getPaddingTop(),
+        w - getPaddingRight(), h - getPaddingBottom());
     boundF = new RectF(bound);
   }
 
