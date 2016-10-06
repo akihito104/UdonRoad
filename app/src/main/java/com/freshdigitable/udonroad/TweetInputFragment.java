@@ -167,6 +167,7 @@ public class TweetInputFragment extends Fragment {
     if (inReplyTo != null) {
       inputText.addText(ReplyEntity.create(inReplyTo).createReplyString());
       inputText.setInReplyTo();
+      inReplyToStatusId = inReplyTo.getId();
     }
     stretchTweetInputView();
   }
