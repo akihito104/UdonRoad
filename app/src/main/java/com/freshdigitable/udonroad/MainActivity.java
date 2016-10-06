@@ -371,6 +371,11 @@ public class MainActivity
 
     tlFragment.startScroll();
     tearDownTweetInputView();
+    if (tweetInputFragment != null) {
+      getSupportFragmentManager().beginTransaction()
+          .remove(tweetInputFragment)
+          .commit();
+    }
     if (tlFragment.isTweetSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
@@ -391,9 +396,6 @@ public class MainActivity
     }
     tweetInputFragment.collapseStatusInputView();
     tweetInputFragment.setTweetSendFab(null);
-    getSupportFragmentManager().beginTransaction()
-        .remove(tweetInputFragment)
-        .commit();
     tweetInputFragment = null;
   }
 

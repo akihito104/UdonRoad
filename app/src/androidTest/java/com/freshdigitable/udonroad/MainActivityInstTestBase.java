@@ -201,6 +201,7 @@ public abstract class MainActivityInstTestBase {
     final AppCompatActivity activity = getRule().getActivity();
     if (activity != null) {
       activity.finish();
+      Thread.sleep(800);
     }
   }
 

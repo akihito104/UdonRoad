@@ -20,6 +20,7 @@ import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -38,7 +39,9 @@ import com.squareup.picasso.Picasso;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -138,7 +141,6 @@ public class TweetInputFragment extends Fragment {
     }
   };
 
-  private long inReplyToStatusId = -1;
   private List<Long> quoteStatusIds = new ArrayList<>(4);
 
   public void stretchTweetInputView(@TweetType int type, long statusId) {
@@ -157,17 +159,18 @@ public class TweetInputFragment extends Fragment {
     binding.mainTweetInputView.appearing();
   }
 
+  private ReplyEntity replyEntity;
+
   private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
     final Status inReplyTo = statusCache.find(inReplyToStatusId);
-    stretchTweetInputViewWithInReplyTo(inReplyTo);
-  }
-
-  private void stretchTweetInputViewWithInReplyTo(Status inReplyTo) {
     final TweetInputView inputText = binding.mainTweetInputView;
-    if (inReplyTo != null) {
-      inputText.addText(ReplyEntity.create(inReplyTo).createReplyString());
-      inputText.setInReplyTo();
+    if (inReplyTo == null) {
+      stretchTweetInputView();
+      return;
     }
+    replyEntity = ReplyEntity.create(inReplyTo);
+    inputText.addText(replyEntity.createReplyString());
+    inputText.setInReplyTo();
     stretchTweetInputView();
   }
 
@@ -186,7 +189,7 @@ public class TweetInputFragment extends Fragment {
             inputText.setUserInfo(authenticatedUser);
             Picasso.with(inputText.getContext())
                 .load(authenticatedUser.getMiniProfileImageURLHttps())
-                .fit()
+                .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
                 .into(inputText.getIcon());
           }
         });
@@ -250,26 +253,22 @@ public class TweetInputFragment extends Fragment {
 
   private Observable<Status> createSendObservable() {
     final String sendingText = binding.mainTweetInputView.getText().toString();
-    if (isNeedStatusUpdate()) {
-      String s = sendingText;
-      if (quoteStatusIds.size() > 0) {
-        for (long q : quoteStatusIds) {
-          final Status status = statusCache.find(q);
-          if (status == null) {
-            continue;
-          }
-          s +=" https://twitter.com/" + status.getUser().getScreenName()
-              + "/status/" + q;
-        }
-      }
-      final StatusUpdate statusUpdate = new StatusUpdate(s);
-      if (inReplyToStatusId > 0) {
-        statusUpdate.setInReplyToStatusId(inReplyToStatusId);
-      }
-      return twitterApi.updateStatus(statusUpdate);
-    } else {
+    if (!isStatusUpdateNeeded()) {
       return twitterApi.updateStatus(sendingText);
     }
+    String s = sendingText;
+    for (long q : quoteStatusIds) {
+      final Status status = statusCache.find(q);
+      if (status == null) {
+        continue;
+      }
+      s += " https://twitter.com/" + status.getUser().getScreenName() + "/status/" + q;
+    }
+    final StatusUpdate statusUpdate = new StatusUpdate(s);
+    if (replyEntity != null) {
+      statusUpdate.setInReplyToStatusId(replyEntity.inReplyToStatusId);
+    }
+    return twitterApi.updateStatus(statusUpdate);
   }
 
   private Observable<Status> observeUpdateStatus() {
@@ -286,8 +285,8 @@ public class TweetInputFragment extends Fragment {
         });
   }
 
-  private boolean isNeedStatusUpdate() {
-    return inReplyToStatusId > 0
+  private boolean isStatusUpdateNeeded() {
+    return replyEntity != null
         || quoteStatusIds.size() > 0;
   }
 
@@ -298,7 +297,7 @@ public class TweetInputFragment extends Fragment {
   public void collapseStatusInputView() {
     tearDownTweetInputView();
     tearDownSendTweetFab();
-    inReplyToStatusId = -1;
+    replyEntity = null;
     quoteStatusIds.clear();
     binding.mainTweetInputView.disappearing();
   }
@@ -324,12 +323,12 @@ public class TweetInputFragment extends Fragment {
 
   private static class ReplyEntity {
     long inReplyToStatusId;
-    List<String> screenNames;
+    Set<String> screenNames;
 
-    static ReplyEntity create(Status status) { // XXX
+    static ReplyEntity create(@NonNull Status status) {
       final ReplyEntity res = new ReplyEntity();
       res.inReplyToStatusId = status.getId();
-      res.screenNames = new ArrayList<>();
+      res.screenNames = new LinkedHashSet<>();
       final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
       for (UserMentionEntity u : userMentionEntities) {
         res.addScreenName(u.getScreenName());
@@ -346,9 +345,7 @@ public class TweetInputFragment extends Fragment {
     }
 
     private void addScreenName(String screenName) {
-      if (!screenNames.contains(screenName)) {
-        screenNames.add(screenName);
-      }
+      screenNames.add(screenName);
     }
 
     String createReplyString() {
