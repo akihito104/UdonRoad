@@ -68,6 +68,8 @@
                 android:id="@+id/userInfo_tabs"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
+                app:tabTextColor="@color/text_secondary_inverse"
+                app:tabSelectedTextColor="@color/text_primary_inverse"
                 />
 
         </android.support.design.widget.AppBarLayout>
