@@ -56,6 +56,7 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
@@ -131,11 +132,6 @@ public class MainActivity
   }
 
   private void setupHomeTimeline() {
-    configSubscriber.open();
-    configSubscriber.verifyCredencials();
-    configSubscriber.fetchTwitterAPIConfig();
-    configSubscriber.fetchAllIgnoringUsers();
-
     homeTimeline.open("home");
     homeTimeline.clear();
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
@@ -143,9 +139,16 @@ public class MainActivity
 
     tlFragment = new TimelineFragment<>();
     tlFragment.setSortedCache(homeTimeline);
-    getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_timeline_container, tlFragment)
-        .commit();
+
+    configSubscriber.open();
+    configSubscriber.setup(new Action0() {
+      @Override
+      public void call() {
+        getSupportFragmentManager().beginTransaction()
+            .replace(R.id.main_timeline_container, tlFragment)
+            .commit();
+      }
+    });
   }
 
   private void attachToolbar(Toolbar toolbar) {

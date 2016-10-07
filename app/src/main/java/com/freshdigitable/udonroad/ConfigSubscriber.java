@@ -22,6 +22,7 @@ import android.util.Log;
 import com.android.annotations.NonNull;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,7 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Action2;
 import rx.functions.Func0;
@@ -67,15 +69,29 @@ public class ConfigSubscriber {
     configStore.close();
   }
 
-  public void verifyCredencials() {
-    twitterApi.verifyCredentials()
+  public void setup(Action0 completeAction) {
+    Observable.concat(
+        verifyCredentials(),
+        fetchTwitterAPIConfig(),
+        fetchAllIgnoringUsers())
+        .subscribe(new Action1<Serializable>() {
+          @Override
+          public void call(Serializable serializable) {
+            //nop
+          }
+        }, onErrorAction, completeAction);
+  }
+
+  private Observable<User> verifyCredentials() {
+    return twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<User>() {
+        .doOnNext(new Action1<User>() {
           @Override
           public void call(User user) {
             configStore.addAuthenticatedUser(user);
           }
-        }, onErrorAction);
+        })
+        .doOnError(onErrorAction);
   }
 
   public Observable<User> getAuthenticatedUser() {
@@ -89,21 +105,26 @@ public class ConfigSubscriber {
         });
   }
 
-  public void fetchTwitterAPIConfig() {
+  private Observable<TwitterAPIConfiguration> fetchTwitterAPIConfig() {
     if (!isTwitterAPIConfigFetchable()) {
       Log.d(TAG, "fetchTwitterAPIConfig: not fetch");
-      return;
+      return Observable.empty();
     }
     Log.d(TAG, "fetchTwitterAPIConfig: fetching");
-    setFetchTwitterAPIConfigTime(System.currentTimeMillis());
-    twitterApi.getTwitterAPIConfiguration()
+    return twitterApi.getTwitterAPIConfiguration()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<TwitterAPIConfiguration>() {
+        .doOnNext(new Action1<TwitterAPIConfiguration>() {
           @Override
           public void call(TwitterAPIConfiguration configuration) {
             configStore.setTwitterAPIConfig(configuration);
           }
-        }, onErrorAction);
+        }).doOnError(onErrorAction)
+        .doOnCompleted(new Action0() {
+          @Override
+          public void call() {
+            setFetchTwitterAPIConfigTime(System.currentTimeMillis());
+          }
+        });
   }
 
   private void setFetchTwitterAPIConfigTime(long timestamp) {
@@ -117,6 +138,10 @@ public class ConfigSubscriber {
   }
 
   private boolean isTwitterAPIConfigFetchable() {
+    final TwitterAPIConfiguration twitterAPIConfig = configStore.getTwitterAPIConfig();
+    if (twitterAPIConfig == null) {
+      return true;
+    }
     final long lastTime = getFetchTwitterAPIConfigTime();
     if (lastTime == -1) {
       return true;
@@ -136,8 +161,8 @@ public class ConfigSubscriber {
     }
   };
 
-  public void fetchAllIgnoringUsers() {
-    Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
+  private Observable<TreeSet<Long>> fetchAllIgnoringUsers() {
+    return Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
         .map(new Func1<IDs, long[]>() {
           @Override
           public long[] call(IDs iDs) {
@@ -159,12 +184,13 @@ public class ConfigSubscriber {
               }
             })
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Collection<Long>>() {
+        .doOnNext(new Action1<Collection<Long>>() {
           @Override
           public void call(Collection<Long> ids) {
             configStore.replaceIgnoringUsers(ids);
           }
-        }, onErrorAction);
+        })
+        .doOnError(onErrorAction);
   }
 
   private FeedbackSubscriber feedback;
