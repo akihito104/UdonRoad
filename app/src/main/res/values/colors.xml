@@ -16,12 +16,25 @@
   -->
 
 <resources>
-    <color name="colorPrimary">#566ff7</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="colorTwitterActionNormal">#AAB8C2</color>
-    <color name="colorTwitterActionNormalTransparent">#3FAAB8C2</color>
-    <color name="colorTwitterActionRetweeted">#19CF86</color>
-    <color name="colorTwitterActionFaved">#E81C4F</color>
-    <color name="colorImmersiveLayerBackground">#3000</color>
+    <!-- https://www.materialpalette.com/blue-grey/amber -->
+    <color name="primary">#607D8B</color>
+    <color name="primary_dark">#455A64</color>
+    <color name="accent">#FFC107</color>
+    <color name="primary_light">#CFD8DC</color>
+    <color name="icon">#FFFFFF</color>
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_primary_inverse">#FFFFFF</color>
+    <color name="text_secondary_inverse">#CCFFFFFF</color>
+    <color name="divider">#BDBDBD</color>
+
+    <color name="twitter_action_normal">#AAB8C2</color>
+    <color name="twitter_action_normal_transparent">#3FAAB8C2</color>
+    <color name="twitter_action_retweeted">#19CF86</color>
+    <color name="twitter_action_faved">#E81C4F</color>
+
+    <color name="layer_black_immersive">#33000000</color>
+    <color name="layer_white_transparent">#88FFFFFF</color>
+
+    <color name="fab_disabled">#CCCCCC</color>
 </resources>

@@ -16,6 +16,6 @@
   -->
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_enabled="false" android:color="#ccc"/>
-    <item android:color="#FF4081"/>
+    <item android:state_enabled="false" android:color="@color/fab_disabled"/>
+    <item android:color="@color/accent"/>
 </selector>

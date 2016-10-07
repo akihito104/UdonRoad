@@ -102,7 +102,7 @@ public class TimelineFragment<T> extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     binding.timeline.setHasFixedSize(true);
-    binding.timeline.addItemDecoration(new TimelineDecoration());
+    binding.timeline.addItemDecoration(new TimelineDecoration(getContext()));
     tlLayoutManager = new LinearLayoutManager(getContext());
     tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);

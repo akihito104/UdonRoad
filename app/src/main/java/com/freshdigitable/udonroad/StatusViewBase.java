@@ -71,7 +71,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     grid = getGrid();
     setPadding(grid, grid, grid, grid);
     setBackgroundColor(Color.TRANSPARENT);
-    selectedColor = ContextCompat.getColor(context, R.color.colorTwitterActionNormalTransparent);
+    selectedColor = ContextCompat.getColor(context, R.color.twitter_action_normal_transparent);
   }
 
   protected int getGrid() {
@@ -84,7 +84,7 @@ public abstract class StatusViewBase extends RelativeLayout {
 
     bindCreatedAt(bindingStatus.getCreatedAt());
     if (status.isRetweet()) {
-      setTextColor(ContextCompat.getColor(getContext(), R.color.colorTwitterActionRetweeted));
+      setTextColor(ContextCompat.getColor(getContext(), R.color.twitter_action_retweeted));
     }
     final User user = bindingStatus.getUser();
     bindTweetUserName(user);
@@ -159,8 +159,8 @@ public abstract class StatusViewBase extends RelativeLayout {
     if (rtCount > 0) {
       this.setRtCountVisibility(VISIBLE);
       setTint(rtIcon, bindingStatus.isRetweeted()
-          ? R.color.colorTwitterActionRetweeted
-          : R.color.colorTwitterActionNormal);
+          ? R.color.twitter_action_retweeted
+          : R.color.twitter_action_normal);
       this.rtCount.setText(String.valueOf(rtCount));
     }
   }
@@ -170,8 +170,8 @@ public abstract class StatusViewBase extends RelativeLayout {
     if (favCount > 0) {
       this.setFavCountVisibility(VISIBLE);
       setTint(favIcon, bindingStatus.isFavorited()
-          ? R.color.colorTwitterActionFaved
-          : R.color.colorTwitterActionNormal);
+          ? R.color.twitter_action_faved
+          : R.color.twitter_action_normal);
       this.favCount.setText(String.valueOf(favCount));
     }
   }
@@ -216,8 +216,8 @@ public abstract class StatusViewBase extends RelativeLayout {
     setFavCountVisibility(GONE);
     setTextColor(Color.GRAY);
 
-    setTint(rtIcon, R.color.colorTwitterActionNormal);
-    setTint(favIcon, R.color.colorTwitterActionNormal);
+    setTint(rtIcon, R.color.twitter_action_normal);
+    setTint(favIcon, R.color.twitter_action_normal);
 
     icon.setImageDrawable(null);
     icon.setImageResource(android.R.color.transparent);

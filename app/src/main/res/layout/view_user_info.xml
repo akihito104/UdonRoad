@@ -45,7 +45,7 @@
         android:contentDescription="@string/desc_icon"
         android:padding="2dp"
         android:background="@drawable/s_rounded_mask_default"
-        app:backgroundTint="#ffffff"
+        app:backgroundTint="@color/layer_white_transparent"
         android:layout_marginBottom="6dp"
         />
 
@@ -61,7 +61,7 @@
         android:paddingLeft="@dimen/grid_margin"
         android:paddingEnd="@dimen/grid_margin"
         android:paddingRight="@dimen/grid_margin"
-        android:background="#8fff"
+        android:background="@color/layer_white_transparent"
         tools:text="user name"
         />
 
@@ -76,7 +76,7 @@
         android:paddingLeft="@dimen/grid_margin"
         android:paddingEnd="@dimen/grid_margin"
         android:paddingRight="@dimen/grid_margin"
-        android:background="#8fff"
+        android:background="@color/layer_white_transparent"
         tools:text="\@screenname"
         />
 

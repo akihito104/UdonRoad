@@ -16,10 +16,11 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -28,9 +29,10 @@ class TimelineDecoration extends RecyclerView.ItemDecoration {
   private final Paint paint;
   private final int dividerHeight;
 
-  TimelineDecoration() {
+  TimelineDecoration(Context context) {
     paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    paint.setColor(Color.GRAY);
+    final int dividerColor = ContextCompat.getColor(context, R.color.divider);
+    paint.setColor(dividerColor);
     this.dividerHeight = 1;
   }
 

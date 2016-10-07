@@ -48,7 +48,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     app:layout_collapseMode="pin"
-                    app:titleTextColor="#fff"
+                    app:titleTextColor="@color/text_primary_inverse"
                     >
                     <TextView
                         android:id="@+id/userInfo_toolbar_title"
@@ -56,7 +56,7 @@
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
                         android:textSize="20sp"
-                        android:textColor="#fff"
+                        android:textColor="@color/text_primary_inverse"
                         android:visibility="invisible"
                         tools:text="\@screenName"
                         tools:visibility="visible"
@@ -68,6 +68,8 @@
                 android:id="@+id/userInfo_tabs"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
+                app:tabTextColor="@color/text_secondary_inverse"
+                app:tabSelectedTextColor="@color/text_primary_inverse"
                 />
 
         </android.support.design.widget.AppBarLayout>

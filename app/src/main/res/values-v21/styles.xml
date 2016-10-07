@@ -17,7 +17,7 @@
 
 <resources>
     <style name="Theme.AppTheme.TranslucentStatusBar" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/colorImmersiveLayerBackground</item>
-        <item name="android:navigationBarColor">@color/colorImmersiveLayerBackground</item>
+        <item name="android:statusBarColor">@color/layer_black_immersive</item>
+        <item name="android:navigationBarColor">@color/layer_black_immersive</item>
     </style>
 </resources>
