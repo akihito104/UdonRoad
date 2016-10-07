@@ -49,9 +49,9 @@ import static org.mockito.Mockito.stub;
 @RunWith(Enclosed.class)
 public class StatusViewTest {
   private static final int rtColor = ContextCompat.getColor(RuntimeEnvironment.application,
-      R.color.colorTwitterActionRetweeted);
+      R.color.twitter_action_retweeted);
   private static final int normalColor = ContextCompat.getColor(RuntimeEnvironment.application,
-      R.color.colorTwitterActionNormal);
+      R.color.twitter_action_normal);
 
   @RunWith(RobolectricGradleTestRunner.class)
   public static abstract class Base {

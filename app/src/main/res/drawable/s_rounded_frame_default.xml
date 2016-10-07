@@ -19,5 +19,5 @@
     android:shape="rectangle">
     <corners android:radius="@dimen/grid_margin"/>
     <solid android:color="@android:color/transparent"/>
-    <stroke android:width="@dimen/frame_border_width" android:color="#a666"/>
+    <stroke android:width="@dimen/frame_border_width" android:color="@color/divider"/>
 </shape>

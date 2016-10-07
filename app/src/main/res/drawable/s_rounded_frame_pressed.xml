@@ -18,6 +18,6 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <corners android:radius="@dimen/grid_margin"/>
-    <solid android:color="@color/colorTwitterActionNormalTransparent"/>
-    <stroke android:width="@dimen/frame_border_width" android:color="#a666"/>
+    <solid android:color="@color/twitter_action_normal_transparent"/>
+    <stroke android:width="@dimen/frame_border_width" android:color="@color/divider"/>
 </shape>

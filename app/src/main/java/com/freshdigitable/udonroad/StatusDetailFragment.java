@@ -158,14 +158,14 @@ public class StatusDetailFragment extends Fragment {
       }
     });
     DrawableCompat.setTint(binding.sdReply.getDrawable(),
-        ContextCompat.getColor(getContext(), R.color.colorTwitterActionNormal));
+        ContextCompat.getColor(getContext(), R.color.twitter_action_normal));
     binding.sdReply.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         setupInput(TweetInputFragment.TYPE_REPLY);
       }
     });
-    setTintList(binding.sdQuote.getDrawable(), R.color.colorTwitterActionNormal);
+    setTintList(binding.sdQuote.getDrawable(), R.color.twitter_action_normal);
     binding.sdQuote.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {

@@ -29,7 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:background="@color/colorImmersiveLayerBackground"
+        android:background="@color/layer_black_immersive"
         >
         <TextView
             android:id="@+id/media_progressText"
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/grid_margin"
             android:textSize="14sp"
-            android:textColor="#fff"
+            android:textColor="@color/text_primary_inverse"
             tools:text="1:00"
             />
         <ProgressBar

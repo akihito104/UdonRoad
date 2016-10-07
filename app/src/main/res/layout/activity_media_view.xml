@@ -36,7 +36,7 @@
                 android:id="@+id/media_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@color/colorImmersiveLayerBackground"
+                android:background="@color/layer_black_immersive"
                 app:titleTextColor="#fff"
                 />
             <com.freshdigitable.udonroad.ffab.IndicatableFFAB
@@ -44,8 +44,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
-                app:fabTint="@color/colorImmersiveLayerBackground"
-                app:indicatorTint="@color/colorImmersiveLayerBackground"
+                app:fabTint="@color/layer_black_immersive"
+                app:indicatorTint="@color/layer_black_immersive"
                 />
         </FrameLayout>
 
