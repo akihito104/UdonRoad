@@ -46,6 +46,7 @@ public class UserRealm extends RealmObject implements User {
   private int followersCount;
   private int friendsCount;
   private int favoritesCount;
+  private String profileLinkColor;
 
   public UserRealm() {
   }
@@ -62,6 +63,7 @@ public class UserRealm extends RealmObject implements User {
     this.followersCount = user.getFollowersCount();
     this.friendsCount = user.getFriendsCount();
     this.favoritesCount = user.getFavouritesCount();
+    this.profileLinkColor = user.getProfileLinkColor();
   }
 
   UserRealm(UserMentionEntity mentionEntity) {
@@ -198,7 +200,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getProfileLinkColor() {
-    throw new RuntimeException("not implement yet.");
+    return profileLinkColor;
   }
 
   @Override

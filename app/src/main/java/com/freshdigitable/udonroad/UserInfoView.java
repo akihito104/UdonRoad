@@ -17,7 +17,10 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.support.annotation.ColorInt;
 import android.support.v4.view.ViewCompat;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -63,6 +66,23 @@ public class UserInfoView extends RelativeLayout {
 
     UserInfoActivity.bindUserScreenName(screenName, user);
     description.setText(user.getDescription());
+
+    final String profileLinkColor = user.getProfileLinkColor();
+    if (TextUtils.isEmpty(user.getProfileBannerMobileURL())
+        && isColorParsable(profileLinkColor)) {
+      banner.setBackgroundColor(parseColor(profileLinkColor));
+    }
+  }
+
+  private static boolean isColorParsable(String colorString) {
+    return colorString != null
+        && colorString.length() >= 6
+        && colorString.length() <= 8;
+  }
+
+  @ColorInt
+  private static int parseColor(String colorString) {
+    return Color.parseColor("#" + colorString);
   }
 
   public ImageView getBanner() {

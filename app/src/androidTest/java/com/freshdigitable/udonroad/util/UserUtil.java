@@ -30,6 +30,7 @@ public class UserUtil {
     when(mock.getScreenName()).thenReturn("akihito104");
     when(mock.getName()).thenReturn("Akihito Matsuda");
     when(mock.getId()).thenReturn(2000L);
+    when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
     return mock;
   }
 }
