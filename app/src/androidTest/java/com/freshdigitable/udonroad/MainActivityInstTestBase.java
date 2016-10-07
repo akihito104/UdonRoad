@@ -167,8 +167,9 @@ public abstract class MainActivityInstTestBase {
         .thenReturn(Observable.<PagableResponseList<User>>empty());
     when(twitterApi.getFriendsList(anyLong(), anyLong()))
         .thenReturn(Observable.<PagableResponseList<User>>empty());
+    final long userId = userMock.getId();
     when(twitterApi.getId())
-        .thenReturn(Observable.just(2000L));
+        .thenReturn(Observable.just(userId));
 
     final IDs ignoringUserIDsMock = mock(IDs.class);
     when(ignoringUserIDsMock.getIDs())
