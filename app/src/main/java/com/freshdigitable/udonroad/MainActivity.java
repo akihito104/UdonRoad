@@ -370,12 +370,12 @@ public class MainActivity
     cancelMenuItem.setVisible(false);
 
     tlFragment.startScroll();
-    tearDownTweetInputView();
     if (tweetInputFragment != null) {
       getSupportFragmentManager().beginTransaction()
           .remove(tweetInputFragment)
           .commit();
     }
+    tearDownTweetInputView();
     if (tlFragment.isTweetSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }

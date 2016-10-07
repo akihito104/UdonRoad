@@ -93,6 +93,18 @@ public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
   }
 
+  @Test
+  public void openTweetInputViewAndClose_and_launchUserInfoAndBackToMain() {
+    onView(withId(R.id.action_write)).perform(click());
+    onView(withId(R.id.action_cancel)).perform(click());
+    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
+    Espresso.pressBack();
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(createText(20)))));
+  }
+
   @Override
   protected ActivityTestRule<MainActivity> getRule() {
     return rule;
