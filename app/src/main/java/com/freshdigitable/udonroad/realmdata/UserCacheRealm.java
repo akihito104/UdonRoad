@@ -59,28 +59,38 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
     if (entities == null || entities.isEmpty()) {
       return;
     }
-    final List<UserRealm> upserts = new ArrayList<>(entities.size());
-    for (User u : entities) {
-      upserts.add(new UserRealm(u));
-    }
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
+        final List<UserRealm> upserts = new ArrayList<>(entities.size());
+        for (User u : entities) {
+          final UserRealm user = findById(realm, u.getId(), UserRealm.class);
+          if (user == null) {
+            upserts.add(new UserRealm(u));
+          } else {
+            user.merge(u);
+          }
+        }
         realm.insertOrUpdate(upserts);
       }
     });
   }
 
   @Override
-  public void forceUpsert(User entity) {
-    upsert(entity);
+  public void forceUpsert(final User entity) {
+    cache.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.insertOrUpdate(new UserRealm(entity));
+      }
+    });
   }
 
   void upsert(UserMentionEntity[] mentionEntity) {
     if (mentionEntity == null || mentionEntity.length < 1) {
       return;
     }
-    final List<UserRealm> upserts = new ArrayList<>();
+    final List<UserRealm> upserts = new ArrayList<>(mentionEntity.length);
     for (UserMentionEntity ume : mentionEntity) {
       final User user = find(ume.getId());
       if (user == null) {
@@ -100,16 +110,12 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
   @Override
   @Nullable
   public User find(long id) {
-    return cache.where(UserRealm.class)
-        .equalTo("id", id)
-        .findFirst();
+    return findById(cache, id, UserRealm.class);
   }
 
   @Override
   public Observable<User> observeById(final long userId) {
-    final UserRealm user = cache.where(UserRealm.class)
-        .equalTo("id", userId)
-        .findFirst();
+    final UserRealm user = findById(cache, userId, UserRealm.class);
     return Observable.create(new Observable.OnSubscribe<User>() {
       @Override
       public void call(final Subscriber<? super User> subscriber) {

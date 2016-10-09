@@ -103,10 +103,6 @@ public class UserRealm extends RealmObject implements User {
     return screenName;
   }
 
-  public void setScreenName(String screenName) {
-    this.screenName = screenName;
-  }
-
   @Override
   public String getLocation() {
     throw new RuntimeException("not implement yet.");
@@ -160,10 +156,6 @@ public class UserRealm extends RealmObject implements User {
   @Override
   public String getOriginalProfileImageURLHttps() {
     throw new RuntimeException("not implement yet.");
-  }
-
-  public void setProfileImageURLHttps(String urlHttps) {
-    profileImageURLHttps = urlHttps;
   }
 
   @Override
@@ -364,5 +356,23 @@ public class UserRealm extends RealmObject implements User {
   @Override
   public int getAccessLevel() {
     throw new RuntimeException("not implement yet.");
+  }
+
+  void merge(User u) {
+    if (u.getDescription() != null) { // description is nullable
+      this.description = u.getDescription();
+      this.descriptionURLEntities.clear();
+      this.descriptionURLEntities.addAll(URLEntityRealm.createList(u.getDescriptionURLEntities()));
+    }
+    this.favoritesCount = u.getFavouritesCount();
+    this.followersCount = u.getFollowersCount();
+    this.friendsCount = u.getFriendsCount();
+    this.miniProfileImageURLHttps = u.getMiniProfileImageURLHttps();
+    this.name = u.getName();
+    this.profileBannerMobileURL = u.getProfileBannerMobileURL();
+    this.profileImageURLHttps = u.getProfileImageURLHttps();
+    this.profileLinkColor = u.getProfileLinkColor();
+    this.screenName = u.getScreenName();
+    this.statusesCount = u.getStatusesCount();
   }
 }

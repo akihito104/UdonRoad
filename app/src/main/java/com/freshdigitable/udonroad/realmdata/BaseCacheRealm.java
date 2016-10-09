@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.datastore.BaseCache;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
 
 /**
  * BaseCacheRealm provides basic operation for `cache` database.
@@ -74,5 +75,11 @@ abstract class BaseCacheRealm implements BaseCache {
     }
     Log.d(TAG, "close: " + cache.getConfiguration().getRealmFileName());
     cache.close();
+  }
+
+  static <T extends RealmModel> T findById(Realm realm, long id, Class<T> clz) {
+    return realm.where(clz)
+        .equalTo("id", id)
+        .findFirst();
   }
 }

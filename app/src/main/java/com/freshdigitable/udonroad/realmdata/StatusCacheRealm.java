@@ -24,8 +24,11 @@ import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -34,6 +37,7 @@ import rx.Subscriber;
 import rx.functions.Action0;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
+import twitter4j.User;
 
 import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
 
@@ -79,20 +83,20 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
       return;
     }
 
-    final List<Status> updates = splitUpsertingStatus(statuses);
+    final Collection<Status> updates = splitUpsertingStatus(statuses);
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
+        final ArrayList<StatusRealm> inserts = new ArrayList<>(updates.size());
         for (Status s : updates) {
-          final StatusRealm update = realm.where(StatusRealm.class)
-              .equalTo(KEY_ID, s.getId())
-              .findFirst();
+          final StatusRealm update = findById(realm, s.getId(), StatusRealm.class);
           if (update != null) {
             update(update, s);
           } else {
-            realm.insertOrUpdate(new StatusRealm(s));
+            inserts.add(new StatusRealm(s));
           }
         }
+        realm.insertOrUpdate(inserts);
       }
 
       private void update(StatusRealm update, Status s) {
@@ -117,29 +121,42 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   }
 
   @NonNull
-  private List<Status> splitUpsertingStatus(List<Status> statuses) {
-    final List<Status> updates = new ArrayList<>();
+  private Collection<Status> splitUpsertingStatus(Collection<Status> statuses) {
+    final LinkedHashMap<Long, Status> updates = new LinkedHashMap<>();
     for (Status s : statuses) {
       if (!configStore.isIgnoredUser(s.getUser().getId())) {
-        updates.add(s);
+        updates.put(s.getId(), s);
       }
       final Status quotedStatus = s.getQuotedStatus();
       if (quotedStatus != null
           && !configStore.isIgnoredUser(quotedStatus.getUser().getId())) {
-        updates.add(quotedStatus);
+        updates.put(quotedStatus.getId(), quotedStatus);
       }
       final Status retweetedStatus = s.getRetweetedStatus();
       if (retweetedStatus != null
           && !configStore.isIgnoredUser(retweetedStatus.getUser().getId())) {
-        updates.add(retweetedStatus);
+        updates.put(retweetedStatus.getId(), retweetedStatus);
         final Status rtQuotedStatus = retweetedStatus.getQuotedStatus();
         if (rtQuotedStatus != null
             && !configStore.isIgnoredUser(rtQuotedStatus.getUser().getId())) {
-          updates.add(rtQuotedStatus);
+          updates.put(rtQuotedStatus.getId(), rtQuotedStatus);
         }
       }
     }
-    return updates;
+
+    final Collection<Status> res = updates.values();
+    final Collection<User> updateUsers = splitUpsertingUser(res);
+    userTypedCache.upsert(new ArrayList<>(updateUsers));
+    return res;
+  }
+
+  private Collection<User> splitUpsertingUser(Collection<Status> updates) {
+    Map<Long, User> res = new LinkedHashMap<>(updates.size());
+    for (Status s : updates) {
+      final User user = s.getUser();
+      res.put(user.getId(), user);
+    }
+    return res.values();
   }
 
   @Override
@@ -161,13 +178,15 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
    */
   @Override
   public void forceUpsert(final Status status) {
-    final List<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
+    final Collection<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
+    final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
+    for (Status s: statuses) {
+      entities.add(new StatusRealm(s));
+    }
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
-        for (Status s: statuses) {
-          realm.insertOrUpdate(new StatusRealm(s));
-        }
+        realm.insertOrUpdate(entities);
       }
     });
   }
@@ -220,15 +239,13 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
 
   @Override
   public ExtendedMediaEntity getMediaEntity(long mediaId) {
-    return cache.where(ExtendedMediaEntityRealm.class)
-        .equalTo("id", mediaId)
-        .findFirst();
+    return findById(cache, mediaId, ExtendedMediaEntityRealm.class);
   }
 
   @Nullable
   private StatusRealm getStatusInternal(long id) {
-    return cache.where(StatusRealm.class)
-        .equalTo(KEY_ID, id)
-        .findFirst();
+    final StatusRealm status = findById(cache, id, StatusRealm.class);
+    status.setUser(userTypedCache.find(status.getUserId()));
+    return status;
   }
 }

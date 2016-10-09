@@ -53,10 +53,11 @@ public class StatusRealm extends RealmObject implements Status {
   private int retweetCount;
   private int favoriteCount;
   private boolean retweet;
-  private boolean retweetByMe;
   private boolean retweeted;
   private boolean favorited;
-  private UserRealm user;
+  @Ignore
+  private User user;
+  private long userId;
   private RealmList<URLEntityRealm> urlEntities;
   private RealmList<ExtendedMediaEntityRealm> mediaEntities;
   private RealmList<UserMentionEntityRealm> userMentionEntities;
@@ -79,11 +80,10 @@ public class StatusRealm extends RealmObject implements Status {
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
-    this.retweetByMe = status.isRetweetedByMe();
     this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
-    this.user = new UserRealm(status.getUser());
-
+    this.user = status.getUser();
+    this.userId = user.getId();
     this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
 
     this.mediaEntities = new RealmList<>();
@@ -157,7 +157,7 @@ public class StatusRealm extends RealmObject implements Status {
     return favorited;
   }
 
-  public void setFavorited(boolean favorited) {
+  void setFavorited(boolean favorited) {
     this.favorited = favorited;
   }
 
@@ -165,7 +165,7 @@ public class StatusRealm extends RealmObject implements Status {
     return retweeted;
   }
 
-  public void setRetweeted(boolean retweeted) {
+  void setRetweeted(boolean retweeted) {
     this.retweeted = retweeted;
   }
 
@@ -173,7 +173,7 @@ public class StatusRealm extends RealmObject implements Status {
     return favoriteCount;
   }
 
-  public void setFavoriteCount(int favoriteCount) {
+  void setFavoriteCount(int favoriteCount) {
     this.favoriteCount = favoriteCount;
   }
 
@@ -181,7 +181,7 @@ public class StatusRealm extends RealmObject implements Status {
     return user;
   }
 
-  public void setUser(UserRealm user) {
+  public void setUser(User user) {
     this.user = user;
   }
 
@@ -193,7 +193,7 @@ public class StatusRealm extends RealmObject implements Status {
     return retweetedStatus;
   }
 
-  public void setRetweetedStatus(Status retweetedStatus) {
+  void setRetweetedStatus(Status retweetedStatus) {
     this.retweetedStatus = retweetedStatus;
   }
 
@@ -205,16 +205,12 @@ public class StatusRealm extends RealmObject implements Status {
     return retweetCount;
   }
 
-  public void setRetweetCount(int retweetCount) {
+  void setRetweetCount(int retweetCount) {
     this.retweetCount = retweetCount;
   }
 
   public boolean isRetweetedByMe() {
-    return retweetByMe;
-  }
-
-  public void setRetweetByMe(boolean retweetByMe) {
-    this.retweetByMe = retweetByMe;
+    throw new RuntimeException("not implement yet.");
   }
 
   public long getCurrentUserRetweetId() {
@@ -302,7 +298,11 @@ public class StatusRealm extends RealmObject implements Status {
         ", text:" + sub;
   }
 
-  public long getRetweetedStatusId() {
+  long getRetweetedStatusId() {
     return retweetedStatusId;
+  }
+
+  long getUserId() {
+    return userId;
   }
 }
