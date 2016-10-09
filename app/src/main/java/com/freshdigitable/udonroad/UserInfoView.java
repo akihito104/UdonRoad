@@ -20,7 +20,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.ColorInt;
 import android.support.v4.view.ViewCompat;
-import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
 import android.view.View;
@@ -72,9 +71,9 @@ public class UserInfoView extends RelativeLayout {
     description.setText(desc);
 
     final String profileLinkColor = user.getProfileLinkColor();
-    if (TextUtils.isEmpty(user.getProfileBannerMobileURL())
-        && isColorParsable(profileLinkColor)) {
-      banner.setBackgroundColor(parseColor(profileLinkColor));
+    if (isColorParsable(profileLinkColor)) {
+      final int color = parseColor(profileLinkColor);
+      banner.setBackgroundColor(color);
     }
   }
 
