@@ -21,6 +21,7 @@ import android.graphics.Color;
 import android.support.annotation.ColorInt;
 import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -56,6 +57,7 @@ public class UserInfoView extends RelativeLayout {
     name = (TextView) v.findViewById(R.id.user_name);
     screenName = (TextView) v.findViewById(R.id.user_screen_name);
     description = (TextView) v.findViewById(R.id.user_description);
+    description.setMovementMethod(LinkMovementMethod.getInstance());
     banner = (ImageView) v.findViewById(R.id.user_banner);
     icon = (ImageView) v.findViewById(R.id.user_icon);
     ViewCompat.setTransitionName(icon, "user_icon");
@@ -65,7 +67,9 @@ public class UserInfoView extends RelativeLayout {
     name.setText(user.getName());
 
     UserInfoActivity.bindUserScreenName(screenName, user);
-    description.setText(user.getDescription());
+    final CharSequence desc = SpannableStringUtil.create(user.getDescription(),
+        user.getDescriptionURLEntities());
+    description.setText(desc);
 
     final String profileLinkColor = user.getProfileLinkColor();
     if (TextUtils.isEmpty(user.getProfileBannerMobileURL())

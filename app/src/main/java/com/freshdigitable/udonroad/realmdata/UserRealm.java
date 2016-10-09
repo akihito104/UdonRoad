@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.RateLimitStatus;
@@ -47,6 +48,7 @@ public class UserRealm extends RealmObject implements User {
   private int friendsCount;
   private int favoritesCount;
   private String profileLinkColor;
+  private RealmList<URLEntityRealm> descriptionURLEntities;
 
   public UserRealm() {
   }
@@ -64,6 +66,7 @@ public class UserRealm extends RealmObject implements User {
     this.friendsCount = user.getFriendsCount();
     this.favoritesCount = user.getFavouritesCount();
     this.profileLinkColor = user.getProfileLinkColor();
+    this.descriptionURLEntities = URLEntityRealm.createList(user.getDescriptionURLEntities());
   }
 
   UserRealm(UserMentionEntity mentionEntity) {
@@ -335,7 +338,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public URLEntity[] getDescriptionURLEntities() {
-    throw new RuntimeException("not implement yet.");
+    return descriptionURLEntities.toArray(new URLEntity[descriptionURLEntities.size()]);
   }
 
   @Override

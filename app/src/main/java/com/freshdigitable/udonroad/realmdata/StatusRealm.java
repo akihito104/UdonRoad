@@ -84,7 +84,7 @@ public class StatusRealm extends RealmObject implements Status {
     this.favorited = status.isFavorited();
     this.user = new UserRealm(status.getUser());
 
-    this.urlEntities = parseToURLEntityRealm(status.getURLEntities());
+    this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
 
     this.mediaEntities = new RealmList<>();
     final ExtendedMediaEntity[] me = status.getExtendedMediaEntities();
@@ -247,7 +247,7 @@ public class StatusRealm extends RealmObject implements Status {
     return quotedStatus;
   }
 
-  public void setQuotedStatus(Status quotedStatus) {
+  void setQuotedStatus(Status quotedStatus) {
     this.quotedStatus = quotedStatus;
   }
 
@@ -304,16 +304,5 @@ public class StatusRealm extends RealmObject implements Status {
 
   public long getRetweetedStatusId() {
     return retweetedStatusId;
-  }
-
-  static RealmList<URLEntityRealm> parseToURLEntityRealm(URLEntity[] urlEntities) {
-    if (urlEntities == null) {
-      return null;
-    }
-    RealmList<URLEntityRealm> urlEntityRealms = new RealmList<>();
-    for (URLEntity u : urlEntities) {
-      urlEntityRealms.add(new URLEntityRealm(u));
-    }
-    return urlEntityRealms;
   }
 }

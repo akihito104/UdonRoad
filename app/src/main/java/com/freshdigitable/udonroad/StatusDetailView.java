@@ -17,16 +17,12 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import java.util.List;
 
 import twitter4j.Status;
 
@@ -72,22 +68,7 @@ public class StatusDetailView extends FullStatusView {
   @Override
   protected CharSequence parseText(Status status) {
     final Status bindingStatus = getBindingStatus(status);
-    String text = bindingStatus.getText();
-    SpannableStringBuilder ssb = new SpannableStringBuilder(text);
-    final List<SpanningInfo> spannableInfo = SpanningInfo.create(bindingStatus);
-    setupClickableSpans(ssb, spannableInfo);
-    return ssb;
-  }
-
-  private void setupClickableSpans(SpannableStringBuilder ssb, List<SpanningInfo> info) {
-    for (SpanningInfo si : info) {
-      if (si.isSpanning()) {
-        ssb.setSpan(si.span, si.start, si.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-      }
-      if (si.isReplacing()) {
-        ssb.replace(si.start, si.end, si.displayingText);
-      }
-    }
+    return SpannableStringUtil.create(bindingStatus);
   }
 
   @Override
