@@ -49,6 +49,9 @@ public class UserRealm extends RealmObject implements User {
   private int favoritesCount;
   private String profileLinkColor;
   private RealmList<URLEntityRealm> descriptionURLEntities;
+  private String location;
+  private String url;
+  private URLEntityRealm urlEntity;
 
   public UserRealm() {
   }
@@ -67,6 +70,11 @@ public class UserRealm extends RealmObject implements User {
     this.favoritesCount = user.getFavouritesCount();
     this.profileLinkColor = user.getProfileLinkColor();
     this.descriptionURLEntities = URLEntityRealm.createList(user.getDescriptionURLEntities());
+    this.url = user.getURL();
+    if (user.getURLEntity() != null) {
+      this.urlEntity = new URLEntityRealm(user.getURLEntity());
+    }
+    this.location = user.getLocation();
   }
 
   UserRealm(UserMentionEntity mentionEntity) {
@@ -105,7 +113,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getLocation() {
-    throw new RuntimeException("not implement yet.");
+    return location;
   }
 
   @Override
@@ -165,7 +173,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getURL() {
-    throw new RuntimeException("not implement yet.");
+    return url;
   }
 
   @Override
@@ -335,7 +343,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public URLEntity getURLEntity() {
-    throw new RuntimeException("not implement yet.");
+    return urlEntity;
   }
 
   @Override
@@ -374,5 +382,15 @@ public class UserRealm extends RealmObject implements User {
     this.profileLinkColor = u.getProfileLinkColor();
     this.screenName = u.getScreenName();
     this.statusesCount = u.getStatusesCount();
+    this.url = u.getURL();
+    final URLEntity urlEntity = u.getURLEntity();
+    if (urlEntity != null) {
+      if (this.urlEntity == null) {
+        this.urlEntity = new URLEntityRealm(urlEntity);
+      } else {
+        this.urlEntity.merge(urlEntity);
+      }
+    }
+    this.location = u.getLocation();
   }
 }

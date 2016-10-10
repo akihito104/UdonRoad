@@ -34,6 +34,8 @@ public class UserUtil {
     when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
     when(mock.getDescription()).thenReturn("user description is here.");
     when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);
+    when(mock.getURL()).thenReturn(null);
+    when(mock.getLocation()).thenReturn(null);
     return mock;
   }
 }

@@ -91,4 +91,9 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
   public int getEnd() {
     return end;
   }
+
+  void merge(URLEntity urlEntity) {
+    this.expendedUrl = urlEntity.getExpandedURL();
+    this.displayUrl = urlEntity.getDisplayURL();
+  }
 }
