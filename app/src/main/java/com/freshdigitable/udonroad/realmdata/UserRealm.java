@@ -358,7 +358,7 @@ public class UserRealm extends RealmObject implements User {
     throw new RuntimeException("not implement yet.");
   }
 
-  void merge(User u) {
+  void merge(@NonNull User u) {
     if (u.getDescription() != null) { // description is nullable
       this.description = u.getDescription();
       this.descriptionURLEntities.clear();

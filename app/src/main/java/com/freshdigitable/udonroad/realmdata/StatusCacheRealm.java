@@ -90,29 +90,13 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         final ArrayList<StatusRealm> inserts = new ArrayList<>(updates.size());
         for (Status s : updates) {
           final StatusRealm update = findById(realm, s.getId(), StatusRealm.class);
-          if (update != null) {
-            update(update, s);
-          } else {
+          if (update == null) {
             inserts.add(new StatusRealm(s));
+          } else {
+            update.merge(s);
           }
         }
         realm.insertOrUpdate(inserts);
-      }
-
-      private void update(StatusRealm update, Status s) {
-        if (update == null) {
-          return;
-        }
-        update.setFavorited(update.isFavorited() || s.isFavorited());
-        final int favoriteCount = s.getFavoriteCount();
-        if (favoriteCount > 0) {
-          update.setFavoriteCount(favoriteCount);
-        }
-        update.setRetweeted(update.isRetweeted() || s.isRetweeted());
-        final int retweetCount = s.getRetweetCount();
-        if (retweetCount > 0) {
-          update.setRetweetCount(retweetCount);
-        }
       }
     });
     for (Status s : updates) {

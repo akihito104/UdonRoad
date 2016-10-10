@@ -157,24 +157,12 @@ public class StatusRealm extends RealmObject implements Status {
     return favorited;
   }
 
-  void setFavorited(boolean favorited) {
-    this.favorited = favorited;
-  }
-
   public boolean isRetweeted() {
     return retweeted;
   }
 
-  void setRetweeted(boolean retweeted) {
-    this.retweeted = retweeted;
-  }
-
   public int getFavoriteCount() {
     return favoriteCount;
-  }
-
-  void setFavoriteCount(int favoriteCount) {
-    this.favoriteCount = favoriteCount;
   }
 
   public User getUser() {
@@ -203,10 +191,6 @@ public class StatusRealm extends RealmObject implements Status {
 
   public int getRetweetCount() {
     return retweetCount;
-  }
-
-  void setRetweetCount(int retweetCount) {
-    this.retweetCount = retweetCount;
   }
 
   public boolean isRetweetedByMe() {
@@ -304,5 +288,18 @@ public class StatusRealm extends RealmObject implements Status {
 
   long getUserId() {
     return userId;
+  }
+
+  void merge(@NonNull Status s) {
+    this.favorited |= s.isFavorited(); // favorited is nullable
+    final int favoriteCount = s.getFavoriteCount();
+    if (favoriteCount > 0) { // favoriteCount is nullable
+      this.favoriteCount = favoriteCount;
+    }
+    this.retweeted |= s.isRetweeted(); // retweeted is nullable
+    final int retweetCount = s.getRetweetCount();
+    if (retweetCount > 0) {  // retweetCount is nullable
+      this.retweetCount = retweetCount;
+    }
   }
 }
