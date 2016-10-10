@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -184,7 +185,36 @@ public abstract class MainActivityInstTestBase {
         .thenReturn(Observable.just(ignoringUserIDsMock));
 
     getRule().launchActivity(getIntent());
+    final IdlingResource idlingResource = new IdlingResource() {
+      @Override
+      public String getName() {
+        return "launch";
+      }
+
+      @Override
+      public boolean isIdleNow() {
+        if (getRecyclerView() == null) {
+          return false;
+        }
+        if (getRecyclerView().getAdapter().getItemCount() < 20) {
+          return false;
+        }
+        if (callback != null) {
+          callback.onTransitionToIdle();
+        }
+        return true;
+      }
+
+      private ResourceCallback callback;
+
+      @Override
+      public void registerIdleTransitionCallback(ResourceCallback callback) {
+        this.callback = callback;
+      }
+    };
+    Espresso.registerIdlingResources(idlingResource);
     verifyAfterLaunch();
+    Espresso.unregisterIdlingResources(idlingResource);
   }
 
   protected void verifyAfterLaunch() {
@@ -250,7 +280,7 @@ public abstract class MainActivityInstTestBase {
   }
 
   protected void receiveDeletionNotice(final Status... target) throws Exception {
-    final RecyclerView recyclerView = (RecyclerView) getRule().getActivity().findViewById(R.id.timeline);
+    final RecyclerView recyclerView = getRecyclerView();
     StreamIdlingResource streamIdlingResource
         = new StreamIdlingResource(recyclerView, Operation.DELETE, target.length);
     registerStreamIdlingResource(streamIdlingResource);
@@ -263,11 +293,15 @@ public abstract class MainActivityInstTestBase {
 
   protected void receiveStatuses(boolean isIdlingResourceUsed, final Status... statuses) throws Exception {
     if (isIdlingResourceUsed) {
-      final RecyclerView recyclerView = (RecyclerView) getRule().getActivity().findViewById(R.id.timeline);
+      final RecyclerView recyclerView = getRecyclerView();
       final StreamIdlingResource streamIdlingResource
           = new StreamIdlingResource(recyclerView, Operation.ADD, statuses.length);
       registerStreamIdlingResource(streamIdlingResource);
     }
     TwitterResponseMock.receiveStatuses(app.getUserStreamListener(), statuses);
+  }
+
+  private RecyclerView getRecyclerView() {
+    return (RecyclerView) getRule().getActivity().findViewById(R.id.timeline);
   }
 }
