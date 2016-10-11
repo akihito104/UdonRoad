@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 
 import java.util.Date;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -366,7 +367,7 @@ public class UserRealm extends RealmObject implements User {
     throw new RuntimeException("not implement yet.");
   }
 
-  void merge(@NonNull User u) {
+  void merge(@NonNull User u, @NonNull Realm realm) {
     if (u.getDescription() != null) { // description is nullable
       this.description = u.getDescription();
       this.descriptionURLEntities.clear();
@@ -386,7 +387,7 @@ public class UserRealm extends RealmObject implements User {
     final URLEntity urlEntity = u.getURLEntity();
     if (urlEntity != null) {
       if (this.urlEntity == null) {
-        this.urlEntity = new URLEntityRealm(urlEntity);
+        this.urlEntity = URLEntityRealm.createFromRealm(u.getURLEntity(), realm);
       } else {
         this.urlEntity.merge(urlEntity);
       }

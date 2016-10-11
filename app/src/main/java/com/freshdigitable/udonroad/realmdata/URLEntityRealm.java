@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.realmdata;
 
 import com.android.annotations.NonNull;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
@@ -32,7 +33,7 @@ import twitter4j.URLEntity;
 public class URLEntityRealm extends RealmObject implements URLEntity {
   @PrimaryKey
   private String url;
-  private String expendedUrl;
+  private String expandedUrl;
   private String displayUrl;
   @Ignore
   private int start;
@@ -44,7 +45,7 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
 
   URLEntityRealm(URLEntity urlEntity) {
     this.url = urlEntity.getURL();
-    this.expendedUrl = urlEntity.getExpandedURL();
+    this.expandedUrl = urlEntity.getExpandedURL();
     this.displayUrl = urlEntity.getDisplayURL();
     this.start = urlEntity.getStart();
     this.end = urlEntity.getEnd();
@@ -74,7 +75,7 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
 
   @Override
   public String getExpandedURL() {
-    return expendedUrl;
+    return expandedUrl;
   }
 
   @Override
@@ -93,7 +94,15 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
   }
 
   void merge(URLEntity urlEntity) {
-    this.expendedUrl = urlEntity.getExpandedURL();
+    this.expandedUrl = urlEntity.getExpandedURL();
     this.displayUrl = urlEntity.getDisplayURL();
+  }
+
+  @NonNull
+  static URLEntityRealm createFromRealm(URLEntity urlEntity, Realm realm) {
+    final URLEntityRealm entity = realm.createObject(URLEntityRealm.class, urlEntity.getURL());
+    entity.displayUrl = urlEntity.getDisplayURL();
+    entity.expandedUrl = urlEntity.getExpandedURL();
+    return entity;
   }
 }

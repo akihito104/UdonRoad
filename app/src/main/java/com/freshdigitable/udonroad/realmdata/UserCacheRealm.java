@@ -68,7 +68,7 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
           if (user == null) {
             upserts.add(new UserRealm(u));
           } else {
-            user.merge(u);
+            user.merge(u, realm);
           }
         }
         realm.insertOrUpdate(upserts);
