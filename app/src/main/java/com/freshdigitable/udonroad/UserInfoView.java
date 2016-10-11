@@ -50,6 +50,8 @@ public class UserInfoView extends RelativeLayout {
   private TextView location;
   private View urlIcon;
   private View locationIcon;
+  private View verifiedIcon;
+  private View protectedIcon;
 
   public UserInfoView(Context context) {
     this(context, null);
@@ -73,12 +75,19 @@ public class UserInfoView extends RelativeLayout {
     urlIcon = v.findViewById(R.id.user_url_icon);
     location = (TextView) v.findViewById(R.id.user_location);
     locationIcon = v.findViewById(R.id.user_location_icon);
+    verifiedIcon = v.findViewById(R.id.user_verified_icon);
+    protectedIcon = v.findViewById(R.id.user_protected_icon);
     ViewCompat.setTransitionName(icon, "user_icon");
   }
 
   public void bindData(User user) {
     name.setText(user.getName());
-
+    if (user.isVerified()) {
+      verifiedIcon.setVisibility(VISIBLE);
+    }
+    if (user.isProtected()) {
+      protectedIcon.setVisibility(VISIBLE);
+    }
     UserInfoActivity.bindUserScreenName(screenName, user);
     final CharSequence desc = SpannableStringUtil.create(user.getDescription(),
         user.getDescriptionURLEntities());

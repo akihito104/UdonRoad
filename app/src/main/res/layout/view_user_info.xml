@@ -21,7 +21,8 @@
     >
 <!--<RelativeLayout-->
     <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content">-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:background="?attr/colorPrimary">-->
     <ImageView
         android:id="@+id/user_banner"
         android:layout_width="match_parent"
@@ -62,6 +63,36 @@
         android:paddingRight="@dimen/grid_margin"
         android:background="@color/layer_white_transparent"
         tools:text="\@screenname"
+        />
+
+    <ImageView
+        android:id="@+id/user_protected_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/user_screen_name"
+        android:layout_alignTop="@id/user_screen_name"
+        android:layout_alignBottom="@id/user_screen_name"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        app:srcCompat="@drawable/ic_lock"
+        android:background="@color/layer_white_transparent"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <ImageView
+        android:id="@+id/user_verified_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/user_protected_icon"
+        android:layout_alignTop="@id/user_screen_name"
+        android:layout_alignBottom="@id/user_screen_name"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        app:srcCompat="@drawable/ic_check_circle"
+        android:background="@color/layer_white_transparent"
+        android:visibility="gone"
+        tools:visibility="visible"
         />
 
     <TextView

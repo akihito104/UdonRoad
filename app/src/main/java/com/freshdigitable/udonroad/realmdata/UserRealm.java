@@ -53,6 +53,8 @@ public class UserRealm extends RealmObject implements User {
   private String location;
   private String url;
   private URLEntityRealm urlEntity;
+  private boolean verified;
+  private boolean isProtected; // `protected` is reserved word
 
   public UserRealm() {
   }
@@ -76,6 +78,8 @@ public class UserRealm extends RealmObject implements User {
       this.urlEntity = new URLEntityRealm(user.getURLEntity());
     }
     this.location = user.getLocation();
+    this.verified = user.isVerified();
+    this.isProtected = user.isProtected();
   }
 
   UserRealm(UserMentionEntity mentionEntity) {
@@ -179,7 +183,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public boolean isProtected() {
-    throw new RuntimeException("not implement yet.");
+    return isProtected;
   }
 
   @Override
@@ -319,7 +323,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public boolean isVerified() {
-    throw new RuntimeException("not implement yet.");
+    return verified;
   }
 
   @Override
