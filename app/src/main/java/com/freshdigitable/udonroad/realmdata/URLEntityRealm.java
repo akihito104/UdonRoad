@@ -100,9 +100,17 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
 
   @NonNull
   static URLEntityRealm createFromRealm(URLEntity urlEntity, Realm realm) {
-    final URLEntityRealm entity = realm.createObject(URLEntityRealm.class, urlEntity.getURL());
-    entity.displayUrl = urlEntity.getDisplayURL();
-    entity.expandedUrl = urlEntity.getExpandedURL();
-    return entity;
+    final URLEntityRealm url = realm.where(URLEntityRealm.class)
+        .equalTo("url", urlEntity.getURL())
+        .findFirst();
+    if (url != null) {
+      url.merge(urlEntity);
+      return url;
+    } else {
+      final URLEntityRealm entity = realm.createObject(URLEntityRealm.class, urlEntity.getURL());
+      entity.displayUrl = urlEntity.getDisplayURL();
+      entity.expandedUrl = urlEntity.getExpandedURL();
+      return entity;
+    }
   }
 }
