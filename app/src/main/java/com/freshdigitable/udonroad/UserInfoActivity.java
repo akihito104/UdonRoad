@@ -174,6 +174,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     setSupportActionBar(binding.userInfoToolbar);
     setupActionMap();
     UserAction.setupFlingableFAB(binding.userInfoIffab, actionMap, getApplicationContext());
+    configSubscriber.open();
   }
 
   @Override
@@ -186,6 +187,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding.userInfoTabs.setupWithViewPager(null);
     subscription.unsubscribe();
     userCache.close();
+    configSubscriber.close();
     closeTwitterInputView();
     super.onStop();
   }
