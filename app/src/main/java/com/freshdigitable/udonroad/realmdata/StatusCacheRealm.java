@@ -229,6 +229,9 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   @Nullable
   private StatusRealm getStatusInternal(long id) {
     final StatusRealm status = findById(cache, id, StatusRealm.class);
+    if (status == null) {
+      return null;
+    }
     status.setUser(userTypedCache.find(status.getUserId()));
     return status;
   }
