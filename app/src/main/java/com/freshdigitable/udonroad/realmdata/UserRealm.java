@@ -397,5 +397,7 @@ public class UserRealm extends RealmObject implements User {
       }
     }
     this.location = u.getLocation();
+    this.verified = u.isVerified();
+    this.isProtected = u.isProtected();
   }
 }

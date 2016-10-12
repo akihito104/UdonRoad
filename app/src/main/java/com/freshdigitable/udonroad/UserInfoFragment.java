@@ -21,6 +21,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +33,9 @@ import com.squareup.picasso.Picasso;
 import javax.inject.Inject;
 
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import twitter4j.Relationship;
 import twitter4j.User;
 
 /**
@@ -45,6 +48,8 @@ public class UserInfoFragment extends Fragment {
   @Inject
   TypedCache<User> userCache;
   private Subscription subscription;
+  @Inject
+  TwitterApi twitterApi;
 
   @Override
   public void onAttach(Context context) {
@@ -77,11 +82,24 @@ public class UserInfoFragment extends Fragment {
             showUserInfo(user);
           }
         });
+    twitterApi.showFriendship(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Relationship>() {
+          @Override
+          public void call(Relationship relationship) {
+            binding.userInfoUserInfoView.bindRelationship(relationship);
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e("UserInfoFragment", "call: ", throwable);
+          }
+        });
   }
 
   @Override
   public void onStop() {
-    if (subscription != null && subscription.isUnsubscribed()) {
+    if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
     dismissUserInfo();

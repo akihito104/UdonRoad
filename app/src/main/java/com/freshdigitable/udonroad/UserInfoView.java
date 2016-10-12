@@ -18,9 +18,13 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.Uri;
 import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
+import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -32,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import twitter4j.Relationship;
 import twitter4j.URLEntity;
 import twitter4j.User;
 
@@ -52,6 +57,8 @@ public class UserInfoView extends RelativeLayout {
   private View locationIcon;
   private View verifiedIcon;
   private View protectedIcon;
+  private TextView followingStatus;
+  private View mutedStatus;
 
   public UserInfoView(Context context) {
     this(context, null);
@@ -77,6 +84,8 @@ public class UserInfoView extends RelativeLayout {
     locationIcon = v.findViewById(R.id.user_location_icon);
     verifiedIcon = v.findViewById(R.id.user_verified_icon);
     protectedIcon = v.findViewById(R.id.user_protected_icon);
+    followingStatus = (TextView) v.findViewById(R.id.user_following);
+    mutedStatus = v.findViewById(R.id.user_muted);
     ViewCompat.setTransitionName(icon, "user_icon");
   }
 
@@ -142,6 +151,25 @@ public class UserInfoView extends RelativeLayout {
     final OnClickListener clickListener = create(actualUrl);
     url.setOnClickListener(clickListener);
     urlIcon.setOnClickListener(clickListener);
+  }
+
+  public void bindRelationship(Relationship relationship) {
+    if (relationship.isSourceFollowingTarget()) {
+      bindFollowingStatus(R.string.user_following, R.color.twitter_primary);
+    } else if (relationship.isSourceBlockingTarget()) {
+      bindFollowingStatus(R.string.user_blocking, R.color.twitter_muted);
+    } else {
+      followingStatus.setVisibility(GONE);
+    }
+    mutedStatus.setVisibility(
+        relationship.isSourceMutingTarget() ? VISIBLE : GONE);
+  }
+
+  private void bindFollowingStatus(@StringRes int status, @ColorRes int color) {
+    followingStatus.setText(status);
+    ViewCompat.setBackgroundTintList(followingStatus,
+        ColorStateList.valueOf(ContextCompat.getColor(getContext(), color)));
+    followingStatus.setVisibility(VISIBLE);
   }
 
   private OnClickListener create(final String actualUrl) {

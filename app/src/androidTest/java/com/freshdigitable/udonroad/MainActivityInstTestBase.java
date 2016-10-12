@@ -47,6 +47,7 @@ import rx.schedulers.Schedulers;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
+import twitter4j.Relationship;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
@@ -183,6 +184,12 @@ public abstract class MainActivityInstTestBase {
         .thenReturn(Observable.just(ignoringUserIDsMock));
     when(twitterApi.getAllMutesIDs())
         .thenReturn(Observable.just(ignoringUserIDsMock));
+
+    final Relationship relationship = mock(Relationship.class);
+    when(relationship.isSourceFollowingTarget()).thenReturn(true);
+    when(relationship.isSourceMutingTarget()).thenReturn(false);
+    when(twitterApi.showFriendship(anyLong()))
+        .thenReturn(Observable.<Relationship>empty());
 
     getRule().launchActivity(getIntent());
     final IdlingResource idlingResource = new IdlingResource() {

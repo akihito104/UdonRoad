@@ -505,6 +505,22 @@ public class TwitterApi {
     }).subscribeOn(Schedulers.io());
   }
 
+  public Observable<Relationship> showFriendship(final long targetId) {
+    return Observable.create(new Observable.OnSubscribe<Relationship>() {
+      @Override
+      public void call(Subscriber<? super Relationship> subscriber) {
+        try {
+          final long sourceId = twitter.getId();
+          final Relationship relationship = twitter.showFriendship(sourceId, targetId);
+          subscriber.onNext(relationship);
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
   public Twitter getTwitter() {
     return twitter;
   }

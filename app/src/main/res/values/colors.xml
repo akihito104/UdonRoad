@@ -32,6 +32,8 @@
     <color name="twitter_action_normal_transparent">#3FAAB8C2</color>
     <color name="twitter_action_retweeted">#19CF86</color>
     <color name="twitter_action_faved">#E81C4F</color>
+    <color name="twitter_primary">#1DA1F2</color>
+    <color name="twitter_muted">#C05050</color>
 
     <color name="layer_black_immersive">#33000000</color>
     <color name="layer_white_transparent">#88FFFFFF</color>
