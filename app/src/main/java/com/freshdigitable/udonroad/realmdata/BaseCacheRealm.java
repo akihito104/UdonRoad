@@ -35,24 +35,31 @@ abstract class BaseCacheRealm implements BaseCache {
   private static final String TAG = BaseCacheRealm.class.getSimpleName();
   protected Realm cache;
   private final RealmConfiguration config;
+  private BaseCacheRealm baseCacheRealm;
 
   BaseCacheRealm() {
     this(null);
   }
 
-  BaseCacheRealm(@Nullable BaseCacheRealm realm) {
-    if (realm != null) {
-      cache = realm.cache;
+  BaseCacheRealm(@Nullable BaseCacheRealm baseCacheRealm) {
+    if (baseCacheRealm != null) {
+      this.baseCacheRealm = baseCacheRealm;
+      cache = baseCacheRealm.cache;
+      config = null;
+    } else {
+      config = new RealmConfiguration.Builder()
+          .name("cache")
+          .deleteRealmIfMigrationNeeded()
+          .build();
     }
-    config = new RealmConfiguration.Builder()
-        .name("cache")
-        .deleteRealmIfMigrationNeeded()
-        .build();
   }
 
   @Override
   @CallSuper
   public void open() {
+    if (baseCacheRealm != null) {
+      return;
+    }
     Log.d(TAG, "StatusCacheRealm: open");
     cache = Realm.getInstance(config);
   }
@@ -70,6 +77,9 @@ abstract class BaseCacheRealm implements BaseCache {
   @Override
   @CallSuper
   public void close() {
+    if (baseCacheRealm != null) {
+      return;
+    }
     if (cache == null || cache.isClosed()) {
       return;
     }
