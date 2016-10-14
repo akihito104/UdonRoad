@@ -53,8 +53,17 @@ import twitter4j.User;
  */
 public class UserInfoPagerFragment extends Fragment {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
+  public static final String ARGS_USER_ID = "userId";
   @Inject
   TwitterApi twitterApi;
+
+  public static UserInfoPagerFragment create(long userId) {
+    final Bundle args = new Bundle();
+    args.putLong(ARGS_USER_ID, userId);
+    final UserInfoPagerFragment res = new UserInfoPagerFragment();
+    res.setArguments(args);
+    return res;
+  }
 
   @Override
   public void onAttach(Context context) {
@@ -180,6 +189,7 @@ public class UserInfoPagerFragment extends Fragment {
       super.onActivityResult(requestCode, resultCode, data);
       return;
     }
+    final long userId = getArguments().getLong(ARGS_USER_ID);
     final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
     if (reqPage.isStatus()) {
       final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(reqPage);
@@ -201,12 +211,6 @@ public class UserInfoPagerFragment extends Fragment {
     }
   }
 
-  private long userId;
-
-  public void setUser(long userId) {
-    this.userId = userId;
-  }
-
   public ViewPager getViewPager() {
     return viewPager;
   }
@@ -222,13 +226,13 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {
-    public PagerAdapter(FragmentManager fm) {
+    private PagerAdapter(FragmentManager fm) {
       super(fm);
     }
 
     private Map<UserPageInfo, TimelineFragment> pages = new HashMap<>();
 
-    public void putFragment(UserPageInfo page, TimelineFragment<?> fragment) {
+    private void putFragment(UserPageInfo page, TimelineFragment<?> fragment) {
       pages.put(page, fragment);
     }
 

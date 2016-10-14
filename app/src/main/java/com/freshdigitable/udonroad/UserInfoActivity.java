@@ -28,6 +28,7 @@ import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -82,6 +83,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   private Subscription subscription;
   @Inject
   ConfigSubscriber configSubscriber;
+  private StatusDetailFragment statusDetailFragment;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -98,12 +100,14 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     setUpAppbar();
     setUpUserInfoView(userId);
 
-    viewPager = (UserInfoPagerFragment) getSupportFragmentManager()
-        .findFragmentById(R.id.userInfo_pagerFragment);
-    viewPager.setUser(userId);
-    final SnackbarFeedback feedback = new SnackbarFeedback(viewPager.getView());
+    final SnackbarFeedback feedback = new SnackbarFeedback(binding.userInfoTimelineContainer);
     userSubscriber = new UserSubscriber<>(twitterApi, userCache, feedback);
     configSubscriber.setFeedbackSubscriber(feedback);
+
+    viewPager = UserInfoPagerFragment.create(userId);
+    getSupportFragmentManager().beginTransaction()
+        .add(binding.userInfoTimelineContainer.getId(), viewPager)
+        .commit();
   }
 
   private void setUpUserInfoView(long userId) {
@@ -324,6 +328,10 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
   @Override
   public void onBackPressed() {
+    if (statusDetailFragment != null && statusDetailFragment.isVisible()) {
+      closeStatusDetail();
+      return;
+    }
     if (binding.userInfoIffab.getVisibility() == View.VISIBLE) {
       viewPager.clearSelectedTweet();  // it also hides ffab.
       return;
@@ -386,6 +394,32 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
         showTwitterInputview(TYPE_QUOTE, selectedTweetId);
       }
     }));
+    actionMap.put(Direction.LEFT, new UserAction(ActionResource.MENU, new Runnable() {
+      @Override
+      public void run() {
+        final long statusId = viewPager.getCurrentSelectedStatusId();
+        showStatusDetail(statusId);
+      }
+    }));
+  }
+
+  private void showStatusDetail(long statusId) {
+    binding.userInfoIffab.hide();
+    statusDetailFragment = StatusDetailFragment.getInstance(statusId);
+    getSupportFragmentManager().beginTransaction()
+        .hide(viewPager)
+        .add(binding.userInfoTimelineContainer.getId(), statusDetailFragment)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+        .commit();
+  }
+
+  private void closeStatusDetail() {
+    getSupportFragmentManager().beginTransaction()
+        .remove(statusDetailFragment)
+        .show(viewPager)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+        .commit();
+    binding.userInfoIffab.show();
   }
 
   @Override
