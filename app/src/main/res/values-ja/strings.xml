@@ -38,4 +38,19 @@
     <string name="tweet_media_descs">ツイートに添付されたメディア</string>
     <string name="msg_create_friendship_success">フォローしました</string>
     <string name="msg_create_friendship_failed">フォローできませんでした…</string>
+    <string name="msg_report_spam_success">スパムとして報告しました</string>
+    <string name="user_blocking">ブロック中</string>
+    <string name="user_following">フォロー中</string>
+    <string name="user_muting">ミュート中</string>
+    <string name="msg_report_spam_failed">スパム報告できませんでした…</string>
+    <string name="msg_follower_list_failed">フォロワーを取得できませんでした…</string>
+    <string name="msg_friends_list_failed">フォロー中のユーザを取得できませんでした…</string>
+    <string name="msg_destroy_friendship_success">フォローをやめました</string>
+    <string name="msg_create_mute_failed">ミュートできませんでした…</string>
+    <string name="msg_create_mute_success">ミュートしました</string>
+    <string name="msg_destroy_block_failed">ブロックをやめられませんでした…</string>
+    <string name="msg_destroy_block_success">ブロックをやめました</string>
+    <string name="msg_destroy_friendship_failed">フォローをやめられませんでした…</string>
+    <string name="msg_create_block_failed">ブロックできませんした…</string>
+    <string name="msg_create_block_success">ブロックしました</string>
 </resources>

@@ -20,6 +20,8 @@ import android.support.annotation.NonNull;
 
 import java.util.Date;
 
+import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.RateLimitStatus;
@@ -46,6 +48,13 @@ public class UserRealm extends RealmObject implements User {
   private int followersCount;
   private int friendsCount;
   private int favoritesCount;
+  private String profileLinkColor;
+  private RealmList<URLEntityRealm> descriptionURLEntities;
+  private String location;
+  private String url;
+  private URLEntityRealm urlEntity;
+  private boolean verified;
+  private boolean isProtected; // `protected` is reserved word
 
   public UserRealm() {
   }
@@ -62,6 +71,15 @@ public class UserRealm extends RealmObject implements User {
     this.followersCount = user.getFollowersCount();
     this.friendsCount = user.getFriendsCount();
     this.favoritesCount = user.getFavouritesCount();
+    this.profileLinkColor = user.getProfileLinkColor();
+    this.descriptionURLEntities = URLEntityRealm.createList(user.getDescriptionURLEntities());
+    this.url = user.getURL();
+    if (user.getURLEntity() != null) {
+      this.urlEntity = new URLEntityRealm(user.getURLEntity());
+    }
+    this.location = user.getLocation();
+    this.verified = user.isVerified();
+    this.isProtected = user.isProtected();
   }
 
   UserRealm(UserMentionEntity mentionEntity) {
@@ -98,13 +116,9 @@ public class UserRealm extends RealmObject implements User {
     return screenName;
   }
 
-  public void setScreenName(String screenName) {
-    this.screenName = screenName;
-  }
-
   @Override
   public String getLocation() {
-    throw new RuntimeException("not implement yet.");
+    return location;
   }
 
   @Override
@@ -157,10 +171,6 @@ public class UserRealm extends RealmObject implements User {
     throw new RuntimeException("not implement yet.");
   }
 
-  public void setProfileImageURLHttps(String urlHttps) {
-    profileImageURLHttps = urlHttps;
-  }
-
   @Override
   public boolean isDefaultProfileImage() {
     throw new RuntimeException("not implement yet.");
@@ -168,12 +178,12 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getURL() {
-    throw new RuntimeException("not implement yet.");
+    return url;
   }
 
   @Override
   public boolean isProtected() {
-    throw new RuntimeException("not implement yet.");
+    return isProtected;
   }
 
   @Override
@@ -198,7 +208,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public String getProfileLinkColor() {
-    throw new RuntimeException("not implement yet.");
+    return profileLinkColor;
   }
 
   @Override
@@ -313,7 +323,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public boolean isVerified() {
-    throw new RuntimeException("not implement yet.");
+    return verified;
   }
 
   @Override
@@ -333,12 +343,12 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public URLEntity[] getDescriptionURLEntities() {
-    throw new RuntimeException("not implement yet.");
+    return descriptionURLEntities.toArray(new URLEntity[descriptionURLEntities.size()]);
   }
 
   @Override
   public URLEntity getURLEntity() {
-    throw new RuntimeException("not implement yet.");
+    return urlEntity;
   }
 
   @Override
@@ -359,5 +369,50 @@ public class UserRealm extends RealmObject implements User {
   @Override
   public int getAccessLevel() {
     throw new RuntimeException("not implement yet.");
+  }
+
+  void merge(@NonNull User u, @NonNull Realm realm) {
+    if (u.getDescription() != null) { // description is nullable
+      this.description = u.getDescription();
+      final URLEntity[] descriptionURLEntities = u.getDescriptionURLEntities();
+      if (descriptionURLEntities != null && descriptionURLEntities.length > 0) {
+        this.descriptionURLEntities.clear();
+        for (URLEntity url : descriptionURLEntities) {
+          this.descriptionURLEntities.add(URLEntityRealm.findOrCreateFromRealm(url, realm));
+        }
+      }
+    }
+    this.favoritesCount = u.getFavouritesCount();
+    this.followersCount = u.getFollowersCount();
+    this.friendsCount = u.getFriendsCount();
+    this.miniProfileImageURLHttps = u.getMiniProfileImageURLHttps();
+    this.name = u.getName();
+    this.profileBannerMobileURL = u.getProfileBannerMobileURL();
+    this.profileImageURLHttps = u.getProfileImageURLHttps();
+    this.profileLinkColor = u.getProfileLinkColor();
+    this.screenName = u.getScreenName();
+    this.statusesCount = u.getStatusesCount();
+    this.url = u.getURL();
+    final URLEntity urlEntity = u.getURLEntity();
+    if (urlEntity != null
+        && isNewUrlEntity(urlEntity)) {
+      this.urlEntity = URLEntityRealm.findOrCreateFromRealm(urlEntity, realm);
+    }
+    this.location = u.getLocation();
+    this.verified = u.isVerified();
+    this.isProtected = u.isProtected();
+  }
+
+  private boolean isNewUrlEntity(@NonNull URLEntity urlEntity) {
+    if (this.urlEntity == null) {
+      return true;
+    }
+    final String url = urlEntity.getURL();
+    if (url.equals(this.urlEntity.getURL())
+        || url.equals(this.urlEntity.getExpandedURL())) {
+      return false;
+    } else {
+      return true;
+    }
   }
 }

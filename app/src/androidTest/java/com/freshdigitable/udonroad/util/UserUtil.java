@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.util;
 
+import twitter4j.URLEntity;
 import twitter4j.User;
 
 import static org.mockito.Mockito.mock;
@@ -30,6 +31,11 @@ public class UserUtil {
     when(mock.getScreenName()).thenReturn("akihito104");
     when(mock.getName()).thenReturn("Akihito Matsuda");
     when(mock.getId()).thenReturn(2000L);
+    when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
+    when(mock.getDescription()).thenReturn("user description is here.");
+    when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);
+    when(mock.getURL()).thenReturn(null);
+    when(mock.getLocation()).thenReturn(null);
     return mock;
   }
 }

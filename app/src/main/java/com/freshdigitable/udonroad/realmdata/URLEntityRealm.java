@@ -16,18 +16,26 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
+
+import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.URLEntity;
 
 /**
+ * URLEntityRealm is realm object implementation for URLEntity of twitter4j.
+ *
  * Created by akihit on 2016/06/23.
  */
 public class URLEntityRealm extends RealmObject implements URLEntity {
   @PrimaryKey
   private String url;
-  private String expendedUrl;
+  private String expandedUrl;
   private String displayUrl;
   @Ignore
   private int start;
@@ -39,11 +47,24 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
 
   URLEntityRealm(URLEntity urlEntity) {
     this.url = urlEntity.getURL();
-    this.expendedUrl = urlEntity.getExpandedURL();
+    this.expandedUrl = urlEntity.getExpandedURL();
     this.displayUrl = urlEntity.getDisplayURL();
     this.start = urlEntity.getStart();
     this.end = urlEntity.getEnd();
   }
+
+  @NonNull
+  static RealmList<URLEntityRealm> createList(URLEntity[] urlEntities) {
+    if (urlEntities == null || urlEntities.length < 1) {
+      return new RealmList<>();
+    }
+    RealmList<URLEntityRealm> urlEntityRealms = new RealmList<>();
+    for (URLEntity u : urlEntities) {
+      urlEntityRealms.add(new URLEntityRealm(u));
+    }
+    return urlEntityRealms;
+  }
+
   @Override
   public String getText() {
     return url;
@@ -56,7 +77,7 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
 
   @Override
   public String getExpandedURL() {
-    return expendedUrl;
+    return expandedUrl;
   }
 
   @Override
@@ -72,5 +93,56 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
   @Override
   public int getEnd() {
     return end;
+  }
+
+  @NonNull
+  static URLEntityRealm findOrCreateFromRealm(URLEntity urlEntity, Realm realm) {
+    final URLEntityRealm found = realm.where(URLEntityRealm.class)
+        .equalTo("url", urlEntity.getURL())
+        .findFirst();
+    if (found != null) {
+      if (hasDisplayUrl(found)) {
+        return found;
+      }
+      final URLEntityRealm expanded = findExpandedUrl(urlEntity, realm);
+      if (expanded == null) {
+        return found;
+      }
+      found.displayUrl = expanded.getDisplayURL();
+      found.expandedUrl = expanded.getExpandedURL();
+      return found;
+    } else {
+      if (hasDisplayUrl(urlEntity)) {
+        return createFromRealm(urlEntity, realm);
+      }
+      final URLEntityRealm expanded = findExpandedUrl(urlEntity, realm);
+      if (expanded != null) {
+        return expanded;
+      }
+      return createFromRealm(urlEntity, realm);
+    }
+  }
+
+  @NonNull
+  private static URLEntityRealm createFromRealm(URLEntity urlEntity, Realm realm) {
+    final URLEntityRealm created = realm.createObject(URLEntityRealm.class, urlEntity.getURL());
+    created.displayUrl = urlEntity.getDisplayURL();
+    created.expandedUrl = urlEntity.getExpandedURL();
+    return created;
+  }
+
+  private static boolean hasDisplayUrl(URLEntity found) {
+    return !TextUtils.isEmpty(found.getDisplayURL())
+        && !TextUtils.isEmpty(found.getExpandedURL());
+  }
+
+  @Nullable
+  private static URLEntityRealm findExpandedUrl(URLEntity urlEntity, Realm realm) {
+    if (urlEntity.getExpandedURL() != null) {
+      return null;
+    }
+    return realm.where(URLEntityRealm.class)
+        .equalTo("expandedUrl", urlEntity.getURL())
+        .findFirst();
   }
 }

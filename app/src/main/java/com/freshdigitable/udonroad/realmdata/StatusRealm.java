@@ -53,10 +53,11 @@ public class StatusRealm extends RealmObject implements Status {
   private int retweetCount;
   private int favoriteCount;
   private boolean retweet;
-  private boolean retweetByMe;
   private boolean retweeted;
   private boolean favorited;
-  private UserRealm user;
+  @Ignore
+  private User user;
+  private long userId;
   private RealmList<URLEntityRealm> urlEntities;
   private RealmList<ExtendedMediaEntityRealm> mediaEntities;
   private RealmList<UserMentionEntityRealm> userMentionEntities;
@@ -79,12 +80,11 @@ public class StatusRealm extends RealmObject implements Status {
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
-    this.retweetByMe = status.isRetweetedByMe();
     this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
-    this.user = new UserRealm(status.getUser());
-
-    this.urlEntities = parseToURLEntityRealm(status.getURLEntities());
+    this.user = status.getUser();
+    this.userId = user.getId();
+    this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
 
     this.mediaEntities = new RealmList<>();
     final ExtendedMediaEntity[] me = status.getExtendedMediaEntities();
@@ -157,31 +157,19 @@ public class StatusRealm extends RealmObject implements Status {
     return favorited;
   }
 
-  public void setFavorited(boolean favorited) {
-    this.favorited = favorited;
-  }
-
   public boolean isRetweeted() {
     return retweeted;
-  }
-
-  public void setRetweeted(boolean retweeted) {
-    this.retweeted = retweeted;
   }
 
   public int getFavoriteCount() {
     return favoriteCount;
   }
 
-  public void setFavoriteCount(int favoriteCount) {
-    this.favoriteCount = favoriteCount;
-  }
-
   public User getUser() {
     return user;
   }
 
-  public void setUser(UserRealm user) {
+  public void setUser(User user) {
     this.user = user;
   }
 
@@ -193,7 +181,7 @@ public class StatusRealm extends RealmObject implements Status {
     return retweetedStatus;
   }
 
-  public void setRetweetedStatus(Status retweetedStatus) {
+  void setRetweetedStatus(Status retweetedStatus) {
     this.retweetedStatus = retweetedStatus;
   }
 
@@ -205,16 +193,8 @@ public class StatusRealm extends RealmObject implements Status {
     return retweetCount;
   }
 
-  public void setRetweetCount(int retweetCount) {
-    this.retweetCount = retweetCount;
-  }
-
   public boolean isRetweetedByMe() {
-    return retweetByMe;
-  }
-
-  public void setRetweetByMe(boolean retweetByMe) {
-    this.retweetByMe = retweetByMe;
+    throw new RuntimeException("not implement yet.");
   }
 
   public long getCurrentUserRetweetId() {
@@ -247,7 +227,7 @@ public class StatusRealm extends RealmObject implements Status {
     return quotedStatus;
   }
 
-  public void setQuotedStatus(Status quotedStatus) {
+  void setQuotedStatus(Status quotedStatus) {
     this.quotedStatus = quotedStatus;
   }
 
@@ -302,18 +282,24 @@ public class StatusRealm extends RealmObject implements Status {
         ", text:" + sub;
   }
 
-  public long getRetweetedStatusId() {
+  long getRetweetedStatusId() {
     return retweetedStatusId;
   }
 
-  static RealmList<URLEntityRealm> parseToURLEntityRealm(URLEntity[] urlEntities) {
-    if (urlEntities == null) {
-      return null;
+  long getUserId() {
+    return userId;
+  }
+
+  void merge(@NonNull Status s) {
+    this.favorited |= s.isFavorited(); // favorited is nullable
+    final int favoriteCount = s.getFavoriteCount();
+    if (favoriteCount > 0) { // favoriteCount is nullable
+      this.favoriteCount = favoriteCount;
     }
-    RealmList<URLEntityRealm> urlEntityRealms = new RealmList<>();
-    for (URLEntity u : urlEntities) {
-      urlEntityRealms.add(new URLEntityRealm(u));
+    this.retweeted |= s.isRetweeted(); // retweeted is nullable
+    final int retweetCount = s.getRetweetCount();
+    if (retweetCount > 0) {  // retweetCount is nullable
+      this.retweetCount = retweetCount;
     }
-    return urlEntityRealms;
   }
 }

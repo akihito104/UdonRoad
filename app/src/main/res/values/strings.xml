@@ -51,4 +51,8 @@
     <string name="msg_create_mute_success">muted</string>
     <string name="msg_follower_list_failed">failed to fetch followers…</string>
     <string name="msg_friends_list_failed">failed to fetch friends…</string>
+
+    <string name="user_following">following</string>
+    <string name="user_muting">muting</string>
+    <string name="user_blocking">blocking</string>
 </resources>
