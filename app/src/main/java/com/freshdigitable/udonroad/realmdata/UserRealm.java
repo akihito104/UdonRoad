@@ -374,8 +374,13 @@ public class UserRealm extends RealmObject implements User {
   void merge(@NonNull User u, @NonNull Realm realm) {
     if (u.getDescription() != null) { // description is nullable
       this.description = u.getDescription();
-      this.descriptionURLEntities.clear();
-      this.descriptionURLEntities.addAll(URLEntityRealm.createList(u.getDescriptionURLEntities()));
+      final URLEntity[] descriptionURLEntities = u.getDescriptionURLEntities();
+      if (descriptionURLEntities != null && descriptionURLEntities.length > 0) {
+        this.descriptionURLEntities.clear();
+        for (URLEntity url : descriptionURLEntities) {
+          this.descriptionURLEntities.add(URLEntityRealm.findOrCreateFromRealm(url, realm));
+        }
+      }
     }
     this.favoritesCount = u.getFavouritesCount();
     this.followersCount = u.getFollowersCount();
@@ -389,15 +394,25 @@ public class UserRealm extends RealmObject implements User {
     this.statusesCount = u.getStatusesCount();
     this.url = u.getURL();
     final URLEntity urlEntity = u.getURLEntity();
-    if (urlEntity != null) {
-      if (this.urlEntity == null) {
-        this.urlEntity = URLEntityRealm.createFromRealm(u.getURLEntity(), realm);
-      } else {
-        this.urlEntity.merge(urlEntity);
-      }
+    if (urlEntity != null
+        && isNewUrlEntity(urlEntity)) {
+      this.urlEntity = URLEntityRealm.findOrCreateFromRealm(urlEntity, realm);
     }
     this.location = u.getLocation();
     this.verified = u.isVerified();
     this.isProtected = u.isProtected();
+  }
+
+  private boolean isNewUrlEntity(@NonNull URLEntity urlEntity) {
+    if (this.urlEntity == null) {
+      return true;
+    }
+    final String url = urlEntity.getURL();
+    if (url.equals(this.urlEntity.getURL())
+        || url.equals(this.urlEntity.getExpandedURL())) {
+      return false;
+    } else {
+      return true;
+    }
   }
 }

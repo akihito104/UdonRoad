@@ -16,7 +16,9 @@
 
 package com.freshdigitable.udonroad.realmdata;
 
-import com.android.annotations.NonNull;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -53,7 +55,7 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
 
   @NonNull
   static RealmList<URLEntityRealm> createList(URLEntity[] urlEntities) {
-    if (urlEntities == null) {
+    if (urlEntities == null || urlEntities.length < 1) {
       return new RealmList<>();
     }
     RealmList<URLEntityRealm> urlEntityRealms = new RealmList<>();
@@ -93,24 +95,54 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
     return end;
   }
 
-  void merge(URLEntity urlEntity) {
-    this.expandedUrl = urlEntity.getExpandedURL();
-    this.displayUrl = urlEntity.getDisplayURL();
+  @NonNull
+  static URLEntityRealm findOrCreateFromRealm(URLEntity urlEntity, Realm realm) {
+    final URLEntityRealm found = realm.where(URLEntityRealm.class)
+        .equalTo("url", urlEntity.getURL())
+        .findFirst();
+    if (found != null) {
+      if (hasDisplayUrl(found)) {
+        return found;
+      }
+      final URLEntityRealm expanded = findExpandedUrl(urlEntity, realm);
+      if (expanded == null) {
+        return found;
+      }
+      found.displayUrl = expanded.getDisplayURL();
+      found.expandedUrl = expanded.getExpandedURL();
+      return found;
+    } else {
+      if (hasDisplayUrl(urlEntity)) {
+        return createFromRealm(urlEntity, realm);
+      }
+      final URLEntityRealm expanded = findExpandedUrl(urlEntity, realm);
+      if (expanded != null) {
+        return expanded;
+      }
+      return createFromRealm(urlEntity, realm);
+    }
   }
 
   @NonNull
-  static URLEntityRealm createFromRealm(URLEntity urlEntity, Realm realm) {
-    final URLEntityRealm url = realm.where(URLEntityRealm.class)
-        .equalTo("url", urlEntity.getURL())
-        .findFirst();
-    if (url != null) {
-      url.merge(urlEntity);
-      return url;
-    } else {
-      final URLEntityRealm entity = realm.createObject(URLEntityRealm.class, urlEntity.getURL());
-      entity.displayUrl = urlEntity.getDisplayURL();
-      entity.expandedUrl = urlEntity.getExpandedURL();
-      return entity;
+  private static URLEntityRealm createFromRealm(URLEntity urlEntity, Realm realm) {
+    final URLEntityRealm created = realm.createObject(URLEntityRealm.class, urlEntity.getURL());
+    created.displayUrl = urlEntity.getDisplayURL();
+    created.expandedUrl = urlEntity.getExpandedURL();
+    return created;
+  }
+
+  private static boolean hasDisplayUrl(URLEntity found) {
+    return !TextUtils.isEmpty(found.getDisplayURL())
+        && !TextUtils.isEmpty(found.getExpandedURL());
+  }
+
+  @Nullable
+  private static URLEntityRealm findExpandedUrl(URLEntity urlEntity, Realm realm) {
+    if (urlEntity.getExpandedURL() != null) {
+      return null;
     }
+    return realm.where(URLEntityRealm.class)
+        .equalTo("expandedUrl", urlEntity.getURL())
+        .findFirst();
   }
 }

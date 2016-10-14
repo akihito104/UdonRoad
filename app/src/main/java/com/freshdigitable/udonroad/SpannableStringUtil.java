@@ -94,7 +94,14 @@ class SpannableStringUtil {
       int start = text.indexOf(u.getURL());
       int end = start + u.getURL().length();
       if (isInvalidRange(text, start, end)) {
-        continue;
+        if (TextUtils.isEmpty(u.getExpandedURL())) {
+          continue;
+        }
+        start = text.indexOf(u.getExpandedURL());
+        end = start + u.getExpandedURL().length();
+        if (isInvalidRange(text, start, end)) {
+          continue;
+        }
       }
       if (!TextUtils.isEmpty(quotedStatusIdStr)
           && u.getExpandedURL().contains(quotedStatusIdStr)) {
