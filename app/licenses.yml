@@ -1,0 +1,139 @@
+# Libraries not listed in licenses.yml:
+- artifact: com.android.databinding:adapters:+
+  name: adapters
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+- artifact: com.android.support:animated-vector-drawable:+
+  name: animated-vector-drawable
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:appcompat-v7:+
+  name: appcompat-v7
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.google.dagger:dagger:+
+  name: Dagger
+  copyrightHolder: Google, Inc.
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.databinding:baseLibrary:+
+  name: Data Binding Base Library
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://tools.android.com
+- artifact: com.android.support:design:+
+  name: design
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: javax.inject:javax.inject:+
+  name: javax.inject
+  copyrightHolder: The JSR-330 Expert Group
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://code.google.com/p/atinject/
+- artifact: com.android.databinding:library:+
+  name: library
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+- artifact: com.squareup.leakcanary:leakcanary-android-no-op:+
+  name: No op LeakCanary for Android
+  copyrightHolder: Square, Inc.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://github.com/square/leakcanary/
+- artifact: com.squareup.okhttp3:okhttp:+
+  name: OkHttp
+  copyrightHolder: Square, Inc.
+  license: The Apache Software License, Version 2.0
+- artifact: com.squareup.okio:okio:+
+  name: Okio
+  copyrightHolder: Square, Inc.
+  license: The Apache Software License, Version 2.0
+- artifact: com.squareup.picasso:picasso:+
+  name: Picasso
+  copyrightHolder: Square, Inc.
+  license: The Apache Software License, Version 2.0
+- artifact: io.realm:realm-android-library:+
+  name: realm-android-library
+  copyrightHolder: Realm Inc
+  license: The Apache Software License, Version 2.0
+- artifact: io.realm:realm-annotations:+
+  name: realm-annotations
+  copyrightHolder:  Realm Inc
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://realm.io
+- artifact: com.android.support:recyclerview-v7:+
+  name: recyclerview-v7
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.getkeepsafe.relinker:relinker:+
+  name: ReLinker
+  copyrightHolder: Keepsafe Software Inc.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://github.com/KeepSafe/ReLinker
+- artifact: io.reactivex:rxandroid:+
+  name: RxAndroid
+  copyrightHolder: The RxAndroid authors
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://github.com/ReactiveX/RxAndroid
+- artifact: io.reactivex:rxjava:+
+  name: rxjava
+  copyrightHolder: Netflix, Inc.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://github.com/ReactiveX/RxJava
+- artifact: com.android.support:support-annotations:+
+  name: support-annotations
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:support-compat:+
+  name: support-compat
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:support-core-ui:+
+  name: support-core-ui
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:support-core-utils:+
+  name: support-core-utils
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:support-fragment:+
+  name: support-fragment
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:support-media-compat:+
+  name: support-media-compat
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:support-v4:+
+  name: support-v4
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support:support-vector-drawable:+
+  name: support-vector-drawable
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: org.twitter4j:twitter4j-core:+
+  name: twitter4j-core
+  copyrightHolder: Yusuke Yamamoto
+  license: Apache License 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
+  url: http://twitter4j.org/
+- artifact: org.twitter4j:twitter4j-http2-support:+
+  name: twitter4j-http2-support
+  copyrightHolder: Yusuke Yamamoto
+  license: Apache License 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
+  url: http://twitter4j.org/
+- artifact: org.twitter4j:twitter4j-stream:+
+  name: twitter4j-stream
+  copyrightHolder: Yusuke Yamamoto
+  license: Apache License 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
+  url: http://twitter4j.org/
