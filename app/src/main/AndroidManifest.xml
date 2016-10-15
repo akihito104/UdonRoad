@@ -43,6 +43,7 @@
 
         <activity android:name=".ReplyActivity" />
 
+        <activity android:name=".LicenseActivity"/>
     </application>
 
 </manifest>
