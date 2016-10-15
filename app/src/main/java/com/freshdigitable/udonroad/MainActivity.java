@@ -122,6 +122,9 @@ public class MainActivity
         } else if (itemId == R.id.menu_fav) {
           Log.d(TAG, "fav is selected");
           binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+        } else if (itemId == R.id.menu_license) {
+          startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
         }
         return false;
       }

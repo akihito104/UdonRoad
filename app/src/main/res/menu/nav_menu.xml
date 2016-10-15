@@ -25,4 +25,7 @@
     <item
         android:id="@+id/menu_fav"
         android:title="favs"/>
+    <item
+        android:id="@+id/menu_license"
+        android:title="ライセンス情報"/>
 </menu>
