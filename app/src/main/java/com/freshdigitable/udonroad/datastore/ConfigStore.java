@@ -31,6 +31,8 @@ public interface ConfigStore {
 
   void close();
 
+  void clear();
+
   void addAuthenticatedUser(User authenticatedUser);
 
   User getAuthenticatedUser(long userId);
