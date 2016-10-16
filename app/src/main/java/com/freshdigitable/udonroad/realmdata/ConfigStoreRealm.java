@@ -102,7 +102,7 @@ public class ConfigStoreRealm implements ConfigStore {
       public void execute(Realm realm) {
         final TwitterAPIConfigurationRealm twitterAPIConfiguration
             = new TwitterAPIConfigurationRealm(twitterAPIConfig);
-        realm.insert(twitterAPIConfiguration);
+        realm.insertOrUpdate(twitterAPIConfiguration);
       }
     });
   }

@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
@@ -24,6 +25,7 @@ import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 
+import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.util.StreamIdlingResource;
@@ -58,6 +60,7 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static com.freshdigitable.udonroad.ConfigSubscriber.TWITTER_API_CONFIG_DATE;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
@@ -97,6 +100,10 @@ public abstract class MainActivityInstTestBase {
   SortedCache<User> userFollowers;
   @Inject
   SortedCache<User> userFriends;
+  @Inject
+  ConfigStore configStore;
+  @Inject
+  SharedPreferences sprefs;
 
   protected MockMainApplication app;
   protected long rtStatusId;
@@ -104,8 +111,7 @@ public abstract class MainActivityInstTestBase {
   @Before
   public void setup() throws Exception {
     app = (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
-    final MockAppComponent component = (MockAppComponent) app.getAppComponent();
-    component.inject(this);
+    getComponent().inject(this);
 
     clearCache(statusCache);
     clearCache(userCache);
@@ -114,6 +120,12 @@ public abstract class MainActivityInstTestBase {
     clearCache(userFavsTLStore, "user_fabs");
     clearCache(userFollowers, "user_followers");
     clearCache(userFriends, "user_friends");
+    configStore.open();
+    configStore.clear();
+    configStore.close();
+    sprefs.edit()
+        .remove(TWITTER_API_CONFIG_DATE)
+        .apply();
 
     final List<Status> responseList = createResponseList();
     for (int i = 1; i <= 20; i++) {
@@ -222,6 +234,10 @@ public abstract class MainActivityInstTestBase {
     Espresso.registerIdlingResources(idlingResource);
     verifyAfterLaunch();
     Espresso.unregisterIdlingResources(idlingResource);
+  }
+
+  protected MockAppComponent getComponent() {
+    return (MockAppComponent) app.getAppComponent();
   }
 
   protected void verifyAfterLaunch() {

@@ -18,13 +18,22 @@ package com.freshdigitable.udonroad;
 
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 
 import com.freshdigitable.udonroad.util.UserUtil;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.inject.Inject;
+
+import rx.functions.Action0;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -46,6 +55,7 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   @Rule
   public ActivityTestRule<UserInfoActivity> rule
       = new ActivityTestRule<>(UserInfoActivity.class, false, false);
+  private ConfigSetupIdlingResource idlingResource;
 
   @Override
   protected void verifyAfterLaunch() {
@@ -87,5 +97,75 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
     userCache.close();
     return UserInfoActivity.createIntent(
         InstrumentationRegistry.getTargetContext(), user);
+  }
+
+  @Inject
+  ConfigSubscriber configSubscriber;
+
+  @Override
+  @Before
+  public void setup() throws Exception {
+    super.setup();
+    getComponent().inject(this);
+
+    idlingResource = new ConfigSetupIdlingResource();
+    Espresso.registerIdlingResources(idlingResource);
+
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+      @Override
+      public void run() {
+        configSubscriber.open();
+        configSubscriber.setup(new Action0() {
+          @Override
+          public void call() {
+            idlingResource.setDoneSetup(true);
+          }
+        });
+      }
+    });
+  }
+
+  @Override
+  @After
+  public void tearDown() throws Exception {
+    Espresso.unregisterIdlingResources(idlingResource);
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+      @Override
+      public void run() {
+        configSubscriber.close();
+      }
+    });
+    super.tearDown();
+  }
+
+  private static class ConfigSetupIdlingResource implements IdlingResource {
+    @Override
+    public String getName() {
+      return "setupUserInfo";
+    }
+
+    @Override
+    public boolean isIdleNow() {
+      if (doneSetup.get()) {
+        if (callback != null) {
+          callback.onTransitionToIdle();
+        }
+        return true;
+      }
+      return false;
+    }
+
+    private ResourceCallback callback;
+
+    @Override
+    public void registerIdleTransitionCallback(ResourceCallback callback) {
+      this.callback = callback;
+    }
+
+    private AtomicBoolean doneSetup = new AtomicBoolean(false);
+
+    private void setDoneSetup(boolean doneSetup) {
+      this.doneSetup.set(doneSetup);
+    }
   }
 }
