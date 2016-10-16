@@ -46,7 +46,7 @@ import twitter4j.User;
  * Created by akihit on 2016/09/23.
  */
 public class ConfigSubscriber {
-  private static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
+  static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
   private final String TAG = ConfigSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final ConfigStore configStore;

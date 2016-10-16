@@ -60,6 +60,16 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
+  public void clear() {
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.deleteAll();
+      }
+    });
+  }
+
+  @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
     realm.executeTransaction(new Realm.Transaction() {
       @Override
@@ -92,7 +102,7 @@ public class ConfigStoreRealm implements ConfigStore {
       public void execute(Realm realm) {
         final TwitterAPIConfigurationRealm twitterAPIConfiguration
             = new TwitterAPIConfigurationRealm(twitterAPIConfig);
-        realm.insert(twitterAPIConfiguration);
+        realm.insertOrUpdate(twitterAPIConfiguration);
       }
     });
   }
