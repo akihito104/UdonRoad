@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import rx.Observable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.User;
@@ -56,17 +55,17 @@ public class TweetInputFragmentInstTest extends MainActivityInstTestBase {
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Test
-  public void sendValidInReplyTo() {
-    when(twitterApi.updateStatus(any(StatusUpdate.class))).thenAnswer(new Answer<Observable<Status>>() {
+  public void sendValidInReplyTo() throws Exception {
+    when(twitter.updateStatus(any(StatusUpdate.class))).thenAnswer(new Answer<Status>() {
       @Override
-      public Observable<Status> answer(InvocationOnMock invocation) throws Throwable {
+      public Status answer(InvocationOnMock invocation) throws Throwable {
         final StatusUpdate text = invocation.getArgumentAt(0, StatusUpdate.class);
         final Status mockResponse = mock(Status.class);
         when(mockResponse.getId()).thenReturn(21000L);
         when(mockResponse.getText()).thenReturn(text.getStatus());
         final User user = UserUtil.create();
         when(mockResponse.getUser()).thenReturn(user);
-        return Observable.just(mockResponse);
+        return mockResponse;
       }
     });
 

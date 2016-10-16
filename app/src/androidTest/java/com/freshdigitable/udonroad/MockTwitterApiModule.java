@@ -57,12 +57,6 @@ public class MockTwitterApiModule {
     return context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE);
   }
 
-  @Singleton
-  @Provides
-  public TwitterApi provideTwitterApi() {
-    return mock(TwitterApi.class);
-  }
-
   public UserStreamListener userStreamListener;
 
   @Singleton
