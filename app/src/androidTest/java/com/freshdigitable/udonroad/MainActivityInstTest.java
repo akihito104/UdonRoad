@@ -39,9 +39,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewAssertion.recyclerViewDescendantsMatches;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
 import static org.hamcrest.CoreMatchers.not;
 
 /**
@@ -55,60 +53,59 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
 
   @Test
   public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
-    receiveStatuses(createStatus(25));
-    onView(ofStatusView(withText(createText(25))))
+    final Status received = createStatus(25000, getLoginUser());
+    receiveStatuses(received);
+    onView(ofStatusView(withText(received.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(ofStatusView(withText(createText(25))))
+    onView(ofStatusView(withText(received.getText())))
         .check(selectedDescendantsMatch(withId(R.id.tl_fav_icon), not(isDisplayed())));
 
-    receiveStatuses(
-        createStatus(29),
-        createStatus(27));
-    onView(ofStatusView(withText(createText(25))))
+    final Status received29 = createStatus(29000, getLoginUser());
+    final Status received27 = createStatus(27000, getLoginUser());
+    receiveStatuses(received29, received27);
+    onView(ofStatusView(withText(received.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
-    onView(ofStatusView(withText(createText(29))))
+    onView(ofStatusView(withText(received29.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(ofStatusView(withText(createText(27))))
+    onView(ofStatusView(withText(received27.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
   }
 
   @Test
   public void receiveDelayed2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder()
       throws Exception {
-    receiveStatuses(createStatus(25));
-    onView(ofStatusView(withText(createText(25))))
+    final Status received25 = createStatus(25000);
+    receiveStatuses(received25);
+    onView(ofStatusView(withText(received25.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
 
-    receiveStatuses(
-        createStatus(29),
-        createStatus(23));
-    onView(ofStatusView(withText(createText(25))))
+    final Status received29 = createStatus(29000);
+    final Status received23 = createStatus(23000);
+    receiveStatuses(received29, received23);
+    onView(ofStatusView(withText(received25.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
-    onView(ofStatusView(withText(createText(29))))
+    onView(ofStatusView(withText(received29.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(ofStatusView(withText(createText(23))))
+    onView(ofStatusView(withText(received23.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
   }
 
   @Test
   public void fetchFav_then_favIconAndCountAreDisplayed() throws Exception {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.iffab_ffab)).check(matches(isDisplayed()));
     onView(withId(R.id.iffab_ffab)).perform(swipeUp());
-    onView(ofStatusView(withText(createText(20))))
+    onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
     // TODO tint color check
   }
 
   @Test
   public void fetchRT_then_RtIconAndCountAreDisplayed() throws Exception {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+    onView(ofStatusView(ofStatusViewAt(R.id.timeline, 0))).perform(click());
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
-    receiveStatuses(false, createRtStatus(rtStatusId, 20, false));
 
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(20)))));
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
     onView(withId(R.id.timeline)).perform(swipeDown());
@@ -120,76 +117,84 @@ public class MainActivityInstTest extends MainActivityInstTestBase {
   @Test
   public void receiveStatusDeletionNoticeForLatestStatus_then_removedTheTopOfTimeline()
       throws Exception {
-    final Status target = createStatus(20);
+    final Status target = findByStatusId(20000);
+    final String deletedStatusText = target.getText();
+    final Status top = findByStatusId(19000);
     receiveDeletionNotice(target);
 
-    onView(ofStatusView(withText(createText(20)))).check(doesNotExist());
+    onView(ofStatusView(withText(deletedStatusText))).check(doesNotExist());
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(19)))));
+        .check(matches(ofStatusView(withText(top.getText()))));
   }
 
   @Test
   public void receiveStatusDeletionNoticeForRTStatus_then_removedRTStatus()
       throws Exception {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+    final Status rtTarget = findByStatusId(20000);
+    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
-    final Status target = createRtStatus(rtStatusId, 20, false);
-    receiveStatuses(false, target);
+    final Status target = createRtStatus(rtTarget, false);
     onView(withId(R.id.timeline)).perform(swipeDown());
     receiveDeletionNotice(target);
 
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(20)))));
+        .check(matches(ofStatusView(withText(rtTarget.getText()))));
   }
 
   @Test
   public void receiveStatusDeletionNoticeForRTingStatus_then_removedOriginalAndRTedStatuses()
       throws Exception {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+    final Status target = findByStatusId(20000);
+    final Status top = findByStatusId(19000);
+    onView(ofStatusView(withText(target.getText()))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
-    final Status targetRt = createRtStatus(rtStatusId, 20, false);
-    receiveStatuses(false, targetRt);
-    final Status target = createStatus(20);
+    final Status targetRt = createRtStatus(target, false);
     receiveDeletionNotice(target, targetRt);
 
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(19)))));
-    onView(ofStatusView(withText(createText(20)))).check(doesNotExist());
+        .check(matches(ofStatusView(withText(top.getText()))));
+    onView(ofStatusView(withText(target.getText()))).check(doesNotExist());
   }
 
   @Test
   public void receiveStatusDeletionNoticeForFavedStatus_then_removedOriginalStatuses()
       throws Exception {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+    final Status target = findByStatusId(20000);
+    final Status top = findByStatusId(19000);
+    onView(ofStatusView(withText(target.getText()))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeUp());
-    final Status target = createStatus(20);
     receiveDeletionNotice(target);
 
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(19)))));
-    onView(ofStatusView(withText(createText(20)))).check(doesNotExist());
+        .check(matches(ofStatusView(withText(top.getText()))));
+    onView(ofStatusView(withText(target.getText()))).check(doesNotExist());
   }
 
   @Test
   public void receive2StatusDeletionNoticeAtSameTime_then_removed2Statuses()
       throws Exception {
-    receiveDeletionNotice(createStatus(18), createStatus(20));
+    final Status status18000 = findByStatusId(18000);
+    final Status status20000 = findByStatusId(20000);
+    final Status top = findByStatusId(19000);
+    receiveDeletionNotice(status18000, status20000);
 
-    onView(ofStatusView(withText(createText(20)))).check(doesNotExist());
-    onView(ofStatusView(withText(createText(18)))).check(doesNotExist());
+    onView(ofStatusView(withText(status20000.getText()))).check(doesNotExist());
+    onView(ofStatusView(withText(status18000.getText()))).check(doesNotExist());
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(19)))));
+        .check(matches(ofStatusView(withText(top.getText()))));
   }
 
   @Test
   public void receiveStatusDeletionNoticeForSelectedStatus_then_removedSelectedStatus()
       throws Exception {
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    receiveDeletionNotice(createStatus(20));
+    final Status target = findByStatusId(20000);
+    final Status top = findByStatusId(19000);
+    receiveDeletionNotice(target);
 
-    onView(ofStatusView(withText(createText(20)))).check(doesNotExist());
+    onView(ofStatusView(withText(target.getText()))).check(doesNotExist());
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(19)))));
+        .check(matches(ofStatusView(withText(top.getText()))));
   }
 
   @Test

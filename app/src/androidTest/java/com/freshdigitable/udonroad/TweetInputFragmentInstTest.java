@@ -39,7 +39,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -69,7 +68,8 @@ public class TweetInputFragmentInstTest extends MainActivityInstTestBase {
       }
     });
 
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+    final Status replied = findByStatusId(20000);
+    onView(ofStatusView(withText(replied.getText()))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeDown());
     onView(withId(R.id.main_send_tweet)).check(matches(isEnabled()));
     onView(withId(R.id.tw_intext)).perform(typeText("reply tweet"))

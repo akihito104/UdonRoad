@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
 
 import rx.functions.Action0;
+import twitter4j.Status;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -44,7 +45,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
@@ -65,8 +65,10 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   }
 
   @Test
-  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared() {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
+      throws Exception {
+    final Status replied = findByStatusId(20000);
+    onView(ofStatusView(withText(replied.getText()))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeDown());
     // verify
     onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
@@ -74,8 +76,10 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   }
 
   @Test
-  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden() {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
+  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
+      throws Exception {
+    final Status replied = findByStatusId(20000);
+    onView(ofStatusView(withText(replied.getText()))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeDown());
     onView(withId(R.id.userInfo_reply_close)).perform(click());
     // verify

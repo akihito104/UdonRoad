@@ -39,7 +39,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
 
 /**
  * Created by akihit on 2016/07/28.
@@ -56,7 +55,8 @@ public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
     onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
     onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
-    onView(ofStatusView(withText(createText(20)))).check(matches(isDisplayed()));
+    onView(ofStatusView(withText(findByStatusId(20000).getText())))
+        .check(matches(isDisplayed()));
     // tear down
     Espresso.pressBack();
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
@@ -94,7 +94,8 @@ public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
   }
 
   @Test
-  public void openTweetInputViewAndClose_and_launchUserInfoAndBackToMain() {
+  public void openTweetInputViewAndClose_and_launchUserInfoAndBackToMain()
+      throws Exception {
     onView(withId(R.id.action_write)).perform(click());
     onView(withId(R.id.action_cancel)).perform(click());
     onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
@@ -102,7 +103,7 @@ public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
     Espresso.pressBack();
 
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(20)))));
+        .check(matches(ofStatusView(withText(findByStatusId(20000).getText()))));
   }
 
   @Override

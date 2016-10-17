@@ -51,27 +51,22 @@ import static org.mockito.Mockito.when;
 public class TwitterResponseMock {
   @NonNull
   public static StatusDeletionNotice createDeletionNotice(final Status target) {
-    return new StatusDeletionNotice() {
-      @Override
-      public long getStatusId() {
-        return target.getId();
-      }
-
-      @Override
-      public long getUserId() {
-        return target.getUser().getId();
-      }
-
-      @Override
-      public int compareTo(@NonNull StatusDeletionNotice statusDeletionNotice) {
-        return 0;
-      }
-    };
+    final StatusDeletionNotice mock = mock(StatusDeletionNotice.class);
+    final long statusId = target.getId();
+    when(mock.getStatusId()).thenReturn(statusId);
+    final long userId = target.getUser().getId();
+    when(mock.getUserId()).thenReturn(userId);
+    return mock;
   }
 
   public static Status createStatus(long id) {
+    final User user = UserUtil.create();
+    return createStatus(id, user);
+  }
+
+  public static Status createStatus(long id, User user) {
     final Status status = mock(Status.class);
-    when(status.getId()).thenReturn(id * 1000L);
+    when(status.getId()).thenReturn(id);
     when(status.getCreatedAt()).thenReturn(new Date());
     when(status.getText()).thenReturn(createText(id));
     when(status.isRetweet()).thenReturn(false);
@@ -80,18 +75,17 @@ public class TwitterResponseMock {
     when(status.getURLEntities()).thenReturn(new URLEntity[0]);
     when(status.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[0]);
     when(status.getUserMentionEntities()).thenReturn(new UserMentionEntity[0]);
-    final User user = UserUtil.create();
     when(status.getUser()).thenReturn(user);
     return status;
   }
 
   @NonNull
-  public static String createText(long id) {
+  private static String createText(long id) {
     return "tweet body " + id;
   }
 
-  public static Status createRtStatus(long newStatusId, long rtedStatusId, boolean isFromApi) {
-    final Status rtStatus = createStatus(rtedStatusId);
+  public static Status createRtStatus(Status rtedStatus, long newStatusId, boolean isFromApi) {
+    final Status rtStatus = createStatus(rtedStatus.getId(), rtedStatus.getUser());
     when(rtStatus.isRetweeted()).thenReturn(isFromApi);
     final int retweetCount = rtStatus.getRetweetCount();
     when(rtStatus.getRetweetCount()).thenReturn(retweetCount + 1);
