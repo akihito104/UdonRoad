@@ -28,6 +28,7 @@ import org.mockito.stubbing.Answer;
 
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
+import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -48,10 +49,15 @@ import static org.mockito.Mockito.when;
  *
  * Created by akihit on 2016/10/06.
  */
-public class TweetInputFragmentInstTest extends MainActivityInstTestBase {
+public class TweetInputFragmentInstTest extends TimelineInstTestBase {
   @Rule
   public ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
+
+  @Override
+  protected void setupTimeline() throws TwitterException {
+    setupDefaultTimeline();
+  }
 
   @Test
   public void sendValidInReplyTo() throws Exception {

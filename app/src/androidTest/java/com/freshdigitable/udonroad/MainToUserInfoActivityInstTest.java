@@ -29,6 +29,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.TwitterException;
+import twitter4j.User;
+
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
@@ -39,18 +44,29 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by akihit on 2016/07/28.
  */
 @RunWith(AndroidJUnit4.class)
-public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
+public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Rule
   public ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
+  @Override
+  protected void setupTimeline() throws TwitterException {
+    setupDefaultTimeline();
+  }
+
   @Test
   public void clickUserIcon_then_launchUserInfoActivity() throws Exception {
+    // setup
+    final User loginUser = getLoginUser();
+    final ResponseList<Status> defaultResponseList = createDefaultResponseList(loginUser);
+    when(twitter.getUserTimeline(loginUser.getId())).thenReturn(defaultResponseList);
+    // exec.
     onView(withId(R.id.main_toolbar)).check(matches(isAssignableFrom(Toolbar.class)));
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
     onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());

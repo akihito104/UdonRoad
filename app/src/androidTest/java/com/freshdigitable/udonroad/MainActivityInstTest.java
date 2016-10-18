@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import twitter4j.Status;
+import twitter4j.TwitterException;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -46,10 +47,15 @@ import static org.hamcrest.CoreMatchers.not;
  * Created by akihit on 2016/06/15.
  */
 @RunWith(AndroidJUnit4.class)
-public class MainActivityInstTest extends MainActivityInstTestBase {
+public class MainActivityInstTest extends TimelineInstTestBase {
   @Rule
   public ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
+
+  @Override
+  protected void setupTimeline() throws TwitterException {
+    setupDefaultTimeline();
+  }
 
   @Test
   public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {

@@ -35,6 +35,7 @@ import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -101,9 +102,11 @@ public class TwitterResponseMock {
 
   @NonNull
   public static ResponseList<Status> createResponseList() {
-    return new ResponseList<Status>() {
-      List<Status> list = new ArrayList<>();
+    return createResponseList(new ArrayList<Status>());
+  }
 
+  public static ResponseList<Status> createResponseList(final List<Status> list) {
+    return new ResponseList<Status>() {
       @Override
       public RateLimitStatus getRateLimitStatus() {
         return null;
@@ -276,5 +279,12 @@ public class TwitterResponseMock {
             listener.onStatus(status);
           }
         });
+  }
+
+  public static TwitterAPIConfiguration createTwitterAPIConfigMock() {
+    final TwitterAPIConfiguration mock = mock(TwitterAPIConfiguration.class);
+    when(mock.getShortURLLength()).thenReturn(23);
+    when(mock.getShortURLLengthHttps()).thenReturn(23);
+    return mock;
   }
 }

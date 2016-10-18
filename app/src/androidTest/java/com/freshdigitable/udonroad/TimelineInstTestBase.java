@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
@@ -38,12 +39,13 @@ import org.junit.Before;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import twitter4j.IDs;
-import twitter4j.PagableResponseList;
 import twitter4j.Paging;
-import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -73,10 +75,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * MainActivityTestBase provides setup and tearDown method for tests of MainActivity.
- *
+ * <p>
  * Created by akihit on 2016/07/03.
  */
-public abstract class MainActivityInstTestBase {
+public abstract class TimelineInstTestBase {
   @Inject
   Twitter twitter;
   @Inject
@@ -100,8 +102,12 @@ public abstract class MainActivityInstTestBase {
 
   protected MockMainApplication app;
   private long rtStatusId;
-  private ResponseList<Status> responseList;
+  protected ResponseList<Status> responseList;
   private User loginUser;
+
+  protected MockAppComponent getComponent() {
+    return (MockAppComponent) app.getAppComponent();
+  }
 
   @Before
   public void setup() throws Exception {
@@ -112,20 +118,8 @@ public abstract class MainActivityInstTestBase {
     loginUser = UserUtil.create();
     setupConfig(loginUser);
 
-    responseList = createResponseList();
-    for (int i = 1; i <= 20; i++) {
-      final Status status = createStatus(i * 1000L, loginUser);
-      responseList.add(status);
-    }
-    when(loginUser.getStatusesCount()).thenReturn(responseList.size());
+    setupTimeline();
 
-    final ResponseList<Status> emptyStatusResponseList = createResponseList();
-    assertThat(responseList.size(), is(20));
-    when(twitter.getHomeTimeline()).thenReturn(responseList);
-    when(twitter.getUserTimeline(loginUser.getId())).thenReturn(responseList);
-    when(twitter.getHomeTimeline(any(Paging.class))).thenReturn(emptyStatusResponseList);
-    when(twitter.getUserTimeline(anyLong(), any(Paging.class))).thenReturn(emptyStatusResponseList);
-    when(twitter.getFavorites(anyLong())).thenReturn(emptyStatusResponseList);
     when(twitter.createFavorite(anyLong())).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
@@ -146,15 +140,6 @@ public abstract class MainActivityInstTestBase {
         return createRtStatus(rtedStatus, true);
       }
     });
-
-    final PagableResponseList<User> emptyUserPagableResponseList = mock(PagableResponseList.class);
-    when(twitter.getFollowersList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
-    when(twitter.getFriendsList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
-
-    final Relationship relationship = mock(Relationship.class);
-    when(relationship.isSourceFollowingTarget()).thenReturn(true);
-    when(relationship.isSourceMutingTarget()).thenReturn(false);
-    when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
 
     getRule().launchActivity(getIntent());
     final IdlingResource idlingResource = new IdlingResource() {
@@ -207,14 +192,15 @@ public abstract class MainActivityInstTestBase {
         .apply();
   }
 
-  private void setupConfig(User userMock) throws Exception {
-    final TwitterAPIConfiguration twitterAPIConfigMock = createTwitterAPIConfigMock();
+  protected void setupConfig(User loginUser) throws Exception {
+    final TwitterAPIConfiguration twitterAPIConfigMock
+        = TwitterResponseMock.createTwitterAPIConfigMock();
     when(twitter.getAPIConfiguration()).thenReturn(twitterAPIConfigMock);
 
-    final long userId = userMock.getId();
+    final long userId = loginUser.getId();
     when(twitter.getId()).thenReturn(userId);
-    when(twitter.showUser(userId)).thenReturn(userMock);
-    when(twitter.verifyCredentials()).thenReturn(userMock);
+    when(twitter.showUser(userId)).thenReturn(loginUser);
+    when(twitter.verifyCredentials()).thenReturn(loginUser);
 
     final IDs ignoringUserIDsMock = mock(IDs.class);
     when(ignoringUserIDsMock.getIDs()).thenReturn(new long[0]);
@@ -223,12 +209,9 @@ public abstract class MainActivityInstTestBase {
     when(twitter.getBlocksIDs()).thenReturn(ignoringUserIDsMock);
     when(twitter.getBlocksIDs(anyLong())).thenReturn(ignoringUserIDsMock);
     when(twitter.getMutesIDs(anyLong())).thenReturn(ignoringUserIDsMock);
-
   }
 
-  protected MockAppComponent getComponent() {
-    return (MockAppComponent) app.getAppComponent();
-  }
+  protected abstract void setupTimeline() throws TwitterException;
 
   protected void verifyAfterLaunch() throws Exception {
     verify(twitter, times(1)).getHomeTimeline();
@@ -247,13 +230,6 @@ public abstract class MainActivityInstTestBase {
       activity.finish();
       Thread.sleep(800);
     }
-  }
-
-  private static TwitterAPIConfiguration createTwitterAPIConfigMock() {
-    final TwitterAPIConfiguration mock = mock(TwitterAPIConfiguration.class);
-    when(mock.getShortURLLength()).thenReturn(23);
-    when(mock.getShortURLLengthHttps()).thenReturn(23);
-    return mock;
   }
 
   protected abstract ActivityTestRule<? extends AppCompatActivity> getRule();
@@ -324,7 +300,7 @@ public abstract class MainActivityInstTestBase {
         return s;
       }
     }
-    throw new TwitterException("status ID is not found: " + statusId);
+    throw new TwitterException("status is not found. ID: " + statusId);
   }
 
   protected User getLoginUser() {
@@ -333,5 +309,28 @@ public abstract class MainActivityInstTestBase {
 
   protected Status createRtStatus(Status target, boolean isFromRest) {
     return TwitterResponseMock.createRtStatus(target, rtStatusId, isFromRest);
+  }
+
+  @NonNull
+  protected static List<Status> createDefaultStatuses(User user) {
+    List<Status> resLi = new ArrayList<>();
+    for (int i = 1; i <= 20; i++) {
+      final Status status = createStatus(i * 1000L, user);
+      resLi.add(status);
+    }
+    return resLi;
+  }
+
+  @NonNull
+  protected static ResponseList<Status> createDefaultResponseList(User user) {
+    final List<Status> defaultStatuses = createDefaultStatuses(user);
+    return createResponseList(defaultStatuses);
+  }
+
+  protected void setupDefaultTimeline() throws TwitterException {
+    final ResponseList<Status> responseList = createDefaultResponseList(loginUser);
+    this.responseList = responseList;
+    when(twitter.getHomeTimeline()).thenReturn(responseList);
+    when(twitter.getHomeTimeline(any(Paging.class))).thenReturn(createResponseList());
   }
 }
