@@ -57,6 +57,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Override
   protected void setupTimeline() throws TwitterException {
     setupDefaultTimeline();
+    setupDefaultUserInfoTimeline();
   }
 
   @Test
@@ -97,8 +98,10 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
   @Test
   public void createFavAfterRelaunch_then_success() throws Exception {
+    // setup
     launchHomeAndBackToApp();
-
+    setupCreateFavorite(0, 1);
+    // exec.
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeUp());
     onView(ofStatusViewAt(R.id.timeline, 0))

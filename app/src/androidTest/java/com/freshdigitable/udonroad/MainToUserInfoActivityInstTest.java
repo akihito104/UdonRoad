@@ -58,6 +58,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Override
   protected void setupTimeline() throws TwitterException {
     setupDefaultTimeline();
+    setupDefaultUserInfoTimeline();
   }
 
   @Test

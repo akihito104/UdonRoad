@@ -98,6 +98,9 @@ public class MainActivityInstTest extends TimelineInstTestBase {
 
   @Test
   public void fetchFav_then_favIconAndCountAreDisplayed() throws Exception {
+    // setup
+    setupCreateFavorite(0, 1);
+    // exec.
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.iffab_ffab)).check(matches(isDisplayed()));
     onView(withId(R.id.iffab_ffab)).perform(swipeUp());
@@ -108,7 +111,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
 
   @Test
   public void fetchRT_then_RtIconAndCountAreDisplayed() throws Exception {
-    onView(ofStatusView(ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
 
@@ -165,6 +168,9 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void receiveStatusDeletionNoticeForFavedStatus_then_removedOriginalStatuses()
       throws Exception {
+    // setup
+    setupCreateFavorite(0, 1);
+    // exec.
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
     onView(ofStatusView(withText(target.getText()))).perform(click());

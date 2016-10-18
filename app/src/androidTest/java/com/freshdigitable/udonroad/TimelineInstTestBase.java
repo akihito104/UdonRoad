@@ -45,7 +45,9 @@ import java.util.List;
 import javax.inject.Inject;
 
 import twitter4j.IDs;
+import twitter4j.PagableResponseList;
 import twitter4j.Paging;
+import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -120,16 +122,6 @@ public abstract class TimelineInstTestBase {
 
     setupTimeline();
 
-    when(twitter.createFavorite(anyLong())).thenAnswer(new Answer<Status>() {
-      @Override
-      public Status answer(InvocationOnMock invocation) throws Throwable {
-        final Long id = invocation.getArgumentAt(0, Long.class);
-        final Status status = createStatus(id);
-        when(status.getFavoriteCount()).thenReturn(1);
-        when(status.isFavorited()).thenReturn(true);
-        return status;
-      }
-    });
     when(twitter.retweetStatus(anyLong())).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
@@ -174,7 +166,7 @@ public abstract class TimelineInstTestBase {
     Espresso.unregisterIdlingResources(idlingResource);
   }
 
-  private void initStorage() {
+   private void initStorage() {
     clearCache(statusCache);
     clearCache(userCache);
     clearCache(homeTLStore, "home");
@@ -311,6 +303,20 @@ public abstract class TimelineInstTestBase {
     return TwitterResponseMock.createRtStatus(target, rtStatusId, isFromRest);
   }
 
+  protected void setupCreateFavorite(final int rtCount, final int favCount) throws TwitterException {
+    when(twitter.createFavorite(anyLong())).thenAnswer(new Answer<Status>() {
+      @Override
+      public Status answer(InvocationOnMock invocation) throws Throwable {
+        final Long id = invocation.getArgumentAt(0, Long.class);
+        final Status status = findByStatusId(id);
+        when(status.getFavoriteCount()).thenReturn(favCount);
+        when(status.getRetweetCount()).thenReturn(rtCount);
+        when(status.isFavorited()).thenReturn(true);
+        return status;
+      }
+    });
+  }
+
   @NonNull
   protected static List<Status> createDefaultStatuses(User user) {
     List<Status> resLi = new ArrayList<>();
@@ -332,5 +338,26 @@ public abstract class TimelineInstTestBase {
     this.responseList = responseList;
     when(twitter.getHomeTimeline()).thenReturn(responseList);
     when(twitter.getHomeTimeline(any(Paging.class))).thenReturn(createResponseList());
+  }
+
+  protected void setupDefaultUserInfoTimeline() throws TwitterException {
+    final User loginUser = getLoginUser();
+    final ResponseList<Status> responseList = createDefaultResponseList(loginUser);
+    this.responseList = responseList;
+    final ResponseList<Status> emptyStatusResponseList = createResponseList();
+
+    final int size = responseList.size();
+    when(loginUser.getStatusesCount()).thenReturn(size);
+    when(twitter.getUserTimeline(loginUser.getId())).thenReturn(responseList);
+    when(twitter.getUserTimeline(anyLong(), any(Paging.class))).thenReturn(emptyStatusResponseList);
+    when(twitter.getFavorites(anyLong())).thenReturn(emptyStatusResponseList);
+    final PagableResponseList<User> emptyUserPagableResponseList = mock(PagableResponseList.class);
+    when(twitter.getFollowersList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
+    when(twitter.getFriendsList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
+
+    final Relationship relationship = mock(Relationship.class);
+    when(relationship.isSourceFollowingTarget()).thenReturn(true);
+    when(relationship.isSourceMutingTarget()).thenReturn(false);
+    when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
   }
 }

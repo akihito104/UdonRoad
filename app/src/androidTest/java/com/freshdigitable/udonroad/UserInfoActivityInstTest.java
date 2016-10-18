@@ -33,10 +33,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
 
 import rx.functions.Action0;
-import twitter4j.PagableResponseList;
-import twitter4j.Paging;
-import twitter4j.Relationship;
-import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -49,11 +45,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
@@ -132,24 +123,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
 
   @Override
   protected void setupTimeline() throws TwitterException {
-    final User loginUser = getLoginUser();
-    final ResponseList<Status> responseList = createDefaultResponseList(loginUser);
-    super.responseList = responseList;
-    final ResponseList<Status> emptyStatusResponseList = createResponseList();
-
-    final int size = responseList.size();
-    when(loginUser.getStatusesCount()).thenReturn(size);
-    when(twitter.getUserTimeline(loginUser.getId())).thenReturn(responseList);
-    when(twitter.getUserTimeline(anyLong(), any(Paging.class))).thenReturn(emptyStatusResponseList);
-    when(twitter.getFavorites(anyLong())).thenReturn(emptyStatusResponseList);
-    final PagableResponseList<User> emptyUserPagableResponseList = mock(PagableResponseList.class);
-    when(twitter.getFollowersList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
-    when(twitter.getFriendsList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
-
-    final Relationship relationship = mock(Relationship.class);
-    when(relationship.isSourceFollowingTarget()).thenReturn(true);
-    when(relationship.isSourceMutingTarget()).thenReturn(false);
-    when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
+    setupDefaultUserInfoTimeline();
   }
 
   @Override
