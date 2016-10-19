@@ -85,17 +85,28 @@ public class TwitterResponseMock {
     return "tweet body " + id;
   }
 
-  public static Status createRtStatus(Status rtedStatus, long newStatusId, boolean isFromApi) {
+  public static Status createRtStatus(Status rtedStatus, long newStatusId, boolean isFromRest) {
+    return createRtStatus(rtedStatus, newStatusId, 1, 0, isFromRest);
+  }
+
+  public static Status createRtStatus(Status rtedStatus, long newStatusId,
+                                      int rtCount, int favCount, boolean isFromRest) {
     final Status rtStatus = createStatus(rtedStatus.getId(), rtedStatus.getUser());
-    when(rtStatus.isRetweeted()).thenReturn(isFromApi);
-    final int retweetCount = rtStatus.getRetweetCount();
-    when(rtStatus.getRetweetCount()).thenReturn(retweetCount + 1);
+    if (isFromRest) {
+      when(rtStatus.isRetweeted()).thenReturn(true);
+      when(rtStatus.getRetweetCount()).thenReturn(rtCount);
+      when(rtStatus.getFavoriteCount()).thenReturn(favCount);
+    } else {
+      when(rtStatus.isRetweeted()).thenReturn(false);
+      when(rtStatus.getRetweetCount()).thenReturn(0);
+      when(rtStatus.getFavoriteCount()).thenReturn(0);
+    }
 
     final Status status = createStatus(newStatusId);
     final String rtText = rtStatus.getText();
     when(status.getText()).thenReturn(rtText);
     when(status.isRetweet()).thenReturn(true);
-    when(status.isRetweeted()).thenReturn(isFromApi);
+    when(status.isRetweeted()).thenReturn(isFromRest);
     when(status.getRetweetedStatus()).thenReturn(rtStatus);
     return status;
   }

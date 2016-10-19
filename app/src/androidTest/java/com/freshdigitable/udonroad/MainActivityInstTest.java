@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.freshdigitable.udonroad.util.TwitterResponseMock;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -111,6 +113,9 @@ public class MainActivityInstTest extends TimelineInstTestBase {
 
   @Test
   public void fetchRT_then_RtIconAndCountAreDisplayed() throws Exception {
+    // setup
+    setupRetweetStatus(25000);
+    // exec.
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
@@ -139,10 +144,13 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void receiveStatusDeletionNoticeForRTStatus_then_removedRTStatus()
       throws Exception {
+    // setup
+    setupRetweetStatus(25000);
+    // exec.
     final Status rtTarget = findByStatusId(20000);
     onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
-    final Status target = createRtStatus(rtTarget, false);
+    final Status target = TwitterResponseMock.createRtStatus(rtTarget, 25000, false);
     onView(withId(R.id.timeline)).perform(swipeDown());
     receiveDeletionNotice(target);
 
@@ -153,11 +161,14 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void receiveStatusDeletionNoticeForRTingStatus_then_removedOriginalAndRTedStatuses()
       throws Exception {
+    // setup
+    setupRetweetStatus(25000);
+    // exec.
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
     onView(ofStatusView(withText(target.getText()))).perform(click());
     onView(withId(R.id.iffab_ffab)).perform(swipeRight());
-    final Status targetRt = createRtStatus(target, false);
+    final Status targetRt = TwitterResponseMock.createRtStatus(target, 25000, false);
     receiveDeletionNotice(target, targetRt);
 
     onView(ofStatusViewAt(R.id.timeline, 0))

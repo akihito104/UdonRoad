@@ -103,7 +103,6 @@ public abstract class TimelineInstTestBase {
   SharedPreferences sprefs;
 
   protected MockMainApplication app;
-  private long rtStatusId;
   protected ResponseList<Status> responseList;
   private User loginUser;
 
@@ -121,17 +120,6 @@ public abstract class TimelineInstTestBase {
     setupConfig(loginUser);
 
     setupTimeline();
-
-    when(twitter.retweetStatus(anyLong())).thenAnswer(new Answer<Status>() {
-      @Override
-      public Status answer(InvocationOnMock invocation) throws Throwable {
-        final Long id = invocation.getArgumentAt(0, Long.class);
-        final Status rtedStatus = findByStatusId(id);
-        rtStatusId = id + 100_000L;
-        receiveStatuses(true, createRtStatus(rtedStatus, false));
-        return createRtStatus(rtedStatus, true);
-      }
-    });
 
     getRule().launchActivity(getIntent());
     final IdlingResource idlingResource = new IdlingResource() {
@@ -299,10 +287,6 @@ public abstract class TimelineInstTestBase {
     return loginUser;
   }
 
-  protected Status createRtStatus(Status target, boolean isFromRest) {
-    return TwitterResponseMock.createRtStatus(target, rtStatusId, isFromRest);
-  }
-
   protected void setupCreateFavorite(final int rtCount, final int favCount) throws TwitterException {
     when(twitter.createFavorite(anyLong())).thenAnswer(new Answer<Status>() {
       @Override
@@ -313,6 +297,19 @@ public abstract class TimelineInstTestBase {
         when(status.getRetweetCount()).thenReturn(rtCount);
         when(status.isFavorited()).thenReturn(true);
         return status;
+      }
+    });
+  }
+
+  protected void setupRetweetStatus(final long rtStatusId) throws TwitterException {
+    when(twitter.retweetStatus(anyLong())).thenAnswer(new Answer<Status>() {
+      @Override
+      public Status answer(InvocationOnMock invocation) throws Throwable {
+        final Long id = invocation.getArgumentAt(0, Long.class);
+        final Status rtedStatus = findByStatusId(id);
+//        rtStatusId = id + 100_000L;
+        receiveStatuses(true, TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, false));
+        return TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, true);
       }
     });
   }
