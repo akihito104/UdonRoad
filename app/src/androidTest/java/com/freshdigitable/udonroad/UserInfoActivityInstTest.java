@@ -22,6 +22,7 @@ import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 
+import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
@@ -33,18 +34,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
 
 import rx.functions.Action0;
-import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
@@ -60,9 +58,8 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
   @Test
   public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
       throws Exception {
-    final Status replied = findByStatusId(20000);
-    onView(ofStatusView(withText(replied.getText()))).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.reply();
     // verify
     onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
     onView(withId(R.id.userInfo_reply_close)).check(matches(isDisplayed()));
@@ -71,14 +68,12 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
   @Test
   public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
       throws Exception {
-    final Status replied = findByStatusId(20000);
-    onView(ofStatusView(withText(replied.getText()))).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.reply();
     onView(withId(R.id.userInfo_reply_close)).perform(click());
     // verify
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
     onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
-
   }
 
   @Override
@@ -122,8 +117,8 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
   }
 
   @Override
-  protected void setupTimeline() throws TwitterException {
-    setupDefaultUserInfoTimeline();
+  protected int setupTimeline() throws TwitterException {
+    return setupDefaultUserInfoTimeline();
   }
 
   @Override

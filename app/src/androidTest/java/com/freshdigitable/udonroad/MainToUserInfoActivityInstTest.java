@@ -56,9 +56,10 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Override
-  protected void setupTimeline() throws TwitterException {
-    setupDefaultTimeline();
+  protected int setupTimeline() throws TwitterException {
+    final int initCount = setupDefaultTimeline();
     setupDefaultUserInfoTimeline();
+    return initCount;
   }
 
   @Test

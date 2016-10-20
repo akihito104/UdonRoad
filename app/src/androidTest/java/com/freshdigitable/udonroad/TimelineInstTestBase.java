@@ -119,7 +119,7 @@ public abstract class TimelineInstTestBase {
     loginUser = UserUtil.create();
     setupConfig(loginUser);
 
-    setupTimeline();
+    final int initResListCount = setupTimeline();
 
     getRule().launchActivity(getIntent());
     final IdlingResource idlingResource = new IdlingResource() {
@@ -133,7 +133,7 @@ public abstract class TimelineInstTestBase {
         if (getRecyclerView() == null) {
           return false;
         }
-        if (getRecyclerView().getAdapter().getItemCount() < 20) {
+        if (getRecyclerView().getAdapter().getItemCount() < initResListCount) {
           return false;
         }
         if (callback != null) {
@@ -191,7 +191,7 @@ public abstract class TimelineInstTestBase {
     when(twitter.getMutesIDs(anyLong())).thenReturn(ignoringUserIDsMock);
   }
 
-  protected abstract void setupTimeline() throws TwitterException;
+  protected abstract int setupTimeline() throws TwitterException;
 
   protected void verifyAfterLaunch() throws Exception {
     verify(twitter, times(1)).getHomeTimeline();
@@ -330,14 +330,15 @@ public abstract class TimelineInstTestBase {
     return createResponseList(defaultStatuses);
   }
 
-  protected void setupDefaultTimeline() throws TwitterException {
+  protected int setupDefaultTimeline() throws TwitterException {
     final ResponseList<Status> responseList = createDefaultResponseList(loginUser);
     this.responseList = responseList;
     when(twitter.getHomeTimeline()).thenReturn(responseList);
     when(twitter.getHomeTimeline(any(Paging.class))).thenReturn(createResponseList());
+    return responseList.size();
   }
 
-  protected void setupDefaultUserInfoTimeline() throws TwitterException {
+  protected int setupDefaultUserInfoTimeline() throws TwitterException {
     final User loginUser = getLoginUser();
     final ResponseList<Status> responseList = createDefaultResponseList(loginUser);
     this.responseList = responseList;
@@ -356,5 +357,6 @@ public abstract class TimelineInstTestBase {
     when(relationship.isSourceFollowingTarget()).thenReturn(true);
     when(relationship.isSourceMutingTarget()).thenReturn(false);
     when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
+    return responseList.size();
   }
 }

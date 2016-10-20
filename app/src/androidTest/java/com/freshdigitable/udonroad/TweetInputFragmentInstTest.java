@@ -55,8 +55,8 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Override
-  protected void setupTimeline() throws TwitterException {
-    setupDefaultTimeline();
+  protected int setupTimeline() throws TwitterException {
+    return setupDefaultTimeline();
   }
 
   @Test
