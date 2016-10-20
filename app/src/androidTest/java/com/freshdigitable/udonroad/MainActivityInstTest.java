@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
 import org.junit.Rule;
@@ -31,8 +32,6 @@ import twitter4j.TwitterException;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.swipeDown;
-import static android.support.test.espresso.action.ViewActions.swipeRight;
-import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
@@ -103,9 +102,9 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // setup
     setupCreateFavorite(0, 1);
     // exec.
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.iffab_ffab)).check(matches(isDisplayed()));
-    onView(withId(R.id.iffab_ffab)).perform(swipeUp());
+    PerformUtil.favo();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
     // TODO tint color check
@@ -116,10 +115,9 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // setup
     setupRetweetStatus(25000);
     // exec.
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
-    onView(withId(R.id.iffab_ffab)).perform(swipeRight());
-
+    PerformUtil.retweet();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
     onView(withId(R.id.timeline)).perform(swipeDown());
@@ -148,8 +146,8 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     setupRetweetStatus(25000);
     // exec.
     final Status rtTarget = findByStatusId(20000);
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeRight());
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.retweet();
     final Status target = TwitterResponseMock.createRtStatus(rtTarget, 25000, false);
     onView(withId(R.id.timeline)).perform(swipeDown());
     receiveDeletionNotice(target);
@@ -166,8 +164,8 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // exec.
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
-    onView(ofStatusView(withText(target.getText()))).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeRight());
+    PerformUtil.selectItemView(target);
+    PerformUtil.retweet();
     final Status targetRt = TwitterResponseMock.createRtStatus(target, 25000, false);
     receiveDeletionNotice(target, targetRt);
 
@@ -184,8 +182,8 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // exec.
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
-    onView(ofStatusView(withText(target.getText()))).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeUp());
+    PerformUtil.selectItemView(target);
+    PerformUtil.favo();
     receiveDeletionNotice(target);
 
     onView(ofStatusViewAt(R.id.timeline, 0))
@@ -210,7 +208,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void receiveStatusDeletionNoticeForSelectedStatus_then_removedSelectedStatus()
       throws Exception {
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    PerformUtil.selectItemViewAt(0);
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
     receiveDeletionNotice(target);

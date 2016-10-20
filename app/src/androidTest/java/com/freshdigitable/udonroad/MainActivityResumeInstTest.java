@@ -22,6 +22,8 @@ import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.freshdigitable.udonroad.util.PerformUtil;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +33,6 @@ import twitter4j.TwitterException;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -63,7 +64,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
   @Test
   public void heading_then_latestTweetAppears() throws Exception {
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    PerformUtil.selectItemViewAt(0);
     final Status received = createStatus(22000);
     receiveStatuses(createStatus(21000), received);
     onView(withId(R.id.action_heading)).perform(click());
@@ -87,7 +88,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   public void headingAfterRelaunch_then_latestTweetAppears() throws Exception {
     launchHomeAndBackToApp();
 
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
+    PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     final Status received = createStatus(28000);
     receiveStatuses(createStatus(26000), received);
@@ -103,8 +104,8 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     launchHomeAndBackToApp();
     setupCreateFavorite(0, 1);
     // exec.
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeUp());
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.favo();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
   }
@@ -112,8 +113,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Test
   public void receiveStatusWhenStatusIsSelected_then_timelineIsNotScrolled() throws Exception {
     final Status target = findByStatusId(20000);
-    onView(ofStatusViewAt(R.id.timeline, 0)).perform(click())
-        .check(matches(ofStatusView(withText(target.getText()))));
+    PerformUtil.selectItemViewAt(0).check(matches(ofStatusView(withText(target.getText()))));
     final Status received = createStatus(22000);
     receiveStatuses(received);
 

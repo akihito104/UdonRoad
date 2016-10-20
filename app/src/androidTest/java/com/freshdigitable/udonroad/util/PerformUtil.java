@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.util;
 
 import android.support.test.espresso.ViewAction;
+import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.CoordinatesProvider;
 import android.support.test.espresso.action.GeneralClickAction;
 import android.support.test.espresso.action.Press;
@@ -33,6 +34,8 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.actionWithAssertions;
 import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.action.ViewActions.swipeLeft;
+import static android.support.test.espresso.action.ViewActions.swipeRight;
+import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
@@ -43,24 +46,32 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
  * Created by akihit on 2016/10/20.
  */
 public class PerformUtil {
-  public static void selectItemView(Status target) {
-    onView(ofStatusView(withText(target.getText()))).perform(clickForStatusView());
+  public static ViewInteraction selectItemView(Status target) {
+    return onView(ofStatusView(withText(target.getText()))).perform(clickForStatusView());
   }
 
-  public static void selectQuotedItemView(Status target) {
-    onView(ofQuotedStatusView(withText(target.getText()))).perform(clickForStatusView());
+  public static ViewInteraction selectQuotedItemView(Status target) {
+    return onView(ofQuotedStatusView(withText(target.getText()))).perform(clickForStatusView());
   }
 
-  public static void selectItemViewAt(int index) {
-    onView(ofStatusViewAt(R.id.timeline, index)).perform(clickForStatusView());
+  public static ViewInteraction selectItemViewAt(int index) {
+    return onView(ofStatusViewAt(R.id.timeline, index)).perform(clickForStatusView());
   }
 
-  public static void reply() {
-    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
+  public static ViewInteraction reply() {
+    return onView(withId(R.id.iffab_ffab)).perform(swipeDown());
   }
 
-  public static void showDetail() {
-    onView(withId(R.id.iffab_ffab)).perform(swipeLeft());
+  public static ViewInteraction showDetail() {
+    return onView(withId(R.id.iffab_ffab)).perform(swipeLeft());
+  }
+
+  public static ViewInteraction favo() {
+    return onView(withId(R.id.iffab_ffab)).perform(swipeUp());
+  }
+
+  public static ViewInteraction retweet() {
+    return onView(withId(R.id.iffab_ffab)).perform(swipeRight());
   }
 
   private static ViewAction clickForStatusView() {

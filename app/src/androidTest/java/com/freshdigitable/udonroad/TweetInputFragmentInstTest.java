@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
+import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.Rule;
@@ -33,13 +34,12 @@ import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.action.ViewActions.typeText;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -75,13 +75,13 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     });
 
     final Status replied = findByStatusId(20000);
-    onView(ofStatusView(withText(replied.getText()))).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
+    PerformUtil.selectItemView(replied);
+    PerformUtil.reply();
     onView(withId(R.id.main_send_tweet)).check(matches(isEnabled()));
     onView(withId(R.id.tw_intext)).perform(typeText("reply tweet"))
         .check(matches(withText("@akihito104 reply tweet")));
     onView(withId(R.id.main_send_tweet)).perform(click());
-//    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.main_tweet_input_view)).check(doesNotExist());
   }
 
   @Override
