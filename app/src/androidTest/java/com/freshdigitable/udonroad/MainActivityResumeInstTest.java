@@ -67,7 +67,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     final Status received = createStatus(22000);
     receiveStatuses(createStatus(21000), received);
-    onView(withId(R.id.action_heading)).perform(click());
+    PerformUtil.clickHeading();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received.getText()))));
     onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
@@ -92,7 +92,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     final Status received = createStatus(28000);
     receiveStatuses(createStatus(26000), received);
-    onView(withId(R.id.action_heading)).perform(click());
+    PerformUtil.clickHeading();
     onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received.getText()))));
@@ -119,7 +119,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(target.getText()))));
-    onView(withId(R.id.action_heading)).perform(click());
+    PerformUtil.clickHeading();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 1))
@@ -141,7 +141,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     receiveStatuses(received25);
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
 
-    onView(withId(R.id.action_heading)).perform(click());
+    PerformUtil.clickHeading();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received25.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 1))

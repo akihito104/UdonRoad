@@ -30,8 +30,6 @@ import twitter4j.Status;
 import twitter4j.TwitterException;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
@@ -120,7 +118,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.retweet();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
-    onView(withId(R.id.timeline)).perform(swipeDown());
+    PerformUtil.pullDownTimeline();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
     // TODO tint color check
@@ -149,7 +147,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     PerformUtil.retweet();
     final Status target = TwitterResponseMock.createRtStatus(rtTarget, 25000, false);
-    onView(withId(R.id.timeline)).perform(swipeDown());
+    PerformUtil.pullDownTimeline();
     receiveDeletionNotice(target);
 
     onView(ofStatusViewAt(R.id.timeline, 0))
@@ -221,17 +219,16 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void clickSendIcon_then_openTweetInputViewAndShowFab() {
     // open
-    onView(withId(R.id.action_write)).perform(click());
+    PerformUtil.clickWrite();
     onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
     onView(withId(R.id.main_send_tweet)).check(matches(isDisplayed()));
     onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
-    // the menu is not matched any view so always fail.
-//    onView(withId(R.id.action_write)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.action_write)).check(doesNotExist());
 
     // close
-    onView(withId(R.id.action_cancel)).perform(click());
+    PerformUtil.clickCancelWrite();
     onView(withId(R.id.action_write)).check(matches(isDisplayed()));
-//    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.main_tweet_input_view)).check(doesNotExist());
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 

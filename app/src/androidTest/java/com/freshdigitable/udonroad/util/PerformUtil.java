@@ -32,6 +32,7 @@ import twitter4j.Status;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.actionWithAssertions;
+import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.action.ViewActions.swipeLeft;
 import static android.support.test.espresso.action.ViewActions.swipeRight;
@@ -72,6 +73,22 @@ public class PerformUtil {
 
   public static ViewInteraction retweet() {
     return onView(withId(R.id.iffab_ffab)).perform(swipeRight());
+  }
+
+  public static ViewInteraction pullDownTimeline() {
+    return onView(withId(R.id.timeline)).perform(swipeDown());
+  }
+
+  public static ViewInteraction clickWrite() {
+    return onView(withId(R.id.action_write)).perform(click());
+  }
+
+  public static ViewInteraction clickCancelWrite() {
+    return onView(withId(R.id.action_cancel)).perform(click());
+  }
+
+  public static ViewInteraction clickHeading() {
+    return onView(withId(R.id.action_heading)).perform(click());
   }
 
   private static ViewAction clickForStatusView() {
