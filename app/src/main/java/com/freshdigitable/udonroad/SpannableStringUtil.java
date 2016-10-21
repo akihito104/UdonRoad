@@ -156,4 +156,31 @@ class SpannableStringUtil {
     }
     return ssb;
   }
+
+  /**
+   * SpanningInfo is information to create SpannableStringBuilder.
+   *
+   * Created by akihit on 2016/08/20.
+   */
+  private static class SpanningInfo {
+    final ClickableSpan span;
+    final int start;
+    final int end;
+    final String displayingText;
+
+    SpanningInfo(@Nullable ClickableSpan span, int start, int end, @Nullable String displayingText) {
+      this.span = span;
+      this.start = start;
+      this.end = end;
+      this.displayingText = displayingText;
+    }
+
+    boolean isSpanning() {
+      return span != null;
+    }
+
+    boolean isReplacing() {
+      return displayingText != null;
+    }
+  }
 }
