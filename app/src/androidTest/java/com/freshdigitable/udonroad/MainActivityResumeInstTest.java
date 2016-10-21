@@ -32,13 +32,11 @@ import twitter4j.Status;
 import twitter4j.TwitterException;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
@@ -67,7 +65,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     final Status received = createStatus(22000);
     receiveStatuses(createStatus(21000), received);
-    PerformUtil.clickHeading();
+    PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received.getText()))));
     onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
@@ -92,7 +90,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     final Status received = createStatus(28000);
     receiveStatuses(createStatus(26000), received);
-    PerformUtil.clickHeading();
+    PerformUtil.clickHeadingOnMenu();
     onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received.getText()))));
@@ -119,7 +117,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(target.getText()))));
-    PerformUtil.clickHeading();
+    PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 1))
@@ -130,7 +128,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   public void receiveStatusWhenUserInfoIsAppeared_then_timelineIsNotScrolled() throws Exception {
     final Status top = findByStatusId(20000);
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    PerformUtil.clickUserIconAt(0);
     final Status received22 = createStatus(22000);
     receiveStatuses(received22);
     Espresso.pressBack();
@@ -141,7 +139,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     receiveStatuses(received25);
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
 
-    PerformUtil.clickHeading();
+    PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received25.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 1))

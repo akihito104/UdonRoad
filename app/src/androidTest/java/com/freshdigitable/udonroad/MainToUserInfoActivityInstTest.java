@@ -37,13 +37,11 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static org.mockito.Mockito.when;
@@ -80,7 +78,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
     // exec.
     onView(withId(R.id.main_toolbar)).check(matches(isAssignableFrom(Toolbar.class)));
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     onView(ofStatusView(withText(findByStatusId(20000).getText())))
         .check(matches(isDisplayed()));
@@ -106,13 +104,13 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
 
   @Test
   public void launchUserInfoTwiceAndBackMain_then_launchUserInfo() {
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
 
     // tear down
@@ -123,9 +121,9 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Test
   public void openTweetInputViewAndClose_and_launchUserInfoAndBackToMain()
       throws Exception {
-    PerformUtil.clickWrite();
-    PerformUtil.clickCancelWrite();
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
+    PerformUtil.clickWriteOnMenu();
+    PerformUtil.clickCancelWriteOnMenu();
+    PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
 

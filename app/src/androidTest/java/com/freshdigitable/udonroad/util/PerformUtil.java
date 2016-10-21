@@ -39,6 +39,7 @@ import static android.support.test.espresso.action.ViewActions.swipeRight;
 import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
@@ -79,16 +80,20 @@ public class PerformUtil {
     return onView(withId(R.id.timeline)).perform(swipeDown());
   }
 
-  public static ViewInteraction clickWrite() {
+  public static ViewInteraction clickWriteOnMenu() {
     return onView(withId(R.id.action_write)).perform(click());
   }
 
-  public static ViewInteraction clickCancelWrite() {
+  public static ViewInteraction clickCancelWriteOnMenu() {
     return onView(withId(R.id.action_cancel)).perform(click());
   }
 
-  public static ViewInteraction clickHeading() {
+  public static ViewInteraction clickHeadingOnMenu() {
     return onView(withId(R.id.action_heading)).perform(click());
+  }
+
+  public static ViewInteraction clickUserIconAt(int index) {
+    return onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, index))).perform(click());
   }
 
   private static ViewAction clickForStatusView() {

@@ -219,14 +219,14 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void clickSendIcon_then_openTweetInputViewAndShowFab() {
     // open
-    PerformUtil.clickWrite();
+    PerformUtil.clickWriteOnMenu();
     onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
     onView(withId(R.id.main_send_tweet)).check(matches(isDisplayed()));
     onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
     onView(withId(R.id.action_write)).check(doesNotExist());
 
     // close
-    PerformUtil.clickCancelWrite();
+    PerformUtil.clickCancelWriteOnMenu();
     onView(withId(R.id.action_write)).check(matches(isDisplayed()));
     onView(withId(R.id.main_tweet_input_view)).check(doesNotExist());
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));

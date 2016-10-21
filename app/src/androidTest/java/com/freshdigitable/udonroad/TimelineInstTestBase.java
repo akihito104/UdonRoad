@@ -307,7 +307,6 @@ public abstract class TimelineInstTestBase {
       public Status answer(InvocationOnMock invocation) throws Throwable {
         final Long id = invocation.getArgumentAt(0, Long.class);
         final Status rtedStatus = findByStatusId(id);
-//        rtStatusId = id + 100_000L;
         receiveStatuses(true, TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, false));
         return TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, true);
       }
