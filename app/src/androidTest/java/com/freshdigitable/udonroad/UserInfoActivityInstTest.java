@@ -42,7 +42,6 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
@@ -123,7 +122,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
 
   @Override
   protected void verifyAfterLaunch() {
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
     onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
   }

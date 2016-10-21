@@ -67,7 +67,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
     onView(withId(R.id.d_icon)).perform(click());
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@" + getLoginUser().getScreenName())));
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
   }
 
   @Test
@@ -94,7 +94,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.d_tweet)).check(matches(withText(quoted.getText())));
     onView(withId(R.id.d_icon)).perform(click());
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@" + getLoginUser().getScreenName())));
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
   }
 
   @Override

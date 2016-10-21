@@ -25,6 +25,7 @@ import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
@@ -34,6 +35,7 @@ import com.freshdigitable.udonroad.util.StreamIdlingResource.Operation;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.mockito.invocation.InvocationOnMock;
@@ -60,6 +62,7 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.ConfigSubscriber.TWITTER_API_CONFIG_DATE;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
@@ -105,6 +108,7 @@ public abstract class TimelineInstTestBase {
   protected MockMainApplication app;
   protected ResponseList<Status> responseList;
   private User loginUser;
+  protected Matcher<View> screenNameMatcher;
 
   protected MockAppComponent getComponent() {
     return (MockAppComponent) app.getAppComponent();
@@ -117,6 +121,7 @@ public abstract class TimelineInstTestBase {
 
     initStorage();
     loginUser = UserUtil.create();
+    screenNameMatcher = withText("@" + loginUser.getScreenName());
     setupConfig(loginUser);
 
     final int initResListCount = setupTimeline();

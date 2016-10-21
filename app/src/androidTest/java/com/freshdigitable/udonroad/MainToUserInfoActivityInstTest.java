@@ -54,19 +54,12 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Rule
   public ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
-  private Matcher<View> screenNameMatcher;
 
   @Override
   protected int setupTimeline() throws TwitterException {
     final int initCount = setupDefaultTimeline();
     setupDefaultUserInfoTimeline();
     return initCount;
-  }
-
-  @Override
-  public void setup() throws Exception {
-    super.setup();
-    screenNameMatcher = withText("@" + getLoginUser().getScreenName());
   }
 
   @Test
