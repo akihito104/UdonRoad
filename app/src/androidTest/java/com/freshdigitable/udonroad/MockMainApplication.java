@@ -16,9 +16,14 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.module.AppComponent;
+import com.freshdigitable.udonroad.module.DataStoreModule;
+
 import twitter4j.UserStreamListener;
 
 /**
+ * MockMainApplication is custom Application class for test.
+ *
  * Created by akihit on 2016/06/16.
  */
 public class MockMainApplication extends MainApplication {

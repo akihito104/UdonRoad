@@ -14,59 +14,46 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad.module.realm;
 
 import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
-import twitter4j.UserMentionEntity;
+import twitter4j.Status;
 
 /**
- * Created by akihit on 2016/08/21.
+ * StatusIDs is IDs in Status class.
+ *
+ * Created by akihit on 2016/07/22.
  */
 @RealmClass
-public class UserMentionEntityRealm implements RealmModel, UserMentionEntity {
+public class StatusIDs implements RealmModel {
   @PrimaryKey
   private long id;
-  private String screenName;
-  private String name;
+  private long retweetedStatusId;
+  private long quotedStatusId;
 
-  public UserMentionEntityRealm() {
+  public StatusIDs() {
   }
 
-  UserMentionEntityRealm(UserMentionEntity u) {
-    this.id = u.getId();
-    this.screenName = u.getScreenName();
-    this.name = u.getName();
+  StatusIDs(Status status) {
+    this.id = status.getId();
+    final Status retweetedStatus = status.getRetweetedStatus();
+    this.retweetedStatusId = retweetedStatus != null
+        ? retweetedStatus.getId()
+        : -1;
+    this.quotedStatusId = status.getQuotedStatusId();
   }
 
-  @Override
-  public String getText() {
-    return getScreenName();
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getScreenName() {
-    return screenName;
-  }
-
-  @Override
   public long getId() {
     return id;
   }
 
-  @Override
-  public int getStart() {
-    throw new RuntimeException("not implemented yet.");
+  public long getRetweetStatusId() {
+    return retweetedStatusId;
   }
 
-  @Override
-  public int getEnd() {
-    throw new RuntimeException("not implemented yet.");
+  public long getQuotedStatusId() {
+    return quotedStatusId;
   }
 }

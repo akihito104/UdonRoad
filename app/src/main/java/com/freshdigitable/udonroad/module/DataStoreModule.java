@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.module;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.realmdata.ConfigStoreRealm;
-import com.freshdigitable.udonroad.realmdata.StatusCacheRealm;
-import com.freshdigitable.udonroad.realmdata.TimelineStoreRealm;
-import com.freshdigitable.udonroad.realmdata.UserCacheRealm;
-import com.freshdigitable.udonroad.realmdata.UserSortedCacheRealm;
+import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
+import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
+import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
+import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
+import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
 
 import dagger.Module;
 import dagger.Provides;

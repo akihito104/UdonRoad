@@ -20,6 +20,7 @@ import android.util.Log;
 
 import com.android.annotations.NonNull;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

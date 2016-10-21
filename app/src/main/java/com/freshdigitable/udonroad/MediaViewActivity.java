@@ -46,6 +46,9 @@ import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
 
 import java.util.HashMap;
 import java.util.Map;

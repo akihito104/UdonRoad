@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.subscriber;
 
 import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.android.annotations.NonNull;
+import com.freshdigitable.udonroad.FeedbackSubscriber;
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -46,7 +49,7 @@ import twitter4j.User;
  * Created by akihit on 2016/09/23.
  */
 public class ConfigSubscriber {
-  static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
+  public static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
   private final String TAG = ConfigSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final ConfigStore configStore;

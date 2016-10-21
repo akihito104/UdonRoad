@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.module.twitter;
 
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;

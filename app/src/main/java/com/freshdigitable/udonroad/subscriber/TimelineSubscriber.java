@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.FeedbackSubscriber;
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.List;
 
