@@ -44,6 +44,7 @@ import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineFragment.OnFetchTweets;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
+import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
@@ -452,32 +453,32 @@ public class MainActivity
   }
 
   private void setupActionMap() {
-    actionMap.put(Direction.UP, new UserAction(ActionResource.FAV, new Runnable() {
+    actionMap.put(Direction.UP, new UserAction(Resource.FAV, new Runnable() {
       @Override
       public void run() {
         timelineSubscriber.createFavorite(tlFragment.getSelectedTweetId());
       }
     }));
-    actionMap.put(Direction.RIGHT, new UserAction(ActionResource.RETWEET, new Runnable() {
+    actionMap.put(Direction.RIGHT, new UserAction(Resource.RETWEET, new Runnable() {
       @Override
       public void run() {
         timelineSubscriber.retweetStatus(tlFragment.getSelectedTweetId());
       }
     }));
     actionMap.put(Direction.UP_RIGHT, new UserAction());
-    actionMap.put(Direction.LEFT, new UserAction(ActionResource.MENU, new Runnable() {
+    actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {
       @Override
       public void run() {
         showStatusDetail(tlFragment.getSelectedTweetId());
       }
     }));
-    actionMap.put(Direction.DOWN, new UserAction(ActionResource.REPLY, new Runnable() {
+    actionMap.put(Direction.DOWN, new UserAction(Resource.REPLY, new Runnable() {
       @Override
       public void run() {
         sendStatusSelected(TYPE_REPLY, tlFragment.getSelectedTweetId());
       }
     }));
-    actionMap.put(Direction.DOWN_RIGHT, new UserAction(ActionResource.QUOTE, new Runnable() {
+    actionMap.put(Direction.DOWN_RIGHT, new UserAction(Resource.QUOTE, new Runnable() {
       @Override
       public void run() {
         sendStatusSelected(TYPE_QUOTE, tlFragment.getSelectedTweetId());

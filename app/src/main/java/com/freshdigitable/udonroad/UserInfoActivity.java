@@ -42,6 +42,7 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
+import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -371,34 +372,34 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   }
 
   private void setupActionMap() {
-    actionMap.put(Direction.UP, new UserAction(ActionResource.FAV, new Runnable() {
+    actionMap.put(Direction.UP, new UserAction(Resource.FAV, new Runnable() {
       @Override
       public void run() {
         viewPager.createFavorite();
       }
     }));
-    actionMap.put(Direction.RIGHT, new UserAction(ActionResource.RETWEET, new Runnable() {
+    actionMap.put(Direction.RIGHT, new UserAction(Resource.RETWEET, new Runnable() {
       @Override
       public void run() {
         viewPager.retweetStatus();
       }
     }));
     actionMap.put(Direction.UP_RIGHT, new UserAction());
-    actionMap.put(Direction.DOWN, new UserAction(ActionResource.REPLY, new Runnable() {
+    actionMap.put(Direction.DOWN, new UserAction(Resource.REPLY, new Runnable() {
       @Override
       public void run() {
         final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
         showTwitterInputview(TYPE_REPLY, selectedTweetId);
       }
     }));
-    actionMap.put(Direction.DOWN_RIGHT, new UserAction(ActionResource.QUOTE, new Runnable() {
+    actionMap.put(Direction.DOWN_RIGHT, new UserAction(Resource.QUOTE, new Runnable() {
       @Override
       public void run() {
         final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
         showTwitterInputview(TYPE_QUOTE, selectedTweetId);
       }
     }));
-    actionMap.put(Direction.LEFT, new UserAction(ActionResource.MENU, new Runnable() {
+    actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {
       @Override
       public void run() {
         final long statusId = viewPager.getCurrentSelectedStatusId();

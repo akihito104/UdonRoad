@@ -42,6 +42,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -366,13 +367,13 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   private void setupActionMap(final long statusId) {
-    actionMap.put(Direction.UP, new UserAction(ActionResource.FAV, new Runnable() {
+    actionMap.put(Direction.UP, new UserAction(Resource.FAV, new Runnable() {
       @Override
       public void run() {
         userActionSubscriber.createFavorite(statusId);
       }
     }));
-    actionMap.put(Direction.RIGHT, new UserAction(ActionResource.RETWEET, new Runnable() {
+    actionMap.put(Direction.RIGHT, new UserAction(Resource.RETWEET, new Runnable() {
       @Override
       public void run() {
         userActionSubscriber.retweetStatus(statusId);

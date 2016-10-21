@@ -20,6 +20,7 @@ import android.app.Application;
 import android.support.annotation.VisibleForTesting;
 
 import com.freshdigitable.udonroad.module.AppComponent;
+import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.squareup.leakcanary.LeakCanary;
