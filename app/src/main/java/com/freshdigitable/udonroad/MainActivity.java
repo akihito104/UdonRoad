@@ -346,21 +346,13 @@ public class MainActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == R.id.action_heading) {
-      headingSelected();
-    } else if (itemId == R.id.action_write) {
+    if (itemId == R.id.action_write) {
       sendStatusSelected(TYPE_DEFAULT, -1);
     } else if (itemId == R.id.action_cancel) {
       cancelWritingSelected();
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
-  }
-
-  private void headingSelected() {
-    if (tlFragment.isVisible()) {
-      tlFragment.scrollToTop();
-    }
   }
 
   private void sendStatusSelected(@TweetType int type, long statusId) {

@@ -17,18 +17,10 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
-        android:id="@+id/action_write"
-        android:icon="@drawable/ic_create_white_24dp"
-        android:title="@string/action_send_status"
-        app:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/action_cancel"
-        android:icon="@drawable/ic_clear_white_24dp"
-        android:title="@android:string/cancel"
-        android:visible="false"
-        app:showAsAction="ifRoom"
+        android:id="@+id/action_heading"
+        android:title="@string/action_totop"
+        android:icon="@drawable/ic_twitter_bird"
+        app:showAsAction="always"
         />
 </menu>

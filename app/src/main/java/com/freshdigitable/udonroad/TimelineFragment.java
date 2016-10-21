@@ -29,6 +29,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,6 +76,27 @@ public class TimelineFragment<T> extends Fragment {
     insertEventSubscription.unsubscribe();
     deleteEventSubscription.unsubscribe();
     super.onDetach();
+  }
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setHasOptionsMenu(true);
+  }
+
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    inflater.inflate(R.menu.timeline, menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    final int itemId = item.getItemId();
+    if (itemId == R.id.action_heading) {
+      scrollToTop();
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   @Nullable
