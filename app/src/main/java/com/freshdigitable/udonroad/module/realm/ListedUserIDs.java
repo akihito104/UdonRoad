@@ -14,44 +14,30 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad.module.realm;
 
 import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
-import twitter4j.Status;
+import twitter4j.User;
 
 /**
- * Created by akihit on 2016/07/22.
+ * ListedUserIDs is for User list ordered.
+ *
+ * Created by akihit on 2016/09/17.
  */
 @RealmClass
-public class StatusIDs implements RealmModel {
+public class ListedUserIDs implements RealmModel {
   @PrimaryKey
-  private long id;
-  private long retweetedStatusId;
-  private long quotedStatusId;
+  int order;
 
-  public StatusIDs() {
+  long userId;
+
+  public ListedUserIDs() {
   }
 
-  StatusIDs(Status status) {
-    this.id = status.getId();
-    final Status retweetedStatus = status.getRetweetedStatus();
-    this.retweetedStatusId = retweetedStatus != null
-        ? retweetedStatus.getId()
-        : -1;
-    this.quotedStatusId = status.getQuotedStatusId();
-  }
-
-  public long getId() {
-    return id;
-  }
-
-  public long getRetweetStatusId() {
-    return retweetedStatusId;
-  }
-
-  public long getQuotedStatusId() {
-    return quotedStatusId;
+  ListedUserIDs(User user, int order) {
+    this.order = order;
+    this.userId = user.getId();
   }
 }

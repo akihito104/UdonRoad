@@ -18,8 +18,13 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.ColorInt;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.ffab.OnFlingAdapter;
@@ -33,14 +38,14 @@ import java.util.Map;
  * Created by akihit on 2016/09/03.
  */
 public class UserAction {
-  private final ActionResource resource;
+  private final Resource resource;
   private final Runnable action;
 
   public UserAction() {
     this(null, null);
   }
 
-  public UserAction(@Nullable ActionResource resource, @Nullable Runnable action) {
+  public UserAction(@Nullable Resource resource, @Nullable Runnable action) {
     this.resource = resource;
     this.action = action;
   }
@@ -49,7 +54,7 @@ public class UserAction {
                                        @NonNull final Map<Direction, UserAction> actionMap,
                                        @NonNull Context context) {
     for (Direction d : actionMap.keySet()) {
-      final ActionResource resource = actionMap.get(d).resource;
+      final Resource resource = actionMap.get(d).resource;
       iffab.setIndicatorIcon(d,
           resource == null
               ? null
@@ -78,5 +83,36 @@ public class UserAction {
         userAction.action.run();
       }
     });
+  }
+
+  /**
+   * Resource defines resources such as icon drawable or title string for user action.
+   *
+   * Created by akihit on 2016/09/02.
+   */
+  public enum Resource {
+    FAV(R.drawable.ic_like),
+    RETWEET(R.drawable.ic_retweet),
+    QUOTE(R.drawable.ic_quote),
+    REPLY(R.drawable.ic_reply),
+    MENU(R.drawable.ic_menu);
+
+    final
+    @DrawableRes
+    int iconResId;
+
+    Resource(@DrawableRes int iconResId) {
+      this.iconResId = iconResId;
+    }
+
+    public Drawable createDrawable(@NonNull Context context) {
+      return ContextCompat.getDrawable(context, iconResId);
+    }
+
+    public Drawable createDrawableWithColor(@NonNull Context context, @ColorInt int color) {
+      final Drawable drawable = createDrawable(context);
+      DrawableCompat.setTint(drawable, color);
+      return drawable;
+    }
   }
 }

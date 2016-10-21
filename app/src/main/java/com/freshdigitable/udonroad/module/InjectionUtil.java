@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.module;
 
 import android.app.Activity;
 import android.app.Application;
 import android.support.v4.app.Fragment;
 
+import com.freshdigitable.udonroad.MainApplication;
+
 /**
+ * InjectionUtil is utilization class to inject modules.
+ *
  * Created by akihit on 2016/07/25.
  */
 public class InjectionUtil {
@@ -35,5 +39,9 @@ public class InjectionUtil {
   public static AppComponent getComponent(Application app) {
     final MainApplication application = (MainApplication) app;
     return application.getAppComponent();
+  }
+
+  private InjectionUtil() {
+    throw new AssertionError();
   }
 }

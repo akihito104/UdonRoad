@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad.module.realm;
 
 import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;

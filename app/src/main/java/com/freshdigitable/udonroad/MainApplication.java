@@ -19,11 +19,17 @@ package com.freshdigitable.udonroad;
 import android.app.Application;
 import android.support.annotation.VisibleForTesting;
 
+import com.freshdigitable.udonroad.module.AppComponent;
+import com.freshdigitable.udonroad.module.DaggerAppComponent;
+import com.freshdigitable.udonroad.module.DataStoreModule;
+import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.squareup.leakcanary.LeakCanary;
 
 import io.realm.Realm;
 
 /**
+ * MainApplication is custom Application class.
+ *
  * Created by akihit on 2016/06/16.
  */
 public class MainApplication extends Application {

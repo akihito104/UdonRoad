@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.subscriber;
 
 import android.content.Context;
 import android.support.annotation.StringRes;
@@ -22,22 +22,24 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.SnackBarUtil;
+
 import rx.functions.Action0;
 import rx.functions.Action1;
 
 /**
- * FeedbackSubscriber defines subscriber action such as TimelineSubscriber and UserSubscriber.
+ * FeedbackAction defines subscriber action such as TimelineSubscriber and UserSubscriber.
  *
  * Created by akihit on 2016/09/03.
  */
-public interface FeedbackSubscriber {
-  String TAG = FeedbackSubscriber.class.getSimpleName();
+public interface FeedbackAction {
+  String TAG = FeedbackAction.class.getSimpleName();
 
   Action1<Throwable> onErrorDefault(@StringRes int msg);
 
   Action0 onCompleteDefault(@StringRes int msg);
 
-  class LogFeedback implements FeedbackSubscriber {
+  class LogFeedback implements FeedbackAction {
     @Override
     public Action1<Throwable> onErrorDefault(final @StringRes int msg) {
       return new Action1<Throwable>() {
@@ -59,7 +61,7 @@ public interface FeedbackSubscriber {
     }
   }
 
-  class SnackbarFeedback implements FeedbackSubscriber {
+  class SnackbarFeedback implements FeedbackAction {
     private final View root;
 
     public SnackbarFeedback(View root) {
@@ -83,7 +85,7 @@ public interface FeedbackSubscriber {
     }
   }
 
-  class ToastFeedback implements FeedbackSubscriber {
+  class ToastFeedback implements FeedbackAction {
     private final Context context;
     private final int gravityFlag;
     private final int gravityXOffset;

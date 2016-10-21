@@ -34,6 +34,9 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
 import com.squareup.picasso.Picasso;
 
 import java.lang.annotation.Retention;

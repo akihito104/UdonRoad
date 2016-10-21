@@ -16,11 +16,16 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.module.AppComponent;
+import com.freshdigitable.udonroad.module.DataStoreModule;
+
 import javax.inject.Singleton;
 
 import dagger.Component;
 
 /**
+ * MockAppComponent is application component for test.
+ *
  * Created by akihit on 2016/06/16.
  */
 @Singleton

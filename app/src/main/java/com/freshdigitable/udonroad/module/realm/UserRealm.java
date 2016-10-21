@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 

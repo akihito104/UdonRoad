@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -34,9 +34,9 @@ import io.realm.Sort;
 import rx.Observable;
 import twitter4j.Status;
 
-import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
-import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_QUOTAD_STATUS_ID;
-import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_RETWEETED_STATUS_ID;
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_QUOTAD_STATUS_ID;
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_RETWEETED_STATUS_ID;
 
 /**
  * TimelineStoreRealm implements TimelineStore for Realm.

@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -30,6 +32,8 @@ import twitter4j.UserStreamListener;
 import static org.mockito.Mockito.mock;
 
 /**
+ * MockTwitterModule is to inject Twitter module for test.
+ *
  * Created by akihit on 2016/06/16.
  */
 @Module

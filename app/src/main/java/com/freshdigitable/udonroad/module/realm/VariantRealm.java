@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad.module.realm;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import twitter4j.ExtendedMediaEntity;
 
 /**
+ * VariantRealm is data class defined to store Realm.
+ *
  * Created by akihit on 2016/06/23.
  */
 public class VariantRealm extends RealmObject implements ExtendedMediaEntity.Variant {

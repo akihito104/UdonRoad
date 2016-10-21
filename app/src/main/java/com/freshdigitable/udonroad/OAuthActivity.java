@@ -25,6 +25,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+
 import javax.inject.Inject;
 
 import rx.Observable;
@@ -37,6 +40,8 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 /**
+ * OAuthActivity is for OAuth authentication with Twitter.
+ *
  * Created by akihit on 15/10/22.
  */
 public class OAuthActivity extends AppCompatActivity {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.realmdata;
+package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -39,7 +39,7 @@ import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 
-import static com.freshdigitable.udonroad.realmdata.StatusRealm.KEY_ID;
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
 
 /**
  * StatusCacheRealm implements StatusCache for Realm.

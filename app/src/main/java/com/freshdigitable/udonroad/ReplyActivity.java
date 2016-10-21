@@ -32,6 +32,7 @@ import android.view.Window;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityReplyBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import javax.inject.Inject;
 

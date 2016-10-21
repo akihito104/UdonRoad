@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.module;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import com.freshdigitable.udonroad.R;
 
 import javax.inject.Singleton;
 
@@ -29,6 +31,8 @@ import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 
 /**
+ * TwitterApiModule is to inject twitter module.
+ *
  * Created by akihit on 2016/06/16.
  */
 @Module
