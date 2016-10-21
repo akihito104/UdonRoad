@@ -51,6 +51,7 @@ import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
+import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
 import com.squareup.picasso.Picasso;
 
@@ -143,7 +144,7 @@ public class MainActivity
     homeTimeline.open("home");
     homeTimeline.clear();
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
-        new FeedbackSubscriber.SnackbarFeedback(binding.mainTimelineContainer));
+        new SnackbarFeedback(binding.mainTimelineContainer));
 
     tlFragment = new TimelineFragment<>();
     tlFragment.setSortedCache(homeTimeline);

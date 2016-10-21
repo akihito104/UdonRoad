@@ -19,7 +19,6 @@ package com.freshdigitable.udonroad.subscriber;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.freshdigitable.udonroad.FeedbackSubscriber;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
@@ -42,17 +41,17 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final T statusStore;
-  private final FeedbackSubscriber userFeedback;
+  private final FeedbackAction userFeedback;
 
   @SuppressWarnings("unused")
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
                             @NonNull T statusStore) {
-    this(twitterApi, statusStore, new FeedbackSubscriber.LogFeedback());
+    this(twitterApi, statusStore, new FeedbackAction.LogFeedback());
   }
 
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
                             @NonNull T statusStore,
-                            @NonNull FeedbackSubscriber userFeedback) {
+                            @NonNull FeedbackAction userFeedback) {
     this.twitterApi = twitterApi;
     this.statusStore = statusStore;
     this.userFeedback = userFeedback;

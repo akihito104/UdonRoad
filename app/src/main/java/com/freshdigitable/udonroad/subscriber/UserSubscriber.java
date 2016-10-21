@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 
-import com.freshdigitable.udonroad.FeedbackSubscriber;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
@@ -38,11 +37,11 @@ import twitter4j.User;
 public class UserSubscriber<T extends BaseOperation<User>> {
   private final TwitterApi twitterApi;
   private final T userStore;
-  private final FeedbackSubscriber feedback;
+  private final FeedbackAction feedback;
 
   public UserSubscriber(@NonNull TwitterApi twitterApi,
                         @NonNull T userStore,
-                        @NonNull FeedbackSubscriber feedback) {
+                        @NonNull FeedbackAction feedback) {
     this.twitterApi = twitterApi;
     this.userStore = userStore;
     this.feedback = feedback;

@@ -32,10 +32,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserSubscriber;
 

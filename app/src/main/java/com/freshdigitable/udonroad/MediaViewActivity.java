@@ -49,6 +49,7 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.FeedbackAction.ToastFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
 
 import java.util.HashMap;
@@ -197,7 +198,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     super.onStart();
     statusCache.open();
     userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
-        new FeedbackSubscriber.ToastFeedback(getApplicationContext(), Gravity.CENTER, 0, 0));
+        new ToastFeedback(getApplicationContext(), Gravity.CENTER, 0, 0));
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);

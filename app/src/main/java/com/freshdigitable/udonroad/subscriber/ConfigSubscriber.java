@@ -20,7 +20,6 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.android.annotations.NonNull;
-import com.freshdigitable.udonroad.FeedbackSubscriber;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
@@ -196,9 +195,9 @@ public class ConfigSubscriber {
         .doOnError(onErrorAction);
   }
 
-  private FeedbackSubscriber feedback;
+  private FeedbackAction feedback;
 
-  public void setFeedbackSubscriber(FeedbackSubscriber feedback) {
+  public void setFeedbackSubscriber(FeedbackAction feedback) {
     this.feedback = feedback;
   }
 

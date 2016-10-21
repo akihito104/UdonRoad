@@ -40,7 +40,6 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.freshdigitable.udonroad.FeedbackSubscriber.SnackbarFeedback;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
@@ -50,6 +49,7 @@ import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
+import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
 import com.freshdigitable.udonroad.subscriber.UserSubscriber;
 
 import java.util.HashMap;
