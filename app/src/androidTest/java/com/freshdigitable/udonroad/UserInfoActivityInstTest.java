@@ -22,10 +22,10 @@ import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 
+import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,54 +34,45 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
 
 import rx.functions.Action0;
+import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.swipeDown;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
  *
  * Created by akihit on 2016/08/11.
  */
-public class UserInfoActivityInstTest extends MainActivityInstTestBase {
+public class UserInfoActivityInstTest extends TimelineInstTestBase {
   @Rule
   public ActivityTestRule<UserInfoActivity> rule
       = new ActivityTestRule<>(UserInfoActivity.class, false, false);
   private ConfigSetupIdlingResource idlingResource;
 
-  @Override
-  protected void verifyAfterLaunch() {
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
-    onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
-    onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
-  }
-
   @Test
-  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared() {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
+  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
+      throws Exception {
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.reply();
     // verify
     onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
     onView(withId(R.id.userInfo_reply_close)).check(matches(isDisplayed()));
   }
 
   @Test
-  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden() {
-    onView(ofStatusView(withText(createText(20)))).perform(click());
-    onView(withId(R.id.iffab_ffab)).perform(swipeDown());
+  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
+      throws Exception {
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.reply();
     onView(withId(R.id.userInfo_reply_close)).perform(click());
     // verify
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
     onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
-
   }
 
   @Override
@@ -103,9 +94,8 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
   ConfigSubscriber configSubscriber;
 
   @Override
-  @Before
-  public void setup() throws Exception {
-    super.setup();
+  public void setupConfig(User user) throws Exception {
+    super.setupConfig(user);
     getComponent().inject(this);
 
     idlingResource = new ConfigSetupIdlingResource();
@@ -123,6 +113,18 @@ public class UserInfoActivityInstTest extends MainActivityInstTestBase {
         });
       }
     });
+  }
+
+  @Override
+  protected int setupTimeline() throws TwitterException {
+    return setupDefaultUserInfoTimeline();
+  }
+
+  @Override
+  protected void verifyAfterLaunch() {
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+    onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
+    onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
   }
 
   @Override

@@ -35,6 +35,7 @@ import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -51,27 +52,22 @@ import static org.mockito.Mockito.when;
 public class TwitterResponseMock {
   @NonNull
   public static StatusDeletionNotice createDeletionNotice(final Status target) {
-    return new StatusDeletionNotice() {
-      @Override
-      public long getStatusId() {
-        return target.getId();
-      }
-
-      @Override
-      public long getUserId() {
-        return target.getUser().getId();
-      }
-
-      @Override
-      public int compareTo(@NonNull StatusDeletionNotice statusDeletionNotice) {
-        return 0;
-      }
-    };
+    final StatusDeletionNotice mock = mock(StatusDeletionNotice.class);
+    final long statusId = target.getId();
+    when(mock.getStatusId()).thenReturn(statusId);
+    final long userId = target.getUser().getId();
+    when(mock.getUserId()).thenReturn(userId);
+    return mock;
   }
 
   public static Status createStatus(long id) {
+    final User user = UserUtil.create();
+    return createStatus(id, user);
+  }
+
+  public static Status createStatus(long id, User user) {
     final Status status = mock(Status.class);
-    when(status.getId()).thenReturn(id * 1000L);
+    when(status.getId()).thenReturn(id);
     when(status.getCreatedAt()).thenReturn(new Date());
     when(status.getText()).thenReturn(createText(id));
     when(status.isRetweet()).thenReturn(false);
@@ -80,36 +76,48 @@ public class TwitterResponseMock {
     when(status.getURLEntities()).thenReturn(new URLEntity[0]);
     when(status.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[0]);
     when(status.getUserMentionEntities()).thenReturn(new UserMentionEntity[0]);
-    final User user = UserUtil.create();
     when(status.getUser()).thenReturn(user);
     return status;
   }
 
   @NonNull
-  public static String createText(long id) {
+  private static String createText(long id) {
     return "tweet body " + id;
   }
 
-  public static Status createRtStatus(long newStatusId, long rtedStatusId, boolean isFromApi) {
-    final Status rtStatus = createStatus(rtedStatusId);
-    when(rtStatus.isRetweeted()).thenReturn(isFromApi);
-    final int retweetCount = rtStatus.getRetweetCount();
-    when(rtStatus.getRetweetCount()).thenReturn(retweetCount + 1);
+  public static Status createRtStatus(Status rtedStatus, long newStatusId, boolean isFromRest) {
+    return createRtStatus(rtedStatus, newStatusId, 1, 0, isFromRest);
+  }
+
+  public static Status createRtStatus(Status rtedStatus, long newStatusId,
+                                      int rtCount, int favCount, boolean isFromRest) {
+    final Status rtStatus = createStatus(rtedStatus.getId(), rtedStatus.getUser());
+    if (isFromRest) {
+      when(rtStatus.isRetweeted()).thenReturn(true);
+      when(rtStatus.getRetweetCount()).thenReturn(rtCount);
+      when(rtStatus.getFavoriteCount()).thenReturn(favCount);
+    } else {
+      when(rtStatus.isRetweeted()).thenReturn(false);
+      when(rtStatus.getRetweetCount()).thenReturn(0);
+      when(rtStatus.getFavoriteCount()).thenReturn(0);
+    }
 
     final Status status = createStatus(newStatusId);
     final String rtText = rtStatus.getText();
     when(status.getText()).thenReturn(rtText);
     when(status.isRetweet()).thenReturn(true);
-    when(status.isRetweeted()).thenReturn(isFromApi);
+    when(status.isRetweeted()).thenReturn(isFromRest);
     when(status.getRetweetedStatus()).thenReturn(rtStatus);
     return status;
   }
 
   @NonNull
   public static ResponseList<Status> createResponseList() {
-    return new ResponseList<Status>() {
-      List<Status> list = new ArrayList<>();
+    return createResponseList(new ArrayList<Status>());
+  }
 
+  public static ResponseList<Status> createResponseList(final List<Status> list) {
+    return new ResponseList<Status>() {
       @Override
       public RateLimitStatus getRateLimitStatus() {
         return null;
@@ -282,5 +290,12 @@ public class TwitterResponseMock {
             listener.onStatus(status);
           }
         });
+  }
+
+  public static TwitterAPIConfiguration createTwitterAPIConfigMock() {
+    final TwitterAPIConfiguration mock = mock(TwitterAPIConfiguration.class);
+    when(mock.getShortURLLength()).thenReturn(23);
+    when(mock.getShortURLLengthHttps()).thenReturn(23);
+    return mock;
   }
 }

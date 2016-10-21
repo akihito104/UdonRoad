@@ -87,7 +87,7 @@ public class TwitterApi {
       @Override
       public void call(Subscriber<? super User> subscriber) {
         try {
-          User user = twitter.users().showUser(twitter.getId());
+          User user = twitter.showUser(twitter.getId());
           subscriber.onNext(user);
           subscriber.onCompleted();
         } catch (TwitterException e) {

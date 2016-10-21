@@ -194,12 +194,16 @@ public class MainActivity
 
     final TextView account
         = (TextView) binding.navDrawer.findViewById(R.id.nav_header_account);
-    account.setText(user.getScreenName());
+    if (account != null) {
+      account.setText(user.getScreenName());
+    }
     final ImageView icon
         = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
-    Picasso.with(binding.navDrawer.getContext())
-        .load(user.getProfileImageURLHttps()).fit()
-        .into(icon);
+    if (icon != null) {
+      Picasso.with(binding.navDrawer.getContext())
+          .load(user.getProfileImageURLHttps()).fit()
+          .into(icon);
+    }
   }
 
   @Override

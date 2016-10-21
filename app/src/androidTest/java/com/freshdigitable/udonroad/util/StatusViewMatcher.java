@@ -25,7 +25,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.QuotedStatusView;
 import com.freshdigitable.udonroad.StatusView;
+import com.freshdigitable.udonroad.StatusViewBase;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -41,9 +43,18 @@ import static android.support.test.espresso.util.TreeIterables.breadthFirstViewT
 public class StatusViewMatcher {
   @NonNull
   public static Matcher<View> ofStatusView(final Matcher<View> viewMatcher) {
-    return new BoundedMatcher<View, StatusView>(StatusView.class) {
+    return ofStatusViewInternal(viewMatcher, StatusView.class);
+  }
+
+  public static Matcher<View> ofQuotedStatusView(final Matcher<View> viewMatcher) {
+    return ofStatusViewInternal(viewMatcher, QuotedStatusView.class);
+  }
+
+  private static <T extends StatusViewBase> Matcher<View> ofStatusViewInternal(
+      final Matcher<View> viewMatcher, Class<T> clz) {
+    return new BoundedMatcher<View, T>(clz) {
       @Override
-      protected boolean matchesSafely(StatusView item) {
+      protected boolean matchesSafely(T item) {
         final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
             new Predicate<View>() {
               @Override

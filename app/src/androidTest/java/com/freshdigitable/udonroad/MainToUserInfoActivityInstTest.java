@@ -23,40 +23,58 @@ import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.freshdigitable.udonroad.util.PerformUtil;
+
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.TwitterException;
+import twitter4j.User;
+
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
-import static com.freshdigitable.udonroad.util.TwitterResponseMock.createText;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by akihit on 2016/07/28.
  */
 @RunWith(AndroidJUnit4.class)
-public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
+public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Rule
   public ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
+  @Override
+  protected int setupTimeline() throws TwitterException {
+    final int initCount = setupDefaultTimeline();
+    setupDefaultUserInfoTimeline();
+    return initCount;
+  }
+
   @Test
   public void clickUserIcon_then_launchUserInfoActivity() throws Exception {
+    // setup
+    final User loginUser = getLoginUser();
+    final ResponseList<Status> defaultResponseList = createDefaultResponseList(loginUser);
+    when(twitter.getUserTimeline(loginUser.getId())).thenReturn(defaultResponseList);
+    // exec.
     onView(withId(R.id.main_toolbar)).check(matches(isAssignableFrom(Toolbar.class)));
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
-    onView(ofStatusView(withText(createText(20)))).check(matches(isDisplayed()));
+    PerformUtil.clickUserIconAt(0);
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+    onView(ofStatusView(withText(findByStatusId(20000).getText())))
+        .check(matches(isDisplayed()));
     // tear down
     Espresso.pressBack();
     onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
@@ -79,14 +97,14 @@ public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
 
   @Test
   public void launchUserInfoTwiceAndBackMain_then_launchUserInfo() {
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
+    PerformUtil.clickUserIconAt(0);
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
+    PerformUtil.clickUserIconAt(0);
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
+    PerformUtil.clickUserIconAt(0);
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
 
     // tear down
     Espresso.pressBack();
@@ -94,15 +112,16 @@ public class MainToUserInfoActivityInstTest extends MainActivityInstTestBase {
   }
 
   @Test
-  public void openTweetInputViewAndClose_and_launchUserInfoAndBackToMain() {
-    onView(withId(R.id.action_write)).perform(click());
-    onView(withId(R.id.action_cancel)).perform(click());
-    onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, 0))).perform(click());
-    onView(withId(R.id.user_screen_name)).check(matches(withText("@akihito104")));
+  public void openTweetInputViewAndClose_and_launchUserInfoAndBackToMain()
+      throws Exception {
+    PerformUtil.clickWriteOnMenu();
+    PerformUtil.clickCancelWriteOnMenu();
+    PerformUtil.clickUserIconAt(0);
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
 
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(createText(20)))));
+        .check(matches(ofStatusView(withText(findByStatusId(20000).getText()))));
   }
 
   @Override
