@@ -4,13 +4,13 @@ apply plugin: 'realm-android'
 apply plugin: 'com.cookpad.android.licensetools'
 
 android {
-    compileSdkVersion 24
+    compileSdkVersion 25
     buildToolsVersion "24.0.2"
 
     defaultConfig {
         applicationId "com.freshdigitable.udonroad"
         minSdkVersion 15
-        targetSdkVersion 24
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
@@ -62,7 +62,7 @@ android {
     }
 }
 
-def supportLibVer = '24.2.1'
+def supportLibVer = '25.0.0'
 def t4jVer = '4.0.5'
 def rxVer = '1.1.6'
 def rxAndroidVer = '1.2.1'
