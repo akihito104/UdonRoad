@@ -61,7 +61,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     PerformUtil.reply();
     // verify
-    onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
+    PerformUtil.clickHeadingOnMenu();
     onView(withId(R.id.userInfo_reply_close)).check(matches(isDisplayed()));
   }
 
@@ -73,7 +73,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     onView(withId(R.id.userInfo_reply_close)).perform(click());
     // verify
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
-    onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
+    PerformUtil.clickHeadingOnMenu();
   }
 
   @Override
@@ -125,7 +125,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
   protected void verifyAfterLaunch() {
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
-    onView(withId(R.id.userInfo_heading)).check(matches(isDisplayed()));
+    PerformUtil.clickHeadingOnMenu();
   }
 
   @Override

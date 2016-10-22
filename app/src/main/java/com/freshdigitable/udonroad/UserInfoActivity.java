@@ -234,9 +234,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   public boolean onOptionsItemSelected(MenuItem item) {
     final int itemId = item.getItemId();
     switch (itemId) {
-      case R.id.userInfo_heading:
-        viewPager.scrollToTop();
-        break;
       case R.id.userInfo_follow:
         userSubscriber.createFriendship(parseIntent());
         break;
