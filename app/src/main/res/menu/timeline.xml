@@ -21,6 +21,7 @@
         android:id="@+id/action_heading"
         android:title="@string/action_totop"
         android:icon="@drawable/ic_twitter_bird"
+        android:orderInCategory="0"
         app:showAsAction="always"
         />
 </menu>

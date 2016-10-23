@@ -22,6 +22,7 @@
         android:id="@+id/userInfo_following"
         android:icon="@drawable/ic_person_add"
         android:title="following"
+        android:orderInCategory="20"
         app:showAsAction="ifRoom">
         <menu>
             <item
