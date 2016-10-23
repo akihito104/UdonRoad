@@ -39,10 +39,11 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
@@ -61,8 +62,10 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     PerformUtil.reply();
     // verify
-    PerformUtil.clickHeadingOnMenu();
-    onView(withId(R.id.userInfo_reply_close)).check(matches(isDisplayed()));
+    onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+    onView(withId(R.id.userInfo_following)).check(doesNotExist());
+    onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
   }
 
   @Test
@@ -70,10 +73,13 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
       throws Exception {
     PerformUtil.selectItemViewAt(0);
     PerformUtil.reply();
-    onView(withId(R.id.userInfo_reply_close)).perform(click());
+    onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+    PerformUtil.clickCancelWriteOnMenu();
     // verify
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
-    PerformUtil.clickHeadingOnMenu();
+    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+    onView(withId(R.id.action_write)).check(doesNotExist());
+    onView(withId(R.id.action_cancel)).check(doesNotExist());
   }
 
   @Override
@@ -125,7 +131,8 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
   protected void verifyAfterLaunch() {
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
-    PerformUtil.clickHeadingOnMenu();
+    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+    onView(withId(R.id.action_write)).check(doesNotExist());
   }
 
   @Override

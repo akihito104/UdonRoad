@@ -188,6 +188,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
   @Override
   protected void onStop() {
+    super.onStop();
     binding.userInfoIffab.setOnFlingListener(null);
     actionMap.clear();
     binding.userInfoToolbarTitle.setText("");
@@ -197,8 +198,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     subscription.unsubscribe();
     userCache.close();
     configSubscriber.close();
-    closeTwitterInputView();
-    super.onStop();
   }
 
   @Override
@@ -206,7 +205,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     super.onDestroy();
   }
 
-  private MenuItem replyCloseMenuItem;
   private MenuItem followingMenuItem;
 
   @Override
@@ -214,20 +212,20 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     Log.d(TAG, "onCreateOptionsMenu: ");
     getMenuInflater().inflate(R.menu.user_info, menu);
     followingMenuItem = menu.findItem(R.id.userInfo_following);
-    replyCloseMenuItem = menu.findItem(R.id.userInfo_reply_close);
     return super.onCreateOptionsMenu(menu);
   }
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
     Log.d(TAG, "onPrepareOptionsMenu: ");
-    setupMenuVisibility();
+    setFollowingMenuItemVisibility();
     return super.onPrepareOptionsMenu(menu);
   }
 
-  private void setupMenuVisibility() {
-    replyCloseMenuItem.setVisible(tweetInputFragment != null);
-    followingMenuItem.setVisible(!replyCloseMenuItem.isVisible());
+  private void setFollowingMenuItemVisibility() {
+    followingMenuItem.setVisible(
+        userInfoAppbarFragment != null
+            && userInfoAppbarFragment.isVisible());
   }
 
   @Override
@@ -252,7 +250,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
       case R.id.userInfo_r4s:
         configSubscriber.reportSpam(parseIntent());
         break;
-      case R.id.userInfo_reply_close:
+      case R.id.action_cancel:
         closeTwitterInputView();
         break;
     }
@@ -291,7 +289,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
         String.format(resources.getString(R.string.tweet_name), user.getScreenName()));
   }
 
-  private void showTwitterInputview(@TweetType int type, long statusId) {
+  private void showTwitterInputView(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
 
     tweetInputFragment = TweetInputFragment.create(type, statusId);
@@ -307,7 +305,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     }
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     binding.userInfoAppbarLayout.setExpanded(true);
-    setupMenuVisibility();
   }
 
   private void closeTwitterInputView() {
@@ -316,8 +313,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     }
     binding.userInfoAppbarLayout.setExpanded(false);
     binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
-    tweetInputFragment.collapseStatusInputView();
-    tweetInputFragment.setTweetSendFab(null);
+    setFollowingMenuItemVisibility();
     getSupportFragmentManager().beginTransaction()
         .remove(tweetInputFragment)
         .show(userInfoAppbarFragment)
@@ -325,7 +321,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding.userInfoToolbar.setTitle("");
     binding.userInfoToolbarTitle.setVisibility(View.VISIBLE);
     tweetInputFragment = null;
-    setupMenuVisibility();
   }
 
   @Override
@@ -347,7 +342,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
 
   @Override
   public void setupInput(@TweetType int type, long statusId) {
-    showTwitterInputview(type, statusId);
+    showTwitterInputView(type, statusId);
   }
 
   @Override
@@ -386,14 +381,14 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
       @Override
       public void run() {
         final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
-        showTwitterInputview(TYPE_REPLY, selectedTweetId);
+        showTwitterInputView(TYPE_REPLY, selectedTweetId);
       }
     }));
     actionMap.put(Direction.DOWN_RIGHT, new UserAction(Resource.QUOTE, new Runnable() {
       @Override
       public void run() {
         final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
-        showTwitterInputview(TYPE_QUOTE, selectedTweetId);
+        showTwitterInputView(TYPE_QUOTE, selectedTweetId);
       }
     }));
     actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {

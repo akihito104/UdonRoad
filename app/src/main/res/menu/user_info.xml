@@ -45,12 +45,4 @@
         </menu>
     </item>
 
-    <item
-        android:id="@+id/userInfo_reply_close"
-        android:icon="@drawable/ic_clear_white_24dp"
-        android:title="@android:string/cancel"
-        android:visible="false"
-        app:showAsAction="ifRoom"
-        />
-
 </menu>
