@@ -132,13 +132,10 @@ public class TweetInputFragment extends Fragment {
     final int itemId = item.getItemId();
     if (itemId == R.id.action_write) {
       stretchTweetInputView();
-      return false;
-    }
-    if (itemId == R.id.action_cancel) {
+    } else if (itemId == R.id.action_cancel) {
       collapseStatusInputView();
-      return false;
     }
-    return super.onOptionsItemSelected(item);
+    return false;
   }
 
   @Nullable

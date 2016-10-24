@@ -94,9 +94,8 @@ public class TimelineFragment<T> extends Fragment {
     final int itemId = item.getItemId();
     if (itemId == R.id.action_heading) {
       scrollToTop();
-      return true;
     }
-    return super.onOptionsItemSelected(item);
+    return false;
   }
 
   @Nullable
