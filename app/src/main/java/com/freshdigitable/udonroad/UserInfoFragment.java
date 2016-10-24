@@ -142,20 +142,15 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
       userSubscriber.createFriendship(userId);
-    }
-    if (itemId == R.id.action_remove) {
+    } else if (itemId == R.id.action_remove) {
       userSubscriber.destroyFriendship(userId);
-    }
-    if (itemId == R.id.action_block) {
+    } else if (itemId == R.id.action_block) {
       configSubscriber.createBlock(userId);
-    }
-    if (itemId == R.id.action_block_retweet) {
+    } else if (itemId == R.id.action_block_retweet) {
       // todo
-    }
-    if (itemId == R.id.action_mute) {
+    } else if (itemId == R.id.action_mute) {
       configSubscriber.createMute(userId);
-    }
-    if (itemId == R.id.action_r4s) {
+    } else if (itemId == R.id.action_r4s) {
       configSubscriber.reportSpam(userId);
     }
     return false;
