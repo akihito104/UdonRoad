@@ -228,7 +228,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // close
     PerformUtil.clickCancelWriteOnMenu();
     onView(withId(R.id.action_write)).check(matches(isDisplayed()));
-    onView(withId(R.id.main_tweet_input_view)).check(doesNotExist());
+    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 

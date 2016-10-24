@@ -17,8 +17,6 @@
     <string name="oauth" translatable="false">OAuth</string>
     <string name="drawer_open">open nav drawer</string>
     <string name="drawer_close">close nav drawer</string>
-    <string name="action_totop">To Top</string>
-    <string name="action_send_status">Send Status</string>
     <string name="detail_rt_create">RT</string>
     <string name="detail_rt_delete">cancel RT</string>
     <string name="detail_fav_create">fav</string>
@@ -51,6 +49,16 @@
     <string name="msg_create_mute_success">muted</string>
     <string name="msg_follower_list_failed">failed to fetch followers…</string>
     <string name="msg_friends_list_failed">failed to fetch friends…</string>
+
+    <string name="action_totop">To Top</string>
+    <string name="action_send_status">Send Status</string>
+    <string name="action_group_user">action for the user</string>
+    <string name="action_follow">follow</string>
+    <string name="action_remove">remove</string>
+    <string name="action_block_retweet">block retweet</string>
+    <string name="action_mute">mute</string>
+    <string name="action_block">block</string>
+    <string name="action_r4s">report for spam</string>
 
     <string name="user_following">following</string>
     <string name="user_muting">muting</string>

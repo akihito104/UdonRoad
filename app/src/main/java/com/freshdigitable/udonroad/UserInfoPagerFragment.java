@@ -224,11 +224,6 @@ public class UserInfoPagerFragment extends Fragment {
     currentFragment.clearSelectedTweet();
   }
 
-  public void scrollToTop() {
-    final TimelineFragment item = getCurrentFragment();
-    item.scrollToTop();
-  }
-
   private static class PagerAdapter extends FragmentPagerAdapter {
     private PagerAdapter(FragmentManager fm) {
       super(fm);

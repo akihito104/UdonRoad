@@ -29,6 +29,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -72,6 +75,10 @@ public class TweetInputFragment extends Fragment {
   @Inject
   ConfigSubscriber configSubscriber;
 
+  public static TweetInputFragment create() {
+    return create(TYPE_NONE);
+  }
+
   public static TweetInputFragment create(@TweetType int type) {
     return create(type, -1);
   }
@@ -89,6 +96,46 @@ public class TweetInputFragment extends Fragment {
   public void onAttach(Context context) {
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
+  }
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setHasOptionsMenu(true);
+  }
+
+  private MenuItem sendStatusMenuItem;
+  private MenuItem cancelMenuItem;
+
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    Log.d(TAG, "onCreateOptionsMenu: ");
+    super.onCreateOptionsMenu(menu, inflater);
+    inflater.inflate(R.menu.tweet_input, menu);
+    sendStatusMenuItem = menu.findItem(R.id.action_write);
+    cancelMenuItem = menu.findItem(R.id.action_cancel);
+    setupMenuVisibility();
+  }
+
+  private void setupMenuVisibility() {
+    if (sendStatusMenuItem != null) {
+      sendStatusMenuItem.setVisible(!binding.mainTweetInputView.isVisible());
+    }
+    if (cancelMenuItem != null) {
+      cancelMenuItem.setVisible(binding.mainTweetInputView.isVisible());
+    }
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    Log.d(TAG, "onOptionsItemSelected: ");
+    final int itemId = item.getItemId();
+    if (itemId == R.id.action_write) {
+      stretchTweetInputView();
+    } else if (itemId == R.id.action_cancel) {
+      collapseStatusInputView();
+    }
+    return false;
   }
 
   @Nullable
@@ -132,7 +179,7 @@ public class TweetInputFragment extends Fragment {
   private TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
-      tweetSendFab.setEnabled(editable.length() > 1);
+      tweetSendFab.setEnabled(editable.length() >= 1);
     }
 
     @Override
@@ -147,6 +194,9 @@ public class TweetInputFragment extends Fragment {
   private List<Long> quoteStatusIds = new ArrayList<>(4);
 
   public void stretchTweetInputView(@TweetType int type, long statusId) {
+    if (type == TYPE_NONE) {
+      return;
+    }
     if (type == TYPE_DEFAULT) {
       stretchTweetInputView();
     } else if (type == TYPE_REPLY) {
@@ -160,6 +210,7 @@ public class TweetInputFragment extends Fragment {
     setUpTweetInputView();
     setUpTweetSendFab();
     binding.mainTweetInputView.appearing();
+    setupMenuVisibility();
   }
 
   private ReplyEntity replyEntity;
@@ -284,6 +335,7 @@ public class TweetInputFragment extends Fragment {
             inputText.getText().clear();
             inputText.clearFocus();
             inputText.disappearing();
+            setupMenuVisibility();
           }
         });
   }
@@ -303,6 +355,7 @@ public class TweetInputFragment extends Fragment {
     replyEntity = null;
     quoteStatusIds.clear();
     binding.mainTweetInputView.disappearing();
+    setupMenuVisibility();
   }
 
   public boolean isStatusInputViewVisible() {
@@ -318,9 +371,10 @@ public class TweetInputFragment extends Fragment {
   public static final int TYPE_DEFAULT = 0;
   public static final int TYPE_REPLY = 1;
   public static final int TYPE_QUOTE = 2;
+  public static final int TYPE_NONE = -1;
 
   @Retention(RetentionPolicy.SOURCE)
-  @IntDef(value = {TYPE_DEFAULT, TYPE_REPLY, TYPE_QUOTE})
+  @IntDef(value = {TYPE_DEFAULT, TYPE_REPLY, TYPE_QUOTE, TYPE_NONE})
   public @interface TweetType {
   }
 

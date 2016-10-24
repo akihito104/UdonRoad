@@ -31,7 +31,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -138,6 +137,7 @@ public class MainActivity
 
     binding.ffab.hide();
     setupHomeTimeline();
+    setupTweetInputView();
   }
 
   private void setupHomeTimeline() {
@@ -300,7 +300,6 @@ public class MainActivity
       binding.ffab.setOnFlingListener(null);
       binding.navDrawer.setNavigationItemSelectedListener(null);
     }
-    tearDownTweetInputView();
     configSubscriber.close();
     homeTimeline.close();
   }
@@ -332,23 +331,10 @@ public class MainActivity
     actionBarDrawerToggle.onConfigurationChanged(newConfig);
   }
 
-  private MenuItem sendStatusMenuItem;
-  private MenuItem cancelMenuItem;
-
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.appbar_menu, menu);
-    sendStatusMenuItem = menu.findItem(R.id.action_write);
-    cancelMenuItem = menu.findItem(R.id.action_cancel);
-    return super.onCreateOptionsMenu(menu);
-  }
-
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == R.id.action_heading) {
-      headingSelected();
-    } else if (itemId == R.id.action_write) {
+    if (itemId == R.id.action_write) {
       sendStatusSelected(TYPE_DEFAULT, -1);
     } else if (itemId == R.id.action_cancel) {
       cancelWritingSelected();
@@ -357,21 +343,14 @@ public class MainActivity
         || super.onOptionsItemSelected(item);
   }
 
-  private void headingSelected() {
-    if (tlFragment.isVisible()) {
-      tlFragment.scrollToTop();
-    }
-  }
-
   private void sendStatusSelected(@TweetType int type, long statusId) {
-    sendStatusMenuItem.setVisible(false);
-    cancelMenuItem.setVisible(true);
-
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
     }
     tlFragment.stopScroll();
-    setupTweetInputView(type, statusId);
+    if (type != TYPE_DEFAULT) {
+      tweetInputFragment.stretchTweetInputView(type, statusId);
+    }
     if (type == TYPE_REPLY) {
       binding.mainToolbar.setTitle("返信する");
     } else if (type == TYPE_QUOTE) {
@@ -382,37 +361,19 @@ public class MainActivity
   }
 
   private void cancelWritingSelected() {
-    sendStatusMenuItem.setVisible(true);
-    cancelMenuItem.setVisible(false);
-
     tlFragment.startScroll();
-    if (tweetInputFragment != null) {
-      getSupportFragmentManager().beginTransaction()
-          .remove(tweetInputFragment)
-          .commit();
-    }
-    tearDownTweetInputView();
     if (tlFragment.isTweetSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
     binding.mainToolbar.setTitle("Home");
   }
 
-  private void setupTweetInputView(@TweetType int type, long statusId) {
-    tweetInputFragment = TweetInputFragment.create(type, statusId);
+  private void setupTweetInputView() {
+    tweetInputFragment = TweetInputFragment.create();
     tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_appbar_container, tweetInputFragment)
+        .add(R.id.main_appbar_container, tweetInputFragment)
         .commit();
-  }
-
-  private void tearDownTweetInputView() {
-    if (tweetInputFragment == null) {
-      return;
-    }
-    tweetInputFragment.collapseStatusInputView();
-    tweetInputFragment.setTweetSendFab(null);
-    tweetInputFragment = null;
   }
 
   private void showToast(String text) {
