@@ -21,8 +21,12 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -30,6 +34,9 @@ import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
+import com.freshdigitable.udonroad.subscriber.FeedbackAction;
+import com.freshdigitable.udonroad.subscriber.UserSubscriber;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -57,6 +64,12 @@ public class UserInfoFragment extends Fragment {
   public void onAttach(Context context) {
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
+  }
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setHasOptionsMenu(true);
   }
 
   @Nullable
@@ -97,6 +110,10 @@ public class UserInfoFragment extends Fragment {
             Log.e("UserInfoFragment", "call: ", throwable);
           }
         });
+
+    final FeedbackAction feedbackAction = getFeedbackAction();
+    userSubscriber = new UserSubscriber<>(twitterApi, userCache, feedbackAction);
+    configSubscriber.setFeedbackSubscriber(feedbackAction);
   }
 
   @Override
@@ -107,6 +124,41 @@ public class UserInfoFragment extends Fragment {
     dismissUserInfo();
     userCache.close();
     super.onStop();
+  }
+
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    super.onCreateOptionsMenu(menu, inflater);
+    inflater.inflate(R.menu.user_info, menu);
+  }
+
+  private UserSubscriber<TypedCache<User>> userSubscriber;
+  @Inject
+  ConfigSubscriber configSubscriber;
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    final int itemId = item.getItemId();
+    final long userId = getUserId();
+    if (itemId == R.id.action_follow) {
+      userSubscriber.createFriendship(userId);
+    }
+    if (itemId == R.id.action_remove) {
+      userSubscriber.destroyFriendship(userId);
+    }
+    if (itemId == R.id.action_block) {
+      configSubscriber.createBlock(userId);
+    }
+    if (itemId == R.id.action_block_retweet) {
+      // todo
+    }
+    if (itemId == R.id.action_mute) {
+      configSubscriber.createMute(userId);
+    }
+    if (itemId == R.id.action_r4s) {
+      configSubscriber.reportSpam(userId);
+    }
+    return false;
   }
 
   private void showUserInfo(User user) {
@@ -138,5 +190,14 @@ public class UserInfoFragment extends Fragment {
   private long getUserId() {
     final Bundle arguments = getArguments();
     return arguments.getLong("userId");
+  }
+
+  private FeedbackAction getFeedbackAction() {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof FeedbackAction) {
+      return (FeedbackAction) activity;
+    } else {
+      return new FeedbackAction.ToastFeedback(getContext());
+    }
   }
 }

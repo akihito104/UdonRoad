@@ -23,6 +23,7 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.StringRes;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
@@ -32,7 +33,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -47,10 +47,7 @@ import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
-import com.freshdigitable.udonroad.subscriber.UserSubscriber;
+import com.freshdigitable.udonroad.subscriber.FeedbackAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +57,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
@@ -73,7 +71,8 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  *
  * Created by akihit on 2016/01/30.
  */
-public class UserInfoActivity extends AppCompatActivity implements TweetSendable, FabHandleable {
+public class UserInfoActivity extends AppCompatActivity
+    implements TweetSendable, FabHandleable, FeedbackAction {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -82,12 +81,7 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
-  @Inject
-  TwitterApi twitterApi;
-  private UserSubscriber<TypedCache<User>> userSubscriber;
   private Subscription subscription;
-  @Inject
-  ConfigSubscriber configSubscriber;
   private StatusDetailFragment statusDetailFragment;
 
   @Override
@@ -104,10 +98,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     long userId = parseIntent();
     setUpAppbar();
     setUpUserInfoView(userId);
-
-    final SnackbarFeedback feedback = new SnackbarFeedback(binding.userInfoTimelineContainer);
-    userSubscriber = new UserSubscriber<>(twitterApi, userCache, feedback);
-    configSubscriber.setFeedbackSubscriber(feedback);
 
     viewPager = UserInfoPagerFragment.create(userId);
     getSupportFragmentManager().beginTransaction()
@@ -183,7 +173,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     setSupportActionBar(binding.userInfoToolbar);
     setupActionMap();
     UserAction.setupFlingableFAB(binding.userInfoIffab, actionMap, getApplicationContext());
-    configSubscriber.open();
   }
 
   @Override
@@ -197,62 +186,13 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     binding.userInfoTabs.setupWithViewPager(null);
     subscription.unsubscribe();
     userCache.close();
-    configSubscriber.close();
-  }
-
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-  }
-
-  private MenuItem followingMenuItem;
-
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    Log.d(TAG, "onCreateOptionsMenu: ");
-    getMenuInflater().inflate(R.menu.user_info, menu);
-    followingMenuItem = menu.findItem(R.id.userInfo_following);
-    return super.onCreateOptionsMenu(menu);
-  }
-
-  @Override
-  public boolean onPrepareOptionsMenu(Menu menu) {
-    Log.d(TAG, "onPrepareOptionsMenu: ");
-    setFollowingMenuItemVisibility();
-    return super.onPrepareOptionsMenu(menu);
-  }
-
-  private void setFollowingMenuItemVisibility() {
-    followingMenuItem.setVisible(
-        userInfoAppbarFragment != null
-            && userInfoAppbarFragment.isVisible());
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     final int itemId = item.getItemId();
-    switch (itemId) {
-      case R.id.userInfo_follow:
-        userSubscriber.createFriendship(parseIntent());
-        break;
-      case R.id.userInfo_remove:
-        userSubscriber.destroyFriendship(parseIntent());
-        break;
-      case R.id.userInfo_block_retweet:
-        // todo
-        break;
-      case R.id.userInfo_mute:
-        configSubscriber.createMute(parseIntent());
-        break;
-      case R.id.userInfo_block:
-        configSubscriber.createBlock(parseIntent());
-        break;
-      case R.id.userInfo_r4s:
-        configSubscriber.reportSpam(parseIntent());
-        break;
-      case R.id.action_cancel:
-        closeTwitterInputView();
-        break;
+    if (itemId == R.id.action_cancel) {
+      closeTwitterInputView();
     }
     return super.onOptionsItemSelected(item);
   }
@@ -298,12 +238,12 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
         .hide(userInfoAppbarFragment)
         .add(R.id.userInfo_appbar_container, tweetInputFragment)
         .commit();
+    binding.userInfoToolbarTitle.setVisibility(View.GONE);
     if (type == TYPE_REPLY) {
       binding.userInfoToolbar.setTitle("返信する");
     } else if (type == TYPE_QUOTE) {
       binding.userInfoToolbar.setTitle("コメントする");
     }
-    binding.userInfoToolbarTitle.setVisibility(View.GONE);
     binding.userInfoAppbarLayout.setExpanded(true);
   }
 
@@ -313,7 +253,6 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
     }
     binding.userInfoAppbarLayout.setExpanded(false);
     binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
-    setFollowingMenuItemVisibility();
     getSupportFragmentManager().beginTransaction()
         .remove(tweetInputFragment)
         .show(userInfoAppbarFragment)
@@ -430,5 +369,15 @@ public class UserInfoActivity extends AppCompatActivity implements TweetSendable
   @Override
   public void hideFab() {
     binding.userInfoIffab.hide();
+  }
+
+  @Override
+  public Action1<Throwable> onErrorDefault(@StringRes int msg) {
+    return new SnackbarFeedback(binding.userInfoTimelineContainer).onErrorDefault(msg);
+  }
+
+  @Override
+  public Action0 onCompleteDefault(@StringRes int msg) {
+    return new SnackbarFeedback(binding.userInfoTimelineContainer).onCompleteDefault(msg);
   }
 }

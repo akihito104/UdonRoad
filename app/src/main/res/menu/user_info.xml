@@ -19,30 +19,30 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/userInfo_following"
+        android:id="@+id/action_group_user"
         android:icon="@drawable/ic_person_add"
-        android:title="following"
+        android:title="@string/action_group_user"
         android:orderInCategory="20"
         app:showAsAction="ifRoom">
         <menu>
             <item
-                android:id="@+id/userInfo_follow"
-                android:title="follow"/>
+                android:id="@+id/action_follow"
+                android:title="@string/action_follow"/>
             <item
-                android:id="@+id/userInfo_remove"
-                android:title="remove"/>
+                android:id="@+id/action_remove"
+                android:title="@string/action_remove"/>
             <item
-                android:id="@+id/userInfo_block_retweet"
-                android:title="block retweet"/>
+                android:id="@+id/action_block_retweet"
+                android:title="@string/action_block_retweet"/>
             <item
-                android:id="@+id/userInfo_mute"
-                android:title="mute"/>
+                android:id="@+id/action_mute"
+                android:title="@string/action_mute"/>
             <item
-                android:id="@+id/userInfo_block"
-                android:title="block"/>
+                android:id="@+id/action_block"
+                android:title="@string/action_block"/>
             <item
-                android:id="@+id/userInfo_r4s"
-                android:title="report for spam"/>
+                android:id="@+id/action_r4s"
+                android:title="@string/action_r4s"/>
         </menu>
     </item>
 

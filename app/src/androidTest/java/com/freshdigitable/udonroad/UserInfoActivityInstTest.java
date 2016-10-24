@@ -64,7 +64,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     // verify
     onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
     onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-    onView(withId(R.id.userInfo_following)).check(doesNotExist());
+    onView(withId(R.id.action_group_user)).check(doesNotExist());
     onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
   }
 
@@ -76,7 +76,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
     PerformUtil.clickCancelWriteOnMenu();
     // verify
-    onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
+    onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
     onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
     onView(withId(R.id.action_write)).check(doesNotExist());
     onView(withId(R.id.action_cancel)).check(doesNotExist());
@@ -130,7 +130,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
   @Override
   protected void verifyAfterLaunch() {
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
-    onView(withId(R.id.userInfo_following)).check(matches(isDisplayed()));
+    onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
     onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
     onView(withId(R.id.action_write)).check(doesNotExist());
   }
