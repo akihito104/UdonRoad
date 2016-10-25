@@ -17,11 +17,12 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.os.Build;
+import android.graphics.Typeface;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.AppCompatTextView;
-import android.text.Html;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.util.AttributeSet;
 
 import twitter4j.User;
@@ -32,7 +33,6 @@ import twitter4j.User;
  * Created by akihit on 2016/07/09.
  */
 public class CombinedScreenNameTextView extends AppCompatTextView {
-
   public CombinedScreenNameTextView(Context context) {
     this(context, null);
   }
@@ -43,13 +43,8 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
 
   public CombinedScreenNameTextView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    final int maxLines = TextViewCompat.getMaxLines(this);
-    template = maxLines == 2
-        ? getResources().getString(R.string.tweet_name_screenName_lines)
-        : getResources().getString(R.string.tweet_name_screenName);
   }
 
-  private final String template;
   private String name;
   private String screenName;
 
@@ -60,17 +55,15 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
         && this.screenName != null && this.screenName.equals(screenName)) {
       return;
     }
-    final String formatted = String.format(template, name, screenName);
-    setText(fromHtmlCompat(formatted));
+    final String formatted = name
+        + (TextViewCompat.getMaxLines(this) == 2 ? "\n" : " ")
+        + "@" + screenName;
+    final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(formatted);
+    spannableStringBuilder.setSpan(STYLE_BOLD, 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    setText(spannableStringBuilder);
     this.name = name;
     this.screenName = screenName;
   }
 
-  private static Spanned fromHtmlCompat(String html) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-      return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT);
-    } else {
-      return Html.fromHtml(html);
-    }
-  }
+  private static final StyleSpan STYLE_BOLD = new StyleSpan(Typeface.BOLD);
 }
