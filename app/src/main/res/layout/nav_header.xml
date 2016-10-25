@@ -15,42 +15,35 @@
   ~ limitations under the License.
   -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:background="@color/primary_dark"
-                android:padding="10dp"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:paddingTop="@dimen/nav_drawer_header_margin_content"
+              android:paddingBottom="@dimen/nav_drawer_header_margin_content"
+              android:paddingStart="@dimen/nav_drawer_header_margin_side"
+              android:paddingEnd="@dimen/nav_drawer_header_margin_side"
+              android:orientation="vertical"
+              android:background="@color/primary_dark"
     >
-
-    <TextView
-        android:id="@+id/nav_header_at"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/timeline_at"
-        android:textColor="@color/text_primary_inverse"
-        android:layout_alignParentBottom="true"
-        android:layout_toStartOf="@+id/nav_header_account"
-        />
-
-    <TextView
-        android:id="@+id/nav_header_account"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:textColor="@color/text_primary_inverse"
-        tools:text="account"
-        />
-
-    <ImageView
+    <com.freshdigitable.udonroad.RoundedCornerImageView
         android:id="@+id/nav_header_icon"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_above="@+id/nav_header_account"
-        android:layout_alignParentEnd="true"
         android:contentDescription="@string/desc_icon"
+        android:padding="2dp"
+        android:background="@drawable/s_rounded_mask_default"
+        app:backgroundTint="@color/layer_white_transparent"
         />
-</RelativeLayout>
+    <com.freshdigitable.udonroad.CombinedScreenNameTextView
+        android:id="@+id/nav_header_account"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/nav_drawer_header_subtitle_height"
+        android:gravity="center_vertical"
+        android:maxLines="2"
+        android:textSize="@dimen/nav_drawer_header_text"
+        android:textColor="@color/text_primary_inverse"
+        tools:text="name\n\@screen_name"
+        />
+</LinearLayout>

@@ -36,7 +36,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
@@ -198,10 +197,10 @@ public class MainActivity
       return;
     }
 
-    final TextView account
-        = (TextView) binding.navDrawer.findViewById(R.id.nav_header_account);
+    final CombinedScreenNameTextView account
+        = (CombinedScreenNameTextView) binding.navDrawer.findViewById(R.id.nav_header_account);
     if (account != null) {
-      account.setText(user.getScreenName());
+      account.setNames(user);
     }
     final ImageView icon
         = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
