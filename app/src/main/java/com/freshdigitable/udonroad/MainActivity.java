@@ -426,7 +426,17 @@ public class MainActivity
         timelineSubscriber.retweetStatus(tlFragment.getSelectedTweetId());
       }
     }));
-    actionMap.put(Direction.UP_RIGHT, new UserAction());
+    actionMap.put(Direction.UP_RIGHT, new UserAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final long selectedTweetId = tlFragment.getSelectedTweetId();
+        TimelineSubscriber.subscribeWithEmpty(
+            Observable.concat(
+                timelineSubscriber.observeCreateFavorite(selectedTweetId),
+                timelineSubscriber.observeRetweetStatus(selectedTweetId)
+            ));
+      }
+    }));
     actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {
       @Override
       public void run() {

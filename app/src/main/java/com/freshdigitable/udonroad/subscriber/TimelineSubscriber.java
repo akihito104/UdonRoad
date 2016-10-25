@@ -25,6 +25,7 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.List;
 
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.Paging;
@@ -113,36 +114,42 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
   }
 
-  public void createFavorite(long statusId) {
-    twitterApi.createFavorite(statusId)
+  public Observable<Status> observeCreateFavorite(long statusId) {
+    return twitterApi.createFavorite(statusId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            new Action1<Throwable>() {
-              @Override
-              public void call(Throwable throwable) {
-                if (throwable instanceof TwitterException) {
-                  final TwitterException te = (TwitterException) throwable;
-                  final int statusCode = te.getStatusCode();
-                  final int errorCode = te.getErrorCode();
-                  if (statusCode == 403 && errorCode == 139) {
-                    userFeedback.onErrorDefault(R.string.msg_already_fav).call(throwable);
-                  }
-                } else {
-                  userFeedback.onErrorDefault(R.string.msg_fav_create_failed).call(throwable);
-                }
+        .doOnNext(createUpsertAction())
+        .doOnError(new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            if (throwable instanceof TwitterException) {
+              final TwitterException te = (TwitterException) throwable;
+              final int statusCode = te.getStatusCode();
+              final int errorCode = te.getErrorCode();
+              if (statusCode == 403 && errorCode == 139) {
+                userFeedback.onErrorDefault(R.string.msg_already_fav).call(throwable);
               }
-            },
-            userFeedback.onCompleteDefault(R.string.msg_fav_create_success));
+            } else {
+              userFeedback.onErrorDefault(R.string.msg_fav_create_failed).call(throwable);
+            }
+          }
+        })
+        .doOnCompleted(userFeedback.onCompleteDefault(R.string.msg_fav_create_success));
+  }
+
+  public void createFavorite(long statusId) {
+    subscribeWithEmpty(observeCreateFavorite(statusId));
+  }
+
+  public Observable<Status> observeRetweetStatus(long statusId) {
+    return twitterApi.retweetStatus(statusId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnNext(createUpsertAction())
+        .doOnError(userFeedback.onErrorDefault(R.string.msg_rt_create_failed))
+        .doOnCompleted(userFeedback.onCompleteDefault(R.string.msg_rt_create_success));
   }
 
   public void retweetStatus(long statusId) {
-    twitterApi.retweetStatus(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            userFeedback.onErrorDefault(R.string.msg_rt_create_failed),
-            userFeedback.onCompleteDefault(R.string.msg_rt_create_success));
+    subscribeWithEmpty(observeRetweetStatus(statusId));
   }
 
   public void destroyFavorite(long statusId) {
@@ -195,5 +202,17 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         statusStore.upsert(statuses);
       }
     };
+  }
+
+  public static <T> void subscribeWithEmpty(Observable<T> observable) {
+    observable.subscribe(new Action1<T>() {
+      @Override
+      public void call(T t) {
+      }
+    }, new Action1<Throwable>() {
+      @Override
+      public void call(Throwable throwable) {
+      }
+    });
   }
 }

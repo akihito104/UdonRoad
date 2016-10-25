@@ -41,6 +41,9 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.CoreMatchers.not;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by akihit on 2016/06/15.
@@ -230,6 +233,67 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     onView(withId(R.id.action_write)).check(matches(isDisplayed()));
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
+  }
+
+  @Test
+  public void performFavorite_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
+    // setup
+    final TwitterException twitterException = mock(TwitterException.class);
+    when(twitterException.getStatusCode()).thenReturn(403);
+    when(twitterException.getErrorCode()).thenReturn(139);
+    when(twitter.createFavorite(anyLong())).thenThrow(twitterException);
+    // exec.
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.favo();
+    // assert
+    onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
+  }
+
+  @Test
+  public void performRetweet_then_receiveTwitterExceptionForAlreadyRetweeted() throws Exception {
+    // setup
+    final TwitterException twitterException = mock(TwitterException.class);
+    when(twitterException.getStatusCode()).thenReturn(403);
+    when(twitterException.getErrorCode()).thenReturn(139);// todo
+    when(twitter.retweetStatus(anyLong())).thenThrow(twitterException);
+    // exec.
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.retweet();
+    // assert
+    onView(withText(R.string.msg_rt_create_failed)).check(matches(isDisplayed()));
+  }
+  @Test
+  public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {
+    // setup
+    setupCreateFavorite(0, 1);
+    setupRetweetStatus(25000);
+    // exec.
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.fav_retweet();
+    // assert
+    PerformUtil.clickHeadingOnMenu();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
+  }
+
+  @Test
+  public void performFavAndRetweet_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
+    // setup
+    final TwitterException twitterException = mock(TwitterException.class);
+    when(twitterException.getStatusCode()).thenReturn(403);
+    when(twitterException.getErrorCode()).thenReturn(139);
+    when(twitter.createFavorite(anyLong())).thenThrow(twitterException);
+    setupRetweetStatus(25000);
+    // exec.
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.fav_retweet();
+    // assert
+    onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
+    PerformUtil.clickHeadingOnMenu();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
   }
 
   @Override

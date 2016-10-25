@@ -46,6 +46,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import rx.Observable;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
@@ -288,6 +289,25 @@ public class UserInfoPagerFragment extends Fragment {
         = timelineSubscriberMap.get(currentPage);
     if (timelineSubscriber != null) {
       timelineSubscriber.retweetStatus(statusId);
+    }
+  }
+
+  void createFavAndRetweet() {
+    final UserPageInfo currentPage = getCurrentPage();
+    if (!currentPage.isStatus()) {
+      return;
+    }
+    final long statusId = getCurrentFragment().getSelectedTweetId();
+    if (statusId < 0) {
+      return;
+    }
+    final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(currentPage);
+    if (timelineSubscriber != null) {
+      TimelineSubscriber.subscribeWithEmpty(
+          Observable.concat(
+              timelineSubscriber.observeCreateFavorite(statusId),
+              timelineSubscriber.observeRetweetStatus(statusId)
+          ));
     }
   }
 
