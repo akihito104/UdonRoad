@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
@@ -121,16 +122,8 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .doOnError(new Action1<Throwable>() {
           @Override
           public void call(Throwable throwable) {
-            if (throwable instanceof TwitterException) {
-              final TwitterException te = (TwitterException) throwable;
-              final int statusCode = te.getStatusCode();
-              final int errorCode = te.getErrorCode();
-              if (statusCode == 403 && errorCode == 139) {
-                userFeedback.onErrorDefault(R.string.msg_already_fav).call(throwable);
-              }
-            } else {
-              userFeedback.onErrorDefault(R.string.msg_fav_create_failed).call(throwable);
-            }
+            feedbackErrorMessageWithDefault(
+                userFeedback, throwable, R.string.msg_fav_create_failed);
           }
         })
         .doOnCompleted(userFeedback.onCompleteDefault(R.string.msg_fav_create_success));
@@ -144,7 +137,13 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     return twitterApi.retweetStatus(statusId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
-        .doOnError(userFeedback.onErrorDefault(R.string.msg_rt_create_failed))
+        .doOnError(new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            feedbackErrorMessageWithDefault(
+                userFeedback, throwable, R.string.msg_rt_create_failed);
+          }
+        })
         .doOnCompleted(userFeedback.onCompleteDefault(R.string.msg_rt_create_success));
   }
 
@@ -214,5 +213,28 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
       public void call(Throwable throwable) {
       }
     });
+  }
+
+  private static void feedbackErrorMessageWithDefault(@NonNull FeedbackAction userFeedback,
+                                                      @NonNull Throwable throwable,
+                                                      @StringRes int defaultMes) {
+    final int msg = findMessageByTwitterExeption(throwable);
+    userFeedback.onErrorDefault(msg > 0 ? msg : defaultMes).call(throwable);
+  }
+
+  @StringRes
+  private static int findMessageByTwitterExeption(Throwable throwable) {
+    if (!(throwable instanceof TwitterException)) {
+      return 0;
+    }
+    final TwitterException te = (TwitterException) throwable;
+    final int statusCode = te.getStatusCode();
+    final int errorCode = te.getErrorCode();
+    if (statusCode == 403 && errorCode == 139) {
+      return R.string.msg_already_fav;
+    } else if (statusCode == 403 && errorCode == 327) {
+      return R.string.msg_already_rt;
+    }
+    return 0;
   }
 }

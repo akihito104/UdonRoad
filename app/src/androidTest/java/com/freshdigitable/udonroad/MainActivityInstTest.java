@@ -254,13 +254,13 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // setup
     final TwitterException twitterException = mock(TwitterException.class);
     when(twitterException.getStatusCode()).thenReturn(403);
-    when(twitterException.getErrorCode()).thenReturn(139);// todo
+    when(twitterException.getErrorCode()).thenReturn(327);
     when(twitter.retweetStatus(anyLong())).thenThrow(twitterException);
     // exec.
     PerformUtil.selectItemViewAt(0);
     PerformUtil.retweet();
     // assert
-    onView(withText(R.string.msg_rt_create_failed)).check(matches(isDisplayed()));
+    onView(withText(R.string.msg_already_rt)).check(matches(isDisplayed()));
   }
   @Test
   public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {

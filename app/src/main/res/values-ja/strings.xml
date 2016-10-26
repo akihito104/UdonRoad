@@ -60,4 +60,5 @@
     <string name="action_mute">ミュート</string>
     <string name="action_r4s">スパムとして報告</string>
     <string name="action_remove">リムーブ</string>
+    <string name="msg_already_rt">もうRTしてました</string>
 </resources>
