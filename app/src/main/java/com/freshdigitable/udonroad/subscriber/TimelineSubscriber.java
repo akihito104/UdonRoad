@@ -25,9 +25,13 @@ import com.freshdigitable.udonroad.datastore.BaseOperation;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
@@ -43,7 +47,9 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final T statusStore;
-  private final FeedbackAction userFeedback;
+//  private final FeedbackAction userFeedback;
+  private final ConcurrentLinkedQueue<Integer> queue = new ConcurrentLinkedQueue<>();
+  private Subscription feedbackSubscription;
 
   @SuppressWarnings("unused")
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
@@ -53,10 +59,28 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
 
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
                             @NonNull T statusStore,
-                            @NonNull FeedbackAction userFeedback) {
+                            @NonNull final FeedbackAction userFeedback) {
     this.twitterApi = twitterApi;
     this.statusStore = statusStore;
-    this.userFeedback = userFeedback;
+//    this.userFeedback = userFeedback;
+    feedbackSubscription = Observable.interval(1, TimeUnit.SECONDS)
+        .onBackpressureBuffer()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Long>() {
+          @Override
+          public void call(Long time) {
+            final Integer msg = queue.poll();
+            if (msg == null) {
+              return;
+            }
+            userFeedback.onCompleteDefault(msg).call();
+          }
+        });
+  }
+
+  public void close() {
+    queue.clear();
+    feedbackSubscription.unsubscribe();
   }
 
   public void fetchHomeTimeline() {
@@ -64,7 +88,16 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
+            onErrorFeedback(R.string.msg_tweet_not_download));
+  }
+
+  private Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
+    return new Action1<Throwable>() {
+      @Override
+      public void call(Throwable throwable) {
+        queue.offer(msg);
+      }
+    };
   }
 
   public void fetchHomeTimeline(Paging paging) {
@@ -72,7 +105,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   public void fetchHomeTimeline(long userId) {
@@ -80,7 +113,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   public void fetchHomeTimeline(long userId, @Nullable Paging paging) {
@@ -92,7 +125,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   public void fetchFavorites(long userId) {
@@ -100,7 +133,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   public void fetchFavorites(long userId, @Nullable Paging paging) {
@@ -112,7 +145,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createListUpsertAction(),
-            userFeedback.onErrorDefault(R.string.msg_tweet_not_download));
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   public Observable<Status> observeCreateFavorite(long statusId) {
@@ -122,11 +155,20 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .doOnError(new Action1<Throwable>() {
           @Override
           public void call(Throwable throwable) {
-            feedbackErrorMessageWithDefault(
-                userFeedback, throwable, R.string.msg_fav_create_failed);
+            final int msg = findMessageByTwitterExeption(throwable);
+            queue.offer(msg > 0 ? msg : R.string.msg_fav_create_failed);
           }
         })
-        .doOnCompleted(userFeedback.onCompleteDefault(R.string.msg_fav_create_success));
+        .doOnCompleted(onCompleteFeedback(R.string.msg_fav_create_success));
+  }
+
+  private Action0 onCompleteFeedback(@StringRes final int msg) {
+    return new Action0() {
+      @Override
+      public void call() {
+        queue.offer(msg);
+      }
+    };
   }
 
   public void createFavorite(long statusId) {
@@ -140,11 +182,11 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
         .doOnError(new Action1<Throwable>() {
           @Override
           public void call(Throwable throwable) {
-            feedbackErrorMessageWithDefault(
-                userFeedback, throwable, R.string.msg_rt_create_failed);
+            final int msg = findMessageByTwitterExeption(throwable);
+            queue.offer(msg > 0 ? msg : R.string.msg_rt_create_failed);
           }
         })
-        .doOnCompleted(userFeedback.onCompleteDefault(R.string.msg_rt_create_success));
+        .doOnCompleted(onCompleteFeedback(R.string.msg_rt_create_success));
   }
 
   public void retweetStatus(long statusId) {
@@ -161,8 +203,8 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
                 statusStore.forceUpsert(status);
               }
             },
-            userFeedback.onErrorDefault(R.string.msg_fav_delete_failed),
-            userFeedback.onCompleteDefault(R.string.msg_fav_delete_success));
+            onErrorFeedback(R.string.msg_fav_delete_failed),
+            onCompleteFeedback(R.string.msg_fav_delete_success));
   }
 
   public void destroyRetweet(long statusId) {
@@ -175,8 +217,8 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
                 statusStore.forceUpsert(status);
               }
             },
-            userFeedback.onErrorDefault(R.string.msg_rt_delete_failed),
-            userFeedback.onCompleteDefault(R.string.msg_rt_delete_success));
+            onErrorFeedback(R.string.msg_rt_delete_failed),
+            onCompleteFeedback(R.string.msg_rt_delete_success));
   }
 
   public T getStatusStore() {
@@ -215,15 +257,15 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     });
   }
 
-  private static void feedbackErrorMessageWithDefault(@NonNull FeedbackAction userFeedback,
-                                                      @NonNull Throwable throwable,
-                                                      @StringRes int defaultMes) {
-    final int msg = findMessageByTwitterExeption(throwable);
-    userFeedback.onErrorDefault(msg > 0 ? msg : defaultMes).call(throwable);
-  }
+//  private static void feedbackErrorMessageWithDefault(@NonNull FeedbackAction userFeedback,
+//                                                      @NonNull Throwable throwable,
+//                                                      @StringRes int defaultMes) {
+//    final int msg = findMessageByTwitterExeption(throwable);
+//    userFeedback.onErrorDefault(msg > 0 ? msg : defaultMes).call(throwable);
+//  }
 
   @StringRes
-  private static int findMessageByTwitterExeption(Throwable throwable) {
+  private static int findMessageByTwitterExeption(@NonNull Throwable throwable) {
     if (!(throwable instanceof TwitterException)) {
       return 0;
     }

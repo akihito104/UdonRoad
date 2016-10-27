@@ -53,6 +53,7 @@ import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
 import com.squareup.picasso.Picasso;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -300,6 +301,7 @@ public class MainActivity
       binding.navDrawer.setNavigationItemSelectedListener(null);
     }
     configSubscriber.close();
+    timelineSubscriber.close();
     homeTimeline.close();
   }
 
@@ -431,10 +433,10 @@ public class MainActivity
       public void run() {
         final long selectedTweetId = tlFragment.getSelectedTweetId();
         TimelineSubscriber.subscribeWithEmpty(
-            Observable.concat(
+            Observable.concatDelayError(Arrays.asList(
                 timelineSubscriber.observeCreateFavorite(selectedTweetId),
                 timelineSubscriber.observeRetweetStatus(selectedTweetId)
-            ));
+            )));
       }
     }));
     actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {

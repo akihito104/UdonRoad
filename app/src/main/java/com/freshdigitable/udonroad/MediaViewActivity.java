@@ -227,6 +227,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     binding.mediaPager.setAdapter(null);
     binding.mediaIffab.setOnFlingListener(null);
     actionMap.clear();
+    userActionSubscriber.close();
     statusCache.close();
     super.onStop();
   }

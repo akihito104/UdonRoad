@@ -181,6 +181,9 @@ public class UserInfoPagerFragment extends Fragment {
     viewPager.setAdapter(null);
     userHomeTimeline.close();
     userFavTimeline.close();
+    for (TimelineSubscriber ts : timelineSubscriberMap.values()) {
+      ts.close();
+    }
     timelineSubscriberMap.clear();
     userFollowers.close();
     userFriends.close();
