@@ -432,11 +432,10 @@ public class MainActivity
       @Override
       public void run() {
         final long selectedTweetId = tlFragment.getSelectedTweetId();
-        TimelineSubscriber.subscribeWithEmpty(
-            Observable.concatDelayError(Arrays.asList(
-                timelineSubscriber.observeCreateFavorite(selectedTweetId),
-                timelineSubscriber.observeRetweetStatus(selectedTweetId)
-            )));
+        Observable.concatDelayError(Arrays.asList(
+            timelineSubscriber.observeCreateFavorite(selectedTweetId),
+            timelineSubscriber.observeRetweetStatus(selectedTweetId))
+        ).subscribe(TimelineSubscriber.<Status>nopSubscriber());
       }
     }));
     actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {

@@ -52,11 +52,13 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.FeedbackAction.ToastFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
 
+import rx.Observable;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
@@ -381,6 +383,14 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         userActionSubscriber.retweetStatus(statusId);
       }
     }));
-    actionMap.put(Direction.UP_RIGHT, new UserAction());
+    actionMap.put(Direction.UP_RIGHT, new UserAction(null, new Runnable() {
+      @Override
+      public void run() {
+        Observable.concatDelayError(Arrays.asList(
+            userActionSubscriber.observeCreateFavorite(statusId),
+            userActionSubscriber.observeRetweetStatus(statusId))
+        ).subscribe(TimelineSubscriber.<Status>nopSubscriber());
+      }
+    }));
   }
 }

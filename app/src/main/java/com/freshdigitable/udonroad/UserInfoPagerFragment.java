@@ -41,6 +41,7 @@ import com.freshdigitable.udonroad.subscriber.UserSubscriber;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -306,11 +307,10 @@ public class UserInfoPagerFragment extends Fragment {
     }
     final TimelineSubscriber<SortedCache<Status>> timelineSubscriber = timelineSubscriberMap.get(currentPage);
     if (timelineSubscriber != null) {
-      TimelineSubscriber.subscribeWithEmpty(
-          Observable.concat(
-              timelineSubscriber.observeCreateFavorite(statusId),
-              timelineSubscriber.observeRetweetStatus(statusId)
-          ));
+      Observable.concatDelayError(Arrays.asList(
+          timelineSubscriber.observeCreateFavorite(statusId),
+          timelineSubscriber.observeRetweetStatus(statusId))
+      ).subscribe(TimelineSubscriber.<Status>nopSubscriber());
     }
   }
 

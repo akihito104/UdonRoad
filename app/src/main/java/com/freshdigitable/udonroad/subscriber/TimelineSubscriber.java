@@ -29,6 +29,7 @@ import java.util.List;
 
 import rx.Observable;
 import rx.Scheduler;
+import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -189,7 +190,8 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
   }
 
   public void createFavorite(long statusId) {
-    subscribeWithEmpty(observeCreateFavorite(statusId));
+    observeCreateFavorite(statusId)
+        .subscribe(TimelineSubscriber.<Status>nopSubscriber());
   }
 
   public Observable<Status> observeRetweetStatus(final long statusId) {
@@ -221,7 +223,8 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
   }
 
   public void retweetStatus(long statusId) {
-    subscribeWithEmpty(observeRetweetStatus(statusId));
+    observeRetweetStatus(statusId)
+        .subscribe(TimelineSubscriber.<Status>nopSubscriber());
   }
 
   public void destroyFavorite(long statusId) {
@@ -296,16 +299,20 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     };
   }
 
-  public static <T> void subscribeWithEmpty(Observable<T> observable) {
-    observable.subscribe(new Action1<T>() {
+  public static <T> Subscriber<T> nopSubscriber() {
+    return new Subscriber<T>() {
       @Override
-      public void call(T t) {
+      public void onCompleted() {
       }
-    }, new Action1<Throwable>() {
+
       @Override
-      public void call(Throwable throwable) {
+      public void onError(Throwable e) {
       }
-    });
+
+      @Override
+      public void onNext(T o) {
+      }
+    };
   }
 
   @StringRes
