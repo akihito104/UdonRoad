@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
+import java.util.Date;
 import java.util.List;
 
 import rx.Observable;
@@ -34,9 +35,20 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
+import twitter4j.ExtendedMediaEntity;
+import twitter4j.GeoLocation;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Paging;
+import twitter4j.Place;
+import twitter4j.RateLimitStatus;
+import twitter4j.Scopes;
 import twitter4j.Status;
+import twitter4j.SymbolEntity;
 import twitter4j.TwitterException;
+import twitter4j.URLEntity;
+import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * TimelineSubscriber creates twitter request for status resources and subscribes its response
@@ -148,7 +160,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
-  public Observable<Status> observeCreateFavorite(long statusId) {
+  public Observable<Status> observeCreateFavorite(final long statusId) {
     return twitterApi.createFavorite(statusId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
@@ -156,7 +168,21 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
           @Override
           public void call(Throwable throwable) {
             final int msg = findMessageByTwitterExeption(throwable);
+            if (msg == R.string.msg_already_fav) {
+              updateStatus();
+            }
             feedbackSubject.onNext(msg > 0 ? msg : R.string.msg_fav_create_failed);
+          }
+
+          private void updateStatus() {
+            final Status status = statusStore.find(statusId);
+            if (status == null) {
+              return;
+            }
+            final MyStatus myStatus = create(status);
+            myStatus.setFavorited(true);
+            myStatus.setRetweeted(status.isRetweeted());
+            statusStore.forceUpsert(myStatus);
           }
         })
         .doOnCompleted(onCompleteFeedback(R.string.msg_fav_create_success));
@@ -166,7 +192,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     subscribeWithEmpty(observeCreateFavorite(statusId));
   }
 
-  public Observable<Status> observeRetweetStatus(long statusId) {
+  public Observable<Status> observeRetweetStatus(final long statusId) {
     return twitterApi.retweetStatus(statusId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
@@ -174,7 +200,21 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
           @Override
           public void call(Throwable throwable) {
             final int msg = findMessageByTwitterExeption(throwable);
+            if (msg == R.string.msg_already_rt) {
+              updateStatus();
+            }
             feedbackSubject.onNext(msg > 0 ? msg : R.string.msg_rt_create_failed);
+          }
+
+          private void updateStatus() {
+            final Status status = statusStore.find(statusId);
+            if (status == null) {
+              return;
+            }
+            final MyStatus myStatus = create(status);
+            myStatus.setRetweeted(true);
+            myStatus.setFavorited(status.isFavorited());
+            statusStore.forceUpsert(myStatus);
           }
         })
         .doOnCompleted(onCompleteFeedback(R.string.msg_rt_create_success));
@@ -282,5 +322,198 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
       return R.string.msg_already_rt;
     }
     return 0;
+  }
+
+  private static abstract class MyStatus implements Status {
+    boolean favorited;
+    boolean retweeted;
+
+    void setFavorited(boolean favorited){
+      this.favorited = favorited;
+    }
+
+    void setRetweeted(boolean retweeted){
+      this.retweeted = retweeted;
+    }
+
+  }
+
+  private MyStatus create(final Status status) {
+    return new MyStatus() {
+      @Override
+      public Date getCreatedAt() {
+        return status.getCreatedAt();
+      }
+
+      @Override
+      public long getId() {
+        return status.getId();
+      }
+
+      @Override
+      public String getText() {
+        return status.getText();
+      }
+
+      @Override
+      public String getSource() {
+        return status.getSource();
+      }
+
+      @Override
+      public boolean isTruncated() {
+        return status.isTruncated();
+      }
+
+      @Override
+      public long getInReplyToStatusId() {
+        return status.getInReplyToStatusId();
+      }
+
+      @Override
+      public long getInReplyToUserId() {
+        return status.getInReplyToUserId();
+      }
+
+      @Override
+      public String getInReplyToScreenName() {
+        return status.getInReplyToScreenName();
+      }
+
+      @Override
+      public GeoLocation getGeoLocation() {
+        return status.getGeoLocation();
+      }
+
+      @Override
+      public Place getPlace() {
+        return status.getPlace();
+      }
+
+      @Override
+      public boolean isFavorited() {
+        return super.favorited;
+      }
+
+      @Override
+      public boolean isRetweeted() {
+        return super.retweeted;
+      }
+
+      @Override
+      public int getFavoriteCount() {
+        return status.getFavoriteCount();
+      }
+
+      @Override
+      public User getUser() {
+        return status.getUser();
+      }
+
+      @Override
+      public boolean isRetweet() {
+        return status.isRetweet();
+      }
+
+      @Override
+      public Status getRetweetedStatus() {
+        return status.getRetweetedStatus();
+      }
+
+      @Override
+      public long[] getContributors() {
+        return status.getContributors();
+      }
+
+      @Override
+      public int getRetweetCount() {
+        return status.getRetweetCount();
+      }
+
+      @Override
+      public boolean isRetweetedByMe() {
+        return status.isRetweetedByMe();
+      }
+
+      @Override
+      public long getCurrentUserRetweetId() {
+        return status.getCurrentUserRetweetId();
+      }
+
+      @Override
+      public boolean isPossiblySensitive() {
+        return status.isPossiblySensitive();
+      }
+
+      @Override
+      public String getLang() {
+        return status.getLang();
+      }
+
+      @Override
+      public Scopes getScopes() {
+        return status.getScopes();
+      }
+
+      @Override
+      public String[] getWithheldInCountries() {
+        return status.getWithheldInCountries();
+      }
+
+      @Override
+      public long getQuotedStatusId() {
+        return status.getQuotedStatusId();
+      }
+
+      @Override
+      public Status getQuotedStatus() {
+        return status.getQuotedStatus();
+      }
+
+      @Override
+      public int compareTo(@NonNull Status other) {
+        return status.compareTo(other);
+      }
+
+      @Override
+      public UserMentionEntity[] getUserMentionEntities() {
+        return status.getUserMentionEntities();
+      }
+
+      @Override
+      public URLEntity[] getURLEntities() {
+        return status.getURLEntities();
+      }
+
+      @Override
+      public HashtagEntity[] getHashtagEntities() {
+        return status.getHashtagEntities();
+      }
+
+      @Override
+      public MediaEntity[] getMediaEntities() {
+        return status.getMediaEntities();
+      }
+
+      @Override
+      public ExtendedMediaEntity[] getExtendedMediaEntities() {
+        return status.getExtendedMediaEntities();
+      }
+
+      @Override
+      public SymbolEntity[] getSymbolEntities() {
+        return status.getSymbolEntities();
+      }
+
+      @Override
+      public RateLimitStatus getRateLimitStatus() {
+        return status.getRateLimitStatus();
+      }
+
+      @Override
+      public int getAccessLevel() {
+        return status.getAccessLevel();
+      }
+    };
   }
 }

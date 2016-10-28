@@ -238,6 +238,10 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void performFavorite_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
     // setup
+    final Status target = createStatus(21000, getLoginUser());
+    when(target.getFavoriteCount()).thenReturn(3);
+    receiveStatuses(true, target);
+
     final TwitterException twitterException = mock(TwitterException.class);
     when(twitterException.getStatusCode()).thenReturn(403);
     when(twitterException.getErrorCode()).thenReturn(139);
@@ -247,11 +251,17 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.favo();
     // assert
     onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_fav_icon), isDisplayed()));
   }
 
   @Test
   public void performRetweet_then_receiveTwitterExceptionForAlreadyRetweeted() throws Exception {
     // setup
+    final Status target = createStatus(21000, getLoginUser());
+    when(target.getRetweetCount()).thenReturn(3);
+    receiveStatuses(true, target);
+
     final TwitterException twitterException = mock(TwitterException.class);
     when(twitterException.getStatusCode()).thenReturn(403);
     when(twitterException.getErrorCode()).thenReturn(327);
@@ -261,7 +271,10 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.retweet();
     // assert
     onView(withText(R.string.msg_already_rt)).check(matches(isDisplayed()));
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_rt_icon), isDisplayed()));
   }
+
   @Test
   public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {
     // setup
@@ -281,6 +294,10 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void performFavAndRetweet_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
     // setup
+    final Status target = createStatus(20000, getLoginUser());
+    when(target.getFavoriteCount()).thenReturn(3);
+    receiveStatuses(false, target);
+
     final TwitterException twitterException = mock(TwitterException.class);
     when(twitterException.getStatusCode()).thenReturn(403);
     when(twitterException.getErrorCode()).thenReturn(139);
@@ -294,6 +311,8 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("3")));
   }
 
   @Override
