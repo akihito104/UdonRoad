@@ -290,7 +290,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     PerformUtil.fav_retweet();
     // assert
-    onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
+//    onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
     PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
