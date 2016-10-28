@@ -20,7 +20,10 @@ import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.CoordinatesProvider;
 import android.support.test.espresso.action.GeneralClickAction;
+import android.support.test.espresso.action.GeneralLocation;
+import android.support.test.espresso.action.GeneralSwipeAction;
 import android.support.test.espresso.action.Press;
+import android.support.test.espresso.action.Swipe;
 import android.support.test.espresso.action.Tap;
 import android.view.View;
 
@@ -74,6 +77,21 @@ public class PerformUtil {
 
   public static ViewInteraction retweet() {
     return onView(withId(R.id.iffab_ffab)).perform(swipeRight());
+  }
+
+  public static ViewInteraction fav_retweet() {
+    final ViewAction viewAction = actionWithAssertions(
+        new GeneralSwipeAction(Swipe.FAST, GeneralLocation.CENTER,
+        new CoordinatesProvider() {
+          @Override
+          public float[] calculateCoordinates(View view) {
+            final float[] pos = GeneralLocation.TOP_RIGHT.calculateCoordinates(view);
+            pos[0] += 0.5f * view.getWidth();
+            pos[1] += -0.5f * view.getHeight();
+            return pos;
+          }
+        }, Press.FINGER));
+    return onView(withId(R.id.iffab_ffab)).perform(viewAction);
   }
 
   public static ViewInteraction pullDownTimeline() {

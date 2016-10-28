@@ -315,7 +315,12 @@ public class UserInfoActivity extends AppCompatActivity
         viewPager.retweetStatus();
       }
     }));
-    actionMap.put(Direction.UP_RIGHT, new UserAction());
+    actionMap.put(Direction.UP_RIGHT, new UserAction(null, new Runnable() {
+      @Override
+      public void run() {
+        viewPager.createFavAndRetweet();
+      }
+    }));
     actionMap.put(Direction.DOWN, new UserAction(Resource.REPLY, new Runnable() {
       @Override
       public void run() {
