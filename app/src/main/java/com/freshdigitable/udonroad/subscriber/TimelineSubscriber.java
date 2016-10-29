@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.subscriber;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
+import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
@@ -61,8 +62,8 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final T statusStore;
-  private Subscription feedbackSubscription;
-  private PublishSubject<Integer> feedbackSubject;
+  private final Subscription feedbackSubscription;
+  private final PublishSubject<Integer> feedbackSubject;
 
   @SuppressWarnings("unused")
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
@@ -78,7 +79,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     final Scheduler.Worker worker = AndroidSchedulers.mainThread().createWorker();
     feedbackSubject = PublishSubject.create();
     feedbackSubscription = feedbackSubject.onBackpressureBuffer()
-        .observeOn(Schedulers.io())
+        .observeOn(Schedulers.newThread())
         .subscribe(new Action1<Integer>() {
           @Override
           public void call(final Integer msg) {
@@ -180,9 +181,10 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             if (status == null) {
               return;
             }
-            final MyStatus myStatus = create(status);
+            final Status bindingStatus = status.isRetweet() ? status.getRetweetedStatus() : status;
+            final MyStatus myStatus = create(bindingStatus);
             myStatus.setFavorited(true);
-            myStatus.setRetweeted(status.isRetweeted());
+            myStatus.setRetweeted(bindingStatus.isRetweeted());
             statusStore.forceUpsert(myStatus);
           }
         })
@@ -213,9 +215,10 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             if (status == null) {
               return;
             }
-            final MyStatus myStatus = create(status);
+            final Status bindingStatus = status.isRetweet() ? status.getRetweetedStatus() : status;
+            final MyStatus myStatus = create(bindingStatus);
             myStatus.setRetweeted(true);
-            myStatus.setFavorited(status.isFavorited());
+            myStatus.setFavorited(bindingStatus.isFavorited());
             statusStore.forceUpsert(myStatus);
           }
         })
@@ -328,6 +331,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     } else if (statusCode == 403 && errorCode == 327) {
       return R.string.msg_already_rt;
     }
+    Log.d(TAG, "not registered exception: ", throwable);
     return 0;
   }
 
@@ -342,7 +346,6 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     void setRetweeted(boolean retweeted){
       this.retweeted = retweeted;
     }
-
   }
 
   private MyStatus create(final Status status) {

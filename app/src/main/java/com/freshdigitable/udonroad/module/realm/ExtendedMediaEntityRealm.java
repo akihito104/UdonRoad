@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
+import android.text.TextUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,6 +79,9 @@ public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMed
   }
 
   private String parseToSizeString() {
+    if (sizes == null || sizes.isEmpty()) {
+      return "";
+    }
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<Integer, Size> e : this.sizes.entrySet()) {
       sb.append(e.getKey()).append(",");
@@ -84,14 +89,17 @@ public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMed
       sb.append(value.getWidth()).append(",");
       sb.append(value.getHeight()).append(",");
       sb.append(value.getResize());
-      sb.append("|");
+      sb.append(";");
     }
-    return sb.deleteCharAt(sb.lastIndexOf("|")).toString();
+    return sb.deleteCharAt(sb.lastIndexOf(";")).toString();
   }
 
   private Map<Integer, Size> parseToSizes() {
     Map<Integer, Size> res = new HashMap<>();
-    final String[] sizes = this.sizeString.split("|");
+    if (TextUtils.isEmpty(sizeString)) {
+      return res;
+    }
+    final String[] sizes = this.sizeString.split(";");
     for (String s : sizes) {
       final String[] values = s.split(",");
       final int key = Integer.parseInt(values[0]);

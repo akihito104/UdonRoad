@@ -165,7 +165,11 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     final Collection<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
     final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
     for (Status s: statuses) {
-      entities.add(new StatusRealm(s));
+      if (s instanceof StatusRealm) {
+        entities.add((StatusRealm) s);
+      } else {
+        entities.add(new StatusRealm(s));
+      }
     }
     cache.executeTransaction(new Realm.Transaction() {
       @Override
