@@ -49,8 +49,8 @@ import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
 import java.util.Arrays;
@@ -95,6 +95,8 @@ public class MainActivity
   private final Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
   ConfigSubscriber configSubscriber;
+  @Inject
+  UserFeedbackSubscriber userFeedback;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -143,8 +145,8 @@ public class MainActivity
   private void setupHomeTimeline() {
     homeTimeline.open("home");
     homeTimeline.clear();
-    timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
-        new SnackbarFeedback(binding.mainTimelineContainer));
+    timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline, userFeedback);
+    timelineSubscriber.registerRootView(binding.mainTimelineContainer);
 
     tlFragment = new TimelineFragment<>();
     tlFragment.setSortedCache(homeTimeline);
@@ -302,6 +304,7 @@ public class MainActivity
     }
     configSubscriber.close();
     timelineSubscriber.close();
+    userFeedback.close();
     homeTimeline.close();
   }
 

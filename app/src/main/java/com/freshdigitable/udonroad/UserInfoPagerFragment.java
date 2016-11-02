@@ -35,8 +35,8 @@ import android.view.ViewGroup;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserSubscriber;
 
 import java.lang.annotation.Retention;
@@ -62,6 +62,8 @@ public class UserInfoPagerFragment extends Fragment {
   public static final String ARGS_USER_ID = "userId";
   @Inject
   TwitterApi twitterApi;
+  @Inject
+  UserFeedbackSubscriber userFeedback;
 
   public static UserInfoPagerFragment create(long userId) {
     final Bundle args = new Bundle();
@@ -109,7 +111,7 @@ public class UserInfoPagerFragment extends Fragment {
     viewPager.setAdapter(pagerAdapter);
   }
 
-  private final SnackbarFeedback userFeedback = new SnackbarFeedback(viewPager);
+//  private final SnackbarFeedback userFeedback = new SnackbarFeedback(viewPager);
   private Map<UserPageInfo, TimelineSubscriber<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
   private Map<UserPageInfo, UserSubscriber<SortedCache<User>>> userSubscriberMap = new HashMap<>();
 
@@ -126,8 +128,10 @@ public class UserInfoPagerFragment extends Fragment {
     if (!page.isStatus()) {
       throw new IllegalArgumentException("page must be for Status. passed: " + page.name());
     }
-    timelineSubscriberMap.put(page,
-        new TimelineSubscriber<>(twitterApi, sortedCache, userFeedback));
+    final TimelineSubscriber<SortedCache<Status>> timelineSubscriber
+        = new TimelineSubscriber<>(twitterApi, sortedCache, userFeedback);
+    timelineSubscriber.registerRootView(viewPager);
+    timelineSubscriberMap.put(page, timelineSubscriber);
     putToPagerAdapter(page, sortedCache);
   }
 
@@ -135,8 +139,10 @@ public class UserInfoPagerFragment extends Fragment {
     if (!page.isUser()) {
       throw new IllegalArgumentException("page must be for User. passed: " + page.name());
     }
-    userSubscriberMap.put(page,
-        new UserSubscriber<>(twitterApi, sortedCache, userFeedback));
+    final UserSubscriber<SortedCache<User>> userSubscriber
+        = new UserSubscriber<>(twitterApi, sortedCache, userFeedback);
+    userSubscriber.registerRootView(viewPager);
+    userSubscriberMap.put(page, userSubscriber);
     putToPagerAdapter(page, sortedCache);
   }
 
@@ -188,6 +194,9 @@ public class UserInfoPagerFragment extends Fragment {
     timelineSubscriberMap.clear();
     userFollowers.close();
     userFriends.close();
+    for (UserSubscriber us : userSubscriberMap.values()) {
+      us.close();
+    }
     userSubscriberMap.clear();
   }
 

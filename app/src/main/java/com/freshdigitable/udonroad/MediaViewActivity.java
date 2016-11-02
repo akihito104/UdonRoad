@@ -49,8 +49,8 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction.ToastFeedback;
 import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -81,6 +81,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   TypedCache<Status> statusCache;
   private TimelineSubscriber<TypedCache<Status>> userActionSubscriber;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
+  @Inject
+  UserFeedbackSubscriber userFeedback;
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -199,8 +201,9 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   protected void onStart() {
     super.onStart();
     statusCache.open();
-    userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
-        new ToastFeedback(getApplicationContext(), Gravity.CENTER, 0, 0));
+    userFeedback.setToastOption(Gravity.CENTER, 0, 0);
+    userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache, userFeedback);
+    userActionSubscriber.unregisterRootView();
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);

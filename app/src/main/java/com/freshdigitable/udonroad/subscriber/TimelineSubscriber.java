@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.util.Log;
+import android.view.View;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
@@ -29,14 +30,10 @@ import java.util.Date;
 import java.util.List;
 
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscriber;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subjects.PublishSubject;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
@@ -62,48 +59,26 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final T statusStore;
-  private final Subscription feedbackSubscription;
-  private final PublishSubject<Integer> feedbackSubject;
-
-  @SuppressWarnings("unused")
-  public TimelineSubscriber(@NonNull TwitterApi twitterApi,
-                            @NonNull T statusStore) {
-    this(twitterApi, statusStore, new FeedbackAction.LogFeedback());
-  }
+  private final UserFeedbackSubscriber userFeedback;
 
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
                             @NonNull T statusStore,
-                            @NonNull final FeedbackAction userFeedback) {
+                            @NonNull UserFeedbackSubscriber userFeedback) {
     this.twitterApi = twitterApi;
     this.statusStore = statusStore;
-    final Scheduler.Worker worker = AndroidSchedulers.mainThread().createWorker();
-    feedbackSubject = PublishSubject.create();
-    feedbackSubscription = feedbackSubject.onBackpressureBuffer()
-        .observeOn(Schedulers.newThread())
-        .subscribe(new Action1<Integer>() {
-          @Override
-          public void call(final Integer msg) {
-            Subscription schedule = null;
-            try {
-              schedule = worker.schedule(new Action0() {
-                @Override
-                public void call() {
-                  userFeedback.onCompleteDefault(msg).call();
-                }
-              });
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-            } finally {
-              if (schedule != null) {
-                schedule.unsubscribe();
-              }
-            }
-          }
-        });
+    this.userFeedback = userFeedback;
+  }
+
+  public void registerRootView(View view) {
+    userFeedback.registerRootView(view);
+  }
+
+  public void unregisterRootView() {
+    userFeedback.unregisterRootView();
   }
 
   public void close() {
-    feedbackSubscription.unsubscribe();
+    userFeedback.reset();
   }
 
   public void fetchHomeTimeline() {
@@ -173,7 +148,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             if (msg == R.string.msg_already_fav) {
               updateStatus();
             }
-            feedbackSubject.onNext(msg > 0 ? msg : R.string.msg_fav_create_failed);
+            userFeedback.offerEvent(msg > 0 ? msg : R.string.msg_fav_create_failed);
           }
 
           private void updateStatus() {
@@ -207,7 +182,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             if (msg == R.string.msg_already_rt) {
               updateStatus();
             }
-            feedbackSubject.onNext(msg > 0 ? msg : R.string.msg_rt_create_failed);
+            userFeedback.offerEvent(msg > 0 ? msg : R.string.msg_rt_create_failed);
           }
 
           private void updateStatus() {
@@ -267,7 +242,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     return new Action1<Throwable>() {
       @Override
       public void call(Throwable throwable) {
-        feedbackSubject.onNext(msg);
+        userFeedback.offerEvent(msg);
       }
     };
   }
@@ -277,7 +252,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     return new Action0() {
       @Override
       public void call() {
-        feedbackSubject.onNext(msg);
+        userFeedback.offerEvent(msg);
       }
     };
   }

@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import android.content.SharedPreferences;
+import android.support.annotation.StringRes;
 import android.util.Log;
 
 import com.android.annotations.NonNull;
@@ -195,9 +196,9 @@ public class ConfigSubscriber {
         .doOnError(onErrorAction);
   }
 
-  private FeedbackAction feedback;
+  private UserFeedbackSubscriber feedback;
 
-  public void setFeedbackSubscriber(FeedbackAction feedback) {
+  public void setFeedbackSubscriber(UserFeedbackSubscriber feedback) {
     this.feedback = feedback;
   }
 
@@ -206,8 +207,8 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             addIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_create_block_failed),
-            feedback.onCompleteDefault(R.string.msg_create_block_success));
+            onErrorAction(R.string.msg_create_block_failed),
+            onCompleteAction(R.string.msg_create_block_success));
   }
 
   public void destroyBlock(final long userId) {
@@ -215,8 +216,8 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             removeIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_create_block_failed),
-            feedback.onCompleteDefault(R.string.msg_create_block_success));
+            onErrorAction(R.string.msg_create_block_failed),
+            onCompleteAction(R.string.msg_create_block_success));
   }
 
   public void reportSpam(long userId) {
@@ -224,8 +225,8 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             addIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_report_spam_failed),
-            feedback.onCompleteDefault(R.string.msg_report_spam_success));
+            onErrorAction(R.string.msg_report_spam_failed),
+            onCompleteAction(R.string.msg_report_spam_success));
   }
 
   public void createMute(long userId) {
@@ -233,8 +234,26 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             addIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_create_mute_failed),
-            feedback.onCompleteDefault(R.string.msg_create_mute_success));
+            onErrorAction(R.string.msg_create_mute_failed),
+            onCompleteAction(R.string.msg_create_mute_success));
+  }
+
+  private Action1<Throwable> onErrorAction(@StringRes final int msg) {
+    return new Action1<Throwable>() {
+      @Override
+      public void call(Throwable throwable) {
+        feedback.offerEvent(msg);
+      }
+    };
+  }
+
+  private Action0 onCompleteAction(@StringRes final int msg) {
+    return new Action0() {
+      @Override
+      public void call() {
+        feedback.offerEvent(msg);
+      }
+    };
   }
 
   @NonNull

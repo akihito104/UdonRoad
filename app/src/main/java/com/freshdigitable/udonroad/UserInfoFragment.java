@@ -36,6 +36,7 @@ import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
 import com.freshdigitable.udonroad.subscriber.FeedbackAction;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserSubscriber;
 import com.squareup.picasso.Picasso;
 
@@ -59,6 +60,8 @@ public class UserInfoFragment extends Fragment {
   private Subscription subscription;
   @Inject
   TwitterApi twitterApi;
+  @Inject
+  UserFeedbackSubscriber userFeedback;
 
   @Override
   public void onAttach(Context context) {
@@ -111,9 +114,9 @@ public class UserInfoFragment extends Fragment {
           }
         });
 
-    final FeedbackAction feedbackAction = getFeedbackAction();
-    userSubscriber = new UserSubscriber<>(twitterApi, userCache, feedbackAction);
-    configSubscriber.setFeedbackSubscriber(feedbackAction);
+//    final FeedbackAction feedbackAction = getFeedbackAction();
+    userSubscriber = new UserSubscriber<>(twitterApi, userCache, userFeedback);
+    configSubscriber.setFeedbackSubscriber(userFeedback);
   }
 
   @Override
