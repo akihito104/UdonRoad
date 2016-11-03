@@ -203,7 +203,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     statusCache.open();
     userFeedback.setToastOption(Gravity.CENTER, 0, 0);
     userActionSubscriber = new StatusRequestWorker<>(twitterApi, statusCache, userFeedback);
-    userActionSubscriber.unregisterRootView();
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);

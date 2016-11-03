@@ -280,7 +280,7 @@ public class MainActivity
   @Override
   protected void onPause() {
     super.onPause();
-    statusRequestWorker.unregisterRootView();
+    statusRequestWorker.unregisterRootView(binding.mainTimelineContainer);
   }
 
   @Override

@@ -129,7 +129,6 @@ public class UserInfoPagerFragment extends Fragment {
     }
     final StatusRequestWorker<SortedCache<Status>> statusRequestWorker
         = new StatusRequestWorker<>(twitterApi, sortedCache, userFeedback);
-    statusRequestWorker.registerRootView(viewPager);
     timelineSubscriberMap.put(page, statusRequestWorker);
     putToPagerAdapter(page, sortedCache);
   }
@@ -140,7 +139,6 @@ public class UserInfoPagerFragment extends Fragment {
     }
     final UserRequestWorker<SortedCache<User>> userRequestWorker
         = new UserRequestWorker<>(twitterApi, sortedCache, userFeedback);
-    userRequestWorker.registerRootView(viewPager);
     userSubscriberMap.put(page, userRequestWorker);
     putToPagerAdapter(page, sortedCache);
   }
@@ -168,6 +166,7 @@ public class UserInfoPagerFragment extends Fragment {
         }
       });
     }
+    timelineSubscriberMap.get(UserPageInfo.TWEET).registerRootView(viewPager);
   }
 
   private TimelineFragment getCurrentFragment() {
@@ -179,6 +178,7 @@ public class UserInfoPagerFragment extends Fragment {
   public void onStop() {
     super.onStop();
     viewPager.clearOnPageChangeListeners();
+    timelineSubscriberMap.get(UserPageInfo.TWEET).unregisterRootView(viewPager);
   }
 
   @Override

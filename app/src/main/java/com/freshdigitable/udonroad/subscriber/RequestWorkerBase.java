@@ -43,8 +43,8 @@ abstract class RequestWorkerBase {
     userFeedback.registerRootView(view);
   }
 
-  public void unregisterRootView() {
-    userFeedback.unregisterRootView();
+  public void unregisterRootView(View view) {
+    userFeedback.unregisterRootView(view);
   }
 
   public void close() {

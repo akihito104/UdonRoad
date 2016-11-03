@@ -34,9 +34,12 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 /**
+ * UserFeedbackSubscriber subscribes request job such as RT and fav.
+ *
  * Created by akihit on 2016/11/02.
  */
 public class UserFeedbackSubscriber {
+  private static final String TAG = UserFeedbackSubscriber.class.getSimpleName();
   private final Subscription feedbackSubscription;
   private final PublishSubject<Integer> feedbackSubject;
   private final Context context;
@@ -51,8 +54,9 @@ public class UserFeedbackSubscriber {
           public void call(final Integer msg) {
             Subscription schedule = null;
             try {
+              final Action0 feedbackAction = createFeedbackAction(msg);
               schedule = AndroidSchedulers.mainThread().createWorker()
-                  .schedule(createFeedbackAction(msg));
+                  .schedule(feedbackAction);
               Thread.sleep(1000);
             } catch (InterruptedException e) {
               // nop
@@ -83,11 +87,23 @@ public class UserFeedbackSubscriber {
   private WeakReference<View> rootView;
 
   void registerRootView(@NonNull View rootView) {
+    if (isRegisteredView(rootView))
+      return;
     this.rootView = new WeakReference<>(rootView);
   }
 
-  void unregisterRootView() {
-    rootView.clear();
+  private boolean isRegisteredView(@NonNull View rootView) {
+    if (this.rootView == null) {
+      return false;
+    }
+    final View v = this.rootView.get();
+    return rootView.equals(v);
+  }
+
+  void unregisterRootView(View view) {
+    if (isRegisteredView(view)) {
+      rootView.clear();
+    }
   }
 
   private int gravityFlag;
@@ -105,7 +121,6 @@ public class UserFeedbackSubscriber {
   }
 
   void reset() {
-    unregisterRootView();
     setToastOption(0, 0, 0);
   }
 
@@ -114,6 +129,8 @@ public class UserFeedbackSubscriber {
     if (!feedbackSubscription.isUnsubscribed()) {
       feedbackSubscription.unsubscribe();
     }
-    unregisterRootView();
+    if (rootView != null) {
+      rootView.clear();
+    }
   }
 }
