@@ -140,7 +140,6 @@ public class StatusDetailFragment extends Fragment {
     });
 
     statusCacheSubscriber = new StatusRequestWorker<>(twitterApi, statusCache,userFeedback);
-    statusCacheSubscriber.registerRootView(binding.getRoot());
     setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
     binding.sdFav.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -289,7 +288,6 @@ public class StatusDetailFragment extends Fragment {
     final long statusId = getStatusId();
     Picasso.with(getContext()).cancelTag(statusId);
     StatusViewImageHelper.unload(binding.statusView, statusId);
-    statusCacheSubscriber.unregisterRootView(binding.getRoot());
     statusCacheSubscriber.close();
     statusCache.close();
   }
