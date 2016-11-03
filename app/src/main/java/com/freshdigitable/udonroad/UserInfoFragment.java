@@ -113,7 +113,6 @@ public class UserInfoFragment extends Fragment {
         });
 
     userSubscriber = new UserSubscriber<>(twitterApi, userCache, userFeedback);
-    configSubscriber.setFeedbackSubscriber(userFeedback);
   }
 
   @Override

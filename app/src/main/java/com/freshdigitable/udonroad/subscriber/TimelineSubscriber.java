@@ -20,7 +20,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.util.Log;
-import android.view.View;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
@@ -32,7 +31,6 @@ import java.util.List;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
@@ -55,30 +53,16 @@ import twitter4j.UserMentionEntity;
 
  * Created by akihit on 2016/08/01.
  */
-public class TimelineSubscriber<T extends BaseOperation<Status>> {
+public class TimelineSubscriber<T extends BaseOperation<Status>>
+    extends RequestWorkerBase {
   public static final String TAG = TimelineSubscriber.class.getSimpleName();
-  private final TwitterApi twitterApi;
   private final T statusStore;
-  private final UserFeedbackSubscriber userFeedback;
 
   public TimelineSubscriber(@NonNull TwitterApi twitterApi,
                             @NonNull T statusStore,
                             @NonNull UserFeedbackSubscriber userFeedback) {
-    this.twitterApi = twitterApi;
+    super(twitterApi, userFeedback);
     this.statusStore = statusStore;
-    this.userFeedback = userFeedback;
-  }
-
-  public void registerRootView(View view) {
-    userFeedback.registerRootView(view);
-  }
-
-  public void unregisterRootView() {
-    userFeedback.unregisterRootView();
-  }
-
-  public void close() {
-    userFeedback.reset();
   }
 
   public void fetchHomeTimeline() {
@@ -238,26 +222,6 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
   }
 
   @NonNull
-  private Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
-    return new Action1<Throwable>() {
-      @Override
-      public void call(Throwable throwable) {
-        userFeedback.offerEvent(msg);
-      }
-    };
-  }
-
-  @NonNull
-  private Action0 onCompleteFeedback(@StringRes final int msg) {
-    return new Action0() {
-      @Override
-      public void call() {
-        userFeedback.offerEvent(msg);
-      }
-    };
-  }
-
-  @NonNull
   private Action1<List<Status>> createListUpsertAction() {
     return new Action1<List<Status>>() {
       @Override
@@ -314,11 +278,11 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     boolean favorited;
     boolean retweeted;
 
-    void setFavorited(boolean favorited){
+    void setFavorited(boolean favorited) {
       this.favorited = favorited;
     }
 
-    void setRetweeted(boolean retweeted){
+    void setRetweeted(boolean retweeted) {
       this.retweeted = retweeted;
     }
   }
