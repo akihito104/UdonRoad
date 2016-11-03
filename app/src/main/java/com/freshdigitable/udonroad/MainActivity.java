@@ -146,7 +146,6 @@ public class MainActivity
     homeTimeline.open("home");
     homeTimeline.clear();
     timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline, userFeedback);
-    timelineSubscriber.registerRootView(binding.mainTimelineContainer);
 
     tlFragment = new TimelineFragment<>();
     tlFragment.setSortedCache(homeTimeline);
@@ -275,11 +274,13 @@ public class MainActivity
     Log.d(TAG, "onResume: ");
     super.onResume();
     attachToolbar(binding.mainToolbar);
+    timelineSubscriber.registerRootView(binding.mainTimelineContainer);
   }
 
   @Override
   protected void onPause() {
     super.onPause();
+    timelineSubscriber.unregisterRootView();
   }
 
   @Override

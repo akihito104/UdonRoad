@@ -141,7 +141,6 @@ public class StatusDetailFragment extends Fragment {
 
     statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,userFeedback);
     statusCacheSubscriber.registerRootView(binding.getRoot());
-//        new SnackbarFeedback(binding.getRoot()));
     setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
     binding.sdFav.setOnClickListener(new View.OnClickListener() {
       @Override

@@ -111,7 +111,6 @@ public class UserInfoPagerFragment extends Fragment {
     viewPager.setAdapter(pagerAdapter);
   }
 
-//  private final SnackbarFeedback userFeedback = new SnackbarFeedback(viewPager);
   private Map<UserPageInfo, TimelineSubscriber<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
   private Map<UserPageInfo, UserSubscriber<SortedCache<User>>> userSubscriberMap = new HashMap<>();
 

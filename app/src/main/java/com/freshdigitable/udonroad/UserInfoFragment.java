@@ -21,7 +21,6 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,7 +34,6 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserSubscriber;
 import com.squareup.picasso.Picasso;
@@ -114,7 +112,6 @@ public class UserInfoFragment extends Fragment {
           }
         });
 
-//    final FeedbackAction feedbackAction = getFeedbackAction();
     userSubscriber = new UserSubscriber<>(twitterApi, userCache, userFeedback);
     configSubscriber.setFeedbackSubscriber(userFeedback);
   }
@@ -188,14 +185,5 @@ public class UserInfoFragment extends Fragment {
   private long getUserId() {
     final Bundle arguments = getArguments();
     return arguments.getLong("userId");
-  }
-
-  private FeedbackAction getFeedbackAction() {
-    final FragmentActivity activity = getActivity();
-    if (activity instanceof FeedbackAction) {
-      return (FeedbackAction) activity;
-    } else {
-      return new FeedbackAction.ToastFeedback(getContext());
-    }
   }
 }
