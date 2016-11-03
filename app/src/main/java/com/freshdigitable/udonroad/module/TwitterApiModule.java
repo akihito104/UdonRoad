@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import javax.inject.Singleton;
 
@@ -69,5 +70,11 @@ public class TwitterApiModule {
   @Provides
   public SharedPreferences provideSharedPreferences() {
     return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
+  }
+
+  @Singleton
+  @Provides
+  public UserFeedbackSubscriber provideUserFeedbackSubscriber() {
+    return new UserFeedbackSubscriber(context);
   }
 }

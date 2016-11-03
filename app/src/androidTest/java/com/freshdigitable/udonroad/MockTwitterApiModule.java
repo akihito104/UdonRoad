@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import javax.inject.Singleton;
 
@@ -73,5 +74,11 @@ public class MockTwitterApiModule {
         userStreamListener = listener;
       }
     };
+  }
+
+  @Singleton
+  @Provides
+  public UserFeedbackSubscriber provideUserFeedbackSubscriber() {
+    return new UserFeedbackSubscriber(context);
   }
 }

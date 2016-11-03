@@ -29,14 +29,9 @@ import java.util.Date;
 import java.util.List;
 
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscriber;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subjects.PublishSubject;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
@@ -53,57 +48,21 @@ import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 /**
- * TimelineSubscriber creates twitter request for status resources and subscribes its response
+ * StatusRequestWorker creates twitter request for status resources and subscribes its response
  * with user feedback.
 
  * Created by akihit on 2016/08/01.
  */
-public class TimelineSubscriber<T extends BaseOperation<Status>> {
-  public static final String TAG = TimelineSubscriber.class.getSimpleName();
-  private final TwitterApi twitterApi;
+public class StatusRequestWorker<T extends BaseOperation<Status>>
+    extends RequestWorkerBase {
+  public static final String TAG = StatusRequestWorker.class.getSimpleName();
   private final T statusStore;
-  private final Subscription feedbackSubscription;
-  private final PublishSubject<Integer> feedbackSubject;
 
-  @SuppressWarnings("unused")
-  public TimelineSubscriber(@NonNull TwitterApi twitterApi,
-                            @NonNull T statusStore) {
-    this(twitterApi, statusStore, new FeedbackAction.LogFeedback());
-  }
-
-  public TimelineSubscriber(@NonNull TwitterApi twitterApi,
-                            @NonNull T statusStore,
-                            @NonNull final FeedbackAction userFeedback) {
-    this.twitterApi = twitterApi;
+  public StatusRequestWorker(@NonNull TwitterApi twitterApi,
+                             @NonNull T statusStore,
+                             @NonNull UserFeedbackSubscriber userFeedback) {
+    super(twitterApi, userFeedback);
     this.statusStore = statusStore;
-    final Scheduler.Worker worker = AndroidSchedulers.mainThread().createWorker();
-    feedbackSubject = PublishSubject.create();
-    feedbackSubscription = feedbackSubject.onBackpressureBuffer()
-        .observeOn(Schedulers.newThread())
-        .subscribe(new Action1<Integer>() {
-          @Override
-          public void call(final Integer msg) {
-            Subscription schedule = null;
-            try {
-              schedule = worker.schedule(new Action0() {
-                @Override
-                public void call() {
-                  userFeedback.onCompleteDefault(msg).call();
-                }
-              });
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-            } finally {
-              if (schedule != null) {
-                schedule.unsubscribe();
-              }
-            }
-          }
-        });
-  }
-
-  public void close() {
-    feedbackSubscription.unsubscribe();
   }
 
   public void fetchHomeTimeline() {
@@ -173,7 +132,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             if (msg == R.string.msg_already_fav) {
               updateStatus();
             }
-            feedbackSubject.onNext(msg > 0 ? msg : R.string.msg_fav_create_failed);
+            userFeedback.offerEvent(msg > 0 ? msg : R.string.msg_fav_create_failed);
           }
 
           private void updateStatus() {
@@ -193,7 +152,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
 
   public void createFavorite(long statusId) {
     observeCreateFavorite(statusId)
-        .subscribe(TimelineSubscriber.<Status>nopSubscriber());
+        .subscribe(StatusRequestWorker.<Status>nopSubscriber());
   }
 
   public Observable<Status> observeRetweetStatus(final long statusId) {
@@ -207,7 +166,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
             if (msg == R.string.msg_already_rt) {
               updateStatus();
             }
-            feedbackSubject.onNext(msg > 0 ? msg : R.string.msg_rt_create_failed);
+            userFeedback.offerEvent(msg > 0 ? msg : R.string.msg_rt_create_failed);
           }
 
           private void updateStatus() {
@@ -227,7 +186,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
 
   public void retweetStatus(long statusId) {
     observeRetweetStatus(statusId)
-        .subscribe(TimelineSubscriber.<Status>nopSubscriber());
+        .subscribe(StatusRequestWorker.<Status>nopSubscriber());
   }
 
   public void destroyFavorite(long statusId) {
@@ -260,26 +219,6 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
 
   public T getStatusStore() {
     return statusStore;
-  }
-
-  @NonNull
-  private Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
-    return new Action1<Throwable>() {
-      @Override
-      public void call(Throwable throwable) {
-        feedbackSubject.onNext(msg);
-      }
-    };
-  }
-
-  @NonNull
-  private Action0 onCompleteFeedback(@StringRes final int msg) {
-    return new Action0() {
-      @Override
-      public void call() {
-        feedbackSubject.onNext(msg);
-      }
-    };
   }
 
   @NonNull
@@ -339,11 +278,11 @@ public class TimelineSubscriber<T extends BaseOperation<Status>> {
     boolean favorited;
     boolean retweeted;
 
-    void setFavorited(boolean favorited){
+    void setFavorited(boolean favorited) {
       this.favorited = favorited;
     }
 
-    void setRetweeted(boolean retweeted){
+    void setRetweeted(boolean retweeted) {
       this.retweeted = retweeted;
     }
   }

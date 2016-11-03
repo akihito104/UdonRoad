@@ -48,9 +48,9 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
-import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
+import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
 import java.util.Arrays;
@@ -89,12 +89,14 @@ public class MainActivity
   TwitterApi twitterApi;
   @Inject
   SortedCache<Status> homeTimeline;
-  private TimelineSubscriber<SortedCache<Status>> timelineSubscriber;
+  private StatusRequestWorker<SortedCache<Status>> statusRequestWorker;
   @Inject
   UserStreamUtil userStream;
   private final Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
-  ConfigSubscriber configSubscriber;
+  ConfigRequestWorker configRequestWorker;
+  @Inject
+  UserFeedbackSubscriber userFeedback;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -143,14 +145,13 @@ public class MainActivity
   private void setupHomeTimeline() {
     homeTimeline.open("home");
     homeTimeline.clear();
-    timelineSubscriber = new TimelineSubscriber<>(twitterApi, homeTimeline,
-        new SnackbarFeedback(binding.mainTimelineContainer));
+    statusRequestWorker = new StatusRequestWorker<>(twitterApi, homeTimeline, userFeedback);
 
     tlFragment = new TimelineFragment<>();
     tlFragment.setSortedCache(homeTimeline);
 
-    configSubscriber.open();
-    configSubscriber.setup(new Action0() {
+    configRequestWorker.open();
+    configRequestWorker.setup(new Action0() {
       @Override
       public void call() {
         getSupportFragmentManager().beginTransaction()
@@ -184,7 +185,7 @@ public class MainActivity
   private Subscription subscription;
 
   private void setupNavigationDrawer() {
-    subscription = configSubscriber.getAuthenticatedUser()
+    subscription = configRequestWorker.getAuthenticatedUser()
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
@@ -273,11 +274,13 @@ public class MainActivity
     Log.d(TAG, "onResume: ");
     super.onResume();
     attachToolbar(binding.mainToolbar);
+    statusRequestWorker.registerRootView(binding.mainTimelineContainer);
   }
 
   @Override
   protected void onPause() {
     super.onPause();
+    statusRequestWorker.unregisterRootView(binding.mainTimelineContainer);
   }
 
   @Override
@@ -300,8 +303,9 @@ public class MainActivity
       binding.ffab.setOnFlingListener(null);
       binding.navDrawer.setNavigationItemSelectedListener(null);
     }
-    configSubscriber.close();
-    timelineSubscriber.close();
+    configRequestWorker.close();
+    statusRequestWorker.close();
+    userFeedback.close();
     homeTimeline.close();
   }
 
@@ -407,25 +411,25 @@ public class MainActivity
 
   @Override
   public void fetchTweet() {
-    timelineSubscriber.fetchHomeTimeline();
+    statusRequestWorker.fetchHomeTimeline();
   }
 
   @Override
   public void fetchTweet(Paging paging) {
-    timelineSubscriber.fetchHomeTimeline(paging);
+    statusRequestWorker.fetchHomeTimeline(paging);
   }
 
   private void setupActionMap() {
     actionMap.put(Direction.UP, new UserAction(Resource.FAV, new Runnable() {
       @Override
       public void run() {
-        timelineSubscriber.createFavorite(tlFragment.getSelectedTweetId());
+        statusRequestWorker.createFavorite(tlFragment.getSelectedTweetId());
       }
     }));
     actionMap.put(Direction.RIGHT, new UserAction(Resource.RETWEET, new Runnable() {
       @Override
       public void run() {
-        timelineSubscriber.retweetStatus(tlFragment.getSelectedTweetId());
+        statusRequestWorker.retweetStatus(tlFragment.getSelectedTweetId());
       }
     }));
     actionMap.put(Direction.UP_RIGHT, new UserAction(null, new Runnable() {
@@ -433,9 +437,9 @@ public class MainActivity
       public void run() {
         final long selectedTweetId = tlFragment.getSelectedTweetId();
         Observable.concatDelayError(Arrays.asList(
-            timelineSubscriber.observeCreateFavorite(selectedTweetId),
-            timelineSubscriber.observeRetweetStatus(selectedTweetId))
-        ).subscribe(TimelineSubscriber.<Status>nopSubscriber());
+            statusRequestWorker.observeCreateFavorite(selectedTweetId),
+            statusRequestWorker.observeRetweetStatus(selectedTweetId))
+        ).subscribe(StatusRequestWorker.<Status>nopSubscriber());
       }
     }));
     actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {

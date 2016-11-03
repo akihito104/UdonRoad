@@ -49,8 +49,8 @@ import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction.SnackbarFeedback;
-import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -74,8 +74,10 @@ public class StatusDetailFragment extends Fragment {
   TypedCache<Status> statusCache;
   @Inject
   TwitterApi twitterApi;
-  private TimelineSubscriber<TypedCache<Status>> statusCacheSubscriber;
+  private StatusRequestWorker<TypedCache<Status>> statusCacheSubscriber;
   private Subscription subscription;
+  @Inject
+  UserFeedbackSubscriber userFeedback;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -137,8 +139,7 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
-    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,
-        new SnackbarFeedback(binding.getRoot()));
+    statusCacheSubscriber = new StatusRequestWorker<>(twitterApi, statusCache,userFeedback);
     setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
     binding.sdFav.setOnClickListener(new View.OnClickListener() {
       @Override

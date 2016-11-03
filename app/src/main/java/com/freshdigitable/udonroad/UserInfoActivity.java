@@ -23,7 +23,6 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.StringRes;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
@@ -47,7 +46,6 @@ import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.FeedbackAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +55,6 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
@@ -72,7 +69,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetSendable, FabHandleable, FeedbackAction {
+    implements TweetSendable, FabHandleable {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -374,15 +371,5 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public void hideFab() {
     binding.userInfoIffab.hide();
-  }
-
-  @Override
-  public Action1<Throwable> onErrorDefault(@StringRes int msg) {
-    return new SnackbarFeedback(binding.userInfoTimelineContainer).onErrorDefault(msg);
-  }
-
-  @Override
-  public Action0 onCompleteDefault(@StringRes int msg) {
-    return new SnackbarFeedback(binding.userInfoTimelineContainer).onCompleteDefault(msg);
   }
 }

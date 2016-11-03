@@ -29,22 +29,19 @@ import rx.functions.Action1;
 import twitter4j.User;
 
 /**
- * UserSubscriber creates twitter request for user resources and subscribes its response
+ * UserRequestWorker creates twitter request for user resources and subscribes its response
  * with user feedback.
- *
+ * <p>
  * Created by akihit on 2016/09/03.
  */
-public class UserSubscriber<T extends BaseOperation<User>> {
-  private final TwitterApi twitterApi;
+public class UserRequestWorker<T extends BaseOperation<User>> extends RequestWorkerBase {
   private final T userStore;
-  private final FeedbackAction feedback;
 
-  public UserSubscriber(@NonNull TwitterApi twitterApi,
-                        @NonNull T userStore,
-                        @NonNull FeedbackAction feedback) {
-    this.twitterApi = twitterApi;
+  public UserRequestWorker(@NonNull TwitterApi twitterApi,
+                           @NonNull T userStore,
+                           @NonNull UserFeedbackSubscriber feedback) {
+    super(twitterApi, feedback);
     this.userStore = userStore;
-    this.feedback = feedback;
   }
 
   public void createFriendship(final long userId) {
@@ -52,8 +49,8 @@ public class UserSubscriber<T extends BaseOperation<User>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createUpsertAction(),
-            feedback.onErrorDefault(R.string.msg_create_friendship_failed),
-            feedback.onCompleteDefault(R.string.msg_create_friendship_success));
+            onErrorFeedback(R.string.msg_create_friendship_failed),
+            onCompleteFeedback(R.string.msg_create_friendship_success));
   }
 
   public void destroyFriendship(long userId) {
@@ -61,22 +58,22 @@ public class UserSubscriber<T extends BaseOperation<User>> {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             createUpsertAction(),
-            feedback.onErrorDefault(R.string.msg_destroy_friendship_failed),
-            feedback.onCompleteDefault(R.string.msg_destroy_friendship_success));
+            onErrorFeedback(R.string.msg_destroy_friendship_failed),
+            onCompleteFeedback(R.string.msg_destroy_friendship_success));
   }
 
   public void fetchFollowers(final long userId, final long cursor) {
     twitterApi.getFollowersList(userId, cursor)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(createUpsertListAction(),
-            feedback.onErrorDefault(R.string.msg_follower_list_failed));
+            onErrorFeedback(R.string.msg_follower_list_failed));
   }
 
   public void fetchFriends(long userId, long cursor) {
     twitterApi.getFriendsList(userId, cursor)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(createUpsertListAction(),
-            feedback.onErrorDefault(R.string.msg_friends_list_failed));
+            onErrorFeedback(R.string.msg_friends_list_failed));
   }
 
   @NonNull

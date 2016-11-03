@@ -22,7 +22,7 @@ import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 
-import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
+import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -98,7 +98,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
   }
 
   @Inject
-  ConfigSubscriber configSubscriber;
+  ConfigRequestWorker configRequestWorker;
 
   @Override
   public void setupConfig(User user) throws Exception {
@@ -111,8 +111,8 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
       @Override
       public void run() {
-        configSubscriber.open();
-        configSubscriber.setup(new Action0() {
+        configRequestWorker.open();
+        configRequestWorker.setup(new Action0() {
           @Override
           public void call() {
             idlingResource.setDoneSetup(true);
@@ -142,7 +142,7 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
       @Override
       public void run() {
-        configSubscriber.close();
+        configRequestWorker.close();
       }
     });
     super.tearDown();

@@ -17,9 +17,9 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.android.annotations.NonNull;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
@@ -43,22 +43,22 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 /**
- * ConfigSubscriber provides to fetch twitter api and to store its data.
+ * ConfigRequestWorker provides to fetch twitter api and to store its data.
  *
  * Created by akihit on 2016/09/23.
  */
-public class ConfigSubscriber {
+public class ConfigRequestWorker extends RequestWorkerBase {
   public static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
-  private final String TAG = ConfigSubscriber.class.getSimpleName();
-  private final TwitterApi twitterApi;
+  private final String TAG = ConfigRequestWorker.class.getSimpleName();
   private final ConfigStore configStore;
   private final SharedPreferences prefs;
 
   @Inject
-  public ConfigSubscriber(@NonNull TwitterApi twitterApi,
-                          @NonNull ConfigStore configStore,
-                          @NonNull SharedPreferences prefs) {
-    this.twitterApi = twitterApi;
+  public ConfigRequestWorker(@NonNull TwitterApi twitterApi,
+                             @NonNull ConfigStore configStore,
+                             @NonNull SharedPreferences prefs,
+                             @NonNull UserFeedbackSubscriber userFeedback) {
+    super(twitterApi, userFeedback);
     this.configStore = configStore;
     this.prefs = prefs;
   }
@@ -195,19 +195,13 @@ public class ConfigSubscriber {
         .doOnError(onErrorAction);
   }
 
-  private FeedbackAction feedback;
-
-  public void setFeedbackSubscriber(FeedbackAction feedback) {
-    this.feedback = feedback;
-  }
-
   public void createBlock(final long userId) {
     twitterApi.createBlock(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             addIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_create_block_failed),
-            feedback.onCompleteDefault(R.string.msg_create_block_success));
+            onErrorFeedback(R.string.msg_create_block_failed),
+            onCompleteFeedback(R.string.msg_create_block_success));
   }
 
   public void destroyBlock(final long userId) {
@@ -215,8 +209,8 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             removeIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_create_block_failed),
-            feedback.onCompleteDefault(R.string.msg_create_block_success));
+            onErrorFeedback(R.string.msg_create_block_failed),
+            onCompleteFeedback(R.string.msg_create_block_success));
   }
 
   public void reportSpam(long userId) {
@@ -224,8 +218,8 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             addIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_report_spam_failed),
-            feedback.onCompleteDefault(R.string.msg_report_spam_success));
+            onErrorFeedback(R.string.msg_report_spam_failed),
+            onCompleteFeedback(R.string.msg_report_spam_success));
   }
 
   public void createMute(long userId) {
@@ -233,8 +227,8 @@ public class ConfigSubscriber {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             addIgnoringUserAction(),
-            feedback.onErrorDefault(R.string.msg_create_mute_failed),
-            feedback.onCompleteDefault(R.string.msg_create_mute_success));
+            onErrorFeedback(R.string.msg_create_mute_failed),
+            onCompleteFeedback(R.string.msg_create_mute_success));
   }
 
   @NonNull
