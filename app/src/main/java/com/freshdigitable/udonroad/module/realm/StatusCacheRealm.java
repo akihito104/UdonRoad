@@ -145,7 +145,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
 
   @Override
   public void delete(final long statusId) {
-    cache.executeTransaction(new Realm.Transaction() {
+    cache.executeTransactionAsync(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
         realm.where(StatusRealm.class)

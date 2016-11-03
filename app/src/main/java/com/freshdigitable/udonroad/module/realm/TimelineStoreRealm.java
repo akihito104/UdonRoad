@@ -278,7 +278,9 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
         setItemCount(element.size());
         for (int d : deleted) {
           deleteEvent.onNext(d);
-          statusCache.delete(d);
+        }
+        for (StatusIDs ids : res) {
+          statusCache.delete(ids.getId());
         }
         element.removeChangeListener(this);
       }
