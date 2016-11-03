@@ -49,7 +49,7 @@ import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
@@ -74,7 +74,7 @@ public class StatusDetailFragment extends Fragment {
   TypedCache<Status> statusCache;
   @Inject
   TwitterApi twitterApi;
-  private TimelineSubscriber<TypedCache<Status>> statusCacheSubscriber;
+  private StatusRequestWorker<TypedCache<Status>> statusCacheSubscriber;
   private Subscription subscription;
   @Inject
   UserFeedbackSubscriber userFeedback;
@@ -139,7 +139,7 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
-    statusCacheSubscriber = new TimelineSubscriber<>(twitterApi, statusCache,userFeedback);
+    statusCacheSubscriber = new StatusRequestWorker<>(twitterApi, statusCache,userFeedback);
     statusCacheSubscriber.registerRootView(binding.getRoot());
     setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
     binding.sdFav.setOnClickListener(new View.OnClickListener() {

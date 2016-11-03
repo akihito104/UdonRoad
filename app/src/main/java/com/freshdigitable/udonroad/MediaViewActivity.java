@@ -49,7 +49,7 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.TimelineSubscriber;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import java.util.Arrays;
@@ -79,7 +79,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   private Handler handler;
   @Inject
   TypedCache<Status> statusCache;
-  private TimelineSubscriber<TypedCache<Status>> userActionSubscriber;
+  private StatusRequestWorker<TypedCache<Status>> userActionSubscriber;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
   UserFeedbackSubscriber userFeedback;
@@ -202,7 +202,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     super.onStart();
     statusCache.open();
     userFeedback.setToastOption(Gravity.CENTER, 0, 0);
-    userActionSubscriber = new TimelineSubscriber<>(twitterApi, statusCache, userFeedback);
+    userActionSubscriber = new StatusRequestWorker<>(twitterApi, statusCache, userFeedback);
     userActionSubscriber.unregisterRootView();
 
     final Intent intent = getIntent();
@@ -392,7 +392,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         Observable.concatDelayError(Arrays.asList(
             userActionSubscriber.observeCreateFavorite(statusId),
             userActionSubscriber.observeRetweetStatus(statusId))
-        ).subscribe(TimelineSubscriber.<Status>nopSubscriber());
+        ).subscribe(StatusRequestWorker.<Status>nopSubscriber());
       }
     }));
   }

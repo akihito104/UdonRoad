@@ -28,7 +28,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 
 /**
- * FeedbackAction defines subscriber action such as TimelineSubscriber and UserSubscriber.
+ * FeedbackAction defines subscriber action such as StatusRequestWorker and UserRequestWorker.
  *
  * Created by akihit on 2016/09/03.
  */

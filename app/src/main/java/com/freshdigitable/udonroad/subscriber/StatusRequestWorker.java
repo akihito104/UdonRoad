@@ -48,19 +48,19 @@ import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 /**
- * TimelineSubscriber creates twitter request for status resources and subscribes its response
+ * StatusRequestWorker creates twitter request for status resources and subscribes its response
  * with user feedback.
 
  * Created by akihit on 2016/08/01.
  */
-public class TimelineSubscriber<T extends BaseOperation<Status>>
+public class StatusRequestWorker<T extends BaseOperation<Status>>
     extends RequestWorkerBase {
-  public static final String TAG = TimelineSubscriber.class.getSimpleName();
+  public static final String TAG = StatusRequestWorker.class.getSimpleName();
   private final T statusStore;
 
-  public TimelineSubscriber(@NonNull TwitterApi twitterApi,
-                            @NonNull T statusStore,
-                            @NonNull UserFeedbackSubscriber userFeedback) {
+  public StatusRequestWorker(@NonNull TwitterApi twitterApi,
+                             @NonNull T statusStore,
+                             @NonNull UserFeedbackSubscriber userFeedback) {
     super(twitterApi, userFeedback);
     this.statusStore = statusStore;
   }
@@ -152,7 +152,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>>
 
   public void createFavorite(long statusId) {
     observeCreateFavorite(statusId)
-        .subscribe(TimelineSubscriber.<Status>nopSubscriber());
+        .subscribe(StatusRequestWorker.<Status>nopSubscriber());
   }
 
   public Observable<Status> observeRetweetStatus(final long statusId) {
@@ -186,7 +186,7 @@ public class TimelineSubscriber<T extends BaseOperation<Status>>
 
   public void retweetStatus(long statusId) {
     observeRetweetStatus(statusId)
-        .subscribe(TimelineSubscriber.<Status>nopSubscriber());
+        .subscribe(StatusRequestWorker.<Status>nopSubscriber());
   }
 
   public void destroyFavorite(long statusId) {

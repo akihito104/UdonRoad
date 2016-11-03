@@ -43,21 +43,21 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 /**
- * ConfigSubscriber provides to fetch twitter api and to store its data.
+ * ConfigRequestWorker provides to fetch twitter api and to store its data.
  *
  * Created by akihit on 2016/09/23.
  */
-public class ConfigSubscriber extends RequestWorkerBase {
+public class ConfigRequestWorker extends RequestWorkerBase {
   public static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
-  private final String TAG = ConfigSubscriber.class.getSimpleName();
+  private final String TAG = ConfigRequestWorker.class.getSimpleName();
   private final ConfigStore configStore;
   private final SharedPreferences prefs;
 
   @Inject
-  public ConfigSubscriber(@NonNull TwitterApi twitterApi,
-                          @NonNull ConfigStore configStore,
-                          @NonNull SharedPreferences prefs,
-                          @NonNull UserFeedbackSubscriber userFeedback) {
+  public ConfigRequestWorker(@NonNull TwitterApi twitterApi,
+                             @NonNull ConfigStore configStore,
+                             @NonNull SharedPreferences prefs,
+                             @NonNull UserFeedbackSubscriber userFeedback) {
     super(twitterApi, userFeedback);
     this.configStore = configStore;
     this.prefs = prefs;

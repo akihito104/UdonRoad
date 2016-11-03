@@ -39,7 +39,7 @@ import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
+import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import java.lang.annotation.Retention;
@@ -73,7 +73,7 @@ public class TweetInputFragment extends Fragment {
   @Inject
   TypedCache<Status> statusCache;
   @Inject
-  ConfigSubscriber configSubscriber;
+  ConfigRequestWorker configRequestWorker;
 
   public static TweetInputFragment create() {
     return create(TYPE_NONE);
@@ -156,7 +156,7 @@ public class TweetInputFragment extends Fragment {
   public void onStart() {
     super.onStart();
     statusCache.open();
-    configSubscriber.open();
+    configRequestWorker.open();
     final Bundle arguments = getArguments();
     final @TweetType int tweetType = arguments.getInt("tweet_type");
     final long statusId = arguments.getLong("status_id", -1);
@@ -166,7 +166,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    configSubscriber.close();
+    configRequestWorker.close();
     statusCache.close();
   }
 
@@ -236,7 +236,7 @@ public class TweetInputFragment extends Fragment {
 
   private void setUpTweetInputView() {
     final TweetInputView inputText = binding.mainTweetInputView;
-    configSubscriber.getAuthenticatedUser()
+    configRequestWorker.getAuthenticatedUser()
         .subscribe(new Action1<User>() {
           @Override
           public void call(User authenticatedUser) {
@@ -249,7 +249,7 @@ public class TweetInputFragment extends Fragment {
         });
     inputText.addTextWatcher(textWatcher);
     inputText.setShortUrlLength(
-        configSubscriber.getConfigStore().getTwitterAPIConfig().getShortURLLengthHttps());
+        configRequestWorker.getConfigStore().getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
   public void tearDownTweetInputView() {

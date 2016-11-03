@@ -33,9 +33,9 @@ import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.ConfigSubscriber;
+import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
-import com.freshdigitable.udonroad.subscriber.UserSubscriber;
+import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -112,7 +112,7 @@ public class UserInfoFragment extends Fragment {
           }
         });
 
-    userSubscriber = new UserSubscriber<>(twitterApi, userCache, userFeedback);
+    userRequestWorker = new UserRequestWorker<>(twitterApi, userCache, userFeedback);
   }
 
   @Override
@@ -131,26 +131,26 @@ public class UserInfoFragment extends Fragment {
     inflater.inflate(R.menu.user_info, menu);
   }
 
-  private UserSubscriber<TypedCache<User>> userSubscriber;
+  private UserRequestWorker<TypedCache<User>> userRequestWorker;
   @Inject
-  ConfigSubscriber configSubscriber;
+  ConfigRequestWorker configRequestWorker;
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     final int itemId = item.getItemId();
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
-      userSubscriber.createFriendship(userId);
+      userRequestWorker.createFriendship(userId);
     } else if (itemId == R.id.action_remove) {
-      userSubscriber.destroyFriendship(userId);
+      userRequestWorker.destroyFriendship(userId);
     } else if (itemId == R.id.action_block) {
-      configSubscriber.createBlock(userId);
+      configRequestWorker.createBlock(userId);
     } else if (itemId == R.id.action_block_retweet) {
       // todo
     } else if (itemId == R.id.action_mute) {
-      configSubscriber.createMute(userId);
+      configRequestWorker.createMute(userId);
     } else if (itemId == R.id.action_r4s) {
-      configSubscriber.reportSpam(userId);
+      configRequestWorker.reportSpam(userId);
     }
     return false;
   }

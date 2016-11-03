@@ -29,17 +29,17 @@ import rx.functions.Action1;
 import twitter4j.User;
 
 /**
- * UserSubscriber creates twitter request for user resources and subscribes its response
+ * UserRequestWorker creates twitter request for user resources and subscribes its response
  * with user feedback.
  * <p>
  * Created by akihit on 2016/09/03.
  */
-public class UserSubscriber<T extends BaseOperation<User>> extends RequestWorkerBase {
+public class UserRequestWorker<T extends BaseOperation<User>> extends RequestWorkerBase {
   private final T userStore;
 
-  public UserSubscriber(@NonNull TwitterApi twitterApi,
-                        @NonNull T userStore,
-                        @NonNull UserFeedbackSubscriber feedback) {
+  public UserRequestWorker(@NonNull TwitterApi twitterApi,
+                           @NonNull T userStore,
+                           @NonNull UserFeedbackSubscriber feedback) {
     super(twitterApi, feedback);
     this.userStore = userStore;
   }
