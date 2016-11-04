@@ -153,7 +153,7 @@ public abstract class StatusViewBase extends RelativeLayout {
       long hours = deltaInSec + TimeUnit.MINUTES.toSeconds(15);
       return getContext().getString(R.string.created_hours_ago, TimeUnit.SECONDS.toHours(hours));
     }
-    return timeSpanConv.toTimeSpanString(deltaInSec);
+    return timeSpanConv.toTimeSpanString(createdAtDate);
   }
 
   public void updateTime() {
