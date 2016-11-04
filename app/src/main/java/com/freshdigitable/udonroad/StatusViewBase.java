@@ -31,6 +31,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -127,7 +128,32 @@ public abstract class StatusViewBase extends RelativeLayout {
     if (createdAtDate == null) {
       return;
     }
-    createdAt.setText(timeSpanConv.toTimeSpanString(createdAtDate));
+    final String text = createTimeString(createdAtDate);
+    createdAt.setText(text);
+  }
+
+  private String createTimeString(Date createdAtDate) {
+    final long deltaInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - createdAtDate.getTime());
+    if (deltaInSec <= TimeUnit.SECONDS.toSeconds(1)) {
+      return getContext().getString(R.string.created_now);
+    }
+    if (deltaInSec < TimeUnit.SECONDS.toSeconds(60)) {
+      return getContext().getString(R.string.created_seconds_ago, TimeUnit.SECONDS.toSeconds(deltaInSec));
+    }
+    if (deltaInSec <= TimeUnit.MINUTES.toSeconds(1)) {
+      return getContext().getString(R.string.created_a_minute_ago);
+    }
+    if (deltaInSec < TimeUnit.MINUTES.toSeconds(45)) {
+      return getContext().getString(R.string.created_minutes_ago, TimeUnit.SECONDS.toMinutes(deltaInSec));
+    }
+    if (deltaInSec < TimeUnit.MINUTES.toSeconds(105)) {
+      return getContext().getString(R.string.created_a_hour_ago);
+    }
+    if (deltaInSec < TimeUnit.DAYS.toSeconds(1)) {
+      long hours = deltaInSec + TimeUnit.MINUTES.toSeconds(15);
+      return getContext().getString(R.string.created_hours_ago, TimeUnit.SECONDS.toHours(hours));
+    }
+    return timeSpanConv.toTimeSpanString(deltaInSec);
   }
 
   public void updateTime() {

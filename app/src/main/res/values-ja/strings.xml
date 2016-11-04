@@ -61,4 +61,10 @@
     <string name="action_r4s">スパムとして報告</string>
     <string name="action_remove">リムーブ</string>
     <string name="msg_already_rt">もうRTしてました</string>
+    <string name="created_a_hour_ago">1時間前</string>
+    <string name="created_a_minute_ago">1分前</string>
+    <string name="created_hours_ago">%1$d時間前</string>
+    <string name="created_minutes_ago">%1$d分前</string>
+    <string name="created_now">今</string>
+    <string name="created_seconds_ago">%1$d秒前</string>
 </resources>
