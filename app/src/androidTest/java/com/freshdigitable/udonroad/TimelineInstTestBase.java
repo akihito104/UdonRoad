@@ -46,6 +46,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
@@ -175,7 +177,16 @@ public abstract class TimelineInstTestBase {
         .putString("token", "validtoken")
         .putString("token_secret", "validtokensecret")
         .apply();
-  }
+
+     final Realm reaction = Realm.getInstance(new RealmConfiguration.Builder().name("reactions").build());
+     reaction.executeTransaction(new Realm.Transaction() {
+       @Override
+       public void execute(Realm realm) {
+         realm.deleteAll();
+       }
+     });
+     reaction.close();
+   }
 
   protected void setupConfig(User loginUser) throws Exception {
     final TwitterAPIConfiguration twitterAPIConfigMock

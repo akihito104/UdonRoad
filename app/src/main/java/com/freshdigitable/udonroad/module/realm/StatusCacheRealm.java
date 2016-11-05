@@ -32,6 +32,7 @@ import java.util.Map;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
+import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -51,6 +52,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final ConfigStore configStore;
   private UserCacheRealm userTypedCache;
+  private Realm reactions;
 
   public StatusCacheRealm(ConfigStore configStore) {
     this.configStore = configStore;
@@ -61,12 +63,14 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     super.open();
     this.userTypedCache = new UserCacheRealm(this);
     configStore.open();
+    reactions = Realm.getInstance(new RealmConfiguration.Builder().name("reactions").build());
   }
 
   @Override
   public void close() {
     super.close();
     configStore.close();
+    reactions.close();
   }
 
   @Override
@@ -82,8 +86,24 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     if (statuses == null || statuses.isEmpty()) {
       return;
     }
-
     final Collection<Status> updates = splitUpsertingStatus(statuses);
+
+    reactions.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        final ArrayList<StatusReactionRealm> insertReactions = new ArrayList<>(updates.size());
+        for (Status s : updates) {
+          final StatusReactionRealm r = findById(realm, s.getId(), StatusReactionRealm.class);
+          if (r == null) {
+            insertReactions.add(new StatusReactionRealm(s));
+          } else {
+            r.merge(s);
+          }
+        }
+        realm.insertOrUpdate(insertReactions);
+      }
+    });
+
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
@@ -99,6 +119,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         realm.insertOrUpdate(inserts);
       }
     });
+
     for (Status s : updates) {
       userTypedCache.upsert(s.getUserMentionEntities());
     }
@@ -154,6 +175,15 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
             .deleteAllFromRealm();
       }
     });
+    reactions.executeTransactionAsync(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.where(StatusReactionRealm.class)
+            .equalTo(KEY_ID, statusId)
+            .findAll()
+            .deleteAllFromRealm();
+      }
+    });
   }
 
   /**
@@ -163,6 +193,18 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   @Override
   public void forceUpsert(final Status status) {
     final Collection<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
+
+    final ArrayList<StatusReactionRealm> srr = new ArrayList<>(statuses.size());
+    for (Status s : statuses) {
+      srr.add(new StatusReactionRealm(s));
+    }
+    reactions.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.insertOrUpdate(srr);
+      }
+    });
+
     final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
     for (Status s: statuses) {
       if (s instanceof StatusRealm) {
@@ -237,6 +279,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
       return null;
     }
     status.setUser(userTypedCache.find(status.getUserId()));
+    status.setReaction(findById(reactions, id, StatusReactionRealm.class));
     return status;
   }
 }
