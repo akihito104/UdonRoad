@@ -70,6 +70,11 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   }
 
   @Override
+  public void clearPool() {
+    // nop
+  }
+
+  @Override
   public User get(int position) {
     final ListedUserIDs userIDs = ordered.get(position);
     return userCache.find(userIDs.userId);

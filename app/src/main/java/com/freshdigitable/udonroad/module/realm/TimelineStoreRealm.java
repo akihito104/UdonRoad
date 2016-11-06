@@ -315,6 +315,12 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @Override
+  public void clearPool() {
+    clear();
+    statusCache.clear();
+  }
+
+  @Override
   public void close() {
     timeline.removeChangeListeners();
     super.close();

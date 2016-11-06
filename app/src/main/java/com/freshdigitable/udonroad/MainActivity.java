@@ -144,7 +144,7 @@ public class MainActivity
 
   private void setupHomeTimeline() {
     homeTimeline.open("home");
-    homeTimeline.clear();
+    homeTimeline.clearPool();
     statusRequestWorker = new StatusRequestWorker<>(twitterApi, homeTimeline, userFeedback);
 
     tlFragment = new TimelineFragment<>();

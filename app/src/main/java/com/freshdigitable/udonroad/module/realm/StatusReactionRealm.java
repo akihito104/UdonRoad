@@ -61,9 +61,13 @@ public class StatusReactionRealm implements RealmModel {
   }
 
   public void merge(Status status) {
-    final boolean fav = isFavorited() | status.isFavorited();
-    setFavorited(fav);
-    final boolean rt = isRetweeted() | status.isRetweeted();
-    setRetweeted(rt);
+    // `Status.favorited` is nullable and in the case `favoried` is false.
+    if (!this.favorited && status.isFavorited()) {
+      this.favorited = status.isFavorited();
+    }
+    // `Status.retweeted` is nullable and in the case `retweeted` is false.
+    if (!this.retweeted && status.isRetweeted()) {
+      this.retweeted = status.isRetweeted();
+    }
   }
 }

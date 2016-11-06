@@ -41,4 +41,6 @@ public interface SortedCache<T> extends BaseOperation<T> {
   int getItemCount();
 
   long getLastPageCursor();
+
+  void clearPool();
 }
