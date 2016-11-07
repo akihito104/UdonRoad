@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad;
 
-import java.util.Collection;
+import android.content.Context;
+import android.content.SharedPreferences;
 
-import twitter4j.User;
+import com.freshdigitable.udonroad.module.DataStoreModule;
 
 /**
- * ConfigStore defines scheme to store user configurations.
- * <p>
- * Created by akihit on 2016/07/30.
+ * Created by akihit on 2016/11/07.
  */
-public interface ConfigStore extends BaseCache {
-  void replaceIgnoringUsers(Collection<Long> iDs);
 
-  boolean isIgnoredUser(long userId);
+public class MockDataStoreModule extends DataStoreModule {
+  public MockDataStoreModule(Context context) {
+    super(context);
+  }
 
-  void addIgnoringUser(User user);
-
-  void removeIgnoringUser(User user);
+  @Override
+  public SharedPreferences provideSharedPreferences() {
+    return context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE);
+  }
 }

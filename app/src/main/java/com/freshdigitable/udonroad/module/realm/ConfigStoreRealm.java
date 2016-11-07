@@ -25,11 +25,10 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 /**
- * ConfigStoreRealm is data store for TwitterAPIConfiguration or other config.
+ * ConfigStoreRealm is data store for user-oriented configurations such as IgnorableUser and StatusReaction.
  *
  * Created by akihit on 2016/07/30.
  */
@@ -67,50 +66,6 @@ public class ConfigStoreRealm implements ConfigStore {
         realm.deleteAll();
       }
     });
-  }
-
-  @Override
-  public void addAuthenticatedUser(final User authenticatedUser) {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final UserRealm userRealm = new UserRealm(authenticatedUser);
-        realm.insertOrUpdate(userRealm);
-      }
-    });
-    cache.upsert(authenticatedUser);
-  }
-
-  @Override
-  public User getAuthenticatedUser(long userId) {
-    final UserRealm user = realm.where(UserRealm.class)
-        .equalTo("id", userId)
-        .findFirst();
-    if (user == null) {
-      return null;
-    }
-    final User cacheUser = cache.find(user.getId());
-    return cacheUser != null
-        ? cacheUser
-        : user;
-  }
-
-  @Override
-  public void setTwitterAPIConfig(final TwitterAPIConfiguration twitterAPIConfig) {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final TwitterAPIConfigurationRealm twitterAPIConfiguration
-            = new TwitterAPIConfigurationRealm(twitterAPIConfig);
-        realm.insertOrUpdate(twitterAPIConfiguration);
-      }
-    });
-  }
-
-  @Override
-  public TwitterAPIConfiguration getTwitterAPIConfig() {
-    return realm.where(TwitterAPIConfigurationRealm.class)
-        .findFirst();
   }
 
   @Override

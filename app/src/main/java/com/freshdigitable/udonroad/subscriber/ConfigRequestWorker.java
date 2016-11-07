@@ -16,18 +16,17 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -51,24 +50,26 @@ public class ConfigRequestWorker extends RequestWorkerBase {
   public static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
   private final String TAG = ConfigRequestWorker.class.getSimpleName();
   private final ConfigStore configStore;
-  private final SharedPreferences prefs;
+  private final AppSettingStore appSettings;
 
   @Inject
   public ConfigRequestWorker(@NonNull TwitterApi twitterApi,
                              @NonNull ConfigStore configStore,
-                             @NonNull SharedPreferences prefs,
+                             @NonNull AppSettingStore appSettings,
                              @NonNull UserFeedbackSubscriber userFeedback) {
     super(twitterApi, userFeedback);
     this.configStore = configStore;
-    this.prefs = prefs;
+    this.appSettings = appSettings;
   }
 
   public void open() {
     configStore.open();
+    appSettings.open();
   }
 
   public void close() {
     configStore.close();
+    appSettings.close();
   }
 
   public void setup(Action0 completeAction) {
@@ -90,7 +91,7 @@ public class ConfigRequestWorker extends RequestWorkerBase {
         .doOnNext(new Action1<User>() {
           @Override
           public void call(User user) {
-            configStore.addAuthenticatedUser(user);
+            appSettings.addAuthenticatedUser(user);
           }
         })
         .doOnError(onErrorAction);
@@ -102,13 +103,13 @@ public class ConfigRequestWorker extends RequestWorkerBase {
         .map(new Func1<Long, User>() {
           @Override
           public User call(Long userId) {
-            return configStore.getAuthenticatedUser(userId);
+            return appSettings.getAuthenticatedUser(userId);
           }
         });
   }
 
   private Observable<TwitterAPIConfiguration> fetchTwitterAPIConfig() {
-    if (!isTwitterAPIConfigFetchable()) {
+    if (!appSettings.isTwitterAPIConfigFetchable()) {
       Log.d(TAG, "fetchTwitterAPIConfig: not fetch");
       return Observable.empty();
     }
@@ -118,38 +119,9 @@ public class ConfigRequestWorker extends RequestWorkerBase {
         .doOnNext(new Action1<TwitterAPIConfiguration>() {
           @Override
           public void call(TwitterAPIConfiguration configuration) {
-            configStore.setTwitterAPIConfig(configuration);
+            appSettings.setTwitterAPIConfig(configuration);
           }
-        }).doOnError(onErrorAction)
-        .doOnCompleted(new Action0() {
-          @Override
-          public void call() {
-            setFetchTwitterAPIConfigTime(System.currentTimeMillis());
-          }
-        });
-  }
-
-  private void setFetchTwitterAPIConfigTime(long timestamp) {
-    prefs.edit()
-        .putLong(TWITTER_API_CONFIG_DATE, timestamp)
-        .apply();
-  }
-
-  private long getFetchTwitterAPIConfigTime() {
-    return prefs.getLong(TWITTER_API_CONFIG_DATE, -1);
-  }
-
-  private boolean isTwitterAPIConfigFetchable() {
-    final TwitterAPIConfiguration twitterAPIConfig = configStore.getTwitterAPIConfig();
-    if (twitterAPIConfig == null) {
-      return true;
-    }
-    final long lastTime = getFetchTwitterAPIConfigTime();
-    if (lastTime == -1) {
-      return true;
-    }
-    final long now = System.currentTimeMillis();
-    return now - lastTime > TimeUnit.DAYS.toMillis(1);
+        }).doOnError(onErrorAction);
   }
 
   public ConfigStore getConfigStore() {

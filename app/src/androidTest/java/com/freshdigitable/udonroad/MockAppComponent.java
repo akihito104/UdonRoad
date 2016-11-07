@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
+import com.freshdigitable.udonroad.module.TwitterApiModule;
 
 import javax.inject.Singleton;
 
@@ -29,7 +30,8 @@ import dagger.Component;
  * Created by akihit on 2016/06/16.
  */
 @Singleton
-@Component(modules = {MockTwitterApiModule.class, DataStoreModule.class})
+@Component(modules = {TwitterApiModule.class, DataStoreModule.class,
+    MockTwitterApiModule.MockTwitterStreamApiModule.class})
 public interface MockAppComponent extends AppComponent {
   void inject(TimelineInstTestBase mainActivityInstTest);
 
