@@ -46,10 +46,9 @@ import twitter4j.User;
  *
  * Created by akihit on 2016/09/23.
  */
-public class ConfigRequestWorker extends RequestWorkerBase {
+public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   public static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
   private final String TAG = ConfigRequestWorker.class.getSimpleName();
-  private final ConfigStore configStore;
   private final AppSettingStore appSettings;
 
   @Inject
@@ -57,18 +56,16 @@ public class ConfigRequestWorker extends RequestWorkerBase {
                              @NonNull ConfigStore configStore,
                              @NonNull AppSettingStore appSettings,
                              @NonNull UserFeedbackSubscriber userFeedback) {
-    super(twitterApi, userFeedback);
-    this.configStore = configStore;
+    super(twitterApi, configStore, userFeedback);
     this.appSettings = appSettings;
   }
 
   public void open() {
-    configStore.open();
+    super.open();
     appSettings.open();
   }
 
   public void close() {
-    configStore.close();
     appSettings.close();
   }
 
@@ -124,10 +121,6 @@ public class ConfigRequestWorker extends RequestWorkerBase {
         }).doOnError(onErrorAction);
   }
 
-  public ConfigStore getConfigStore() {
-    return configStore;
-  }
-
   private final Action1<Throwable> onErrorAction = new Action1<Throwable>() {
     @Override
     public void call(Throwable throwable) {
@@ -161,7 +154,7 @@ public class ConfigRequestWorker extends RequestWorkerBase {
         .doOnNext(new Action1<Collection<Long>>() {
           @Override
           public void call(Collection<Long> ids) {
-            configStore.replaceIgnoringUsers(ids);
+            cache.replaceIgnoringUsers(ids);
           }
         })
         .doOnError(onErrorAction);
@@ -208,7 +201,7 @@ public class ConfigRequestWorker extends RequestWorkerBase {
     return new Action1<User>() {
       @Override
       public void call(User user) {
-        configStore.addIgnoringUser(user);
+        cache.addIgnoringUser(user);
       }
     };
   }
@@ -218,7 +211,7 @@ public class ConfigRequestWorker extends RequestWorkerBase {
     return new Action1<User>() {
       @Override
       public void call(User user) {
-        configStore.removeIgnoringUser(user);
+        cache.removeIgnoringUser(user);
       }
     };
   }

@@ -26,10 +26,6 @@ import rx.Observable;
 public interface SortedCache<T> extends BaseOperation<T> {
   void open(String storeName);
 
-  void close();
-
-  void clear();
-
   Observable<Integer> observeInsertEvent();
 
   Observable<Integer> observeUpdateEvent();

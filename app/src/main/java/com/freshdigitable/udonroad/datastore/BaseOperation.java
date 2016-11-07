@@ -24,10 +24,10 @@ import rx.Observable;
 
 /**
  * BaseOperation defines basic CRUD operation for data store.
- *
+ * <p>
  * Created by akihit on 2016/09/14.
  */
-public interface BaseOperation<T> {
+public interface BaseOperation<T> extends BaseCache {
   void upsert(T entity);
 
   void upsert(List<T> entities);

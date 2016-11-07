@@ -25,7 +25,7 @@ import twitter4j.User;
  * <p>
  * Created by akihit on 2016/07/30.
  */
-public interface ConfigStore extends BaseCache, TypedCache<StatusReaction> {
+public interface ConfigStore extends TypedCache<StatusReaction> {
   void replaceIgnoringUsers(Collection<Long> iDs);
 
   boolean isIgnoredUser(long userId);

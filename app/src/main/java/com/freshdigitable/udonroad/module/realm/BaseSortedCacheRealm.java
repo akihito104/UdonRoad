@@ -80,4 +80,9 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   public Observable<Integer> observeDeleteEvent() {
     return deleteEvent.onBackpressureBuffer();
   }
+
+  @Override
+  public void open() {
+    throw new RuntimeException();
+  }
 }

@@ -21,5 +21,5 @@ package com.freshdigitable.udonroad.datastore;
  *
  * Created by akihit on 2016/09/14.
  */
-public interface TypedCache<T> extends BaseCache, BaseOperation<T> {
+public interface TypedCache<T> extends BaseOperation<T> {
 }
