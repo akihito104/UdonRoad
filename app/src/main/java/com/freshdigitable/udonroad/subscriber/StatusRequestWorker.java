@@ -153,7 +153,9 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
               return;
             }
             final Status bindingStatus = status.isRetweet() ? status.getRetweetedStatus() : status;
-            configStore.forceUpsert(new StatusReactionImpl(bindingStatus));
+            final StatusReactionImpl reaction = new StatusReactionImpl(bindingStatus);
+            reaction.setFavorited(true);
+            configStore.forceUpsert(reaction);
           }
         })
         .doOnCompleted(onCompleteFeedback(R.string.msg_fav_create_success));
@@ -184,7 +186,9 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
               return;
             }
             final Status bindingStatus = status.isRetweet() ? status.getRetweetedStatus() : status;
-            configStore.forceUpsert(new StatusReactionImpl(bindingStatus));
+            final StatusReactionImpl reaction = new StatusReactionImpl(bindingStatus);
+            reaction.setRetweeted(true);
+            configStore.forceUpsert(reaction);
           }
         })
         .doOnCompleted(onCompleteFeedback(R.string.msg_rt_create_success));
