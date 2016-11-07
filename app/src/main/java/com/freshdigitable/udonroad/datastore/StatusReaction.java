@@ -16,21 +16,18 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import java.util.Collection;
-
-import twitter4j.User;
-
 /**
- * ConfigStore defines scheme to store user configurations.
- * <p>
- * Created by akihit on 2016/07/30.
+ * Created by akihit on 2016/11/07.
  */
-public interface ConfigStore extends BaseCache, TypedCache<StatusReaction> {
-  void replaceIgnoringUsers(Collection<Long> iDs);
 
-  boolean isIgnoredUser(long userId);
+public interface StatusReaction {
+  long getId();
 
-  void addIgnoringUser(User user);
+  void setRetweeted(boolean retweeted);
 
-  void removeIgnoringUser(User user);
+  boolean isRetweeted();
+
+  void setFavorited(boolean favorited);
+
+  boolean isFavorited();
 }

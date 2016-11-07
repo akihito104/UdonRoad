@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
+import com.freshdigitable.udonroad.datastore.StatusReaction;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
@@ -32,7 +33,6 @@ import java.util.Map;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmConfiguration;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -52,7 +52,6 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final ConfigStore configStore;
   private UserCacheRealm userTypedCache;
-  private Realm reactions;
 
   public StatusCacheRealm(ConfigStore configStore) {
     this.configStore = configStore;
@@ -63,14 +62,12 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     super.open();
     this.userTypedCache = new UserCacheRealm(this);
     configStore.open();
-    reactions = Realm.getInstance(new RealmConfiguration.Builder().name("reactions").build());
   }
 
   @Override
   public void close() {
     super.close();
     configStore.close();
-    reactions.close();
   }
 
   @Override
@@ -87,22 +84,8 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
       return;
     }
     final Collection<Status> updates = splitUpsertingStatus(statuses);
-
-    reactions.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final ArrayList<StatusReactionRealm> insertReactions = new ArrayList<>(updates.size());
-        for (Status s : updates) {
-          final StatusReactionRealm r = findById(realm, s.getId(), StatusReactionRealm.class);
-          if (r == null) {
-            insertReactions.add(new StatusReactionRealm(s));
-          } else {
-            r.merge(s);
-          }
-        }
-        realm.insertOrUpdate(insertReactions);
-      }
-    });
+    upsertUser(updates);
+    upsertStatusReaction(updates);
 
     cache.executeTransaction(new Realm.Transaction() {
       @Override
@@ -148,11 +131,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         }
       }
     }
-
-    final Collection<Status> res = updates.values();
-    final Collection<User> updateUsers = splitUpsertingUser(res);
-    userTypedCache.upsert(new ArrayList<>(updateUsers));
-    return res;
+    return updates.values();
   }
 
   private Collection<User> splitUpsertingUser(Collection<Status> updates) {
@@ -160,6 +139,14 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     for (Status s : updates) {
       final User user = s.getUser();
       res.put(user.getId(), user);
+    }
+    return res.values();
+  }
+
+  private Collection<StatusReaction> splitUpsertingStatusReaction(Collection<Status> statuses) {
+    Map<Long, StatusReaction> res = new LinkedHashMap<>(statuses.size());
+    for (Status s : statuses) {
+      res.put(s.getId(), new StatusReactionRealm(s));
     }
     return res.values();
   }
@@ -175,15 +162,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
             .deleteAllFromRealm();
       }
     });
-    reactions.executeTransactionAsync(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.where(StatusReactionRealm.class)
-            .equalTo(KEY_ID, statusId)
-            .findAll()
-            .deleteAllFromRealm();
-      }
-    });
+    configStore.delete(statusId);
   }
 
   /**
@@ -193,17 +172,10 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
   @Override
   public void forceUpsert(final Status status) {
     final Collection<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
-
-    final ArrayList<StatusReactionRealm> srr = new ArrayList<>(statuses.size());
-    for (Status s : statuses) {
-      srr.add(new StatusReactionRealm(s));
+    upsertUser(statuses);
+    for (StatusReaction sr : splitUpsertingStatusReaction(statuses)) {
+      configStore.forceUpsert(sr);
     }
-    reactions.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.insertOrUpdate(srr);
-      }
-    });
 
     final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
     for (Status s: statuses) {
@@ -279,7 +251,17 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
       return null;
     }
     status.setUser(userTypedCache.find(status.getUserId()));
-    status.setReaction(findById(reactions, id, StatusReactionRealm.class));
+    status.setReaction(configStore.find(id));
     return status;
+  }
+
+  private void upsertUser(Collection<Status> updates) {
+    final Collection<User> updateUsers = splitUpsertingUser(updates);
+    userTypedCache.upsert(new ArrayList<>(updateUsers));
+  }
+
+  private void upsertStatusReaction(Collection<Status> updates) {
+    final Collection<StatusReaction> statusReactions = splitUpsertingStatusReaction(updates);
+    configStore.upsert(new ArrayList<>(statusReactions));
   }
 }

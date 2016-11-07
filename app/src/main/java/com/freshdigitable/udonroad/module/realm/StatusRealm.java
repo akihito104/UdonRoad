@@ -18,6 +18,9 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.StatusReaction;
+import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
+
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -63,7 +66,7 @@ public class StatusRealm extends RealmObject implements Status {
   private Status quotedStatus;
   private long quotedStatusId;
   @Ignore
-  private StatusReactionRealm reaction;
+  private StatusReaction reaction;
 
   public StatusRealm() {
   }
@@ -80,7 +83,7 @@ public class StatusRealm extends RealmObject implements Status {
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
-    this.reaction = new StatusReactionRealm(status);
+    this.reaction = new StatusReactionImpl(status);
     this.user = status.getUser();
     this.userId = user.getId();
     this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
@@ -289,7 +292,7 @@ public class StatusRealm extends RealmObject implements Status {
     return userId;
   }
 
-  void setReaction(StatusReactionRealm reaction) {
+  void setReaction(StatusReaction reaction) {
     this.reaction = reaction;
   }
 

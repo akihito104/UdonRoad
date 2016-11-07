@@ -81,8 +81,7 @@ public class DataStoreModule {
 
   @Provides
   public ConfigStore provideConfigStore() {
-    final UserCacheRealm userCacheRealm = new UserCacheRealm();
-    return new ConfigStoreRealm(userCacheRealm);
+    return new ConfigStoreRealm();
   }
 
   @Provides

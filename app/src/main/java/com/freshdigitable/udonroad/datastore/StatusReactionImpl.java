@@ -14,38 +14,23 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.module.realm;
+package com.freshdigitable.udonroad.datastore;
 
-import com.freshdigitable.udonroad.datastore.StatusReaction;
-
-import io.realm.RealmModel;
-import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmClass;
 import twitter4j.Status;
 
 /**
- * Created by akihit on 2016/11/05.
+ * Created by akihit on 2016/11/07.
  */
-@RealmClass
-public class StatusReactionRealm implements StatusReaction, RealmModel {
-  @PrimaryKey
+
+public class StatusReactionImpl implements StatusReaction {
   private long id;
-  private boolean retweeted;
   private boolean favorited;
+  private boolean retweeted;
 
-  public StatusReactionRealm() {
-  }
-
-  public StatusReactionRealm(Status status) {
+  public StatusReactionImpl(Status status) {
     this.id = status.getId();
-    this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
-  }
-
-  public StatusReactionRealm(StatusReaction reaction) {
-    this.id = reaction.getId();
-    this.retweeted = reaction.isRetweeted();
-    this.favorited = reaction.isFavorited();
+    this.retweeted = status.isRetweeted();
   }
 
   @Override
@@ -71,16 +56,5 @@ public class StatusReactionRealm implements StatusReaction, RealmModel {
   @Override
   public boolean isFavorited() {
     return favorited;
-  }
-
-  public void merge(StatusReaction others) {
-    // `Status.favorited` is nullable and in the case `favoried` is false.
-    if (!this.favorited && others.isFavorited()) {
-      this.favorited = others.isFavorited();
-    }
-    // `Status.retweeted` is nullable and in the case `retweeted` is false.
-    if (!this.retweeted && others.isRetweeted()) {
-      this.retweeted = others.isRetweeted();
-    }
   }
 }
