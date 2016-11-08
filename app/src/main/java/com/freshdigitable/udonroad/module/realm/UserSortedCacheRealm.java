@@ -146,7 +146,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   }
 
   @Override
-  public void forceUpsert(User entity) {
+  public void insert(User entity) {
     upsert(entity);
   }
 

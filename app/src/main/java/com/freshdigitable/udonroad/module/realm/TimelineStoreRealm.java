@@ -220,8 +220,8 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @Override
-  public void forceUpsert(Status status) {
-    statusCache.forceUpsert(status);
+  public void insert(Status status) {
+    statusCache.insert(status);
     final List<StatusIDs> updates = createUpdateList(Collections.singletonList(status));
     if (!updates.isEmpty()) {
       notifyChanged(updates, timeline);

@@ -78,7 +78,7 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
   }
 
   @Override
-  public void forceUpsert(final User entity) {
+  public void insert(final User entity) {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {

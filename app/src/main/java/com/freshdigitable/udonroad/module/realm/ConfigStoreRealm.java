@@ -155,7 +155,7 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
-  public void forceUpsert(final StatusReaction entity) {
+  public void insert(final StatusReaction entity) {
     realm.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {

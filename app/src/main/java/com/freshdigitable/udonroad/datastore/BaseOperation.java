@@ -33,7 +33,7 @@ public interface BaseOperation<T> extends BaseCache {
 
   void upsert(List<T> entities);
 
-  void forceUpsert(T entity);
+  void insert(T entity);
 
   @Nullable
   T find(long id);

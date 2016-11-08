@@ -171,11 +171,11 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
    * @param status new data for update
    */
   @Override
-  public void forceUpsert(final Status status) {
+  public void insert(final Status status) {
     final Collection<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
     upsertUser(statuses);
     for (StatusReaction sr : splitUpsertingStatusReaction(statuses)) {
-      configStore.forceUpsert(sr);
+      configStore.insert(sr);
     }
 
     final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
