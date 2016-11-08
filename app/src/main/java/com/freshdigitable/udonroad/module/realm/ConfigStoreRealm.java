@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
@@ -169,11 +170,12 @@ public class ConfigStoreRealm implements ConfigStore {
     return findById(realm, id, StatusReactionRealm.class);
   }
 
+  @NonNull
   @Override
   public Observable<StatusReaction> observeById(long id) {
     final StatusReactionRealm statusReaction = (StatusReactionRealm) find(id);
     if (statusReaction == null) {
-      return null;
+      return Observable.empty();
     }
     return Observable.create(new Observable.OnSubscribe<StatusReaction>() {
       @Override

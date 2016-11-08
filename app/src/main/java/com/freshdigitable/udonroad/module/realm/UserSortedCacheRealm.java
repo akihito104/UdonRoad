@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -155,6 +156,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     return userCache.find(id);
   }
 
+  @NonNull
   @Override
   public Observable<User> observeById(long id) {
     return userCache.observeById(id);

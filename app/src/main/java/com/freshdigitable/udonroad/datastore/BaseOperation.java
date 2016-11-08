@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public interface BaseOperation<T> extends BaseCache {
   @Nullable
   T find(long id);
 
+  @NonNull
   Observable<T> observeById(long id);
 
   void delete(long id);

@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -113,9 +114,13 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
     return findById(cache, id, UserRealm.class);
   }
 
+  @NonNull
   @Override
   public Observable<User> observeById(final long userId) {
     final UserRealm user = findById(cache, userId, UserRealm.class);
+    if (user == null) {
+      return Observable.empty();
+    }
     return Observable.create(new Observable.OnSubscribe<User>() {
       @Override
       public void call(final Subscriber<? super User> subscriber) {

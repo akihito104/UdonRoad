@@ -36,7 +36,7 @@ import io.realm.RealmChangeListener;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
-import rx.functions.Action1;
+import rx.functions.Func1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
@@ -215,17 +215,14 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     return res;
   }
 
+  @NonNull
   @Override
   public Observable<Status> observeById(long statusId) {
     final StatusRealm status = (StatusRealm) find(statusId);
     if (status == null) {
-      return null;
+      return Observable.empty();
     }
-    final Observable<StatusReaction> reactionObservable = configStore.observeById(status.isRetweet()
-        ? status.getRetweetedStatusId() : status.getId());
-    final Observable<StatusReaction> qReactionObservable = status.getQuotedStatus() != null
-        ? configStore.observeById(status.getQuotedStatusId()) : null;
-    return Observable.create(new Observable.OnSubscribe<Status>() {
+    final Observable<Status> statusObservable = Observable.create(new Observable.OnSubscribe<Status>() {
       @Override
       public void call(final Subscriber<? super Status> subscriber) {
         StatusRealm.addChangeListener(status, new RealmChangeListener<StatusRealm>() {
@@ -234,12 +231,6 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
             subscriber.onNext(element);
           }
         });
-        reactionObservable.subscribe(
-            reactionUpdatedEvent(subscriber, status));
-        if (qReactionObservable != null) {
-          qReactionObservable.subscribe(
-              reactionUpdatedEvent(subscriber, (StatusRealm) status.getQuotedStatus()));
-        }
         subscriber.onNext(status);
       }
     }).doOnUnsubscribe(new Action0() {
@@ -248,18 +239,24 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         StatusRealm.removeChangeListeners(status);
       }
     });
+    final Observable<Status> reactionObservable = reactionObservable(
+        status.isRetweet() ? status.getRetweetedStatusId() : status.getId(),
+        status);
+    final Observable<Status> qReactionObservable = reactionObservable(
+        status.getQuotedStatusId(), status);
+    return Observable.merge(statusObservable, reactionObservable, qReactionObservable);
   }
 
-  @NonNull
-  private static Action1<StatusReaction> reactionUpdatedEvent(
-      final Subscriber<? super Status> subscriber, final StatusRealm status) {
-    return new Action1<StatusReaction>() {
-      @Override
-      public void call(StatusReaction reaction) {
-        status.setReaction(reaction);
-        subscriber.onNext(status);
-      }
-    };
+  private Observable<Status> reactionObservable(long statusId,
+                                                @NonNull final StatusRealm original) {
+    return configStore.observeById(statusId)
+        .map(new Func1<StatusReaction, Status>() {
+          @Override
+          public Status call(StatusReaction reaction) {
+            original.setReaction(reaction);
+            return original;
+          }
+        });
   }
 
   @Override

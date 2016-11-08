@@ -359,6 +359,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     return statusCache.find(statusId);
   }
 
+  @NonNull
   @Override
   public Observable<Status> observeById(long statusId) {
     return statusCache.observeById(statusId);
