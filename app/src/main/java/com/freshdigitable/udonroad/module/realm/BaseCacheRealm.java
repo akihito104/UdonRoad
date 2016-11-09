@@ -33,7 +33,7 @@ import io.realm.RealmModel;
  */
 abstract class BaseCacheRealm implements BaseCache {
   private static final String TAG = BaseCacheRealm.class.getSimpleName();
-  protected Realm cache;
+  Realm cache;
   private final RealmConfiguration config;
   private BaseCacheRealm baseCacheRealm;
 

@@ -31,6 +31,8 @@ import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
 import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
 import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
 
+import javax.inject.Singleton;
+
 import dagger.Module;
 import dagger.Provides;
 import twitter4j.Status;
@@ -49,18 +51,21 @@ public class DataStoreModule {
     this.context = context;
   }
 
+  @Singleton
   @Provides
   public TypedCache<Status> provideTypedCacheStatus() {
     final ConfigStore configStore = provideConfigStore();
     return new StatusCacheRealm(configStore);
   }
 
+  @Singleton
   @Provides
   public MediaCache provideMediaCache() {
     final ConfigStore configStore = provideConfigStore();
     return new StatusCacheRealm(configStore);
   }
 
+  @Singleton
   @Provides
   public TypedCache<User> provideTypedCacheUser() {
     return new UserCacheRealm();
@@ -79,16 +84,19 @@ public class DataStoreModule {
     return new UserSortedCacheRealm(userCacheRealm);
   }
 
+  @Singleton
   @Provides
   public ConfigStore provideConfigStore() {
     return new ConfigStoreRealm();
   }
 
+  @Singleton
   @Provides
   public SharedPreferences provideSharedPreferences() {
     return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
   }
 
+  @Singleton
   @Provides
   public AppSettingStore provideAppSettingStore() {
     final TypedCache<User> userTypedCache = provideTypedCacheUser();
