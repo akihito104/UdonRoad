@@ -48,7 +48,7 @@ public class MainApplication extends Application {
   protected AppComponent createAppComponent() {
     return DaggerAppComponent.builder()
         .twitterApiModule(new TwitterApiModule(getApplicationContext()))
-        .dataStoreModule(new DataStoreModule())
+        .dataStoreModule(new DataStoreModule(getApplicationContext()))
         .build();
   }
 

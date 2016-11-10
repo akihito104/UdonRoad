@@ -16,10 +16,15 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import java.util.Collection;
+
+import rx.Observable;
+
 /**
  * TypedCache defines to access for cache specified type.
  *
  * Created by akihit on 2016/09/14.
  */
-public interface TypedCache<T> extends BaseCache, BaseOperation<T> {
+public interface TypedCache<T> extends BaseOperation<T> {
+  Observable<Void> observeUpsert(Collection<T> entities);
 }

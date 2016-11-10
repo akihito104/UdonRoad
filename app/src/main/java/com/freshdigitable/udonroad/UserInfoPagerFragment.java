@@ -34,9 +34,8 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 
 import java.lang.annotation.Retention;
@@ -60,10 +59,6 @@ import twitter4j.User;
 public class UserInfoPagerFragment extends Fragment {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
   public static final String ARGS_USER_ID = "userId";
-  @Inject
-  TwitterApi twitterApi;
-  @Inject
-  UserFeedbackSubscriber userFeedback;
 
   public static UserInfoPagerFragment create(long userId) {
     final Bundle args = new Bundle();
@@ -104,10 +99,10 @@ public class UserInfoPagerFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    setupTimeline(UserPageInfo.TWEET, userHomeTimeline);
-    setupUserList(UserPageInfo.FOLLOWER, userFollowers);
-    setupUserList(UserPageInfo.FRIEND, userFriends);
-    setupTimeline(UserPageInfo.FAV, userFavTimeline);
+    setupTimeline(UserPageInfo.TWEET, userHomeRequestWorker);
+    setupUserList(UserPageInfo.FOLLOWER, userFollowersRequestWorker);
+    setupUserList(UserPageInfo.FRIEND, userFriendsRequestWorker);
+    setupTimeline(UserPageInfo.FAV, userFavRequestWorker);
     viewPager.setAdapter(pagerAdapter);
   }
 
@@ -115,36 +110,35 @@ public class UserInfoPagerFragment extends Fragment {
   private Map<UserPageInfo, UserRequestWorker<SortedCache<User>>> userSubscriberMap = new HashMap<>();
 
   @Inject
-  SortedCache<Status> userHomeTimeline;
+  StatusRequestWorker<SortedCache<Status>> userHomeRequestWorker;
   @Inject
-  SortedCache<Status> userFavTimeline;
+  StatusRequestWorker<SortedCache<Status>> userFavRequestWorker;
   @Inject
-  SortedCache<User> userFollowers;
+  UserRequestWorker<SortedCache<User>> userFollowersRequestWorker;
   @Inject
-  SortedCache<User> userFriends;
+  UserRequestWorker<SortedCache<User>> userFriendsRequestWorker;
 
-  private void setupTimeline(@NonNull UserPageInfo page, SortedCache<Status> sortedCache) {
+  private void setupTimeline(@NonNull UserPageInfo page,
+                             @NonNull StatusRequestWorker<SortedCache<Status>> requestWorker) {
     if (!page.isStatus()) {
       throw new IllegalArgumentException("page must be for Status. passed: " + page.name());
     }
-    final StatusRequestWorker<SortedCache<Status>> statusRequestWorker
-        = new StatusRequestWorker<>(twitterApi, sortedCache, userFeedback);
-    timelineSubscriberMap.put(page, statusRequestWorker);
-    putToPagerAdapter(page, sortedCache);
+    timelineSubscriberMap.put(page, requestWorker);
+    putToPagerAdapter(page, requestWorker);
   }
 
-  private void setupUserList(@NonNull UserPageInfo page, SortedCache<User> sortedCache) {
+  private void setupUserList(@NonNull UserPageInfo page,
+                             @NonNull UserRequestWorker<SortedCache<User>> requestWorker) {
     if (!page.isUser()) {
       throw new IllegalArgumentException("page must be for User. passed: " + page.name());
     }
-    final UserRequestWorker<SortedCache<User>> userRequestWorker
-        = new UserRequestWorker<>(twitterApi, sortedCache, userFeedback);
-    userSubscriberMap.put(page, userRequestWorker);
-    putToPagerAdapter(page, sortedCache);
+    userSubscriberMap.put(page, requestWorker);
+    putToPagerAdapter(page, requestWorker);
   }
 
-  private void putToPagerAdapter(@NonNull UserPageInfo page, SortedCache sortedCache) {
-    final TimelineFragment fragment = page.setup(sortedCache, this);
+  private <T> void putToPagerAdapter(@NonNull UserPageInfo page,
+                                 RequestWorkerBase<SortedCache<T>> worker) {
+    final TimelineFragment<T> fragment = page.setup(worker, this);
     pagerAdapter.putFragment(page, fragment);
   }
 
@@ -185,14 +179,10 @@ public class UserInfoPagerFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     viewPager.setAdapter(null);
-    userHomeTimeline.close();
-    userFavTimeline.close();
     for (StatusRequestWorker ts : timelineSubscriberMap.values()) {
       ts.close();
     }
     timelineSubscriberMap.clear();
-    userFollowers.close();
-    userFriends.close();
     for (UserRequestWorker us : userSubscriberMap.values()) {
       us.close();
     }
@@ -373,11 +363,12 @@ public class UserInfoPagerFragment extends Fragment {
       this.cacheName = cacheName;
     }
 
-    <T> TimelineFragment<T> setup(SortedCache<T> cache, UserInfoPagerFragment target) {
-      cache.open(cacheName);
-      cache.clear();
+    <T> TimelineFragment<T> setup(RequestWorkerBase<SortedCache<T>> worker,
+                                  UserInfoPagerFragment target) {
+      worker.open(cacheName);
+      worker.getCache().clear();
       final TimelineFragment<T> fragment = TimelineFragment.getInstance(target, requestCode);
-      fragment.setSortedCache(cache);
+      fragment.setSortedCache(worker.getCache());
       return fragment;
     }
 

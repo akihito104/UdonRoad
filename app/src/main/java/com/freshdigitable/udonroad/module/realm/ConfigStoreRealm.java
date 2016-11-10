@@ -16,31 +16,40 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.freshdigitable.udonroad.datastore.ConfigStore;
-import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.StatusReaction;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
-import twitter4j.TwitterAPIConfiguration;
+import io.realm.RealmObject;
+import rx.Observable;
+import rx.Subscriber;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.module.realm.BaseCacheRealm.findById;
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
+
 /**
- * ConfigStoreRealm is data store for TwitterAPIConfiguration or other config.
+ * ConfigStoreRealm is data store for user-oriented configurations
+ * such as IgnorableUser and StatusReaction.
  *
  * Created by akihit on 2016/07/30.
  */
 public class ConfigStoreRealm implements ConfigStore {
 
   private Realm realm;
-  private final TypedCache<User> cache;
   private final RealmConfiguration config;
 
-  public ConfigStoreRealm(TypedCache<User> userCacheRealm) {
-    this.cache = userCacheRealm;
+  public ConfigStoreRealm() {
     config = new RealmConfiguration.Builder()
         .name("config")
         .deleteRealmIfMigrationNeeded()
@@ -49,13 +58,11 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Override
   public void open() {
-    cache.open();
     realm = Realm.getInstance(config);
   }
 
   @Override
   public void close() {
-    cache.close();
     realm.close();
   }
 
@@ -67,50 +74,6 @@ public class ConfigStoreRealm implements ConfigStore {
         realm.deleteAll();
       }
     });
-  }
-
-  @Override
-  public void addAuthenticatedUser(final User authenticatedUser) {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final UserRealm userRealm = new UserRealm(authenticatedUser);
-        realm.insertOrUpdate(userRealm);
-      }
-    });
-    cache.upsert(authenticatedUser);
-  }
-
-  @Override
-  public User getAuthenticatedUser(long userId) {
-    final UserRealm user = realm.where(UserRealm.class)
-        .equalTo("id", userId)
-        .findFirst();
-    if (user == null) {
-      return null;
-    }
-    final User cacheUser = cache.find(user.getId());
-    return cacheUser != null
-        ? cacheUser
-        : user;
-  }
-
-  @Override
-  public void setTwitterAPIConfig(final TwitterAPIConfiguration twitterAPIConfig) {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final TwitterAPIConfigurationRealm twitterAPIConfiguration
-            = new TwitterAPIConfigurationRealm(twitterAPIConfig);
-        realm.insertOrUpdate(twitterAPIConfiguration);
-      }
-    });
-  }
-
-  @Override
-  public TwitterAPIConfiguration getTwitterAPIConfig() {
-    return realm.where(TwitterAPIConfigurationRealm.class)
-        .findFirst();
   }
 
   @Override
@@ -155,6 +118,99 @@ public class ConfigStoreRealm implements ConfigStore {
       public void execute(Realm realm) {
         realm.where(IgnoringUser.class)
             .equalTo("id", userId)
+            .findAll()
+            .deleteAllFromRealm();
+      }
+    });
+  }
+
+  @Override
+  public void upsert(StatusReaction entity) {
+    if (entity == null) {
+      return;
+    }
+    upsert(Collections.singletonList(entity));
+  }
+
+  @Override
+  public void upsert(final List<StatusReaction> entities) {
+    if (entities == null || entities.isEmpty()) {
+      return;
+    }
+    realm.executeTransaction(upsertTransaction(entities));
+  }
+
+  @Override
+  public Observable<Void> observeUpsert(final Collection<StatusReaction> entities) {
+    if (entities == null || entities.isEmpty()) {
+      return Observable.empty();
+    }
+    return TypedCacheBaseRealm.observeUpsertImpl(realm, upsertTransaction(entities));
+  }
+
+  @NonNull
+  private static Realm.Transaction upsertTransaction(final Collection<StatusReaction> entities) {
+    return new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        final ArrayList<StatusReactionRealm> insertReactions = new ArrayList<>(entities.size());
+        for (StatusReaction s : entities) {
+          final StatusReactionRealm r = findById(realm, s.getId(), StatusReactionRealm.class);
+          if (r == null) {
+            insertReactions.add(new StatusReactionRealm(s));
+          } else {
+            r.merge(s);
+          }
+        }
+        realm.insertOrUpdate(insertReactions);
+      }
+    };
+  }
+
+  @Override
+  public void insert(final StatusReaction entity) {
+    realm.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.insertOrUpdate(new StatusReactionRealm(entity));
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public StatusReaction find(long id) {
+    return findById(realm, id, StatusReactionRealm.class);
+  }
+
+  @NonNull
+  @Override
+  public Observable<StatusReaction> observeById(long id) {
+    final StatusReactionRealm statusReaction = (StatusReactionRealm) find(id);
+    if (statusReaction == null) {
+      return Observable.empty();
+    }
+    return Observable.create(new Observable.OnSubscribe<StatusReaction>() {
+      @Override
+      public void call(final Subscriber<? super StatusReaction> subscriber) {
+        RealmObject.addChangeListener(statusReaction, new RealmChangeListener<StatusReactionRealm>() {
+          @Override
+          public void onChange(StatusReactionRealm element) {
+            subscriber.onNext(element);
+          }
+        });
+        subscriber.onNext(statusReaction);
+      }
+    });
+  }
+
+  @Override
+  public void delete(final long id) {
+    realm.executeTransactionAsync(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm) {
+        realm.where(StatusReactionRealm.class)
+            .equalTo(KEY_ID, id)
             .findAll()
             .deleteAllFromRealm();
       }

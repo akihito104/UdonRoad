@@ -34,10 +34,10 @@ import rx.subjects.PublishSubject;
  */
 abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   private static final String TAG = BaseSortedCacheRealm.class.getSimpleName();
-  protected Realm realm;
-  protected PublishSubject<Integer> insertEvent;
-  protected PublishSubject<Integer> updateEvent;
-  protected PublishSubject<Integer> deleteEvent;
+  Realm realm;
+  PublishSubject<Integer> insertEvent;
+  PublishSubject<Integer> updateEvent;
+  PublishSubject<Integer> deleteEvent;
 
   @Override
   @CallSuper
@@ -79,5 +79,10 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   @Override
   public Observable<Integer> observeDeleteEvent() {
     return deleteEvent.onBackpressureBuffer();
+  }
+
+  @Override
+  public void open() {
+    throw new RuntimeException();
   }
 }

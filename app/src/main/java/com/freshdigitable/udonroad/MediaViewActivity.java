@@ -48,7 +48,6 @@ import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
@@ -74,12 +73,9 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   private static final String CREATE_START = "start";
 
   private ActivityMediaViewBinding binding;
-  @Inject
-  TwitterApi twitterApi;
   private Handler handler;
   @Inject
-  TypedCache<Status> statusCache;
-  private StatusRequestWorker<TypedCache<Status>> userActionSubscriber;
+  StatusRequestWorker<TypedCache<Status>> userActionSubscriber;
   private Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
   UserFeedbackSubscriber userFeedback;
@@ -200,12 +196,12 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   @Override
   protected void onStart() {
     super.onStart();
-    statusCache.open();
+    userActionSubscriber.open();
     userFeedback.setToastOption(Gravity.CENTER, 0, 0);
-    userActionSubscriber = new StatusRequestWorker<>(twitterApi, statusCache, userFeedback);
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
+    final TypedCache<Status> statusCache = userActionSubscriber.getCache();
     final Status status = statusCache.find(statusId);
     if (status == null) {
       Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
@@ -232,7 +228,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     binding.mediaIffab.setOnFlingListener(null);
     actionMap.clear();
     userActionSubscriber.close();
-    statusCache.close();
     super.onStop();
   }
 

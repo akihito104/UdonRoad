@@ -16,10 +16,14 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
+import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.view.View;
 
+import com.freshdigitable.udonroad.datastore.BaseOperation;
+import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import rx.functions.Action0;
@@ -30,13 +34,37 @@ import rx.functions.Action1;
  *
  * Created by akihit on 2016/11/03.
  */
-abstract class RequestWorkerBase {
+public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   TwitterApi twitterApi;
+  T cache;
   UserFeedbackSubscriber userFeedback;
 
-  RequestWorkerBase(TwitterApi twitterApi, UserFeedbackSubscriber userFeedback) {
+  RequestWorkerBase(@NonNull TwitterApi twitterApi,
+                    @NonNull T cache,
+                    @NonNull UserFeedbackSubscriber userFeedback) {
     this.twitterApi = twitterApi;
+    this.cache = cache;
     this.userFeedback = userFeedback;
+  }
+
+  @CallSuper
+  public void open() {
+    if (cache instanceof SortedCache) {
+      throw new IllegalArgumentException("SortedCache should be called open(String).");
+    }
+    cache.open();
+  }
+
+  @CallSuper
+  public void open(@NonNull String name) {
+    if (cache instanceof TypedCache) {
+      throw new IllegalArgumentException("TypedCache should be called open()");
+    }
+    ((SortedCache) cache).open(name);
+  }
+
+  public T getCache() {
+    return cache;
   }
 
   public void registerRootView(View view) {

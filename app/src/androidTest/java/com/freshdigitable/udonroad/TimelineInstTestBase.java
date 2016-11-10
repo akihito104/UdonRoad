@@ -27,6 +27,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.BaseCache;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -104,6 +106,8 @@ public abstract class TimelineInstTestBase {
   ConfigStore configStore;
   @Inject
   SharedPreferences sprefs;
+  @Inject
+  AppSettingStore appSettings;
 
   protected MockMainApplication app;
   protected ResponseList<Status> responseList;
@@ -159,17 +163,15 @@ public abstract class TimelineInstTestBase {
     Espresso.unregisterIdlingResources(idlingResource);
   }
 
-   private void initStorage() {
+  private void initStorage() {
     clearCache(statusCache);
-    clearCache(userCache);
+    clearCache(configStore);
+    clearCache(appSettings);
     clearCache(homeTLStore, "home");
     clearCache(userHomeTLStore, "user_home");
     clearCache(userFavsTLStore, "user_fabs");
     clearCache(userFollowers, "user_followers");
     clearCache(userFriends, "user_friends");
-    configStore.open();
-    configStore.clear();
-    configStore.close();
     sprefs.edit()
         .remove(TWITTER_API_CONFIG_DATE)
         .putString("token", "validtoken")
@@ -223,7 +225,7 @@ public abstract class TimelineInstTestBase {
     return new Intent();
   }
 
-  private static void clearCache(TypedCache cache) {
+  private static void clearCache(BaseCache cache) {
     cache.open();
     cache.clear();
     cache.close();

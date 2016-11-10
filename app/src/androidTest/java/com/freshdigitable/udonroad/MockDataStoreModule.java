@@ -14,32 +14,24 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.content.Context;
+import android.content.SharedPreferences;
 
-import java.util.List;
-
-import rx.Observable;
+import com.freshdigitable.udonroad.module.DataStoreModule;
 
 /**
- * BaseOperation defines basic CRUD operation for data store.
- * <p>
- * Created by akihit on 2016/09/14.
+ * Created by akihit on 2016/11/07.
  */
-public interface BaseOperation<T> extends BaseCache {
-  void upsert(T entity);
 
-  void upsert(List<T> entities);
+public class MockDataStoreModule extends DataStoreModule {
+  public MockDataStoreModule(Context context) {
+    super(context);
+  }
 
-  void insert(T entity);
-
-  @Nullable
-  T find(long id);
-
-  @NonNull
-  Observable<T> observeById(long id);
-
-  void delete(long id);
+  @Override
+  public SharedPreferences provideSharedPreferences() {
+    return context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE);
+  }
 }

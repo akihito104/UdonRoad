@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
-import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.StatusReaction;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,9 +35,11 @@ import io.realm.RealmChangeListener;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
+import rx.functions.Func1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
 
@@ -46,7 +48,7 @@ import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
  *
  * Created by akihit on 2016/07/22.
  */
-public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Status>, MediaCache {
+public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements MediaCache {
   @SuppressWarnings("unused")
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final ConfigStore configStore;
@@ -82,9 +84,32 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     if (statuses == null || statuses.isEmpty()) {
       return;
     }
-
     final Collection<Status> updates = splitUpsertingStatus(statuses);
-    cache.executeTransaction(new Realm.Transaction() {
+    upsertUser(updates);
+    upsertStatusReaction(updates);
+    userTypedCache.upsert(splitUserMentionEntity(updates));
+    cache.executeTransaction(upsertTransaction(statuses));
+  }
+
+  @Override
+  public Observable<Void> observeUpsert(Collection<Status> statuses) {
+    if (statuses == null || statuses.isEmpty()) {
+      return Observable.empty();
+    }
+    final Collection<Status> updates = splitUpsertingStatus(statuses);
+    userTypedCache.upsert(splitUserMentionEntity(updates));
+    final Collection<User> splitUser = splitUpsertingUser(updates);
+    final Collection<StatusReaction> splitReaction = splitUpsertingStatusReaction(updates);
+    return Observable.concat(userTypedCache.observeUpsert(splitUser),
+        configStore.observeUpsert(splitReaction),
+        super.observeUpsert(updates))
+        .last();
+  }
+
+  @NonNull
+  @Override
+  public Realm.Transaction upsertTransaction(final Collection<Status> updates) {
+    return new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
         final ArrayList<StatusRealm> inserts = new ArrayList<>(updates.size());
@@ -98,10 +123,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         }
         realm.insertOrUpdate(inserts);
       }
-    });
-    for (Status s : updates) {
-      userTypedCache.upsert(s.getUserMentionEntities());
-    }
+    };
   }
 
   @NonNull
@@ -127,11 +149,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         }
       }
     }
-
-    final Collection<Status> res = updates.values();
-    final Collection<User> updateUsers = splitUpsertingUser(res);
-    userTypedCache.upsert(new ArrayList<>(updateUsers));
-    return res;
+    return updates.values();
   }
 
   private Collection<User> splitUpsertingUser(Collection<Status> updates) {
@@ -139,6 +157,25 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     for (Status s : updates) {
       final User user = s.getUser();
       res.put(user.getId(), user);
+    }
+    return res.values();
+  }
+
+  private UserMentionEntity[] splitUserMentionEntity(Collection<Status> updates) {
+    final Map<Long, UserMentionEntity> res = new LinkedHashMap<>();
+    for (Status s : updates) {
+      for (UserMentionEntity ume : s.getUserMentionEntities()) {
+        res.put(ume.getId(), ume);
+      }
+    }
+    final Collection<UserMentionEntity> values = res.values();
+    return values.toArray(new UserMentionEntity[values.size()]);
+  }
+
+  private Collection<StatusReaction> splitUpsertingStatusReaction(Collection<Status> statuses) {
+    Map<Long, StatusReaction> res = new LinkedHashMap<>(statuses.size());
+    for (Status s : statuses) {
+      res.put(s.getId(), new StatusReactionRealm(s));
     }
     return res.values();
   }
@@ -154,6 +191,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
             .deleteAllFromRealm();
       }
     });
+    configStore.delete(statusId);
   }
 
   /**
@@ -161,8 +199,13 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
    * @param status new data for update
    */
   @Override
-  public void forceUpsert(final Status status) {
+  public void insert(final Status status) {
     final Collection<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
+    upsertUser(statuses);
+    for (StatusReaction sr : splitUpsertingStatusReaction(statuses)) {
+      configStore.insert(sr);
+    }
+
     final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
     for (Status s: statuses) {
       if (s instanceof StatusRealm) {
@@ -200,13 +243,14 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     return res;
   }
 
+  @NonNull
   @Override
   public Observable<Status> observeById(long statusId) {
     final StatusRealm status = (StatusRealm) find(statusId);
     if (status == null) {
-      return null;
+      return Observable.empty();
     }
-    return Observable.create(new Observable.OnSubscribe<Status>() {
+    final Observable<Status> statusObservable = Observable.create(new Observable.OnSubscribe<Status>() {
       @Override
       public void call(final Subscriber<? super Status> subscriber) {
         StatusRealm.addChangeListener(status, new RealmChangeListener<StatusRealm>() {
@@ -223,6 +267,24 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         StatusRealm.removeChangeListeners(status);
       }
     });
+    final Observable<Status> reactionObservable = reactionObservable(
+        status.isRetweet() ? status.getRetweetedStatusId() : status.getId(),
+        status);
+    final Observable<Status> qReactionObservable = reactionObservable(
+        status.getQuotedStatusId(), status);
+    return Observable.merge(statusObservable, reactionObservable, qReactionObservable);
+  }
+
+  private Observable<Status> reactionObservable(long statusId,
+                                                @NonNull final StatusRealm original) {
+    return configStore.observeById(statusId)
+        .map(new Func1<StatusReaction, Status>() {
+          @Override
+          public Status call(StatusReaction reaction) {
+            original.setReaction(reaction);
+            return original;
+          }
+        });
   }
 
   @Override
@@ -237,6 +299,17 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
       return null;
     }
     status.setUser(userTypedCache.find(status.getUserId()));
+    status.setReaction(configStore.find(id));
     return status;
+  }
+
+  private void upsertUser(Collection<Status> updates) {
+    final Collection<User> updateUsers = splitUpsertingUser(updates);
+    userTypedCache.upsert(new ArrayList<>(updateUsers));
+  }
+
+  private void upsertStatusReaction(Collection<Status> updates) {
+    final Collection<StatusReaction> statusReactions = splitUpsertingStatusReaction(updates);
+    configStore.upsert(new ArrayList<>(statusReactions));
   }
 }

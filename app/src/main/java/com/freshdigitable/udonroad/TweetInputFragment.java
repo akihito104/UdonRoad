@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
@@ -74,6 +75,8 @@ public class TweetInputFragment extends Fragment {
   TypedCache<Status> statusCache;
   @Inject
   ConfigRequestWorker configRequestWorker;
+  @Inject
+  AppSettingStore appSettings;
 
   public static TweetInputFragment create() {
     return create(TYPE_NONE);
@@ -157,6 +160,7 @@ public class TweetInputFragment extends Fragment {
     super.onStart();
     statusCache.open();
     configRequestWorker.open();
+    appSettings.open();
     final Bundle arguments = getArguments();
     final @TweetType int tweetType = arguments.getInt("tweet_type");
     final long statusId = arguments.getLong("status_id", -1);
@@ -166,6 +170,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
+    appSettings.close();
     configRequestWorker.close();
     statusCache.close();
   }
@@ -249,7 +254,7 @@ public class TweetInputFragment extends Fragment {
         });
     inputText.addTextWatcher(textWatcher);
     inputText.setShortUrlLength(
-        configRequestWorker.getConfigStore().getTwitterAPIConfig().getShortURLLengthHttps());
+        appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
   public void tearDownTweetInputView() {

@@ -68,7 +68,10 @@ public class ExtendedMediaEntityRealmTest {
   @Test
   public void parseSizesAfterFind() {
     // setup
-    final Realm realm = Realm.getInstance(new RealmConfiguration.Builder().build());
+    final RealmConfiguration conf = new RealmConfiguration.Builder()
+        .deleteRealmIfMigrationNeeded()
+        .build();
+    final Realm realm = Realm.getInstance(conf);
     try {
       final ExtendedMediaEntityRealm sut = new ExtendedMediaEntityRealm(extendedMediaEntity);
       realm.executeTransaction(new Realm.Transaction() {
@@ -92,6 +95,7 @@ public class ExtendedMediaEntityRealmTest {
         }
       });
       realm.close();
+      Realm.deleteRealm(conf);
     }
   }
 

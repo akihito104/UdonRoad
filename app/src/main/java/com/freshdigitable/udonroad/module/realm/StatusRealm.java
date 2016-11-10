@@ -18,6 +18,9 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.StatusReaction;
+import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
+
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -53,8 +56,6 @@ public class StatusRealm extends RealmObject implements Status {
   private int retweetCount;
   private int favoriteCount;
   private boolean retweet;
-  private boolean retweeted;
-  private boolean favorited;
   @Ignore
   private User user;
   private long userId;
@@ -64,6 +65,8 @@ public class StatusRealm extends RealmObject implements Status {
   @Ignore
   private Status quotedStatus;
   private long quotedStatusId;
+  @Ignore
+  private StatusReaction reaction;
 
   public StatusRealm() {
   }
@@ -80,8 +83,7 @@ public class StatusRealm extends RealmObject implements Status {
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
-    this.retweeted = status.isRetweeted();
-    this.favorited = status.isFavorited();
+    this.reaction = new StatusReactionImpl(status);
     this.user = status.getUser();
     this.userId = user.getId();
     this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
@@ -154,11 +156,11 @@ public class StatusRealm extends RealmObject implements Status {
   }
 
   public boolean isFavorited() {
-    return favorited;
+    return reaction != null && reaction.isFavorited();
   }
 
   public boolean isRetweeted() {
-    return retweeted;
+    return reaction != null && reaction.isRetweeted();
   }
 
   public int getFavoriteCount() {
@@ -290,15 +292,17 @@ public class StatusRealm extends RealmObject implements Status {
     return userId;
   }
 
+  void setReaction(StatusReaction reaction) {
+    this.reaction = reaction;
+  }
+
   void merge(@NonNull Status s) {
-    this.favorited |= s.isFavorited(); // favorited is nullable
     final int favoriteCount = s.getFavoriteCount();
-    if (favoriteCount > 0) { // favoriteCount is nullable
+    if (favoriteCount > 0 && favoriteCount != this.favoriteCount) { // favoriteCount is nullable
       this.favoriteCount = favoriteCount;
     }
-    this.retweeted |= s.isRetweeted(); // retweeted is nullable
     final int retweetCount = s.getRetweetCount();
-    if (retweetCount > 0) {  // retweetCount is nullable
+    if (retweetCount > 0 && retweetCount != this.retweetCount) {  // retweetCount is nullable
       this.retweetCount = retweetCount;
     }
   }

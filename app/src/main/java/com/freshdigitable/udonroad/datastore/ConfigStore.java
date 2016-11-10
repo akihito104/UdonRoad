@@ -18,29 +18,14 @@ package com.freshdigitable.udonroad.datastore;
 
 import java.util.Collection;
 
-import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
 /**
  * ConfigStore defines scheme to store user configurations.
- *
+ * <p>
  * Created by akihit on 2016/07/30.
  */
-public interface ConfigStore {
-  void open();
-
-  void close();
-
-  void clear();
-
-  void addAuthenticatedUser(User authenticatedUser);
-
-  User getAuthenticatedUser(long userId);
-
-  void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
-
-  TwitterAPIConfiguration getTwitterAPIConfig();
-
+public interface ConfigStore extends TypedCache<StatusReaction> {
   void replaceIgnoringUsers(Collection<Long> iDs);
 
   boolean isIgnoredUser(long userId);

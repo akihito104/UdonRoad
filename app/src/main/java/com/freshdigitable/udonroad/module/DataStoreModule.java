@@ -16,15 +16,22 @@
 
 package com.freshdigitable.udonroad.module;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
 import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
 import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
+
+import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
@@ -38,18 +45,27 @@ import twitter4j.User;
  */
 @Module
 public class DataStoreModule {
+  protected final Context context;
+
+  public DataStoreModule(Context context) {
+    this.context = context;
+  }
+
+  @Singleton
   @Provides
   public TypedCache<Status> provideTypedCacheStatus() {
     final ConfigStore configStore = provideConfigStore();
     return new StatusCacheRealm(configStore);
   }
 
+  @Singleton
   @Provides
   public MediaCache provideMediaCache() {
     final ConfigStore configStore = provideConfigStore();
     return new StatusCacheRealm(configStore);
   }
 
+  @Singleton
   @Provides
   public TypedCache<User> provideTypedCacheUser() {
     return new UserCacheRealm();
@@ -68,9 +84,23 @@ public class DataStoreModule {
     return new UserSortedCacheRealm(userCacheRealm);
   }
 
+  @Singleton
   @Provides
   public ConfigStore provideConfigStore() {
-    final UserCacheRealm userCacheRealm = new UserCacheRealm();
-    return new ConfigStoreRealm(userCacheRealm);
+    return new ConfigStoreRealm();
+  }
+
+  @Singleton
+  @Provides
+  public SharedPreferences provideSharedPreferences() {
+    return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
+  }
+
+  @Singleton
+  @Provides
+  public AppSettingStore provideAppSettingStore() {
+    final TypedCache<User> userTypedCache = provideTypedCacheUser();
+    final SharedPreferences sharedPreferences = provideSharedPreferences();
+    return new AppSettingStoreRealm(userTypedCache, sharedPreferences);
   }
 }

@@ -87,9 +87,9 @@ public class MainActivity
 
   @Inject
   TwitterApi twitterApi;
+  private SortedCache<Status> homeTimeline;
   @Inject
-  SortedCache<Status> homeTimeline;
-  private StatusRequestWorker<SortedCache<Status>> statusRequestWorker;
+  StatusRequestWorker<SortedCache<Status>> statusRequestWorker;
   @Inject
   UserStreamUtil userStream;
   private final Map<Direction, UserAction> actionMap = new HashMap<>();
@@ -143,9 +143,9 @@ public class MainActivity
   }
 
   private void setupHomeTimeline() {
-    homeTimeline.open("home");
-    homeTimeline.clear();
-    statusRequestWorker = new StatusRequestWorker<>(twitterApi, homeTimeline, userFeedback);
+    statusRequestWorker.open("home");
+    homeTimeline = statusRequestWorker.getCache();
+    homeTimeline.clearPool();
 
     tlFragment = new TimelineFragment<>();
     tlFragment.setSortedCache(homeTimeline);
@@ -306,7 +306,6 @@ public class MainActivity
     configRequestWorker.close();
     statusRequestWorker.close();
     userFeedback.close();
-    homeTimeline.close();
   }
 
   @Override

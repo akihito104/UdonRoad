@@ -32,6 +32,7 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
+import rx.functions.Action1;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
@@ -82,7 +83,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @Override
-  public void upsert(List<Status> statuses) {
+  public void upsert(final List<Status> statuses) {
     if (statuses == null) {
       return;
     }
@@ -96,15 +97,24 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
       return;
     }
 
-    statusCache.upsert(statuses);
-    final List<StatusIDs> inserts = createInsertList(statuses);
-    if (!inserts.isEmpty()) {
-      insertStatus(inserts);
-    }
-    final List<StatusIDs> updates = createUpdateList(statuses);
-    if (!updates.isEmpty()) {
-      notifyChanged(updates, timeline);
-    }
+    statusCache.observeUpsert(statuses).subscribe(new Action1<Void>() {
+      @Override
+      public void call(Void aVoid) {
+        final List<StatusIDs> inserts = createInsertList(statuses);
+        if (!inserts.isEmpty()) {
+          insertStatus(inserts);
+        }
+        final List<StatusIDs> updates = createUpdateList(statuses);
+        if (!updates.isEmpty()) {
+          notifyChanged(updates, timeline);
+        }
+      }
+    }, new Action1<Throwable>() {
+      @Override
+      public void call(Throwable throwable) {
+        Log.e(TAG, "upsert: ", throwable);
+      }
+    });
   }
 
   private List<StatusIDs> createInsertList(List<Status> statuses) {
@@ -220,8 +230,8 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @Override
-  public void forceUpsert(Status status) {
-    statusCache.forceUpsert(status);
+  public void insert(Status status) {
+    statusCache.insert(status);
     final List<StatusIDs> updates = createUpdateList(Collections.singletonList(status));
     if (!updates.isEmpty()) {
       notifyChanged(updates, timeline);
@@ -288,14 +298,15 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @NonNull
-  private List<Integer> searchTimeline(List<StatusIDs> items) {
-    return searchTimeline(items, timeline);
+  private List<Integer> searchTimeline(List<StatusIDs> managedItems) {
+    return searchTimeline(managedItems, timeline);
   }
 
   @NonNull
-  private List<Integer> searchTimeline(List<StatusIDs> items, RealmResults<StatusIDs> timeline) {
-    final List<Integer> res = new ArrayList<>(items.size());
-    for (StatusIDs sr : items) {
+  private List<Integer> searchTimeline(List<StatusIDs> managedItems,
+                                       RealmResults<StatusIDs> timeline) {
+    final List<Integer> res = new ArrayList<>(managedItems.size());
+    for (StatusIDs sr : managedItems) {
       final int index = timeline.indexOf(sr);
       if (index >= 0) {
         res.add(index);
@@ -312,6 +323,12 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
         realm.deleteAll();
       }
     });
+  }
+
+  @Override
+  public void clearPool() {
+    clear();
+    statusCache.clear();
   }
 
   @Override
@@ -353,6 +370,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     return statusCache.find(statusId);
   }
 
+  @NonNull
   @Override
   public Observable<Status> observeById(long statusId) {
     return statusCache.observeById(statusId);

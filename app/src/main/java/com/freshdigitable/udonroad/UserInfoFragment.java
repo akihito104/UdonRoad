@@ -34,7 +34,6 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -53,13 +52,9 @@ import twitter4j.User;
  */
 public class UserInfoFragment extends Fragment {
   private FragmentUserInfoBinding binding;
-  @Inject
-  TypedCache<User> userCache;
   private Subscription subscription;
   @Inject
   TwitterApi twitterApi;
-  @Inject
-  UserFeedbackSubscriber userFeedback;
 
   @Override
   public void onAttach(Context context) {
@@ -88,9 +83,11 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    userCache.open();
+    userRequestWorker.open();
+    configRequestWorker.open();
 
     final long userId = getUserId();
+    final TypedCache<User> userCache = userRequestWorker.getCache();
     subscription = userCache.observeById(userId)
         .subscribe(new Action1<User>() {
           @Override
@@ -111,8 +108,6 @@ public class UserInfoFragment extends Fragment {
             Log.e("UserInfoFragment", "call: ", throwable);
           }
         });
-
-    userRequestWorker = new UserRequestWorker<>(twitterApi, userCache, userFeedback);
   }
 
   @Override
@@ -121,7 +116,8 @@ public class UserInfoFragment extends Fragment {
       subscription.unsubscribe();
     }
     dismissUserInfo();
-    userCache.close();
+    userRequestWorker.close();
+    configRequestWorker.close();
     super.onStop();
   }
 
@@ -131,7 +127,8 @@ public class UserInfoFragment extends Fragment {
     inflater.inflate(R.menu.user_info, menu);
   }
 
-  private UserRequestWorker<TypedCache<User>> userRequestWorker;
+  @Inject
+  UserRequestWorker<TypedCache<User>> userRequestWorker;
   @Inject
   ConfigRequestWorker configRequestWorker;
 

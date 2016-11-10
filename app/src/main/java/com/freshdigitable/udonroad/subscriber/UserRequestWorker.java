@@ -24,6 +24,8 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import twitter4j.User;
@@ -34,14 +36,14 @@ import twitter4j.User;
  * <p>
  * Created by akihit on 2016/09/03.
  */
-public class UserRequestWorker<T extends BaseOperation<User>> extends RequestWorkerBase {
-  private final T userStore;
+public class UserRequestWorker<T extends BaseOperation<User>>
+    extends RequestWorkerBase<T> {
 
+  @Inject
   public UserRequestWorker(@NonNull TwitterApi twitterApi,
                            @NonNull T userStore,
                            @NonNull UserFeedbackSubscriber feedback) {
-    super(twitterApi, feedback);
-    this.userStore = userStore;
+    super(twitterApi, userStore, feedback);
   }
 
   public void createFriendship(final long userId) {
@@ -81,7 +83,7 @@ public class UserRequestWorker<T extends BaseOperation<User>> extends RequestWor
     return new Action1<User>() {
       @Override
       public void call(User user) {
-        userStore.upsert(user);
+        cache.upsert(user);
       }
     };
   }
@@ -91,7 +93,7 @@ public class UserRequestWorker<T extends BaseOperation<User>> extends RequestWor
     return new Action1<List<User>>() {
       @Override
       public void call(List<User> users) {
-        userStore.upsert(users);
+        cache.upsert(users);
       }
     };
   }

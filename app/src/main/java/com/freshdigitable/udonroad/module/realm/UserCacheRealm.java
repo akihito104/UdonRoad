@@ -16,11 +16,11 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.freshdigitable.udonroad.datastore.TypedCache;
-
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,7 +37,7 @@ import twitter4j.UserMentionEntity;
  *
  * Created by akihit on 2016/09/14.
  */
-public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
+public class UserCacheRealm extends TypedCacheBaseRealm<User> {
   public UserCacheRealm() {
     this(null);
   }
@@ -59,7 +59,13 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
     if (entities == null || entities.isEmpty()) {
       return;
     }
-    cache.executeTransaction(new Realm.Transaction() {
+    cache.executeTransaction(upsertTransaction(entities));
+  }
+
+  @NonNull
+  @Override
+  public Realm.Transaction upsertTransaction(final Collection<User> entities) {
+    return new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
         final List<UserRealm> upserts = new ArrayList<>(entities.size());
@@ -73,11 +79,11 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
         }
         realm.insertOrUpdate(upserts);
       }
-    });
+    };
   }
 
   @Override
-  public void forceUpsert(final User entity) {
+  public void insert(final User entity) {
     cache.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
@@ -113,9 +119,13 @@ public class UserCacheRealm extends BaseCacheRealm implements TypedCache<User> {
     return findById(cache, id, UserRealm.class);
   }
 
+  @NonNull
   @Override
   public Observable<User> observeById(final long userId) {
     final UserRealm user = findById(cache, userId, UserRealm.class);
+    if (user == null) {
+      return Observable.empty();
+    }
     return Observable.create(new Observable.OnSubscribe<User>() {
       @Override
       public void call(final Subscriber<? super User> subscriber) {

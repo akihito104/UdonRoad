@@ -48,9 +48,7 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -71,13 +69,8 @@ public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   @Inject
-  TypedCache<Status> statusCache;
-  @Inject
-  TwitterApi twitterApi;
-  private StatusRequestWorker<TypedCache<Status>> statusCacheSubscriber;
+  StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
   private Subscription subscription;
-  @Inject
-  UserFeedbackSubscriber userFeedback;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -107,7 +100,8 @@ public class StatusDetailFragment extends Fragment {
     super.onStart();
 
     final long statusId = getStatusId();
-    statusCache.open();
+    statusRequestWorker.open();
+    final TypedCache<Status> statusCache = statusRequestWorker.getCache();
     final Status status = statusCache.find(statusId);
     if (status == null) {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
@@ -139,15 +133,14 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
-    statusCacheSubscriber = new StatusRequestWorker<>(twitterApi, statusCache,userFeedback);
     setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
     binding.sdFav.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         if (status.isFavorited()) {
-          statusCacheSubscriber.destroyFavorite(statusId);
+          statusRequestWorker.destroyFavorite(statusId);
         } else {
-          statusCacheSubscriber.createFavorite(statusId);
+          statusRequestWorker.createFavorite(statusId);
         }
       }
     });
@@ -156,9 +149,9 @@ public class StatusDetailFragment extends Fragment {
       @Override
       public void onClick(View view) {
         if (status.isRetweeted()) {
-          statusCacheSubscriber.destroyRetweet(statusId);
+          statusRequestWorker.destroyRetweet(statusId);
         } else {
-          statusCacheSubscriber.retweetStatus(statusId);
+          statusRequestWorker.retweetStatus(statusId);
         }
       }
     });
@@ -288,8 +281,7 @@ public class StatusDetailFragment extends Fragment {
     final long statusId = getStatusId();
     Picasso.with(getContext()).cancelTag(statusId);
     StatusViewImageHelper.unload(binding.statusView, statusId);
-    statusCacheSubscriber.close();
-    statusCache.close();
+    statusRequestWorker.close();
   }
 
   @Override

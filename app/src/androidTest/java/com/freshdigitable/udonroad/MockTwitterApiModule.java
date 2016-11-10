@@ -19,8 +19,8 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import javax.inject.Singleton;
 
@@ -37,48 +37,35 @@ import static org.mockito.Mockito.mock;
  *
  * Created by akihit on 2016/06/16.
  */
-@Module
-public class MockTwitterApiModule {
-  private Context context;
-
+public class MockTwitterApiModule extends TwitterApiModule {
   public MockTwitterApiModule(Context context) {
-    this.context = context;
+    super(context);
   }
 
-  @Singleton
-  @Provides
+  @Override
   public Twitter provideTwitter() {
     return mock(Twitter.class);
   }
 
-  @Singleton
-  @Provides
+  @Override
   public TwitterStream provideTwitterStream() {
     return mock(TwitterStream.class);
   }
 
-  @Provides
-  public SharedPreferences provideSharedPreferences() {
-    return context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE);
-  }
+  @Module
+  static class MockTwitterStreamApiModule {
+    public UserStreamListener userStreamListener;
 
-  public UserStreamListener userStreamListener;
-
-  @Singleton
-  @Provides
-  public TwitterStreamApi provideTwitterStreamApi(
-      TwitterStream twitterStream, SharedPreferences pref) {
-    return new TwitterStreamApi(twitterStream, pref) {
-      @Override
-      public void connectUserStream(UserStreamListener listener) {
-        userStreamListener = listener;
-      }
-    };
-  }
-
-  @Singleton
-  @Provides
-  public UserFeedbackSubscriber provideUserFeedbackSubscriber() {
-    return new UserFeedbackSubscriber(context);
+    @Singleton
+    @Provides
+    public TwitterStreamApi provideTwitterStreamApi(
+        TwitterStream twitterStream, SharedPreferences pref) {
+      return new TwitterStreamApi(twitterStream, pref) {
+        @Override
+        public void connectUserStream(UserStreamListener listener) {
+          userStreamListener = listener;
+        }
+      };
+    }
   }
 }

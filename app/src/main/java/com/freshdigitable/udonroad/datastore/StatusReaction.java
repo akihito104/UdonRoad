@@ -16,30 +16,18 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
-import java.util.List;
-
-import rx.Observable;
-
 /**
- * BaseOperation defines basic CRUD operation for data store.
- * <p>
- * Created by akihit on 2016/09/14.
+ * Created by akihit on 2016/11/07.
  */
-public interface BaseOperation<T> extends BaseCache {
-  void upsert(T entity);
 
-  void upsert(List<T> entities);
+public interface StatusReaction {
+  long getId();
 
-  void insert(T entity);
+  void setRetweeted(boolean retweeted);
 
-  @Nullable
-  T find(long id);
+  boolean isRetweeted();
 
-  @NonNull
-  Observable<T> observeById(long id);
+  void setFavorited(boolean favorited);
 
-  void delete(long id);
+  boolean isFavorited();
 }
