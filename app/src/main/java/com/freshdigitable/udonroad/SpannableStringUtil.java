@@ -46,6 +46,9 @@ class SpannableStringUtil {
   }
 
   static CharSequence create(final String text, URLEntity[] urlEntities) {
+    if (TextUtils.isEmpty(text)) {
+      return "";
+    }
     final List<SpanningInfo> urlSpanningInfo = createURLSpanningInfo(text, urlEntities, null);
     return createClickableSpan(text, urlSpanningInfo);
   }
