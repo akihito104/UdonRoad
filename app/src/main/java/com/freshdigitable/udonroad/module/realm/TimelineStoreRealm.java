@@ -288,14 +288,15 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @NonNull
-  private List<Integer> searchTimeline(List<StatusIDs> items) {
-    return searchTimeline(items, timeline);
+  private List<Integer> searchTimeline(List<StatusIDs> managedItems) {
+    return searchTimeline(managedItems, timeline);
   }
 
   @NonNull
-  private List<Integer> searchTimeline(List<StatusIDs> items, RealmResults<StatusIDs> timeline) {
-    final List<Integer> res = new ArrayList<>(items.size());
-    for (StatusIDs sr : items) {
+  private List<Integer> searchTimeline(List<StatusIDs> managedItems,
+                                       RealmResults<StatusIDs> timeline) {
+    final List<Integer> res = new ArrayList<>(managedItems.size());
+    for (StatusIDs sr : managedItems) {
       final int index = timeline.indexOf(sr);
       if (index >= 0) {
         res.add(index);
