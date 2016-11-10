@@ -39,6 +39,7 @@ import rx.functions.Func1;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
 
@@ -86,10 +87,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     final Collection<Status> updates = splitUpsertingStatus(statuses);
     upsertUser(updates);
     upsertStatusReaction(updates);
-    for (Status s : updates) {
-      userTypedCache.upsert(s.getUserMentionEntities());
-    }
-
+    userTypedCache.upsert(splitUserMentionEntity(updates));
     cache.executeTransaction(upsertTransaction(statuses));
   }
 
@@ -99,12 +97,13 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       return Observable.empty();
     }
     final Collection<Status> updates = splitUpsertingStatus(statuses);
-    upsertUser(updates);
-    upsertStatusReaction(updates);
-    for (Status s : updates) {
-      userTypedCache.upsert(s.getUserMentionEntities());
-    }
-    return super.observeUpsert(updates);
+    userTypedCache.upsert(splitUserMentionEntity(updates));
+    final Collection<User> splitUser = splitUpsertingUser(updates);
+    final Collection<StatusReaction> splitReaction = splitUpsertingStatusReaction(updates);
+    return Observable.concat(userTypedCache.observeUpsert(splitUser),
+        configStore.observeUpsert(splitReaction),
+        super.observeUpsert(updates))
+        .last();
   }
 
   @NonNull
@@ -160,6 +159,17 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       res.put(user.getId(), user);
     }
     return res.values();
+  }
+
+  private UserMentionEntity[] splitUserMentionEntity(Collection<Status> updates) {
+    final Map<Long, UserMentionEntity> res = new LinkedHashMap<>();
+    for (Status s : updates) {
+      for (UserMentionEntity ume : s.getUserMentionEntities()) {
+        res.put(ume.getId(), ume);
+      }
+    }
+    final Collection<UserMentionEntity> values = res.values();
+    return values.toArray(new UserMentionEntity[values.size()]);
   }
 
   private Collection<StatusReaction> splitUpsertingStatusReaction(Collection<Status> statuses) {
