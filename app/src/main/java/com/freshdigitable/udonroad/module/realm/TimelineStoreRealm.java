@@ -32,6 +32,7 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
+import rx.functions.Action1;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
@@ -82,7 +83,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @Override
-  public void upsert(List<Status> statuses) {
+  public void upsert(final List<Status> statuses) {
     if (statuses == null) {
       return;
     }
@@ -96,15 +97,24 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
       return;
     }
 
-    statusCache.upsert(statuses);
-    final List<StatusIDs> inserts = createInsertList(statuses);
-    if (!inserts.isEmpty()) {
-      insertStatus(inserts);
-    }
-    final List<StatusIDs> updates = createUpdateList(statuses);
-    if (!updates.isEmpty()) {
-      notifyChanged(updates, timeline);
-    }
+    statusCache.observeUpsert(statuses).subscribe(new Action1<Void>() {
+      @Override
+      public void call(Void aVoid) {
+        final List<StatusIDs> inserts = createInsertList(statuses);
+        if (!inserts.isEmpty()) {
+          insertStatus(inserts);
+        }
+        final List<StatusIDs> updates = createUpdateList(statuses);
+        if (!updates.isEmpty()) {
+          notifyChanged(updates, timeline);
+        }
+      }
+    }, new Action1<Throwable>() {
+      @Override
+      public void call(Throwable throwable) {
+        Log.e(TAG, "upsert: ", throwable);
+      }
+    });
   }
 
   private List<StatusIDs> createInsertList(List<Status> statuses) {

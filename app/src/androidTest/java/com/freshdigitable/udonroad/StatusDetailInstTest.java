@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
@@ -27,6 +28,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -38,6 +40,8 @@ import static android.support.test.espresso.matcher.ViewMatchers.Visibility.GONE
 import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -68,6 +72,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.d_icon)).perform(click());
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+    Espresso.pressBack();
   }
 
   @Test
@@ -95,6 +100,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.d_icon)).perform(click());
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+    Espresso.pressBack();
   }
 
   @Override
@@ -110,6 +116,9 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
         = TwitterResponseMock.createResponseList(Arrays.asList(target, simple));
     super.responseList = responseList;
     when(twitter.getHomeTimeline()).thenReturn(responseList);
+    final Relationship relationship = mock(Relationship.class);
+    when(relationship.isSourceFollowingTarget()).thenReturn(true);
+    when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
     return responseList.size();
   }
 

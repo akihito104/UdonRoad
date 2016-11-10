@@ -22,7 +22,6 @@ import android.support.annotation.Nullable;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
-import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +47,7 @@ import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
  *
  * Created by akihit on 2016/07/22.
  */
-public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Status>, MediaCache {
+public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements MediaCache {
   @SuppressWarnings("unused")
   public static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final ConfigStore configStore;
@@ -87,8 +86,31 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
     final Collection<Status> updates = splitUpsertingStatus(statuses);
     upsertUser(updates);
     upsertStatusReaction(updates);
+    for (Status s : updates) {
+      userTypedCache.upsert(s.getUserMentionEntities());
+    }
 
-    cache.executeTransaction(new Realm.Transaction() {
+    cache.executeTransaction(upsertTransaction(statuses));
+  }
+
+  @Override
+  public Observable<Void> observeUpsert(Collection<Status> statuses) {
+    if (statuses == null || statuses.isEmpty()) {
+      return Observable.empty();
+    }
+    final Collection<Status> updates = splitUpsertingStatus(statuses);
+    upsertUser(updates);
+    upsertStatusReaction(updates);
+    for (Status s : updates) {
+      userTypedCache.upsert(s.getUserMentionEntities());
+    }
+    return super.observeUpsert(updates);
+  }
+
+  @NonNull
+  @Override
+  public Realm.Transaction upsertTransaction(final Collection<Status> updates) {
+    return new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
         final ArrayList<StatusRealm> inserts = new ArrayList<>(updates.size());
@@ -102,11 +124,7 @@ public class StatusCacheRealm extends BaseCacheRealm implements TypedCache<Statu
         }
         realm.insertOrUpdate(inserts);
       }
-    });
-
-    for (Status s : updates) {
-      userTypedCache.upsert(s.getUserMentionEntities());
-    }
+    };
   }
 
   @NonNull

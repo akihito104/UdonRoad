@@ -165,7 +165,6 @@ public abstract class TimelineInstTestBase {
 
   private void initStorage() {
     clearCache(statusCache);
-    clearCache(userCache);
     clearCache(configStore);
     clearCache(appSettings);
     clearCache(homeTLStore, "home");

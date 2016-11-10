@@ -137,7 +137,20 @@ public class ConfigStoreRealm implements ConfigStore {
     if (entities == null || entities.isEmpty()) {
       return;
     }
-    realm.executeTransaction(new Realm.Transaction() {
+    realm.executeTransaction(upsertTransaction(entities));
+  }
+
+  @Override
+  public Observable<Void> observeUpsert(final Collection<StatusReaction> entities) {
+    if (entities == null || entities.isEmpty()) {
+      return Observable.empty();
+    }
+    return TypedCacheBaseRealm.observeUpsertImpl(realm, upsertTransaction(entities));
+  }
+
+  @NonNull
+  private static Realm.Transaction upsertTransaction(final Collection<StatusReaction> entities) {
+    return new Realm.Transaction() {
       @Override
       public void execute(Realm realm) {
         final ArrayList<StatusReactionRealm> insertReactions = new ArrayList<>(entities.size());
@@ -151,7 +164,7 @@ public class ConfigStoreRealm implements ConfigStore {
         }
         realm.insertOrUpdate(insertReactions);
       }
-    });
+    };
   }
 
   @Override
