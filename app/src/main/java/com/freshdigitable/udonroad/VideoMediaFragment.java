@@ -171,6 +171,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
 
   @Override
   public void onStop() {
+    super.onStop();
     videoView.stopPlayback();
     videoView.setOnPreparedListener(null);
     videoView.setOnCompletionListener(null);
@@ -180,6 +181,5 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     if (subscribe != null && !subscribe.isUnsubscribed()) {
       subscribe.unsubscribe();
     }
-    super.onStop();
   }
 }

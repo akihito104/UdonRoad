@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
@@ -365,6 +366,28 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         return false;
       }
     };
+  }
+
+  @Override
+  protected void attachBaseContext(Context newBase) {
+    super.attachBaseContext(new ContextWrapperImpl(newBase));
+  }
+
+  private static class ContextWrapperImpl extends ContextWrapper {
+    public ContextWrapperImpl(Context base) {
+      super(base);
+    }
+
+    @Override
+    public Object getSystemService(String name) {
+      if (Context.AUDIO_SERVICE.equals(name)) {
+        return getApplicationContext().getSystemService(name);
+      }
+      if (Context.CAPTIONING_SERVICE.equals(name)) {
+        return getApplicationContext().getSystemService(name);
+      }
+      return super.getSystemService(name);
+    }
   }
 
   private void setupActionMap(final long statusId) {
