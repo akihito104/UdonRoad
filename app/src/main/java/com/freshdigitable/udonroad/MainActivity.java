@@ -76,8 +76,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  *
  * Created by akihit
  */
-public class MainActivity
-    extends AppCompatActivity
+public class MainActivity extends AppCompatActivity
     implements TweetSendable, OnUserIconClickedListener, OnFetchTweets, FabHandleable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
@@ -167,7 +166,6 @@ public class MainActivity
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
-        setupNavigationDrawer();
         tlFragment.stopScroll();
       }
 
@@ -211,6 +209,7 @@ public class MainActivity
           .load(user.getProfileImageURLHttps()).fit()
           .into(icon);
     }
+    attachToolbar(binding.mainToolbar);
   }
 
   @Override
@@ -273,7 +272,6 @@ public class MainActivity
   protected void onResume() {
     Log.d(TAG, "onResume: ");
     super.onResume();
-    attachToolbar(binding.mainToolbar);
     statusRequestWorker.registerRootView(binding.mainTimelineContainer);
   }
 
