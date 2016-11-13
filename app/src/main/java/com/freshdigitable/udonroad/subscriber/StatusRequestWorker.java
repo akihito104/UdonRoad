@@ -47,7 +47,7 @@ import twitter4j.TwitterException;
  */
 public class StatusRequestWorker<T extends BaseOperation<Status>>
     extends RequestWorkerBase<T> {
-  public static final String TAG = StatusRequestWorker.class.getSimpleName();
+  private static final String TAG = StatusRequestWorker.class.getSimpleName();
   private final ConfigStore configStore;
 
   @Inject

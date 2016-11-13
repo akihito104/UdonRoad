@@ -33,6 +33,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action0;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.module.realm.BaseCacheRealm.findById;
@@ -200,6 +201,11 @@ public class ConfigStoreRealm implements ConfigStore {
           }
         });
         subscriber.onNext(statusReaction);
+      }
+    }).doOnUnsubscribe(new Action0() {
+      @Override
+      public void call() {
+        RealmObject.removeChangeListeners(statusReaction);
       }
     });
   }
