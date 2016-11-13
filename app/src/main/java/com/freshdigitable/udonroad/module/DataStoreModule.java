@@ -59,8 +59,8 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  public MediaCache provideMediaCache(ConfigStore configStore) {
-    return new StatusCacheRealm(configStore);
+  public MediaCache provideMediaCache(TypedCache<Status> configStore) {
+    return ((StatusCacheRealm) configStore);
   }
 
   @Singleton
