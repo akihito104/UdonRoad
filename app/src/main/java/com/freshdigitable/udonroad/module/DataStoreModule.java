@@ -53,15 +53,13 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  public TypedCache<Status> provideTypedCacheStatus() {
-    final ConfigStore configStore = provideConfigStore();
+  public TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore) {
     return new StatusCacheRealm(configStore);
   }
 
   @Singleton
   @Provides
-  public MediaCache provideMediaCache() {
-    final ConfigStore configStore = provideConfigStore();
+  public MediaCache provideMediaCache(ConfigStore configStore) {
     return new StatusCacheRealm(configStore);
   }
 
@@ -72,15 +70,13 @@ public class DataStoreModule {
   }
 
   @Provides
-  public SortedCache<Status> provideSortedCacheStatus() {
-    final TypedCache<Status> statusCacheRealm = provideTypedCacheStatus();
-    final ConfigStore configStore = provideConfigStore();
+  public SortedCache<Status> provideSortedCacheStatus(TypedCache<Status> statusCacheRealm,
+                                                      ConfigStore configStore) {
     return new TimelineStoreRealm(statusCacheRealm, configStore);
   }
 
   @Provides
-  public SortedCache<User> provideSortedCacheUser() {
-    final TypedCache<User> userCacheRealm = provideTypedCacheUser();
+  public SortedCache<User> provideSortedCacheUser(TypedCache<User> userCacheRealm) {
     return new UserSortedCacheRealm(userCacheRealm);
   }
 
@@ -98,9 +94,8 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  public AppSettingStore provideAppSettingStore() {
-    final TypedCache<User> userTypedCache = provideTypedCacheUser();
-    final SharedPreferences sharedPreferences = provideSharedPreferences();
+  public AppSettingStore provideAppSettingStore(TypedCache<User> userTypedCache,
+                                                SharedPreferences sharedPreferences) {
     return new AppSettingStoreRealm(userTypedCache, sharedPreferences);
   }
 }
