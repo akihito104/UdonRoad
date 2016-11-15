@@ -36,6 +36,7 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 
 import java.lang.annotation.Retention;
@@ -142,6 +143,9 @@ public class UserInfoPagerFragment extends Fragment {
     pagerAdapter.putFragment(page, fragment);
   }
 
+  @Inject
+  UserFeedbackSubscriber userFeedback;
+
   @Override
   public void onStart() {
     super.onStart();
@@ -160,7 +164,7 @@ public class UserInfoPagerFragment extends Fragment {
         }
       });
     }
-    timelineSubscriberMap.get(UserPageInfo.TWEET).registerRootView(viewPager);
+    userFeedback.registerRootView(viewPager);
   }
 
   private TimelineFragment getCurrentFragment() {
@@ -172,7 +176,7 @@ public class UserInfoPagerFragment extends Fragment {
   public void onStop() {
     super.onStop();
     viewPager.clearOnPageChangeListeners();
-    timelineSubscriberMap.get(UserPageInfo.TWEET).unregisterRootView(viewPager);
+    userFeedback.unregisterRootView(viewPager);
   }
 
   @Override

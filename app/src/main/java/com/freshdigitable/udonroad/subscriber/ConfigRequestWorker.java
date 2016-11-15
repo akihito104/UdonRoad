@@ -37,6 +37,7 @@ import rx.functions.Action1;
 import rx.functions.Action2;
 import rx.functions.Func0;
 import rx.functions.Func1;
+import rx.subjects.PublishSubject;
 import twitter4j.IDs;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
@@ -55,7 +56,7 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   public ConfigRequestWorker(@NonNull TwitterApi twitterApi,
                              @NonNull ConfigStore configStore,
                              @NonNull AppSettingStore appSettings,
-                             @NonNull UserFeedbackSubscriber userFeedback) {
+                             @NonNull PublishSubject<Integer> userFeedback) {
     super(twitterApi, configStore, userFeedback);
     this.appSettings = appSettings;
   }

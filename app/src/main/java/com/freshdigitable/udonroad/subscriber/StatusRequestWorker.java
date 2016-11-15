@@ -35,6 +35,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -54,7 +55,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
   public StatusRequestWorker(@NonNull TwitterApi twitterApi,
                              @NonNull T statusStore,
                              @NonNull ConfigStore configStore,
-                             @NonNull UserFeedbackSubscriber userFeedback) {
+                             @NonNull PublishSubject<Integer> userFeedback) {
     super(twitterApi, statusStore, userFeedback);
     this.configStore = configStore;
   }
@@ -73,7 +74,6 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   @Override
   public void close() {
-    super.close();
     configStore.close();
   }
 
@@ -144,7 +144,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
             if (msg == R.string.msg_already_fav) {
               updateStatus();
             }
-            userFeedback.offerEvent(msg > 0 ? msg : R.string.msg_fav_create_failed);
+            userFeedback.onNext(msg > 0 ? msg : R.string.msg_fav_create_failed);
           }
 
           private void updateStatus() {
@@ -177,7 +177,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
             if (msg == R.string.msg_already_rt) {
               updateStatus();
             }
-            userFeedback.offerEvent(msg > 0 ? msg : R.string.msg_rt_create_failed);
+            userFeedback.onNext(msg > 0 ? msg : R.string.msg_rt_create_failed);
           }
 
           private void updateStatus() {

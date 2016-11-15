@@ -272,13 +272,13 @@ public class MainActivity extends AppCompatActivity
   protected void onResume() {
     Log.d(TAG, "onResume: ");
     super.onResume();
-    statusRequestWorker.registerRootView(binding.mainTimelineContainer);
+    userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
   @Override
   protected void onPause() {
     super.onPause();
-    statusRequestWorker.unregisterRootView(binding.mainTimelineContainer);
+    userFeedback.unregisterRootView(binding.mainTimelineContainer);
   }
 
   @Override

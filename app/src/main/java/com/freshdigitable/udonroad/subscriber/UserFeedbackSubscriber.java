@@ -39,14 +39,16 @@ import rx.subjects.PublishSubject;
  * Created by akihit on 2016/11/02.
  */
 public class UserFeedbackSubscriber {
+  @SuppressWarnings("unused")
   private static final String TAG = UserFeedbackSubscriber.class.getSimpleName();
   private final Subscription feedbackSubscription;
   private final PublishSubject<Integer> feedbackSubject;
   private final Context context;
 
-  public UserFeedbackSubscriber(@NonNull Context context) {
+  public UserFeedbackSubscriber(@NonNull Context context,
+                                PublishSubject<Integer> feedbackSubject) {
     this.context = context;
-    feedbackSubject = PublishSubject.create();
+    this.feedbackSubject = feedbackSubject;
     feedbackSubscription = feedbackSubject.onBackpressureBuffer()
         .observeOn(Schedulers.newThread())
         .subscribe(new Action1<Integer>() {
@@ -86,7 +88,7 @@ public class UserFeedbackSubscriber {
 
   private WeakReference<View> rootView;
 
-  void registerRootView(@NonNull View rootView) {
+  public void registerRootView(@NonNull View rootView) {
     if (isRegisteredView(rootView))
       return;
     this.rootView = new WeakReference<>(rootView);
@@ -100,7 +102,7 @@ public class UserFeedbackSubscriber {
     return rootView.equals(v);
   }
 
-  void unregisterRootView(View view) {
+  public void unregisterRootView(View view) {
     if (isRegisteredView(view)) {
       rootView.clear();
     }
@@ -114,14 +116,6 @@ public class UserFeedbackSubscriber {
     this.gravityFlag = gravityFlag;
     this.gravityXOffset = gravityXOffset;
     this.gravityYOffset = gravityYOffset;
-  }
-
-  void offerEvent(@StringRes int msg) {
-    feedbackSubject.onNext(msg);
-  }
-
-  void reset() {
-    setToastOption(0, 0, 0);
   }
 
   public void close() {

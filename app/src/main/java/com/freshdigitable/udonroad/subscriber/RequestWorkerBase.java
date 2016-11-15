@@ -19,7 +19,6 @@ package com.freshdigitable.udonroad.subscriber;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.BaseOperation;
 import com.freshdigitable.udonroad.datastore.SortedCache;
@@ -28,6 +27,7 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 
 /**
  * RequestWorkerBase is a base class of request worker.
@@ -37,11 +37,11 @@ import rx.functions.Action1;
 public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   TwitterApi twitterApi;
   T cache;
-  UserFeedbackSubscriber userFeedback;
+  PublishSubject<Integer> userFeedback;
 
   RequestWorkerBase(@NonNull TwitterApi twitterApi,
                     @NonNull T cache,
-                    @NonNull UserFeedbackSubscriber userFeedback) {
+                    @NonNull PublishSubject<Integer> userFeedback) {
     this.twitterApi = twitterApi;
     this.cache = cache;
     this.userFeedback = userFeedback;
@@ -67,24 +67,14 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
     return cache;
   }
 
-  public void registerRootView(View view) {
-    userFeedback.registerRootView(view);
-  }
-
-  public void unregisterRootView(View view) {
-    userFeedback.unregisterRootView(view);
-  }
-
-  public void close() {
-    userFeedback.reset();
-  }
+  public abstract void close();
 
   @NonNull
   Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
     return new Action1<Throwable>() {
       @Override
       public void call(Throwable throwable) {
-        userFeedback.offerEvent(msg);
+        userFeedback.onNext(msg);
       }
     };
   }
@@ -94,7 +84,7 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
     return new Action0() {
       @Override
       public void call() {
-        userFeedback.offerEvent(msg);
+        userFeedback.onNext(msg);
       }
     };
   }

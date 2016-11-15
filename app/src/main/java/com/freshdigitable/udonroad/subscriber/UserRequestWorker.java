@@ -28,6 +28,7 @@ import javax.inject.Inject;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 import twitter4j.User;
 
 /**
@@ -42,7 +43,7 @@ public class UserRequestWorker<T extends BaseOperation<User>>
   @Inject
   public UserRequestWorker(@NonNull TwitterApi twitterApi,
                            @NonNull T userStore,
-                           @NonNull UserFeedbackSubscriber feedback) {
+                           @NonNull PublishSubject<Integer> feedback) {
     super(twitterApi, userStore, feedback);
   }
 
@@ -96,5 +97,9 @@ public class UserRequestWorker<T extends BaseOperation<User>>
         cache.upsert(users);
       }
     };
+  }
+
+  @Override
+  public void close() {
   }
 }

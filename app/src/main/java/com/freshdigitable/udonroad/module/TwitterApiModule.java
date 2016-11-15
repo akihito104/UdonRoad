@@ -25,6 +25,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import rx.subjects.PublishSubject;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.TwitterStream;
@@ -68,7 +69,13 @@ public class TwitterApiModule {
 
   @Singleton
   @Provides
-  public UserFeedbackSubscriber provideUserFeedbackSubscriber() {
-    return new UserFeedbackSubscriber(context);
+  public UserFeedbackSubscriber provideUserFeedbackSubscriber(PublishSubject<Integer> pub) {
+    return new UserFeedbackSubscriber(context, pub);
+  }
+
+  @Provides
+  @Singleton
+  public PublishSubject<Integer> providePublishSubjectInteger() {
+    return PublishSubject.create();
   }
 }
