@@ -145,6 +145,9 @@ public class MainActivity extends AppCompatActivity
 
   private void setupHomeTimeline() {
     statusRequestWorker.open("home");
+    if (tlFragment != null) {
+      return;
+    }
     homeTimeline = statusRequestWorker.getCache();
     homeTimeline.clearPool();
 
@@ -160,6 +163,19 @@ public class MainActivity extends AppCompatActivity
             .commit();
       }
     });
+  }
+
+  private Subscription subscription;
+
+  private void setupNavigationDrawer() {
+    attachToolbar(binding.mainToolbar);
+    subscription = configRequestWorker.getAuthenticatedUser()
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User user) {
+            setupNavigationDrawer(user);
+          }
+        });
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -180,19 +196,6 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
-  }
-
-  private Subscription subscription;
-
-  private void setupNavigationDrawer() {
-    attachToolbar(binding.mainToolbar);
-    subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            setupNavigationDrawer(user);
-          }
-        });
   }
 
   private void setupNavigationDrawer(@Nullable User user) {
@@ -366,6 +369,9 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupTweetInputView() {
+    if (tweetInputFragment != null) {
+      return;
+    }
     tweetInputFragment = TweetInputFragment.create();
     tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
     getSupportFragmentManager().beginTransaction()
