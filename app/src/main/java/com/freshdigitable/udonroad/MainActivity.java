@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity
     binding.ffab.hide();
     setupHomeTimeline();
     setupTweetInputView();
+    setupNavigationDrawer();
   }
 
   private void setupHomeTimeline() {
@@ -183,6 +184,7 @@ public class MainActivity extends AppCompatActivity
   private Subscription subscription;
 
   private void setupNavigationDrawer() {
+    attachToolbar(binding.mainToolbar);
     subscription = configRequestWorker.getAuthenticatedUser()
         .subscribe(new Action1<User>() {
           @Override
@@ -209,7 +211,6 @@ public class MainActivity extends AppCompatActivity
           .load(user.getProfileImageURLHttps()).fit()
           .into(icon);
     }
-    attachToolbar(binding.mainToolbar);
   }
 
   @Override
@@ -222,7 +223,6 @@ public class MainActivity extends AppCompatActivity
   protected void onStart() {
     super.onStart();
     userStream.connect(homeTimeline);
-    setupNavigationDrawer();
 
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
@@ -234,6 +234,7 @@ public class MainActivity extends AppCompatActivity
 
     setupActionMap();
     UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
+    userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
   private StatusDetailFragment statusDetail;
@@ -269,22 +270,10 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  protected void onResume() {
-    Log.d(TAG, "onResume: ");
-    super.onResume();
-    userFeedback.registerRootView(binding.mainTimelineContainer);
-  }
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    userFeedback.unregisterRootView(binding.mainTimelineContainer);
-  }
-
-  @Override
   protected void onStop() {
     super.onStop();
     binding.ffab.setOnFlingListener(null);
+    userFeedback.unregisterRootView(binding.mainTimelineContainer);
     actionMap.clear();
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
