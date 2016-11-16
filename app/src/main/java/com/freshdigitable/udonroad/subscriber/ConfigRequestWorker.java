@@ -66,7 +66,9 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
     appSettings.open();
   }
 
+  @Override
   public void close() {
+    super.close();
     appSettings.close();
   }
 

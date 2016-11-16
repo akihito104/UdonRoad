@@ -98,8 +98,4 @@ public class UserRequestWorker<T extends BaseOperation<User>>
       }
     };
   }
-
-  @Override
-  public void close() {
-  }
 }

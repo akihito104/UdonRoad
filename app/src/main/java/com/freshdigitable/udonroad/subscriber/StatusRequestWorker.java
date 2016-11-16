@@ -74,6 +74,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   @Override
   public void close() {
+    super.close();
     configStore.close();
   }
 

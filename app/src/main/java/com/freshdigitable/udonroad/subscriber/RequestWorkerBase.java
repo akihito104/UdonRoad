@@ -67,7 +67,10 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
     return cache;
   }
 
-  public abstract void close();
+  @CallSuper
+  public void close() {
+    cache.close();
+  }
 
   @NonNull
   Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
