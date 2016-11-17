@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
@@ -100,9 +99,6 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
-    }
     super.onCreate(savedInstanceState);
 
     InjectionUtil.getComponent(this).inject(this);
@@ -112,6 +108,9 @@ public class MainActivity extends AppCompatActivity
       return;
     }
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+    }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -145,9 +144,6 @@ public class MainActivity extends AppCompatActivity
 
   private void setupHomeTimeline() {
     statusRequestWorker.open("home");
-    if (tlFragment != null) {
-      return;
-    }
     homeTimeline = statusRequestWorker.getCache();
     homeTimeline.clearPool();
 
@@ -287,7 +283,7 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    if (userStream != null && !isInMultiWindowModeCompat(this)) {
+    if (userStream != null) {
       userStream.disconnect();
     }
     if (binding != null) {
@@ -297,11 +293,6 @@ public class MainActivity extends AppCompatActivity
     configRequestWorker.close();
     statusRequestWorker.close();
     userFeedback.close();
-  }
-
-  private static boolean isInMultiWindowModeCompat(Activity activity) {
-    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-        && activity.isInMultiWindowMode();
   }
 
   @Override
@@ -369,9 +360,6 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupTweetInputView() {
-    if (tweetInputFragment != null) {
-      return;
-    }
     tweetInputFragment = TweetInputFragment.create();
     tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
     getSupportFragmentManager().beginTransaction()
