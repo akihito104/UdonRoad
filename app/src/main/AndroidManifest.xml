@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.freshdigitable.udonroad" >
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.freshdigitable.udonroad"
+>
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -10,12 +12,14 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:resizeableActivity="true"
+        tools:targetApi="n">
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="false"
         >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,7 +29,10 @@
         </activity>
         <activity
             android:name=".OAuthActivity"
-            android:launchMode="singleTask" >
+            android:launchMode="singleTask"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="false"
+        >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -38,14 +45,30 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".MediaViewActivity"
-            android:theme="@style/Theme.AppTheme.TranslucentStatusBar"/>
+        <activity
+            android:name=".MediaViewActivity"
+            android:theme="@style/Theme.AppTheme.TranslucentStatusBar"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="false"
+        />
 
-        <activity android:name=".UserInfoActivity"/>
+        <activity
+            android:name=".UserInfoActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="false"
+        />
 
-        <activity android:name=".ReplyActivity" />
+        <activity
+            android:name=".ReplyActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="false"
+        />
 
-        <activity android:name=".LicenseActivity"/>
+        <activity
+            android:name=".LicenseActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="false"
+        />
     </application>
 
 </manifest>
