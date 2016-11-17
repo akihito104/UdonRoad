@@ -47,6 +47,7 @@ import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
@@ -106,7 +107,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    showSystemUI();
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_media_view);
     InjectionUtil.getComponent(this).inject(this);
@@ -114,27 +114,21 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     ViewCompat.setElevation(binding.mediaToolbar,
         getResources().getDimensionPixelOffset(R.dimen.action_bar_elevation));
     setSupportActionBar(binding.mediaToolbar);
+    showSystemUI();
 
     handler = new Handler();
 
     final ActionBar actionBar = getSupportActionBar();
+    final IndicatableFFAB mediaIffab = binding.mediaIffab;
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
         new View.OnSystemUiVisibilityChangeListener() {
           @Override
           public void onSystemUiVisibilityChange(int visibility) {
             Log.d(TAG, "onSystemUiVisibilityChange: " + visibility);
             if (isSystemUIVisible(visibility)) {
-              if (actionBar != null) {
-                setTitle();
-                actionBar.show();
-                binding.mediaIffab.show();
-              }
-              binding.mediaIffab.show();
+              showOverlayUI(actionBar, mediaIffab);
             } else {
-              if (actionBar != null) {
-                actionBar.hide();
-              }
-              binding.mediaIffab.hide();
+              hideOverlayUI(actionBar, mediaIffab);
             }
           }
         });
@@ -144,7 +138,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     return isSystemUIVisible(getWindow().getDecorView().getSystemUiVisibility());
   }
 
-  private boolean isSystemUIVisible(int visibility) {
+  private static boolean isSystemUIVisible(int visibility) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
       return (View.SYSTEM_UI_FLAG_FULLSCREEN & visibility) == 0;
     } else {
@@ -160,6 +154,16 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
               | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
       );
     }
+    if (isInMultiWindowModeCompat()) {
+      showOverlayUI(getSupportActionBar(), binding.mediaIffab);
+    }
+  }
+
+  private static void showOverlayUI(ActionBar actionBar, IndicatableFFAB iffab) {
+    if (actionBar != null) {
+      actionBar.show();
+    }
+    iffab.show();
   }
 
   private void hideSystemUI() {
@@ -177,6 +181,16 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
           View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
       );
     }
+    if (isInMultiWindowModeCompat()) {
+      hideOverlayUI(getSupportActionBar(), binding.mediaIffab);
+    }
+  }
+
+  private static void hideOverlayUI(ActionBar actionBar, IndicatableFFAB iffab) {
+    if (actionBar != null) {
+      actionBar.hide();
+    }
+    iffab.hide();
   }
 
   private void setTitle() {
@@ -412,5 +426,10 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         ).subscribe(StatusRequestWorker.<Status>nopSubscriber());
       }
     }));
+  }
+
+  private boolean isInMultiWindowModeCompat() {
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        && isInMultiWindowMode();
   }
 }
