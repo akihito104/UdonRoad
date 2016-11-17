@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+      supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity
     binding.ffab.hide();
     setupHomeTimeline();
     setupTweetInputView();
+    setupNavigationDrawer();
   }
 
   private void setupHomeTimeline() {
@@ -158,6 +159,19 @@ public class MainActivity extends AppCompatActivity
             .commit();
       }
     });
+  }
+
+  private Subscription subscription;
+
+  private void setupNavigationDrawer() {
+    attachToolbar(binding.mainToolbar);
+    subscription = configRequestWorker.getAuthenticatedUser()
+        .subscribe(new Action1<User>() {
+          @Override
+          public void call(User user) {
+            setupNavigationDrawer(user);
+          }
+        });
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -180,18 +194,6 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.syncState();
   }
 
-  private Subscription subscription;
-
-  private void setupNavigationDrawer() {
-    subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            setupNavigationDrawer(user);
-          }
-        });
-  }
-
   private void setupNavigationDrawer(@Nullable User user) {
     if (user == null) {
       return;
@@ -209,7 +211,6 @@ public class MainActivity extends AppCompatActivity
           .load(user.getProfileImageURLHttps()).fit()
           .into(icon);
     }
-    attachToolbar(binding.mainToolbar);
   }
 
   @Override
@@ -222,7 +223,6 @@ public class MainActivity extends AppCompatActivity
   protected void onStart() {
     super.onStart();
     userStream.connect(homeTimeline);
-    setupNavigationDrawer();
 
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
@@ -234,6 +234,7 @@ public class MainActivity extends AppCompatActivity
 
     setupActionMap();
     UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
+    userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
   private StatusDetailFragment statusDetail;
@@ -269,22 +270,10 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  protected void onResume() {
-    Log.d(TAG, "onResume: ");
-    super.onResume();
-    userFeedback.registerRootView(binding.mainTimelineContainer);
-  }
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    userFeedback.unregisterRootView(binding.mainTimelineContainer);
-  }
-
-  @Override
   protected void onStop() {
     super.onStop();
     binding.ffab.setOnFlingListener(null);
+    userFeedback.unregisterRootView(binding.mainTimelineContainer);
     actionMap.clear();
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
