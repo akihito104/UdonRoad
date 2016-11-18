@@ -102,7 +102,6 @@ public abstract class StatusViewBase extends RelativeLayout {
   @CallSuper
   public void update(Status status) {
     final Status bindingStatus = getBindingStatus(status);
-    bindCreatedAt(bindingStatus.getCreatedAt());
     bindRT(bindingStatus);
     bindFavorite(bindingStatus);
     final User user = bindingStatus.getUser();

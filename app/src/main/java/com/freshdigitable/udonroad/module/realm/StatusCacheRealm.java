@@ -254,9 +254,22 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       @Override
       public void call(final Subscriber<? super Status> subscriber) {
         StatusRealm.addChangeListener(status, new RealmChangeListener<StatusRealm>() {
+          private int prevFav = bindingStatus(status).getFavoriteCount();
+          private int prevRT = bindingStatus(status).getRetweetCount();
+
           @Override
           public void onChange(StatusRealm element) {
+            if (isIgnorableChange(element)) {
+              return;
+            }
             subscriber.onNext(element);
+            prevRT = bindingStatus(element).getRetweetCount();
+            prevFav = bindingStatus(element).getFavoriteCount();
+          }
+
+          private boolean isIgnorableChange(StatusRealm statusRealm) {
+            return bindingStatus(statusRealm).getFavoriteCount() == prevFav
+                && bindingStatus(statusRealm).getRetweetCount() == prevRT;
           }
         });
         subscriber.onNext(status);
@@ -268,11 +281,14 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       }
     });
     final Observable<Status> reactionObservable = reactionObservable(
-        status.isRetweet() ? status.getRetweetedStatusId() : status.getId(),
-        status);
+        bindingStatus(status).getId(), status);
     final Observable<Status> qReactionObservable = reactionObservable(
         status.getQuotedStatusId(), status);
     return Observable.merge(statusObservable, reactionObservable, qReactionObservable);
+  }
+
+  private static Status bindingStatus(Status status) {
+    return status.isRetweet() ? status.getRetweetedStatus() : status;
   }
 
   private Observable<Status> reactionObservable(long statusId,
