@@ -224,7 +224,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
   @Override
   @Nullable
-  public Status find(long id) {
+  public StatusRealm find(long id) {
     final StatusRealm res = getStatusInternal(id);
     if (res == null) {
       return null;
@@ -246,7 +246,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
   @NonNull
   @Override
   public Observable<Status> observeById(long statusId) {
-    final StatusRealm status = (StatusRealm) find(statusId);
+    final StatusRealm status = find(statusId);
     if (status == null) {
       return Observable.empty();
     }

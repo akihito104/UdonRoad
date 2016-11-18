@@ -46,7 +46,8 @@ import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
  * Created by akihit on 2016/07/30.
  */
 public class ConfigStoreRealm implements ConfigStore {
-
+  @SuppressWarnings("unused")
+  private static final String TAG = ConfigStoreRealm.class.getSimpleName();
   private Realm realm;
   private final RealmConfiguration config;
 
@@ -180,14 +181,14 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Nullable
   @Override
-  public StatusReaction find(long id) {
+  public StatusReactionRealm find(long id) {
     return findById(realm, id, StatusReactionRealm.class);
   }
 
   @NonNull
   @Override
   public Observable<StatusReaction> observeById(long id) {
-    final StatusReactionRealm statusReaction = (StatusReactionRealm) find(id);
+    final StatusReactionRealm statusReaction = find(id);
     if (statusReaction == null) {
       return Observable.empty();
     }
