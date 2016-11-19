@@ -172,11 +172,13 @@ public class StatusDetailFragment extends Fragment {
     });
 
     binding.statusView.bindStatus(status);
+    binding.sdFav.setActivated(status.isFavorited());
+    binding.sdRetweet.setActivated(status.isRetweeted());
     subscription = statusCache.observeById(statusId)
         .subscribe(new Action1<Status>() {
           @Override
           public void call(Status status) {
-            binding.statusView.bindStatus(status);
+            binding.statusView.update(status);
             binding.sdFav.setActivated(status.isFavorited());
             binding.sdRetweet.setActivated(status.isRetweeted());
           }
