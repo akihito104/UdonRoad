@@ -214,7 +214,6 @@ public class ConfigStoreRealm implements ConfigStore {
                 && l.isRetweeted() == prevRTed;
           }
         });
-        subscriber.onNext(statusReaction);
       }
     }).doOnUnsubscribe(new Action0() {
       @Override

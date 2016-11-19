@@ -171,6 +171,7 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
+    binding.statusView.bindStatus(status);
     subscription = statusCache.observeById(statusId)
         .subscribe(new Action1<Status>() {
           @Override

@@ -250,29 +250,30 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     if (status == null) {
       return Observable.empty();
     }
+    final Status bindingStatus = bindingStatus(status);
     final Observable<Status> statusObservable = Observable.create(new Observable.OnSubscribe<Status>() {
       @Override
       public void call(final Subscriber<? super Status> subscriber) {
         StatusRealm.addChangeListener(status, new RealmChangeListener<StatusRealm>() {
-          private int prevFav = bindingStatus(status).getFavoriteCount();
-          private int prevRT = bindingStatus(status).getRetweetCount();
+          private int prevFav = bindingStatus.getFavoriteCount();
+          private int prevRT = bindingStatus.getRetweetCount();
 
           @Override
           public void onChange(StatusRealm element) {
-            if (isIgnorableChange(element)) {
+            final Status bindings = bindingStatus(element);
+            if (isIgnorableChange(bindings)) {
               return;
             }
             subscriber.onNext(element);
-            prevRT = bindingStatus(element).getRetweetCount();
-            prevFav = bindingStatus(element).getFavoriteCount();
+            prevRT = bindings.getRetweetCount();
+            prevFav = bindings.getFavoriteCount();
           }
 
-          private boolean isIgnorableChange(StatusRealm statusRealm) {
-            return bindingStatus(statusRealm).getFavoriteCount() == prevFav
-                && bindingStatus(statusRealm).getRetweetCount() == prevRT;
+          private boolean isIgnorableChange(Status bindings) {
+            return bindings.getFavoriteCount() == prevFav
+                && bindings.getRetweetCount() == prevRT;
           }
         });
-        subscriber.onNext(status);
       }
     }).doOnUnsubscribe(new Action0() {
       @Override
@@ -281,7 +282,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       }
     });
     final Observable<Status> reactionObservable = reactionObservable(
-        bindingStatus(status).getId(), status);
+        bindingStatus.getId(), status);
     final Observable<Status> qReactionObservable = reactionObservable(
         status.getQuotedStatusId(), status);
     return Observable.merge(statusObservable, reactionObservable, qReactionObservable);
@@ -291,13 +292,19 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     return status.isRetweet() ? status.getRetweetedStatus() : status;
   }
 
-  private Observable<Status> reactionObservable(long statusId,
+  private Observable<Status> reactionObservable(final long statusId,
                                                 @NonNull final StatusRealm original) {
     return configStore.observeById(statusId)
         .map(new Func1<StatusReaction, Status>() {
           @Override
           public Status call(StatusReaction reaction) {
-            original.setReaction(reaction);
+            final long statusId = reaction.getId();
+            final Status bindings = bindingStatus(original);
+            if (bindings.getId() == statusId) {
+              ((StatusRealm) bindings).setReaction(reaction);
+            } else if (bindings.getQuotedStatusId() == statusId) {
+              ((StatusRealm) bindings.getQuotedStatus()).setReaction(reaction);
+            }
             return original;
           }
         });
