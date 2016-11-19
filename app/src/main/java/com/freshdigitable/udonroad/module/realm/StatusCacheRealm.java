@@ -250,13 +250,36 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     if (status == null) {
       return Observable.empty();
     }
-    final Status bindingStatus = bindingStatus(status);
+    final StatusRealm bindingStatus = (StatusRealm) bindingStatus(status);
+    final Observable<Status> statusObservable
+        = statusChangesObservable(bindingStatus, status);
+    final Observable<Status> quotedObservable
+        = statusChangesObservable(((StatusRealm) bindingStatus.getQuotedStatus()), status);
+    final Observable<Status> reactionObservable
+        = reactionObservable(bindingStatus.getId(), status);
+    final Observable<Status> qReactionObservable
+        = reactionObservable(bindingStatus.getQuotedStatusId(), status);
+    return Observable.merge(
+        statusObservable, quotedObservable, reactionObservable, qReactionObservable);
+  }
+
+  private static Status bindingStatus(Status status) {
+    return status.isRetweet() ? status.getRetweetedStatus() : status;
+  }
+
+  private Observable<Status> statusChangesObservable(@Nullable final StatusRealm bindings,
+                                                     @NonNull final StatusRealm original) {
+    if (bindings == null) {
+      return Observable.empty();
+    }
+    final int favoriteCount = bindings.getFavoriteCount();
+    final int retweetCount = bindings.getRetweetCount();
     final Observable<Status> statusObservable = Observable.create(new Observable.OnSubscribe<Status>() {
       @Override
       public void call(final Subscriber<? super Status> subscriber) {
-        StatusRealm.addChangeListener(status, new RealmChangeListener<StatusRealm>() {
-          private int prevFav = bindingStatus.getFavoriteCount();
-          private int prevRT = bindingStatus.getRetweetCount();
+        StatusRealm.addChangeListener(bindings, new RealmChangeListener<StatusRealm>() {
+          private int prevFav = favoriteCount;
+          private int prevRT = retweetCount;
 
           @Override
           public void onChange(StatusRealm element) {
@@ -275,21 +298,28 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
           }
         });
       }
-    }).doOnUnsubscribe(new Action0() {
+    });
+    if (original.getId() != bindings.getId()) {
+      statusObservable.map(new Func1<Status, Status>() {
+        @Override
+        public Status call(Status status) {
+          final long statusId = status.getId();
+          final StatusRealm binds = ((StatusRealm) bindingStatus(original));
+          if (binds.getId() == statusId) {
+            binds.setRetweetedStatus(status);
+          } else if (binds.getQuotedStatusId() == statusId) {
+            binds.setQuotedStatus(status);
+          }
+          return original;
+        }
+      });
+    }
+    return statusObservable.doOnUnsubscribe(new Action0() {
       @Override
       public void call() {
-        StatusRealm.removeChangeListeners(status);
+        StatusRealm.removeChangeListeners(bindings);
       }
     });
-    final Observable<Status> reactionObservable = reactionObservable(
-        bindingStatus.getId(), status);
-    final Observable<Status> qReactionObservable = reactionObservable(
-        status.getQuotedStatusId(), status);
-    return Observable.merge(statusObservable, reactionObservable, qReactionObservable);
-  }
-
-  private static Status bindingStatus(Status status) {
-    return status.isRetweet() ? status.getRetweetedStatus() : status;
   }
 
   private Observable<Status> reactionObservable(final long statusId,
@@ -299,9 +329,9 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
           @Override
           public Status call(StatusReaction reaction) {
             final long statusId = reaction.getId();
-            final Status bindings = bindingStatus(original);
+            final StatusRealm bindings = (StatusRealm) bindingStatus(original);
             if (bindings.getId() == statusId) {
-              ((StatusRealm) bindings).setReaction(reaction);
+              bindings.setReaction(reaction);
             } else if (bindings.getQuotedStatusId() == statusId) {
               ((StatusRealm) bindings.getQuotedStatus()).setReaction(reaction);
             }
