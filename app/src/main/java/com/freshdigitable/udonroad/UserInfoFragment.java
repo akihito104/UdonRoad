@@ -88,6 +88,8 @@ public class UserInfoFragment extends Fragment {
 
     final long userId = getUserId();
     final TypedCache<User> userCache = userRequestWorker.getCache();
+    final User user = userCache.find(userId);
+    showUserInfo(user);
     subscription = userCache.observeById(userId)
         .subscribe(new Action1<User>() {
           @Override
@@ -153,6 +155,9 @@ public class UserInfoFragment extends Fragment {
   }
 
   private void showUserInfo(User user) {
+    if (user == null) {
+      return;
+    }
     Picasso.with(getContext())
         .load(user.getProfileImageURLHttps())
         .into(binding.userInfoUserInfoView.getIcon());
