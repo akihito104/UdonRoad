@@ -53,9 +53,10 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
 
   @Override
   public void onStop() {
+    super.onStop();
     Picasso.with(getContext()).cancelRequest((ImageView) getView());
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
-    super.onStop();
+    imageView.setImageDrawable(null);
   }
 }

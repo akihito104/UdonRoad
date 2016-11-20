@@ -114,13 +114,13 @@ public class UserInfoFragment extends Fragment {
 
   @Override
   public void onStop() {
+    super.onStop();
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
     dismissUserInfo();
     userRequestWorker.close();
     configRequestWorker.close();
-    super.onStop();
   }
 
   @Override
@@ -173,6 +173,8 @@ public class UserInfoFragment extends Fragment {
         .cancelRequest(binding.userInfoUserInfoView.getBanner());
     Picasso.with(getContext())
         .cancelRequest(binding.userInfoUserInfoView.getIcon());
+    binding.userInfoUserInfoView.getBanner().setImageDrawable(null);
+    binding.userInfoUserInfoView.getIcon().setImageDrawable(null);
   }
 
   public static UserInfoFragment create(long userId) {
