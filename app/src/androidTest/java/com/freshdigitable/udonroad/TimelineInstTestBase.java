@@ -250,12 +250,9 @@ public abstract class TimelineInstTestBase {
   }
 
   private static void checkRealmInstanceCount(String name, int count) {  // XXX
-    assertThat(
-        Realm.getLocalInstanceCount(new RealmConfiguration.Builder().name(name).build()),
-        is(count));
-    assertThat(
-        Realm.getGlobalInstanceCount(new RealmConfiguration.Builder().name(name).build()),
-        is(count));
+    final RealmConfiguration conf = new RealmConfiguration.Builder().name(name).build();
+    assertThat(Realm.getLocalInstanceCount(conf), is(count));
+    assertThat(Realm.getGlobalInstanceCount(conf), is(count));
   }
 
   private StreamIdlingResource streamIdlingResource;
