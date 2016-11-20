@@ -135,7 +135,6 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
             subscriber.onNext(element);
           }
         });
-        subscriber.onNext(user);
       }
     }).doOnUnsubscribe(new Action0() {
       @Override

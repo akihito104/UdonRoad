@@ -44,10 +44,13 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
@@ -169,7 +172,7 @@ public abstract class TimelineInstTestBase {
     clearCache(appSettings);
     clearCache(homeTLStore, "home");
     clearCache(userHomeTLStore, "user_home");
-    clearCache(userFavsTLStore, "user_fabs");
+    clearCache(userFavsTLStore, "user_favs");
     clearCache(userFollowers, "user_followers");
     clearCache(userFriends, "user_friends");
     sprefs.edit()
@@ -177,6 +180,7 @@ public abstract class TimelineInstTestBase {
         .putString("token", "validtoken")
         .putString("token_secret", "validtokensecret")
         .apply();
+    checkAllRealmInstanceCleared();
   }
 
   protected void setupConfig(User loginUser) throws Exception {
@@ -216,6 +220,7 @@ public abstract class TimelineInstTestBase {
     if (activity != null) {
       activity.finish();
       Thread.sleep(800);
+      checkAllRealmInstanceCleared();
     }
   }
 
@@ -235,6 +240,19 @@ public abstract class TimelineInstTestBase {
     cache.open(name);
     cache.clear();
     cache.close();
+  }
+
+  private static void checkAllRealmInstanceCleared() {  // XXX
+    for (String name : Arrays.asList("cache", "config", "appSettings", "home",
+        "user_home", "user_favs", "user_followers", "user_friends")) {
+      checkRealmInstanceCount(name, 0);
+    }
+  }
+
+  private static void checkRealmInstanceCount(String name, int count) {  // XXX
+    final RealmConfiguration conf = new RealmConfiguration.Builder().name(name).build();
+    assertThat(Realm.getLocalInstanceCount(conf), is(count));
+    assertThat(Realm.getGlobalInstanceCount(conf), is(count));
   }
 
   private StreamIdlingResource streamIdlingResource;

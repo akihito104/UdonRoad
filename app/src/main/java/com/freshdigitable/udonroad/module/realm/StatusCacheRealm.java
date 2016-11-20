@@ -224,7 +224,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
   @Override
   @Nullable
-  public Status find(long id) {
+  public StatusRealm find(long id) {
     final StatusRealm res = getStatusInternal(id);
     if (res == null) {
       return null;
@@ -246,42 +246,95 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
   @NonNull
   @Override
   public Observable<Status> observeById(long statusId) {
-    final StatusRealm status = (StatusRealm) find(statusId);
+    final StatusRealm status = find(statusId);
     if (status == null) {
       return Observable.empty();
     }
+    final StatusRealm bindingStatus = (StatusRealm) bindingStatus(status);
+    final Observable<Status> statusObservable
+        = statusChangesObservable(bindingStatus, status);
+    final Observable<Status> quotedObservable
+        = statusChangesObservable(((StatusRealm) bindingStatus.getQuotedStatus()), status);
+    final Observable<Status> reactionObservable
+        = reactionObservable(bindingStatus.getId(), status);
+    final Observable<Status> qReactionObservable
+        = reactionObservable(bindingStatus.getQuotedStatusId(), status);
+    return Observable.merge(
+        statusObservable, quotedObservable, reactionObservable, qReactionObservable);
+  }
+
+  private static Status bindingStatus(Status status) {
+    return status.isRetweet() ? status.getRetweetedStatus() : status;
+  }
+
+  private Observable<Status> statusChangesObservable(@Nullable final StatusRealm bindings,
+                                                     @NonNull final StatusRealm original) {
+    if (bindings == null) {
+      return Observable.empty();
+    }
+    final int favoriteCount = bindings.getFavoriteCount();
+    final int retweetCount = bindings.getRetweetCount();
     final Observable<Status> statusObservable = Observable.create(new Observable.OnSubscribe<Status>() {
       @Override
       public void call(final Subscriber<? super Status> subscriber) {
-        StatusRealm.addChangeListener(status, new RealmChangeListener<StatusRealm>() {
+        StatusRealm.addChangeListener(bindings, new RealmChangeListener<StatusRealm>() {
+          private int prevFav = favoriteCount;
+          private int prevRT = retweetCount;
+
           @Override
           public void onChange(StatusRealm element) {
+            final Status bindings = bindingStatus(element);
+            if (isIgnorableChange(bindings)) {
+              return;
+            }
             subscriber.onNext(element);
+            prevRT = bindings.getRetweetCount();
+            prevFav = bindings.getFavoriteCount();
+          }
+
+          private boolean isIgnorableChange(Status bindings) {
+            return bindings.getFavoriteCount() == prevFav
+                && bindings.getRetweetCount() == prevRT;
           }
         });
-        subscriber.onNext(status);
-      }
-    }).doOnUnsubscribe(new Action0() {
-      @Override
-      public void call() {
-        StatusRealm.removeChangeListeners(status);
       }
     });
-    final Observable<Status> reactionObservable = reactionObservable(
-        status.isRetweet() ? status.getRetweetedStatusId() : status.getId(),
-        status);
-    final Observable<Status> qReactionObservable = reactionObservable(
-        status.getQuotedStatusId(), status);
-    return Observable.merge(statusObservable, reactionObservable, qReactionObservable);
+    if (original.getId() != bindings.getId()) {
+      statusObservable.map(new Func1<Status, Status>() {
+        @Override
+        public Status call(Status status) {
+          final long statusId = status.getId();
+          final StatusRealm binds = ((StatusRealm) bindingStatus(original));
+          if (binds.getId() == statusId) {
+            binds.setRetweetedStatus(status);
+          } else if (binds.getQuotedStatusId() == statusId) {
+            binds.setQuotedStatus(status);
+          }
+          return original;
+        }
+      });
+    }
+    return statusObservable.doOnUnsubscribe(new Action0() {
+      @Override
+      public void call() {
+        StatusRealm.removeChangeListeners(bindings);
+      }
+    });
   }
 
-  private Observable<Status> reactionObservable(long statusId,
+  private Observable<Status> reactionObservable(final long statusId,
                                                 @NonNull final StatusRealm original) {
     return configStore.observeById(statusId)
         .map(new Func1<StatusReaction, Status>() {
           @Override
           public Status call(StatusReaction reaction) {
-            original.setReaction(reaction);
+            final long statusId = reaction.getId();
+            final StatusRealm bindings = (StatusRealm) bindingStatus(original);
+            if (bindings.getId() == statusId) {
+              bindings.setReaction(reaction);
+            } else if (bindings.getQuotedStatusId() == statusId) {
+              ((StatusRealm) bindings.getQuotedStatus()).setReaction(reaction);
+            }
             return original;
           }
         });

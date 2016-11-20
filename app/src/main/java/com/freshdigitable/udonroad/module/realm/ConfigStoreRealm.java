@@ -46,7 +46,8 @@ import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
  * Created by akihit on 2016/07/30.
  */
 public class ConfigStoreRealm implements ConfigStore {
-
+  @SuppressWarnings("unused")
+  private static final String TAG = ConfigStoreRealm.class.getSimpleName();
   private Realm realm;
   private final RealmConfiguration config;
 
@@ -180,14 +181,14 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Nullable
   @Override
-  public StatusReaction find(long id) {
+  public StatusReactionRealm find(long id) {
     return findById(realm, id, StatusReactionRealm.class);
   }
 
   @NonNull
   @Override
   public Observable<StatusReaction> observeById(long id) {
-    final StatusReactionRealm statusReaction = (StatusReactionRealm) find(id);
+    final StatusReactionRealm statusReaction = find(id);
     if (statusReaction == null) {
       return Observable.empty();
     }
@@ -195,12 +196,24 @@ public class ConfigStoreRealm implements ConfigStore {
       @Override
       public void call(final Subscriber<? super StatusReaction> subscriber) {
         RealmObject.addChangeListener(statusReaction, new RealmChangeListener<StatusReactionRealm>() {
+          private boolean prevFaved = statusReaction.isFavorited();
+          private boolean prevRTed = statusReaction.isRetweeted();
+
           @Override
           public void onChange(StatusReactionRealm element) {
+            if (isIgnorableChange(element)) {
+              return;
+            }
             subscriber.onNext(element);
+            prevFaved = element.isFavorited();
+            prevRTed = element.isRetweeted();
+          }
+
+          private boolean isIgnorableChange(StatusReaction l) {
+            return l.isFavorited() == prevFaved
+                && l.isRetweeted() == prevRTed;
           }
         });
-        subscriber.onNext(statusReaction);
       }
     }).doOnUnsubscribe(new Action0() {
       @Override

@@ -73,9 +73,9 @@ public class TimelineFragment<T> extends Fragment {
 
   @Override
   public void onDetach() {
+    super.onDetach();
     insertEventSubscription.unsubscribe();
     deleteEventSubscription.unsubscribe();
-    super.onDetach();
   }
 
   @Override
@@ -264,6 +264,7 @@ public class TimelineFragment<T> extends Fragment {
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedEntityChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
+    tlLayoutManager.removeAllViews();
     binding.timeline.setOnTouchListener(null);
     binding.timeline.setAdapter(null);
   }
