@@ -60,7 +60,6 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     final StatusView itemView = (StatusView) holder.itemView;
     final long entityId = getEntityId(entity);
     holder.setEntityId(entityId);
-    holder.bind(timelineStore.observeById(entityId));
     if (position == getItemCount() - 1) {
       final long nextCursor = timelineStore.getLastPageCursor();
       if (nextCursor > 0) {
@@ -164,6 +163,18 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   }
 
   @Override
+  public void onViewAttachedToWindow(ViewHolder<T> holder) {
+    super.onViewAttachedToWindow(holder);
+    holder.bind(timelineStore.observeById(holder.entityId));
+  }
+
+  @Override
+  public void onViewDetachedFromWindow(ViewHolder<T> holder) {
+    super.onViewDetachedFromWindow(holder);
+    holder.unbind();
+  }
+
+  @Override
   public void onViewRecycled(ViewHolder<T> holder) {
     super.onViewRecycled(holder);
     final StatusView v = (StatusView) holder.itemView;
@@ -185,7 +196,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     holder.onRecycled();
   }
 
-  public static class ViewHolder<T> extends RecyclerView.ViewHolder {
+  static class ViewHolder<T> extends RecyclerView.ViewHolder {
     private long entityId;
     private Subscription subscription;
 
