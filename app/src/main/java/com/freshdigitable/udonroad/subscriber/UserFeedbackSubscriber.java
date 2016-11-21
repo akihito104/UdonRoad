@@ -41,7 +41,7 @@ import rx.subjects.PublishSubject;
 public class UserFeedbackSubscriber {
   @SuppressWarnings("unused")
   private static final String TAG = UserFeedbackSubscriber.class.getSimpleName();
-  private final Subscription feedbackSubscription;
+  private Subscription feedbackSubscription;
   private final PublishSubject<Integer> feedbackSubject;
   private final Context context;
 
@@ -49,7 +49,14 @@ public class UserFeedbackSubscriber {
                                 PublishSubject<Integer> feedbackSubject) {
     this.context = context;
     this.feedbackSubject = feedbackSubject;
-    feedbackSubscription = feedbackSubject.onBackpressureBuffer()
+    subscribe();
+  }
+
+  private void subscribe() {
+    if (feedbackSubscription != null && !feedbackSubscription.isUnsubscribed()) {
+      return;
+    }
+    this.feedbackSubscription = this.feedbackSubject.onBackpressureBuffer()
         .observeOn(Schedulers.newThread())
         .subscribe(new Action1<Integer>() {
           @Override
@@ -89,8 +96,10 @@ public class UserFeedbackSubscriber {
   private WeakReference<View> rootView;
 
   public void registerRootView(@NonNull View rootView) {
-    if (isRegisteredView(rootView))
+    if (isRegisteredView(rootView)) {
       return;
+    }
+    subscribe();
     this.rootView = new WeakReference<>(rootView);
   }
 
@@ -118,9 +127,8 @@ public class UserFeedbackSubscriber {
     this.gravityYOffset = gravityYOffset;
   }
 
-  public void close() {
-    feedbackSubject.onCompleted();
-    if (!feedbackSubscription.isUnsubscribed()) {
+  public void unsubscribe() {
+    if (feedbackSubscription != null && !feedbackSubscription.isUnsubscribed()) {
       feedbackSubscription.unsubscribe();
     }
     if (rootView != null) {

@@ -292,7 +292,7 @@ public class MainActivity extends AppCompatActivity
     }
     configRequestWorker.close();
     statusRequestWorker.close();
-    userFeedback.close();
+    userFeedback.unsubscribe();
   }
 
   @Override
