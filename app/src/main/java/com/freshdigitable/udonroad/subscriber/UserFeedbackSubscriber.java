@@ -75,22 +75,22 @@ public class UserFeedbackSubscriber {
               }
             }
           }
-        });
-  }
 
-  private Action0 createFeedbackAction(@StringRes final int msg) {
-    final View view = rootView.get();
-    if (view != null) {
-      return SnackBarUtil.action(view, msg);
-    }
-    return new Action0() {
-      @Override
-      public void call() {
-        final Toast toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
-        toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
-        toast.show();
-      }
-    };
+          private Action0 createFeedbackAction(@StringRes final int msg) {
+            final View view = rootView.get();
+            if (view != null) {
+              return SnackBarUtil.action(view, msg);
+            }
+            return new Action0() {
+              @Override
+              public void call() {
+                final Toast toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
+                toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
+                toast.show();
+              }
+            };
+          }
+        });
   }
 
   private WeakReference<View> rootView;

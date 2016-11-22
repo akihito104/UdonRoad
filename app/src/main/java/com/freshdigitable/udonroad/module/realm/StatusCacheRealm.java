@@ -300,11 +300,11 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       }
     });
     if (original.getId() != bindings.getId()) {
+      final StatusRealm binds = (StatusRealm) bindingStatus(original);
       statusObservable.map(new Func1<Status, Status>() {
         @Override
         public Status call(Status status) {
           final long statusId = status.getId();
-          final StatusRealm binds = ((StatusRealm) bindingStatus(original));
           if (binds.getId() == statusId) {
             binds.setRetweetedStatus(status);
           } else if (binds.getQuotedStatusId() == statusId) {
@@ -324,12 +324,12 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
   private Observable<Status> reactionObservable(final long statusId,
                                                 @NonNull final StatusRealm original) {
+    final StatusRealm bindings = (StatusRealm) bindingStatus(original);
     return configStore.observeById(statusId)
         .map(new Func1<StatusReaction, Status>() {
           @Override
           public Status call(StatusReaction reaction) {
             final long statusId = reaction.getId();
-            final StatusRealm bindings = (StatusRealm) bindingStatus(original);
             if (bindings.getId() == statusId) {
               bindings.setReaction(reaction);
             } else if (bindings.getQuotedStatusId() == statusId) {

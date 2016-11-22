@@ -97,16 +97,16 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
       return;
     }
 
+    final List<StatusIDs> inserts = createInsertList(statuses);
+    final List<StatusIDs> updates = createUpdateList(statuses);
     statusCache.observeUpsert(statuses).subscribe(new Action1<Void>() {
       @Override
       public void call(Void aVoid) {
-        final List<StatusIDs> inserts = createInsertList(statuses);
         if (!inserts.isEmpty()) {
           insertStatus(inserts);
         }
-        final List<StatusIDs> updates = createUpdateList(statuses);
         if (!updates.isEmpty()) {
-          notifyChanged(updates, timeline);
+          notifyChanged(updates);
         }
       }
     }, new Action1<Throwable>() {
@@ -216,11 +216,11 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     return updates;
   }
 
-  private void notifyChanged(List<StatusIDs> changed, RealmResults<StatusIDs> results) {
+  private void notifyChanged(List<StatusIDs> changed) {
     if (changed.isEmpty()) {
       return;
     }
-    final List<Integer> index = searchTimeline(changed, results);
+    final List<Integer> index = searchTimeline(changed, timeline);
     if (index.isEmpty()) {
       return;
     }
@@ -234,7 +234,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     statusCache.insert(status);
     final List<StatusIDs> updates = createUpdateList(Collections.singletonList(status));
     if (!updates.isEmpty()) {
-      notifyChanged(updates, timeline);
+      notifyChanged(updates);
     }
   }
 
