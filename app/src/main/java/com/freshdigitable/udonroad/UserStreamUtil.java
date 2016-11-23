@@ -36,6 +36,7 @@ import rx.subjects.PublishSubject;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.User;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
@@ -107,6 +108,7 @@ public class UserStreamUtil {
     if (onStatusSubscription != null && !onStatusSubscription.isUnsubscribed()) {
       onStatusSubscription.unsubscribe();
     }
+    deletionPublishSubject.onCompleted();
     if (onDeletionSubscription != null && !onDeletionSubscription.isUnsubscribed()) {
       onDeletionSubscription.unsubscribe();
     }
@@ -117,6 +119,13 @@ public class UserStreamUtil {
     @Override
     public void onStatus(final Status status) {
       statusPublishSubject.onNext(status);
+    }
+
+    @Override
+    public void onFavorite(User source, User target, Status favoritedStatus) {
+      super.onFavorite(source, target, favoritedStatus);
+      Log.d(TAG, "onFavorite: src> " + source.getScreenName() + ", tgt> " + target.getScreenName() +
+          ", stt> " + favoritedStatus.toString());
     }
 
     @Override

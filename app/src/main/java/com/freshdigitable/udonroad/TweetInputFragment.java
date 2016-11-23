@@ -53,6 +53,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -68,6 +69,7 @@ import twitter4j.UserMentionEntity;
  */
 public class TweetInputFragment extends Fragment {
   private static final String TAG = TweetInputFragment.class.getSimpleName();
+  private static final String LOADINGTAG_TWEET_INPUT_ICON = "TweetInputIcon";
   private FragmentTweetInputBinding binding;
   @Inject
   TwitterApi twitterApi;
@@ -77,6 +79,7 @@ public class TweetInputFragment extends Fragment {
   ConfigRequestWorker configRequestWorker;
   @Inject
   AppSettingStore appSettings;
+  private Subscription subscription;
 
   public static TweetInputFragment create() {
     return create(TYPE_NONE);
@@ -241,7 +244,7 @@ public class TweetInputFragment extends Fragment {
 
   private void setUpTweetInputView() {
     final TweetInputView inputText = binding.mainTweetInputView;
-    configRequestWorker.getAuthenticatedUser()
+    subscription = configRequestWorker.getAuthenticatedUser()
         .subscribe(new Action1<User>() {
           @Override
           public void call(User authenticatedUser) {
@@ -249,6 +252,7 @@ public class TweetInputFragment extends Fragment {
             Picasso.with(inputText.getContext())
                 .load(authenticatedUser.getMiniProfileImageURLHttps())
                 .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+                .tag(LOADINGTAG_TWEET_INPUT_ICON)
                 .into(inputText.getIcon());
           }
         });
@@ -258,6 +262,10 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void tearDownTweetInputView() {
+    if (subscription != null && !subscription.isUnsubscribed()) {
+      Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
+      subscription.unsubscribe();
+    }
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
     binding.mainTweetInputView.reset();
   }

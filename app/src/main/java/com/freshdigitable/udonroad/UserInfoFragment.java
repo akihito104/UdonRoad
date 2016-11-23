@@ -51,6 +51,7 @@ import twitter4j.User;
  * Created by akihit on 2016/02/07.
  */
 public class UserInfoFragment extends Fragment {
+  private static final String LOADINGTAG_USER_INFO_IMAGES = "UserInfoImages";
   private FragmentUserInfoBinding binding;
   private Subscription subscription;
   @Inject
@@ -160,19 +161,18 @@ public class UserInfoFragment extends Fragment {
     }
     Picasso.with(getContext())
         .load(user.getProfileImageURLHttps())
+        .tag(LOADINGTAG_USER_INFO_IMAGES)
         .into(binding.userInfoUserInfoView.getIcon());
     Picasso.with(getContext())
         .load(user.getProfileBannerMobileURL())
         .fit()
+        .tag(LOADINGTAG_USER_INFO_IMAGES)
         .into(binding.userInfoUserInfoView.getBanner());
     binding.userInfoUserInfoView.bindData(user);
   }
 
   private void dismissUserInfo() {
-    Picasso.with(getContext())
-        .cancelRequest(binding.userInfoUserInfoView.getBanner());
-    Picasso.with(getContext())
-        .cancelRequest(binding.userInfoUserInfoView.getIcon());
+    Picasso.with(getContext()).cancelTag(LOADINGTAG_USER_INFO_IMAGES);
     binding.userInfoUserInfoView.getBanner().setImageDrawable(null);
     binding.userInfoUserInfoView.getIcon().setImageDrawable(null);
   }

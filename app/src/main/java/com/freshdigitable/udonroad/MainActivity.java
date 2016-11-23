@@ -207,8 +207,9 @@ public class MainActivity extends AppCompatActivity
     final ImageView icon
         = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
     if (icon != null) {
-      Picasso.with(binding.navDrawer.getContext())
-          .load(user.getProfileImageURLHttps()).fit()
+      Picasso.with(getApplicationContext())
+          .load(user.getProfileImageURLHttps())
+          .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
           .into(icon);
     }
   }

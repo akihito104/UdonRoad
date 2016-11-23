@@ -25,4 +25,5 @@
     <dimen name="nav_drawer_header_margin_side">16dp</dimen>
     <dimen name="nav_drawer_header_subtitle_height">56dp</dimen>
     <dimen name="nav_drawer_header_text">14sp</dimen>
+    <dimen name="nav_drawer_header_icon">60dp</dimen>
 </resources>

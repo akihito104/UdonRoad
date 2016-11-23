@@ -31,6 +31,7 @@ import com.squareup.picasso.Picasso;
 public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   public static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
+  private String loadingTag;
 
   @Nullable
   @Override
@@ -46,15 +47,17 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onStart();
     imageView.setOnClickListener(super.pageClickListener);
     imageView.setOnTouchListener(super.touchListener);
+    loadingTag = "media:" + mediaEntity.getId();
     Picasso.with(getContext())
         .load(mediaEntity.getMediaURLHttps() + ":medium")
+        .tag(loadingTag)
         .into((ImageView) getView());
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    Picasso.with(getContext()).cancelRequest((ImageView) getView());
+    Picasso.with(getContext()).cancelTag(loadingTag);
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
     imageView.setImageDrawable(null);

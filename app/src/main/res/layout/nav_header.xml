@@ -29,8 +29,8 @@
     >
     <com.freshdigitable.udonroad.RoundedCornerImageView
         android:id="@+id/nav_header_icon"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="@dimen/nav_drawer_header_icon"
+        android:layout_height="@dimen/nav_drawer_header_icon"
         android:contentDescription="@string/desc_icon"
         android:padding="2dp"
         android:background="@drawable/s_rounded_mask_default"
