@@ -193,20 +193,10 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     iffab.hide();
   }
 
-  private void setTitle() {
-    final int all = binding.mediaPager.getAdapter().getCount();
-    final int currentItem = binding.mediaPager.getCurrentItem() + 1;
+  private void setTitleWithPosition(int position, int all) {
+    final int currentItem = position + 1;
     setTitle(currentItem + " / " + all);
   }
-
-  private final ViewPager.OnPageChangeListener pageChangeListener
-      = new ViewPager.SimpleOnPageChangeListener() {
-    @Override
-    public void onPageSelected(int position) {
-      super.onPageSelected(position);
-      setTitle();
-    }
-  };
 
   @Override
   protected void onStart() {
@@ -222,28 +212,34 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
     }
-    final Status bindingStatus = StatusViewImageHelper.getBindingStatus(status);
+    final ExtendedMediaEntity[] bindingMediaEntities
+        = StatusViewImageHelper.getBindingStatus(status).getExtendedMediaEntities();
     final int startPage = intent.getIntExtra(CREATE_START, 0);
     binding.mediaPager.setAdapter(
-        new MediaPagerAdapter(getSupportFragmentManager(), bindingStatus.getExtendedMediaEntities())
-    );
-    binding.mediaPager.addOnPageChangeListener(pageChangeListener);
+        new MediaPagerAdapter(getSupportFragmentManager(), bindingMediaEntities));
+    final int pages = bindingMediaEntities.length;
+    binding.mediaPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+      @Override
+      public void onPageSelected(int position) {
+        setTitleWithPosition(position, pages);
+      }
+    });
     binding.mediaPager.setCurrentItem(startPage);
-    setTitle();
+    setTitleWithPosition(startPage, pages);
     setupActionMap(statusId);
     UserAction.setupFlingableFAB(binding.mediaIffab, actionMap, getApplicationContext());
   }
 
   @Override
   protected void onStop() {
+    super.onStop();
     handler.removeCallbacksAndMessages(null);
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(null);
-    binding.mediaPager.removeOnPageChangeListener(pageChangeListener);
+    binding.mediaPager.clearOnPageChangeListeners();
     binding.mediaPager.setAdapter(null);
     binding.mediaIffab.setOnFlingListener(null);
     actionMap.clear();
     userActionSubscriber.close();
-    super.onStop();
   }
 
   private final Runnable hideSystemUITask = new Runnable() {
