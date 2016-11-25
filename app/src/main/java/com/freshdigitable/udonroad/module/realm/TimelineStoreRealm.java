@@ -120,7 +120,13 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   private List<StatusIDs> createInsertList(List<Status> statuses) {
     final List<StatusIDs> inserts = new ArrayList<>();
     for (Status s : statuses) {
-      final StatusIDs update = findTimeline(s);
+      final StatusIDs update = timeline.where()
+          .beginGroup()
+          .equalTo(KEY_ID, s.getId()).or()
+          .equalTo(KEY_RETWEETED_STATUS_ID, s.getId()).or()
+          .equalTo(KEY_QUOTAD_STATUS_ID, s.getId())
+          .endGroup()
+          .findFirst();
       if (update == null) {
         inserts.add(new StatusIDs(s));
       }

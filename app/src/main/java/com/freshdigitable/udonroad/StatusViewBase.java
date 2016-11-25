@@ -181,7 +181,7 @@ public abstract class StatusViewBase extends RelativeLayout {
 
   protected void bindRT(Status bindingStatus) {
     final int rtCount = bindingStatus.getRetweetCount();
-    if (rtCount > 0) {
+    if (rtCount > 0 || bindingStatus.isRetweeted()) {
       this.setRtCountVisibility(VISIBLE);
       setTint(rtIcon, bindingStatus.isRetweeted()
           ? R.color.twitter_action_retweeted
@@ -192,7 +192,7 @@ public abstract class StatusViewBase extends RelativeLayout {
 
   protected void bindFavorite(Status bindingStatus) {
     final int favCount = bindingStatus.getFavoriteCount();
-    if (favCount > 0) {
+    if (favCount > 0 || bindingStatus.isFavorited()) {
       this.setFavCountVisibility(VISIBLE);
       setTint(favIcon, bindingStatus.isFavorited()
           ? R.color.twitter_action_faved

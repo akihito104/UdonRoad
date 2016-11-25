@@ -20,6 +20,7 @@ import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
+import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
@@ -101,6 +102,15 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
+  }
+
+  @Test
+  public void favQuotedTweet() throws Exception {
+    setupCreateFavorite(0, 1);
+    PerformUtil.selectQuotedItemView(quoted);
+    PerformUtil.favo();
+    AssertionUtil.checkFavCountDoesNotExist(target);
+    AssertionUtil.checkFavCountForQuoted(quoted, 1);
   }
 
   @Override

@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
@@ -106,8 +107,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.iffab_ffab)).check(matches(isDisplayed()));
     PerformUtil.favo();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
+    AssertionUtil.checkFavCountAt(0, 1);
     // TODO tint color check
   }
 
@@ -119,11 +119,9 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     PerformUtil.retweet();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
+    AssertionUtil.checkRTCountAt(0, 1);
     PerformUtil.pullDownTimeline();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
+    AssertionUtil.checkRTCountAt(0, 1);
     // TODO tint color check
   }
 
@@ -285,17 +283,16 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.fav_retweet();
     // assert
     PerformUtil.clickHeadingOnMenu();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("1")));
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
+    AssertionUtil.checkFavCountAt(0, 1);
+    AssertionUtil.checkRTCountAt(0, 1);
   }
 
   @Test
   public void performFavAndRetweet_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
     // setup
     final Status target = createStatus(20000, getLoginUser());
-    when(target.getFavoriteCount()).thenReturn(3);
+    final int expectedFavCount = 3;
+    when(target.getFavoriteCount()).thenReturn(expectedFavCount);
     receiveStatuses(false, target);
 
     final TwitterException twitterException = mock(TwitterException.class);
@@ -307,12 +304,9 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     PerformUtil.fav_retweet();
     // assert
-//    onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
     PerformUtil.clickHeadingOnMenu();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), withText("1")));
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), withText("3")));
+    AssertionUtil.checkRTCountAt(0, 1);
+    AssertionUtil.checkFavCountAt(0, expectedFavCount);
   }
 
   @Override

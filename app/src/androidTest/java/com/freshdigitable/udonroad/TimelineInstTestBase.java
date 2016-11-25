@@ -304,6 +304,9 @@ public abstract class TimelineInstTestBase {
       if (s.getId() == statusId) {
         return s;
       }
+      if (s.getQuotedStatusId() == statusId) {
+        return s.getQuotedStatus();
+      }
     }
     throw new TwitterException("status is not found. ID: " + statusId);
   }

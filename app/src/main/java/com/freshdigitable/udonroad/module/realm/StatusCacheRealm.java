@@ -50,7 +50,7 @@ import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
  */
 public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements MediaCache {
   @SuppressWarnings("unused")
-  public static final String TAG = StatusCacheRealm.class.getSimpleName();
+  private static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final ConfigStore configStore;
   private UserCacheRealm userTypedCache;
 
@@ -254,7 +254,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     final Observable<Status> statusObservable
         = statusChangesObservable(bindingStatus, status);
     final Observable<Status> quotedObservable
-        = statusChangesObservable(((StatusRealm) bindingStatus.getQuotedStatus()), status);
+        = statusChangesObservable((StatusRealm) bindingStatus.getQuotedStatus(), status);
     final Observable<Status> reactionObservable
         = reactionObservable(bindingStatus.getId(), status);
     final Observable<Status> qReactionObservable
@@ -298,26 +298,26 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
           }
         });
       }
-    });
-    if (original.getId() != bindings.getId()) {
-      final StatusRealm binds = (StatusRealm) bindingStatus(original);
-      statusObservable.map(new Func1<Status, Status>() {
-        @Override
-        public Status call(Status status) {
-          final long statusId = status.getId();
-          if (binds.getId() == statusId) {
-            binds.setRetweetedStatus(status);
-          } else if (binds.getQuotedStatusId() == statusId) {
-            binds.setQuotedStatus(status);
-          }
-          return original;
-        }
-      });
-    }
-    return statusObservable.doOnUnsubscribe(new Action0() {
+    }).doOnUnsubscribe(new Action0() {
       @Override
       public void call() {
         StatusRealm.removeChangeListeners(bindings);
+      }
+    });
+    if (original.getId() == bindings.getId()) {
+      return statusObservable;
+    }
+    return statusObservable.map(new Func1<Status, Status>() {
+      @Override
+      public Status call(Status status) {
+        final long statusId = status.getId();
+        final StatusRealm binds = (StatusRealm) bindingStatus(original);
+        if (binds.getId() == statusId) {
+          binds.setRetweetedStatus(status);
+        } else if (binds.getQuotedStatusId() == statusId) {
+          binds.setQuotedStatus(status);
+        }
+        return original;
       }
     });
   }
