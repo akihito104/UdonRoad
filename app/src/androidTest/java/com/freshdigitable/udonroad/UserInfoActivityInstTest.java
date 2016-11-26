@@ -39,6 +39,7 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -80,6 +81,15 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
     onView(withId(R.id.action_write)).check(doesNotExist());
     onView(withId(R.id.action_cancel)).check(doesNotExist());
+  }
+
+  @Test
+  public void checkFollowingIsAppeared() {
+    onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+    onView(withId(R.id.action_group_user)).perform(click());
+    onView(withText(R.string.action_follow)).check(doesNotExist());
+    onView(withText(R.string.action_remove)).check(matches(isDisplayed()));
+    Espresso.pressBack();
   }
 
   @Override

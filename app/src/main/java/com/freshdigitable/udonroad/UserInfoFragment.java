@@ -79,6 +79,21 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
+    final long userId = getUserId();
+    twitterApi.showFriendship(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Relationship>() {
+          @Override
+          public void call(Relationship relationship) {
+            binding.userInfoUserInfoView.bindRelationship(relationship);
+            setRelationship(relationship);
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            Log.e("UserInfoFragment", "call: ", throwable);
+          }
+        });
   }
 
   @Override
@@ -98,19 +113,6 @@ public class UserInfoFragment extends Fragment {
             showUserInfo(user);
           }
         });
-    twitterApi.showFriendship(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Relationship>() {
-          @Override
-          public void call(Relationship relationship) {
-            binding.userInfoUserInfoView.bindRelationship(relationship);
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e("UserInfoFragment", "call: ", throwable);
-          }
-        });
   }
 
   @Override
@@ -128,6 +130,15 @@ public class UserInfoFragment extends Fragment {
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
     inflater.inflate(R.menu.user_info, menu);
+  }
+
+  @Override
+  public void onPrepareOptionsMenu(Menu menu) {
+    super.onPrepareOptionsMenu(menu);
+    if (relationship != null) {
+      menu.findItem(R.id.action_follow).setVisible(!relationship.isSourceFollowingTarget());
+      menu.findItem(R.id.action_remove).setVisible(relationship.isSourceFollowingTarget());
+    }
   }
 
   @Inject
@@ -188,5 +199,11 @@ public class UserInfoFragment extends Fragment {
   private long getUserId() {
     final Bundle arguments = getArguments();
     return arguments.getLong("userId");
+  }
+
+  private Relationship relationship;
+
+  private void setRelationship(Relationship relationship) {
+    this.relationship = relationship;
   }
 }

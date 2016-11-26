@@ -60,7 +60,7 @@ abstract class BaseCacheRealm implements BaseCache {
     if (baseCacheRealm != null) {
       return;
     }
-    Log.d(TAG, "StatusCacheRealm: open");
+    Log.d(TAG, "open");
     cache = Realm.getInstance(config);
   }
 
