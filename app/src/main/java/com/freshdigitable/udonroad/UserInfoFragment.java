@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -136,9 +138,16 @@ public class UserInfoFragment extends Fragment {
   public void onPrepareOptionsMenu(Menu menu) {
     super.onPrepareOptionsMenu(menu);
     if (relationship != null) {
-      menu.findItem(R.id.action_follow).setVisible(!relationship.isSourceFollowingTarget());
-      menu.findItem(R.id.action_remove).setVisible(relationship.isSourceFollowingTarget());
+      switchVisibility(relationship.isSourceFollowingTarget(), R.id.action_unfollow, R.id.action_follow, menu);
+      switchVisibility(relationship.isSourceBlockingTarget(), R.id.action_unblock, R.id.action_block, menu);
     }
+  }
+
+  private static void switchVisibility(boolean cond,
+                                       @IdRes int actionOnIfTrue, @IdRes int actionOffIfFalse,
+                                       @NonNull Menu menu) {
+    menu.findItem(actionOnIfTrue).setVisible(cond);
+    menu.findItem(actionOffIfFalse).setVisible(!cond);
   }
 
   @Inject
@@ -152,10 +161,12 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
       userRequestWorker.createFriendship(userId);
-    } else if (itemId == R.id.action_remove) {
+    } else if (itemId == R.id.action_unfollow) {
       userRequestWorker.destroyFriendship(userId);
     } else if (itemId == R.id.action_block) {
       configRequestWorker.createBlock(userId);
+    } else if (itemId == R.id.action_unblock) {
+      configRequestWorker.destroyBlock(userId);
     } else if (itemId == R.id.action_block_retweet) {
       // todo
     } else if (itemId == R.id.action_mute) {

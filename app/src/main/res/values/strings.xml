@@ -56,11 +56,12 @@
     <string name="action_send_status">Send Status</string>
     <string name="action_group_user">action for the user</string>
     <string name="action_follow">follow</string>
-    <string name="action_remove">remove</string>
+    <string name="action_remove">unfollow</string>
     <string name="action_block_retweet">block retweet</string>
     <string name="action_mute">mute</string>
     <string name="action_block">block</string>
     <string name="action_r4s">report for spam</string>
+    <string name="action_unblock">unblock</string>
 
     <string name="user_following">following</string>
     <string name="user_muting">muting</string>

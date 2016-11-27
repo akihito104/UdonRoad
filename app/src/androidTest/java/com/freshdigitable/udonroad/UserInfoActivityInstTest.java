@@ -89,6 +89,8 @@ public class UserInfoActivityInstTest extends TimelineInstTestBase {
     onView(withId(R.id.action_group_user)).perform(click());
     onView(withText(R.string.action_follow)).check(doesNotExist());
     onView(withText(R.string.action_remove)).check(matches(isDisplayed()));
+    onView(withText(R.string.action_block)).check(matches(isDisplayed()));
+    onView(withText(R.string.action_unblock)).check(doesNotExist());
     Espresso.pressBack();
   }
 

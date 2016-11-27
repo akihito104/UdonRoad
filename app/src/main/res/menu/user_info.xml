@@ -27,22 +27,39 @@
         <menu>
             <item
                 android:id="@+id/action_follow"
-                android:title="@string/action_follow"/>
+                android:title="@string/action_follow"
+                android:orderInCategory="100"
+            />
             <item
-                android:id="@+id/action_remove"
-                android:title="@string/action_remove"/>
-            <item
-                android:id="@+id/action_block_retweet"
-                android:title="@string/action_block_retweet"/>
-            <item
-                android:id="@+id/action_mute"
-                android:title="@string/action_mute"/>
+                android:id="@+id/action_unfollow"
+                android:title="@string/action_remove"
+                android:orderInCategory="101"
+            />
             <item
                 android:id="@+id/action_block"
-                android:title="@string/action_block"/>
+                android:title="@string/action_block"
+                android:orderInCategory="200"
+            />
+            <item
+                android:id="@+id/action_unblock"
+                android:title="@string/action_unblock"
+                android:orderInCategory="201"
+            />
+            <item
+                android:id="@+id/action_block_retweet"
+                android:title="@string/action_block_retweet"
+                android:orderInCategory="202"
+            />
+            <item
+                android:id="@+id/action_mute"
+                android:title="@string/action_mute"
+                android:orderInCategory="203"
+            />
             <item
                 android:id="@+id/action_r4s"
-                android:title="@string/action_r4s"/>
+                android:title="@string/action_r4s"
+                android:orderInCategory="204"
+            />
         </menu>
     </item>
 
