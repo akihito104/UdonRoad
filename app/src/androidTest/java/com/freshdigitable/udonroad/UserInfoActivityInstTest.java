@@ -98,6 +98,8 @@ public class UserInfoActivityInstTest {
     @Test
     public void checkFollowingIsAppeared() {
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
       onView(withId(R.id.action_group_user)).perform(click());
       onView(withText(R.string.action_follow)).check(doesNotExist());
       onView(withText(R.string.action_remove)).check(matches(isDisplayed()));
@@ -120,11 +122,37 @@ public class UserInfoActivityInstTest {
     @Test
     public void checkFollowingIsNotAppeared() {
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
       onView(withId(R.id.action_group_user)).perform(click());
       onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
       onView(withText(R.string.action_remove)).check(doesNotExist());
       onView(withText(R.string.action_block)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock)).check(doesNotExist());
+      Espresso.pressBack();
+    }
+  }
+
+  public static class WhenTargetIsBlocked extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(false);
+      when(relationship.isSourceBlockingTarget()).thenReturn(true);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkFollowingIsNotAppeared() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_remove)).check(doesNotExist());
+      onView(withText(R.string.action_block)).check(doesNotExist());
+      onView(withText(R.string.action_unblock)).check(matches(isDisplayed()));
       Espresso.pressBack();
     }
   }
