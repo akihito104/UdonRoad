@@ -216,5 +216,6 @@ public class UserInfoFragment extends Fragment {
 
   private void setRelationship(Relationship relationship) {
     this.relationship = relationship;
+    getActivity().supportInvalidateOptionsMenu();
   }
 }
