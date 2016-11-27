@@ -29,12 +29,15 @@ import com.freshdigitable.udonroad.util.UserUtil;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
 
 import rx.functions.Action0;
+import twitter4j.Relationship;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -45,119 +48,158 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.CoreMatchers.not;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
  *
  * Created by akihit on 2016/08/11.
  */
-public class UserInfoActivityInstTest extends TimelineInstTestBase {
-  @Rule
-  public ActivityTestRule<UserInfoActivity> rule
-      = new ActivityTestRule<>(UserInfoActivity.class, false, false);
-  private ConfigSetupIdlingResource idlingResource;
+@RunWith(Enclosed.class)
+public class UserInfoActivityInstTest {
+  public static class WhenTargetIsFollowed extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(true);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      return setupUserInfoTimeline(relationship);
+    }
 
-  @Test
-  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
-      throws Exception {
-    PerformUtil.selectItemViewAt(0);
-    PerformUtil.reply();
-    // verify
-    onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
-    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_group_user)).check(doesNotExist());
-    onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+    @Test
+    public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
+        throws Exception {
+      PerformUtil.selectItemViewAt(0);
+      PerformUtil.reply();
+      // verify
+      onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_group_user)).check(doesNotExist());
+      onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
+        throws Exception {
+      PerformUtil.selectItemViewAt(0);
+      PerformUtil.reply();
+      onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+      PerformUtil.clickCancelWriteOnMenu();
+      // verify
+      onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_write)).check(doesNotExist());
+      onView(withId(R.id.action_cancel)).check(doesNotExist());
+    }
+
+    @Test
+    public void checkFollowingIsAppeared() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).check(doesNotExist());
+      onView(withText(R.string.action_remove)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock)).check(doesNotExist());
+      Espresso.pressBack();
+    }
   }
 
-  @Test
-  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
-      throws Exception {
-    PerformUtil.selectItemViewAt(0);
-    PerformUtil.reply();
-    onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
-    PerformUtil.clickCancelWriteOnMenu();
-    // verify
-    onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_write)).check(doesNotExist());
-    onView(withId(R.id.action_cancel)).check(doesNotExist());
+  public static class WhenTargetIsNotFollowed extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(false);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkFollowingIsNotAppeared() {
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_remove)).check(doesNotExist());
+      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock)).check(doesNotExist());
+      Espresso.pressBack();
+    }
   }
 
-  @Test
-  public void checkFollowingIsAppeared() {
-    onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
-    onView(withId(R.id.action_group_user)).perform(click());
-    onView(withText(R.string.action_follow)).check(doesNotExist());
-    onView(withText(R.string.action_remove)).check(matches(isDisplayed()));
-    onView(withText(R.string.action_block)).check(matches(isDisplayed()));
-    onView(withText(R.string.action_unblock)).check(doesNotExist());
-    Espresso.pressBack();
-  }
+  public abstract static class UserInfoActivityInstTestBase extends TimelineInstTestBase {
+    @Rule
+    public ActivityTestRule<UserInfoActivity> rule
+        = new ActivityTestRule<>(UserInfoActivity.class, false, false);
+    private ConfigSetupIdlingResource idlingResource;
 
-  @Override
-  protected ActivityTestRule<UserInfoActivity> getRule() {
-    return rule;
-  }
+    @Override
+    protected ActivityTestRule<UserInfoActivity> getRule() {
+      return rule;
+    }
 
-  @Override
-  protected Intent getIntent() {
-    final User user = UserUtil.create();
-    userCache.open();
-    userCache.upsert(user);
-    userCache.close();
-    return UserInfoActivity.createIntent(
-        InstrumentationRegistry.getTargetContext(), user);
-  }
+    @Override
+    protected Intent getIntent() {
+      final User user = UserUtil.create();
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+        @Override
+        public void run() {
+          userCache.open();
+          userCache.upsert(user);
+          userCache.close();
+        }
+      });
+      return UserInfoActivity.createIntent(
+          InstrumentationRegistry.getTargetContext(), user);
+    }
 
-  @Inject
-  ConfigRequestWorker configRequestWorker;
+    @Inject
+    ConfigRequestWorker configRequestWorker;
 
-  @Override
-  public void setupConfig(User user) throws Exception {
-    super.setupConfig(user);
-    getComponent().inject(this);
+    @Override
+    public void setupConfig(User user) throws Exception {
+      super.setupConfig(user);
+      getComponent().inject(this);
 
-    idlingResource = new ConfigSetupIdlingResource();
-    Espresso.registerIdlingResources(idlingResource);
+      idlingResource = new ConfigSetupIdlingResource();
+      Espresso.registerIdlingResources(idlingResource);
 
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-      @Override
-      public void run() {
-        configRequestWorker.open();
-        configRequestWorker.setup(new Action0() {
-          @Override
-          public void call() {
-            idlingResource.setDoneSetup(true);
-          }
-        });
-      }
-    });
-  }
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+        @Override
+        public void run() {
+          configRequestWorker.open();
+          configRequestWorker.setup(new Action0() {
+            @Override
+            public void call() {
+              idlingResource.setDoneSetup(true);
+            }
+          });
+        }
+      });
+    }
 
-  @Override
-  protected int setupTimeline() throws TwitterException {
-    return setupDefaultUserInfoTimeline();
-  }
+    @Override
+    protected void verifyAfterLaunch() {
+      onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+      onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_write)).check(doesNotExist());
+    }
 
-  @Override
-  protected void verifyAfterLaunch() {
-    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
-    onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_write)).check(doesNotExist());
-  }
-
-  @Override
-  @After
-  public void tearDown() throws Exception {
-    Espresso.unregisterIdlingResources(idlingResource);
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-      @Override
-      public void run() {
-        configRequestWorker.close();
-      }
-    });
-    super.tearDown();
+    @Override
+    @After
+    public void tearDown() throws Exception {
+      Espresso.unregisterIdlingResources(idlingResource);
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+        @Override
+        public void run() {
+          configRequestWorker.close();
+        }
+      });
+      super.tearDown();
+    }
   }
 
   private static class ConfigSetupIdlingResource implements IdlingResource {

@@ -31,6 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -44,6 +45,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -58,7 +60,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Override
   protected int setupTimeline() throws TwitterException {
     final int initCount = setupDefaultTimeline();
-    setupDefaultUserInfoTimeline();
+    setupUserInfoTimeline(mock(Relationship.class));
     return initCount;
   }
 
