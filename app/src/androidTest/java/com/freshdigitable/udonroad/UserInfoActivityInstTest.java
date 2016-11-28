@@ -102,9 +102,11 @@ public class UserInfoActivityInstTest {
 
       onView(withId(R.id.action_group_user)).perform(click());
       onView(withText(R.string.action_follow)).check(doesNotExist());
-      onView(withText(R.string.action_remove)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
       onView(withText(R.string.action_block)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock)).check(doesNotExist());
+      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unmute)).check(doesNotExist());
       Espresso.pressBack();
     }
   }
@@ -126,9 +128,11 @@ public class UserInfoActivityInstTest {
 
       onView(withId(R.id.action_group_user)).perform(click());
       onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_remove)).check(doesNotExist());
+      onView(withText(R.string.action_unfollow)).check(doesNotExist());
       onView(withText(R.string.action_block)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock)).check(doesNotExist());
+      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unmute)).check(doesNotExist());
       Espresso.pressBack();
     }
   }
@@ -144,15 +148,69 @@ public class UserInfoActivityInstTest {
     }
 
     @Test
-    public void checkFollowingIsNotAppeared() {
+    public void checkBlockingIsAppeared() {
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
       onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_remove)).check(doesNotExist());
+      onView(withText(R.string.action_unfollow)).check(doesNotExist());
       onView(withText(R.string.action_block)).check(doesNotExist());
       onView(withText(R.string.action_unblock)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unmute)).check(doesNotExist());
+      Espresso.pressBack();
+    }
+  }
+
+  public static class WhenTargetIsMuted extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(false);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(true);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkMutingIsAppeared() {
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unfollow)).check(doesNotExist());
+      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock)).check(doesNotExist());
+      onView(withText(R.string.action_mute)).check(doesNotExist());
+      onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
+      Espresso.pressBack();
+    }
+  }
+
+  public static class WhenTargetIsFollowedAndMuted extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(true);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(true);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkFollowingAndMutingAreAppeared() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+      onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).check(doesNotExist());
+      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock)).check(doesNotExist());
+      onView(withText(R.string.action_mute)).check(doesNotExist());
+      onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
       Espresso.pressBack();
     }
   }

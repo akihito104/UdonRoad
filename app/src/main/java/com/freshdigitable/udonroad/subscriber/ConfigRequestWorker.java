@@ -199,6 +199,15 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
             onCompleteFeedback(R.string.msg_create_mute_success));
   }
 
+  public void destroyMute(long userId) {
+    twitterApi.destroyMute(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            removeIgnoringUserAction(),
+            onErrorFeedback(R.string.msg_destroy_mute_failed),
+            onCompleteFeedback(R.string.msg_destroy_mute_success));
+  }
+
   @NonNull
   private Action1<User> addIgnoringUserAction() {
     return new Action1<User>() {

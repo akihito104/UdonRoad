@@ -59,7 +59,7 @@
     <string name="action_group_user">ユーザに対する操作</string>
     <string name="action_mute">ミュート</string>
     <string name="action_r4s">スパムとして報告</string>
-    <string name="action_remove">フォローをやめる</string>
+    <string name="action_unfollow">フォローをやめる</string>
     <string name="msg_already_rt">もうRTしてました</string>
     <string name="created_a_hour_ago">1時間前</string>
     <string name="created_a_minute_ago">1分前</string>
@@ -68,4 +68,7 @@
     <string name="created_now">今</string>
     <string name="created_seconds_ago">%1$d秒前</string>
     <string name="action_unblock">ブロックをやめる</string>
+    <string name="action_unmute">ミュートをやめる</string>
+    <string name="msg_destroy_mute_failed">ミュートをやめられませんでした…</string>
+    <string name="msg_destroy_mute_success">ミュートをやめました</string>
 </resources>

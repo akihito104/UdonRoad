@@ -140,6 +140,7 @@ public class UserInfoFragment extends Fragment {
     if (relationship != null) {
       switchVisibility(relationship.isSourceFollowingTarget(), R.id.action_unfollow, R.id.action_follow, menu);
       switchVisibility(relationship.isSourceBlockingTarget(), R.id.action_unblock, R.id.action_block, menu);
+      switchVisibility(relationship.isSourceMutingTarget(), R.id.action_unmute, R.id.action_mute, menu);
     }
   }
 
@@ -171,6 +172,8 @@ public class UserInfoFragment extends Fragment {
       // todo
     } else if (itemId == R.id.action_mute) {
       configRequestWorker.createMute(userId);
+    } else if (itemId == R.id.action_unmute) {
+      configRequestWorker.destroyMute(userId);
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
     }
