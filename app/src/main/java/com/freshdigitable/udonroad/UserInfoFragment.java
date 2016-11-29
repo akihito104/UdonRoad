@@ -23,7 +23,6 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,6 +40,7 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -82,20 +82,7 @@ public class UserInfoFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     final long userId = getUserId();
-    twitterApi.showFriendship(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Relationship>() {
-          @Override
-          public void call(Relationship relationship) {
-            binding.userInfoUserInfoView.bindRelationship(relationship);
-            setRelationship(relationship);
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e("UserInfoFragment", "call: ", throwable);
-          }
-        });
+    observeUpdateRelationship(twitterApi.showFriendship(userId));
   }
 
   @Override
@@ -138,9 +125,14 @@ public class UserInfoFragment extends Fragment {
   public void onPrepareOptionsMenu(Menu menu) {
     super.onPrepareOptionsMenu(menu);
     if (relationship != null) {
-      switchVisibility(relationship.isSourceFollowingTarget(), R.id.action_unfollow, R.id.action_follow, menu);
-      switchVisibility(relationship.isSourceBlockingTarget(), R.id.action_unblock, R.id.action_block, menu);
-      switchVisibility(relationship.isSourceMutingTarget(), R.id.action_unmute, R.id.action_mute, menu);
+      switchVisibility(relationship.isSourceFollowingTarget(),
+          R.id.action_unfollow, R.id.action_follow, menu);
+      switchVisibility(relationship.isSourceBlockingTarget(),
+          R.id.action_unblock, R.id.action_block, menu);
+      switchVisibility(relationship.isSourceMutingTarget(),
+          R.id.action_unmute, R.id.action_mute, menu);
+      switchVisibility(relationship.isSourceWantRetweets(),
+          R.id.action_block_retweet, R.id.action_unblock_retweet, menu);
     }
   }
 
@@ -169,7 +161,9 @@ public class UserInfoFragment extends Fragment {
     } else if (itemId == R.id.action_unblock) {
       configRequestWorker.destroyBlock(userId);
     } else if (itemId == R.id.action_block_retweet) {
-      // todo
+      observeUpdateRelationship(configRequestWorker.observeBlockRetweet(relationship));
+    } else if (itemId == R.id.action_unblock_retweet) {
+      observeUpdateRelationship(configRequestWorker.observeUnblockRetweet(relationship));
     } else if (itemId == R.id.action_mute) {
       configRequestWorker.createMute(userId);
     } else if (itemId == R.id.action_unmute) {
@@ -220,5 +214,21 @@ public class UserInfoFragment extends Fragment {
   private void setRelationship(Relationship relationship) {
     this.relationship = relationship;
     getActivity().supportInvalidateOptionsMenu();
+  }
+
+  private void observeUpdateRelationship(Observable<Relationship> relationshipObservable) {
+    relationshipObservable.observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Relationship>() {
+          @Override
+          public void call(Relationship relationship) {
+            binding.userInfoUserInfoView.bindRelationship(relationship);
+            setRelationship(relationship);
+          }
+        }, new Action1<Throwable>() {
+          @Override
+          public void call(Throwable throwable) {
+            //nop
+          }
+        });
   }
 }

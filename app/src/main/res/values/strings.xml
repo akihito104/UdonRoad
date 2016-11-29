@@ -53,6 +53,10 @@
     <string name="msg_follower_list_failed">failed to fetch followers…</string>
     <string name="msg_friends_list_failed">failed to fetch friends…</string>
     <string name="msg_already_rt">already retweeted…</string>
+    <string name="msg_block_retweet_failed">failed to block Retweet…</string>
+    <string name="msg_block_retweet_success">blocked Retweet</string>
+    <string name="msg_unblock_retweet_failed">failed to unblock RT…</string>
+    <string name="msg_unblock_retweet_success">RT unblocked</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>
@@ -65,6 +69,7 @@
     <string name="action_block">block</string>
     <string name="action_r4s">report for spam</string>
     <string name="action_unblock">unblock</string>
+    <string name="action_unblock_retweet">unblock RT</string>
 
     <string name="user_following">following</string>
     <string name="user_muting">muting</string>

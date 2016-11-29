@@ -66,6 +66,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(true);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -107,6 +108,8 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unblock)).check(doesNotExist());
       onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unmute)).check(doesNotExist());
+      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
       Espresso.pressBack();
     }
   }
@@ -118,6 +121,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -133,6 +137,8 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unblock)).check(doesNotExist());
       onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unmute)).check(doesNotExist());
+      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
       Espresso.pressBack();
     }
   }
@@ -144,6 +150,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(true);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -159,6 +166,8 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unblock)).check(matches(isDisplayed()));
       onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unmute)).check(doesNotExist());
+      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
       Espresso.pressBack();
     }
   }
@@ -170,6 +179,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(true);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -185,6 +195,8 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unblock)).check(doesNotExist());
       onView(withText(R.string.action_mute)).check(doesNotExist());
       onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
       Espresso.pressBack();
     }
   }
@@ -196,6 +208,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(true);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(true);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -211,6 +224,36 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unblock)).check(doesNotExist());
       onView(withText(R.string.action_mute)).check(doesNotExist());
       onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
+      Espresso.pressBack();
+    }
+  }
+
+  public static class WhenTargetIsBlockedRetweet extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(true);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(false);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkBlockRTisAppearedInOptionMenu() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).check(doesNotExist());
+      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock)).check(doesNotExist());
+      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unmute)).check(doesNotExist());
+      onView(withText(R.string.action_block_retweet)).check(doesNotExist());
+      onView(withText(R.string.action_unblock_retweet)).check(matches(isDisplayed()));
       Espresso.pressBack();
     }
   }

@@ -39,6 +39,7 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import twitter4j.IDs;
+import twitter4j.Relationship;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 
@@ -206,6 +207,20 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
             removeIgnoringUserAction(),
             onErrorFeedback(R.string.msg_destroy_mute_failed),
             onCompleteFeedback(R.string.msg_destroy_mute_success));
+  }
+
+  public Observable<Relationship> observeBlockRetweet(Relationship old) {
+    return twitterApi.updateFriendship(old.getTargetUserId(),
+        old.isSourceNotificationsEnabled(), false)
+        .doOnError(onErrorFeedback(R.string.msg_block_retweet_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_block_retweet_success));
+  }
+
+  public Observable<Relationship> observeUnblockRetweet(Relationship old) {
+    return twitterApi.updateFriendship(old.getTargetUserId(),
+        old.isSourceNotificationsEnabled(), true)
+        .doOnError(onErrorFeedback(R.string.msg_unblock_retweet_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_unblock_retweet_success));
   }
 
   @NonNull

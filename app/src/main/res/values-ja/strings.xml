@@ -71,4 +71,9 @@
     <string name="action_unmute">ミュートをやめる</string>
     <string name="msg_destroy_mute_failed">ミュートをやめられませんでした…</string>
     <string name="msg_destroy_mute_success">ミュートをやめました</string>
+    <string name="action_unblock_retweet">RTのブロックをやめる</string>
+    <string name="msg_block_retweet_failed">RTをブロックできませんでした…</string>
+    <string name="msg_block_retweet_success">RTをブロックしました</string>
+    <string name="msg_unblock_retweet_failed">RTをブロックできませんでした…</string>
+    <string name="msg_unblock_retweet_success">RTをブロックしました</string>
 </resources>

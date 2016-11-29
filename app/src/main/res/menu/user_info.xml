@@ -48,22 +48,27 @@
             <item
                 android:id="@+id/action_block_retweet"
                 android:title="@string/action_block_retweet"
-                android:orderInCategory="202"
+                android:orderInCategory="210"
+            />
+            <item
+                android:id="@+id/action_unblock_retweet"
+                android:title="@string/action_unblock_retweet"
+                android:orderInCategory="211"
             />
             <item
                 android:id="@+id/action_mute"
                 android:title="@string/action_mute"
-                android:orderInCategory="203"
+                android:orderInCategory="220"
             />
             <item
                 android:id="@+id/action_unmute"
                 android:title="@string/action_unmute"
-                android:orderInCategory="204"
+                android:orderInCategory="221"
             />
             <item
                 android:id="@+id/action_r4s"
                 android:title="@string/action_r4s"
-                android:orderInCategory="205"
+                android:orderInCategory="299"
             />
         </menu>
     </item>
