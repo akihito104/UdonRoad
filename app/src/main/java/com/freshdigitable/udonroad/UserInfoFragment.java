@@ -41,9 +41,7 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
-import rx.Observable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.RateLimitStatus;
@@ -85,7 +83,9 @@ public class UserInfoFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     final long userId = getUserId();
-    observeUpdateRelationship(twitterApi.showFriendship(userId));
+    twitterApi.showFriendship(userId)
+        .doOnNext(updateRelationship())
+        .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
   }
 
   @Override
@@ -157,62 +157,35 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
       userRequestWorker.observeCreateFriendship(userId)
-          .doOnCompleted(new Action0() {
-            @Override
-            public void call() {
-              relationship.setFollowing(true);
-              notifyRelationshipChanged();
-            }
-          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .doOnCompleted(updateFollowing(true))
+          .subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_unfollow) {
       userRequestWorker.observeDestroyFriendship(userId)
-          .doOnCompleted(new Action0() {
-            @Override
-            public void call() {
-              relationship.setFollowing(false);
-              notifyRelationshipChanged();
-            }
-          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .doOnCompleted(updateFollowing(false))
+          .subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_block) {
       configRequestWorker.observeCreateBlock(userId)
-          .doOnCompleted(new Action0() {
-            @Override
-            public void call() {
-              relationship.setBlocking(true);
-              notifyRelationshipChanged();
-            }
-          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .doOnCompleted(updateBlocking(true))
+          .subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_unblock) {
       configRequestWorker.observeDestroyBlock(userId)
-          .doOnCompleted(new Action0() {
-            @Override
-            public void call() {
-              relationship.setBlocking(false);
-              notifyRelationshipChanged();
-            }
-          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .doOnCompleted(updateBlocking(false))
+          .subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_block_retweet) {
-      observeUpdateRelationship(configRequestWorker.observeBlockRetweet(relationship));
+      configRequestWorker.observeBlockRetweet(relationship)
+          .doOnNext(updateRelationship())
+          .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
     } else if (itemId == R.id.action_unblock_retweet) {
-      observeUpdateRelationship(configRequestWorker.observeUnblockRetweet(relationship));
+      configRequestWorker.observeUnblockRetweet(relationship)
+          .doOnNext(updateRelationship())
+          .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
     } else if (itemId == R.id.action_mute) {
       configRequestWorker.observeCreateMute(userId)
-          .doOnCompleted(new Action0() {
-            @Override
-            public void call() {
-              relationship.setMuting(true);
-              notifyRelationshipChanged();
-            }
-          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .doOnCompleted(updateMuting(true))
+          .subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_unmute) {
       configRequestWorker.observeDestroyMute(userId)
-          .doOnCompleted(new Action0() {
-            @Override
-            public void call() {
-              relationship.setMuting(false);
-              notifyRelationshipChanged();
-            }
-          })
+          .doOnCompleted(updateMuting(false))
           .subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
@@ -267,19 +240,46 @@ public class UserInfoFragment extends Fragment {
     getActivity().supportInvalidateOptionsMenu();
   }
 
-  private void observeUpdateRelationship(Observable<Relationship> relationshipObservable) {
-    relationshipObservable.observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Relationship>() {
-          @Override
-          public void call(Relationship relationship) {
-            setRelationship(new RelationshipImpl(relationship));
-          }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            //nop
-          }
-        });
+  @NonNull
+  private Action0 updateFollowing(final boolean following) {
+    return new Action0() {
+      @Override
+      public void call() {
+        relationship.setFollowing(following);
+        notifyRelationshipChanged();
+      }
+    };
+  }
+
+  @NonNull
+  private Action0 updateBlocking(final boolean blocking) {
+    return new Action0() {
+      @Override
+      public void call() {
+        relationship.setBlocking(blocking);
+        notifyRelationshipChanged();
+      }
+    };
+  }
+
+  @NonNull
+  private Action0 updateMuting(final boolean muting) {
+    return new Action0() {
+      @Override
+      public void call() {
+        relationship.setMuting(muting);
+        notifyRelationshipChanged();
+      }
+    };
+  }
+
+  private Action1<Relationship> updateRelationship() {
+    return new Action1<Relationship>() {
+      @Override
+      public void call(Relationship relationship) {
+        setRelationship(new RelationshipImpl(relationship));
+      }
+    };
   }
 
   private static class RelationshipImpl implements Relationship {
@@ -291,17 +291,6 @@ public class UserInfoFragment extends Fragment {
       this.blocking = relationship.isSourceBlockingTarget();
       this.muting = relationship.isSourceMutingTarget();
     }
-
-    @Override
-    public long getSourceUserId() {
-      return relationship.getSourceUserId();
-    }
-
-    @Override
-    public long getTargetUserId() {
-      return relationship.getTargetUserId();
-    }
-
     private boolean blocking;
 
     @Override
@@ -324,16 +313,6 @@ public class UserInfoFragment extends Fragment {
       this.muting = muting;
     }
 
-    @Override
-    public String getSourceUserScreenName() {
-      return relationship.getSourceUserScreenName();
-    }
-
-    @Override
-    public String getTargetUserScreenName() {
-      return relationship.getTargetUserScreenName();
-    }
-
     private boolean following;
 
     @Override
@@ -343,6 +322,26 @@ public class UserInfoFragment extends Fragment {
 
     void setFollowing(boolean following) {
       this.following = following;
+    }
+
+    @Override
+    public long getSourceUserId() {
+      return relationship.getSourceUserId();
+    }
+
+    @Override
+    public long getTargetUserId() {
+      return relationship.getTargetUserId();
+    }
+
+    @Override
+    public String getSourceUserScreenName() {
+      return relationship.getSourceUserScreenName();
+    }
+
+    @Override
+    public String getTargetUserScreenName() {
+      return relationship.getTargetUserScreenName();
     }
 
     @Override
