@@ -192,21 +192,27 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   }
 
   public void createMute(long userId) {
-    twitterApi.createMute(userId)
+    observeCreateMute(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
+  }
+
+  public Observable<User> observeCreateMute(long userId) {
+    return twitterApi.createMute(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            addIgnoringUserAction(),
-            onErrorFeedback(R.string.msg_create_mute_failed),
-            onCompleteFeedback(R.string.msg_create_mute_success));
+        .doOnNext(addIgnoringUserAction())
+        .doOnError(onErrorFeedback(R.string.msg_create_mute_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_create_mute_success));
   }
 
   public void destroyMute(long userId) {
-    twitterApi.destroyMute(userId)
+    observeDestroyMute(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
+  }
+
+  public Observable<User> observeDestroyMute(long userId) {
+    return twitterApi.destroyMute(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            removeIgnoringUserAction(),
-            onErrorFeedback(R.string.msg_destroy_mute_failed),
-            onCompleteFeedback(R.string.msg_destroy_mute_success));
+        .doOnNext(removeIgnoringUserAction())
+        .doOnError(onErrorFeedback(R.string.msg_destroy_mute_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_destroy_mute_success));
   }
 
   public Observable<Relationship> observeBlockRetweet(Relationship old) {

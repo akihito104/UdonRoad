@@ -25,6 +25,7 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
+import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.subjects.PublishSubject;
@@ -88,6 +89,23 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
       @Override
       public void call() {
         userFeedback.onNext(msg);
+      }
+    };
+  }
+
+  @NonNull
+  public static <T> Subscriber<T> nopSubscriber() {
+    return new Subscriber<T>() {
+      @Override
+      public void onCompleted() {
+      }
+
+      @Override
+      public void onError(Throwable e) {
+      }
+
+      @Override
+      public void onNext(T o) {
       }
     };
   }

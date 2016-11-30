@@ -42,6 +42,7 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
@@ -49,6 +50,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.not;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -110,7 +112,7 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unmute)).check(doesNotExist());
       onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
-      Espresso.pressBack();
+      pressBack();
     }
   }
 
@@ -139,7 +141,22 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unmute)).check(doesNotExist());
       onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
-      Espresso.pressBack();
+      pressBack();
+    }
+
+    @Test
+    public void clickMuteInOptionsMenu_then_MutingIsAppear() throws Exception {
+      when(twitter.createMute(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_mute)).perform(click());
+      onView(withId(R.id.user_muted)).check(matches(isDisplayed()));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_mute)).check(doesNotExist());
+      onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
+      pressBack();
     }
   }
 
@@ -168,7 +185,7 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unmute)).check(doesNotExist());
       onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
-      Espresso.pressBack();
+      pressBack();
     }
   }
 
@@ -197,7 +214,22 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
       onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
-      Espresso.pressBack();
+      pressBack();
+    }
+
+    @Test
+    public void clickUnmuteInOptionsMenu_then_MutingIsDisappear() throws Exception {
+      when(twitter.destroyMute(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_unmute)).perform(click());
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unmute)).check(doesNotExist());
+      pressBack();
     }
   }
 
@@ -226,7 +258,7 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
       onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
-      Espresso.pressBack();
+      pressBack();
     }
   }
 
@@ -254,7 +286,7 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unmute)).check(doesNotExist());
       onView(withText(R.string.action_block_retweet)).check(doesNotExist());
       onView(withText(R.string.action_unblock_retweet)).check(matches(isDisplayed()));
-      Espresso.pressBack();
+      pressBack();
     }
   }
 

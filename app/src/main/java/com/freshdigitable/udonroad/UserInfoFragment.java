@@ -35,6 +35,7 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -43,7 +44,9 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
+import twitter4j.RateLimitStatus;
 import twitter4j.Relationship;
 import twitter4j.User;
 
@@ -165,9 +168,24 @@ public class UserInfoFragment extends Fragment {
     } else if (itemId == R.id.action_unblock_retweet) {
       observeUpdateRelationship(configRequestWorker.observeUnblockRetweet(relationship));
     } else if (itemId == R.id.action_mute) {
-      configRequestWorker.createMute(userId);
+      configRequestWorker.observeCreateMute(userId)
+          .doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+              relationship.setMuting(true);
+              notifyRelationshipChanged();
+            }
+          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_unmute) {
-      configRequestWorker.destroyMute(userId);
+      configRequestWorker.observeDestroyMute(userId)
+          .doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+              relationship.setMuting(false);
+              notifyRelationshipChanged();
+            }
+          })
+          .subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
     }
@@ -209,10 +227,15 @@ public class UserInfoFragment extends Fragment {
     return arguments.getLong("userId");
   }
 
-  private Relationship relationship;
+  private RelationshipImpl relationship;
 
-  private void setRelationship(Relationship relationship) {
+  private void setRelationship(RelationshipImpl relationship) {
     this.relationship = relationship;
+    notifyRelationshipChanged();
+  }
+
+  private void notifyRelationshipChanged() {
+    binding.userInfoUserInfoView.bindRelationship(relationship);
     getActivity().supportInvalidateOptionsMenu();
   }
 
@@ -221,8 +244,7 @@ public class UserInfoFragment extends Fragment {
         .subscribe(new Action1<Relationship>() {
           @Override
           public void call(Relationship relationship) {
-            binding.userInfoUserInfoView.bindRelationship(relationship);
-            setRelationship(relationship);
+            setRelationship(new RelationshipImpl(relationship));
           }
         }, new Action1<Throwable>() {
           @Override
@@ -230,5 +252,123 @@ public class UserInfoFragment extends Fragment {
             //nop
           }
         });
+  }
+
+  private static class RelationshipImpl implements Relationship {
+    private final Relationship relationship;
+
+    RelationshipImpl(Relationship relationship) {
+      this.relationship = relationship;
+      this.following = relationship.isSourceFollowingTarget();
+      this.blocking = relationship.isSourceBlockingTarget();
+      this.muting = relationship.isSourceMutingTarget();
+      this.notificationEnabled = relationship.isSourceNotificationsEnabled();
+      this.wantRetweets = relationship.isSourceWantRetweets();
+    }
+
+    @Override
+    public long getSourceUserId() {
+      return relationship.getSourceUserId();
+    }
+
+    @Override
+    public long getTargetUserId() {
+      return relationship.getTargetUserId();
+    }
+
+    private boolean blocking;
+
+    @Override
+    public boolean isSourceBlockingTarget() {
+      return blocking;
+    }
+
+    void setBlocking(boolean blocking) {
+      this.blocking = blocking;
+    }
+
+    private boolean muting;
+
+    @Override
+    public boolean isSourceMutingTarget() {
+      return muting;
+    }
+
+    void setMuting(boolean muting) {
+      this.muting = muting;
+    }
+
+    @Override
+    public String getSourceUserScreenName() {
+      return relationship.getSourceUserScreenName();
+    }
+
+    @Override
+    public String getTargetUserScreenName() {
+      return relationship.getTargetUserScreenName();
+    }
+
+    private boolean following;
+
+    @Override
+    public boolean isSourceFollowingTarget() {
+      return following;
+    }
+
+    void setFollowing(boolean following) {
+      this.following = following;
+    }
+
+    @Override
+    public boolean isTargetFollowingSource() {
+      return relationship.isTargetFollowingSource();
+    }
+
+    @Override
+    public boolean isSourceFollowedByTarget() {
+      return relationship.isSourceFollowedByTarget();
+    }
+
+    @Override
+    public boolean isTargetFollowedBySource() {
+      return following;
+    }
+
+    @Override
+    public boolean canSourceDm() {
+      return relationship.canSourceDm();
+    }
+
+    private boolean notificationEnabled;
+
+    @Override
+    public boolean isSourceNotificationsEnabled() {
+      return notificationEnabled;
+    }
+
+    void setNotificationEnabled(boolean notificationEnabled) {
+      this.notificationEnabled = notificationEnabled;
+    }
+
+    private boolean wantRetweets;
+
+    @Override
+    public boolean isSourceWantRetweets() {
+      return wantRetweets;
+    }
+
+    void setWantRetweets(boolean wantRetweets) {
+      this.wantRetweets = wantRetweets;
+    }
+
+    @Override
+    public RateLimitStatus getRateLimitStatus() {
+      return relationship.getRateLimitStatus();
+    }
+
+    @Override
+    public int getAccessLevel() {
+      return relationship.getAccessLevel();
+    }
   }
 }

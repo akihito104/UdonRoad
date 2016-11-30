@@ -49,6 +49,7 @@ import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
@@ -426,7 +427,7 @@ public class MainActivity extends AppCompatActivity
         Observable.concatDelayError(Arrays.asList(
             statusRequestWorker.observeCreateFavorite(selectedTweetId),
             statusRequestWorker.observeRetweetStatus(selectedTweetId))
-        ).subscribe(StatusRequestWorker.<Status>nopSubscriber());
+        ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
       }
     }));
     actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {

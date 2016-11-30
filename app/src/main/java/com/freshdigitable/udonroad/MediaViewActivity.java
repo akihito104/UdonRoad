@@ -50,6 +50,7 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
@@ -419,7 +420,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         Observable.concatDelayError(Arrays.asList(
             userActionSubscriber.observeCreateFavorite(statusId),
             userActionSubscriber.observeRetweetStatus(statusId))
-        ).subscribe(StatusRequestWorker.<Status>nopSubscriber());
+        ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
       }
     }));
   }
