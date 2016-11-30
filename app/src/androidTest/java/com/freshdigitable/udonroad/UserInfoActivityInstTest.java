@@ -114,6 +114,21 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
       pressBack();
     }
+
+    @Test
+    public void clickUnfollowInOptionsMenu_then_FollowingIsDisappeared() throws Exception {
+      when(twitter.destroyFriendship(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_unfollow)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_unfollow)).check(doesNotExist());
+      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
+      pressBack();
+    }
   }
 
   public static class WhenTargetIsNotFollowed extends UserInfoActivityInstTestBase {
@@ -156,6 +171,21 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.action_group_user)).perform(click());
       onView(withText(R.string.action_mute)).check(doesNotExist());
       onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
+      pressBack();
+    }
+
+    @Test
+    public void clickFollowInOptionsMenu_then_FollowingIsAppear() throws Exception {
+      when(twitter.createFriendship(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).check(doesNotExist());
+      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
       pressBack();
     }
   }

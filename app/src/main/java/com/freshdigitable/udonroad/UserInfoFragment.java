@@ -156,9 +156,23 @@ public class UserInfoFragment extends Fragment {
     final int itemId = item.getItemId();
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
-      userRequestWorker.createFriendship(userId);
+      userRequestWorker.observeCreateFriendship(userId)
+          .doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+              relationship.setFollowing(true);
+              notifyRelationshipChanged();
+            }
+          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_unfollow) {
-      userRequestWorker.destroyFriendship(userId);
+      userRequestWorker.observeDestroyFriendship(userId)
+          .doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+              relationship.setFollowing(false);
+              notifyRelationshipChanged();
+            }
+          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_block) {
       configRequestWorker.createBlock(userId);
     } else if (itemId == R.id.action_unblock) {

@@ -26,6 +26,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subjects.PublishSubject;
@@ -48,21 +49,27 @@ public class UserRequestWorker<T extends BaseOperation<User>>
   }
 
   public void createFriendship(final long userId) {
-    twitterApi.createFriendship(userId)
+    observeCreateFriendship(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
+  }
+
+  public Observable<User> observeCreateFriendship(long userId) {
+    return twitterApi.createFriendship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            onErrorFeedback(R.string.msg_create_friendship_failed),
-            onCompleteFeedback(R.string.msg_create_friendship_success));
+        .doOnNext(createUpsertAction())
+        .doOnError(onErrorFeedback(R.string.msg_create_friendship_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_create_friendship_success));
   }
 
   public void destroyFriendship(long userId) {
-    twitterApi.destroyFriendship(userId)
+    observeDestroyFriendship(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
+  }
+
+  public Observable<User> observeDestroyFriendship(long userId) {
+    return twitterApi.destroyFriendship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createUpsertAction(),
-            onErrorFeedback(R.string.msg_destroy_friendship_failed),
-            onCompleteFeedback(R.string.msg_destroy_friendship_success));
+        .doOnNext(createUpsertAction())
+        .doOnError(onErrorFeedback(R.string.msg_destroy_friendship_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_destroy_friendship_success));
   }
 
   public void fetchFollowers(final long userId, final long cursor) {
