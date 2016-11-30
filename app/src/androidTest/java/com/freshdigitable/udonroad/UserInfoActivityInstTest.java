@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
+import android.support.annotation.StringRes;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
@@ -49,6 +50,14 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.BLOCK;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.BLOCK_RT;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.FOLLOW;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.MUTE;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNBLOCK;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNBLOCK_RT;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNFOLLOW;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNMUTE;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -104,14 +113,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_follow)).check(doesNotExist());
-      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock)).check(doesNotExist());
-      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unmute)).check(doesNotExist());
-      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
+      checkVisibleMenuItem(UNFOLLOW, BLOCK, MUTE, BLOCK_RT);
       pressBack();
     }
 
@@ -125,8 +127,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_unfollow)).check(doesNotExist());
-      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
+      FOLLOW.checkVisible();
       pressBack();
     }
   }
@@ -148,14 +149,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unfollow)).check(doesNotExist());
-      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock)).check(doesNotExist());
-      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unmute)).check(doesNotExist());
-      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
+      checkVisibleMenuItem(FOLLOW, BLOCK, MUTE, BLOCK_RT);
       pressBack();
     }
 
@@ -169,8 +163,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(isDisplayed()));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_mute)).check(doesNotExist());
-      onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
+      UNMUTE.checkVisible();
       pressBack();
     }
 
@@ -184,8 +177,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(isDisplayed()));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_follow)).check(doesNotExist());
-      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
+      UNFOLLOW.checkVisible();
       pressBack();
     }
 
@@ -200,8 +192,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_block)).check(doesNotExist());
-      onView(withText(R.string.action_unblock)).check(matches(isDisplayed()));
+      UNBLOCK.checkVisible();
       pressBack();
     }
   }
@@ -223,14 +214,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unfollow)).check(doesNotExist());
-      onView(withText(R.string.action_block)).check(doesNotExist());
-      onView(withText(R.string.action_unblock)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unmute)).check(doesNotExist());
-      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
+      checkVisibleMenuItem(FOLLOW, UNBLOCK, MUTE, BLOCK_RT);
       pressBack();
     }
 
@@ -244,8 +228,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock)).check(doesNotExist());
+      BLOCK.checkVisible();
       pressBack();
     }
   }
@@ -267,14 +250,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_follow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unfollow)).check(doesNotExist());
-      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock)).check(doesNotExist());
-      onView(withText(R.string.action_mute)).check(doesNotExist());
-      onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
+      checkVisibleMenuItem(FOLLOW, BLOCK, UNMUTE, BLOCK_RT);
       pressBack();
     }
 
@@ -288,8 +264,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unmute)).check(doesNotExist());
+      MUTE.checkVisible();
       pressBack();
     }
   }
@@ -311,14 +286,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_follow)).check(doesNotExist());
-      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock)).check(doesNotExist());
-      onView(withText(R.string.action_mute)).check(doesNotExist());
-      onView(withText(R.string.action_unmute)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
+      checkVisibleMenuItem(UNFOLLOW, BLOCK, UNMUTE, BLOCK_RT);
       pressBack();
     }
   }
@@ -339,15 +307,56 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      onView(withText(R.string.action_follow)).check(doesNotExist());
-      onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unblock)).check(doesNotExist());
-      onView(withText(R.string.action_mute)).check(matches(isDisplayed()));
-      onView(withText(R.string.action_unmute)).check(doesNotExist());
-      onView(withText(R.string.action_block_retweet)).check(doesNotExist());
-      onView(withText(R.string.action_unblock_retweet)).check(matches(isDisplayed()));
+      checkVisibleMenuItem(UNFOLLOW, BLOCK, MUTE, UNBLOCK_RT);
       pressBack();
+    }
+  }
+
+  private static void checkVisibleMenuItem(ActionItem... items) {
+    for (ActionItem i : items) {
+      i.checkVisible();
+    }
+  }
+
+  enum AltAction {
+    FOLLOWING(FOLLOW, UNFOLLOW), BLOCKING(BLOCK, UNBLOCK),
+    MUTING(MUTE, UNMUTE), BLOCKING_RT(BLOCK_RT, UNBLOCK_RT),;
+
+    final ActionItem a1, a2;
+    AltAction(ActionItem a1, ActionItem a2) {
+      this.a1 = a1;
+      this.a2 = a2;
+    }
+
+    static ActionItem findAltActionItem(ActionItem actionItem) {
+      for (AltAction a : values()) {
+        if (a.a1 == actionItem) {
+          return a.a2;
+        }
+        if (a.a2 == actionItem) {
+          return a.a1;
+        }
+      }
+      throw new IllegalArgumentException("not registered alt action: " + actionItem);
+    }
+  }
+
+  enum ActionItem {
+    FOLLOW(R.string.action_follow), UNFOLLOW(R.string.action_unfollow),
+    BLOCK(R.string.action_block),UNBLOCK(R.string.action_unblock),
+    MUTE(R.string.action_mute), UNMUTE(R.string.action_unmute),
+    BLOCK_RT(R.string.action_block_retweet), UNBLOCK_RT(R.string.action_unblock_retweet);
+
+    @StringRes final int actionId;
+
+    ActionItem(@StringRes int actionId) {
+      this.actionId = actionId;
+    }
+
+    void checkVisible() {
+      onView(withText(actionId)).check(matches(isDisplayed()));
+      final int altActionId = AltAction.findAltActionItem(this).actionId;
+      onView(withText(altActionId)).check(doesNotExist());
     }
   }
 
