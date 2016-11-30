@@ -165,21 +165,27 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   }
 
   public void createBlock(final long userId) {
-    twitterApi.createBlock(userId)
+    observeCreateBlock(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
+  }
+
+  public Observable<User> observeCreateBlock(long userId) {
+    return twitterApi.createBlock(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            addIgnoringUserAction(),
-            onErrorFeedback(R.string.msg_create_block_failed),
-            onCompleteFeedback(R.string.msg_create_block_success));
+        .doOnNext(addIgnoringUserAction())
+        .doOnError(onErrorFeedback(R.string.msg_create_block_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_create_block_success));
   }
 
   public void destroyBlock(final long userId) {
-    twitterApi.destroyBlock(userId)
+    observeDestroyBlock(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
+  }
+
+  public Observable<User> observeDestroyBlock(long userId) {
+    return twitterApi.destroyBlock(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            removeIgnoringUserAction(),
-            onErrorFeedback(R.string.msg_create_block_failed),
-            onCompleteFeedback(R.string.msg_create_block_success));
+        .doOnNext(removeIgnoringUserAction())
+        .doOnError(onErrorFeedback(R.string.msg_create_block_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_create_block_success));
   }
 
   public void reportSpam(long userId) {

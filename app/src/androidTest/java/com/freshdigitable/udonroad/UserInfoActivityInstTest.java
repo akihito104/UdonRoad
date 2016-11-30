@@ -188,6 +188,22 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unfollow)).check(matches(isDisplayed()));
       pressBack();
     }
+
+    @Test
+    public void clickBlockInOptionsMenu_then_BlockingIsAppeared() throws Exception {
+      when(twitter.createBlock(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_block)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_block)).check(doesNotExist());
+      onView(withText(R.string.action_unblock)).check(matches(isDisplayed()));
+      pressBack();
+    }
   }
 
   public static class WhenTargetIsBlocked extends UserInfoActivityInstTestBase {
@@ -215,6 +231,21 @@ public class UserInfoActivityInstTest {
       onView(withText(R.string.action_unmute)).check(doesNotExist());
       onView(withText(R.string.action_block_retweet)).check(matches(isDisplayed()));
       onView(withText(R.string.action_unblock_retweet)).check(doesNotExist());
+      pressBack();
+    }
+
+    @Test
+    public void clickUnblockInOptionsMenu_then_BlockingIsDisappeared() throws Exception {
+      when(twitter.destroyBlock(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_unblock)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_block)).check(matches(isDisplayed()));
+      onView(withText(R.string.action_unblock)).check(doesNotExist());
       pressBack();
     }
   }

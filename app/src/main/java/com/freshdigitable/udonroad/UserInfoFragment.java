@@ -174,9 +174,23 @@ public class UserInfoFragment extends Fragment {
             }
           }).subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_block) {
-      configRequestWorker.createBlock(userId);
+      configRequestWorker.observeCreateBlock(userId)
+          .doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+              relationship.setBlocking(true);
+              notifyRelationshipChanged();
+            }
+          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_unblock) {
-      configRequestWorker.destroyBlock(userId);
+      configRequestWorker.observeDestroyBlock(userId)
+          .doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+              relationship.setBlocking(false);
+              notifyRelationshipChanged();
+            }
+          }).subscribe(RequestWorkerBase.<User>nopSubscriber());
     } else if (itemId == R.id.action_block_retweet) {
       observeUpdateRelationship(configRequestWorker.observeBlockRetweet(relationship));
     } else if (itemId == R.id.action_unblock_retweet) {
