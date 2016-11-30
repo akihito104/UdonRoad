@@ -290,8 +290,6 @@ public class UserInfoFragment extends Fragment {
       this.following = relationship.isSourceFollowingTarget();
       this.blocking = relationship.isSourceBlockingTarget();
       this.muting = relationship.isSourceMutingTarget();
-      this.notificationEnabled = relationship.isSourceNotificationsEnabled();
-      this.wantRetweets = relationship.isSourceWantRetweets();
     }
 
     @Override
@@ -367,26 +365,14 @@ public class UserInfoFragment extends Fragment {
       return relationship.canSourceDm();
     }
 
-    private boolean notificationEnabled;
-
     @Override
     public boolean isSourceNotificationsEnabled() {
-      return notificationEnabled;
+      return relationship.isSourceNotificationsEnabled();
     }
-
-    void setNotificationEnabled(boolean notificationEnabled) {
-      this.notificationEnabled = notificationEnabled;
-    }
-
-    private boolean wantRetweets;
 
     @Override
     public boolean isSourceWantRetweets() {
-      return wantRetweets;
-    }
-
-    void setWantRetweets(boolean wantRetweets) {
-      this.wantRetweets = wantRetweets;
+      return relationship.isSourceWantRetweets();
     }
 
     @Override
