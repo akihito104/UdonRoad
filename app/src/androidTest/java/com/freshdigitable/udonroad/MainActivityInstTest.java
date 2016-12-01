@@ -31,6 +31,7 @@ import twitter4j.Status;
 import twitter4j.TwitterException;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
@@ -307,6 +308,16 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     AssertionUtil.checkRTCountAt(0, 1);
     AssertionUtil.checkFavCountAt(0, expectedFavCount);
+  }
+
+  @Test
+  public void pressBackAfterTweetInputIsAppeared_then_hideTweetInput() {
+    PerformUtil.clickWriteOnMenu();
+    pressBack();
+    pressBack();
+    onView(withId(R.id.action_write)).check(matches(isDisplayed()));
+    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
   @Override

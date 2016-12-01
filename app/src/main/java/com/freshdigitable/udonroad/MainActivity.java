@@ -304,6 +304,7 @@ public class MainActivity extends AppCompatActivity
       return;
     }
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
+      tweetInputFragment.collapseStatusInputView();
       cancelWritingSelected();
       return;
     }
