@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
+import android.support.annotation.StringRes;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
@@ -29,123 +30,407 @@ import com.freshdigitable.udonroad.util.UserUtil;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
 
 import rx.functions.Action0;
+import twitter4j.Relationship;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.Espresso.pressBack;
+import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.BLOCK;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.BLOCK_RT;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.FOLLOW;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.MUTE;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNBLOCK;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNBLOCK_RT;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNFOLLOW;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNMUTE;
+import static org.hamcrest.CoreMatchers.not;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * UserInfoActivityInstTest tests UserInfoActivity in device.
  *
  * Created by akihit on 2016/08/11.
  */
-public class UserInfoActivityInstTest extends TimelineInstTestBase {
-  @Rule
-  public ActivityTestRule<UserInfoActivity> rule
-      = new ActivityTestRule<>(UserInfoActivity.class, false, false);
-  private ConfigSetupIdlingResource idlingResource;
+@RunWith(Enclosed.class)
+public class UserInfoActivityInstTest {
+  public static class WhenTargetIsFollowed extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(true);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      return setupUserInfoTimeline(relationship);
+    }
 
-  @Test
-  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
-      throws Exception {
-    PerformUtil.selectItemViewAt(0);
-    PerformUtil.reply();
-    // verify
-    onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
-    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_group_user)).check(doesNotExist());
-    onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+    @Test
+    public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
+        throws Exception {
+      PerformUtil.selectItemViewAt(0);
+      PerformUtil.reply();
+      // verify
+      onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_group_user)).check(doesNotExist());
+      onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
+        throws Exception {
+      PerformUtil.selectItemViewAt(0);
+      PerformUtil.reply();
+      onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+      PerformUtil.clickCancelWriteOnMenu();
+      // verify
+      onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_write)).check(doesNotExist());
+      onView(withId(R.id.action_cancel)).check(doesNotExist());
+    }
+
+    @Test
+    public void checkFollowingIsAppeared() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      checkVisibleMenuItem(UNFOLLOW, BLOCK, MUTE, BLOCK_RT);
+      pressBack();
+    }
+
+    @Test
+    public void clickUnfollowInOptionsMenu_then_FollowingIsDisappeared() throws Exception {
+      when(twitter.destroyFriendship(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_unfollow)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      FOLLOW.checkVisible();
+      pressBack();
+    }
   }
 
-  @Test
-  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
-      throws Exception {
-    PerformUtil.selectItemViewAt(0);
-    PerformUtil.reply();
-    onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
-    PerformUtil.clickCancelWriteOnMenu();
-    // verify
-    onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_write)).check(doesNotExist());
-    onView(withId(R.id.action_cancel)).check(doesNotExist());
+  public static class WhenTargetIsNotFollowed extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(false);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkFollowingIsNotAppeared() {
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      checkVisibleMenuItem(FOLLOW, BLOCK, MUTE, BLOCK_RT);
+      pressBack();
+    }
+
+    @Test
+    public void clickMuteInOptionsMenu_then_MutingIsAppear() throws Exception {
+      when(twitter.createMute(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_mute)).perform(click());
+      onView(withId(R.id.user_muted)).check(matches(isDisplayed()));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      UNMUTE.checkVisible();
+      pressBack();
+    }
+
+    @Test
+    public void clickFollowInOptionsMenu_then_FollowingIsAppear() throws Exception {
+      when(twitter.createFriendship(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_follow)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      UNFOLLOW.checkVisible();
+      pressBack();
+    }
+
+    @Test
+    public void clickBlockInOptionsMenu_then_BlockingIsAppeared() throws Exception {
+      when(twitter.createBlock(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_block)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      UNBLOCK.checkVisible();
+      pressBack();
+    }
   }
 
-  @Override
-  protected ActivityTestRule<UserInfoActivity> getRule() {
-    return rule;
+  public static class WhenTargetIsBlocked extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(false);
+      when(relationship.isSourceBlockingTarget()).thenReturn(true);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkBlockingIsAppeared() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      checkVisibleMenuItem(FOLLOW, UNBLOCK, MUTE, BLOCK_RT);
+      pressBack();
+    }
+
+    @Test
+    public void clickUnblockInOptionsMenu_then_BlockingIsDisappeared() throws Exception {
+      when(twitter.destroyBlock(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_following)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_unblock)).perform(click());
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      BLOCK.checkVisible();
+      pressBack();
+    }
   }
 
-  @Override
-  protected Intent getIntent() {
-    final User user = UserUtil.create();
-    userCache.open();
-    userCache.upsert(user);
-    userCache.close();
-    return UserInfoActivity.createIntent(
-        InstrumentationRegistry.getTargetContext(), user);
+  public static class WhenTargetIsMuted extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(false);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(true);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkMutingIsAppeared() {
+      onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
+      onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      checkVisibleMenuItem(FOLLOW, BLOCK, UNMUTE, BLOCK_RT);
+      pressBack();
+    }
+
+    @Test
+    public void clickUnmuteInOptionsMenu_then_MutingIsDisappear() throws Exception {
+      when(twitter.destroyMute(anyLong())).thenReturn(getLoginUser());
+
+      onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
+      onView(withId(R.id.action_group_user)).perform(click());
+      onView(withText(R.string.action_unmute)).perform(click());
+      onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      MUTE.checkVisible();
+      pressBack();
+    }
   }
 
-  @Inject
-  ConfigRequestWorker configRequestWorker;
+  public static class WhenTargetIsFollowedAndMuted extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(true);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(true);
+      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      return setupUserInfoTimeline(relationship);
+    }
 
-  @Override
-  public void setupConfig(User user) throws Exception {
-    super.setupConfig(user);
-    getComponent().inject(this);
+    @Test
+    public void checkFollowingAndMutingAreAppeared() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+      onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
 
-    idlingResource = new ConfigSetupIdlingResource();
-    Espresso.registerIdlingResources(idlingResource);
+      onView(withId(R.id.action_group_user)).perform(click());
+      checkVisibleMenuItem(UNFOLLOW, BLOCK, UNMUTE, BLOCK_RT);
+      pressBack();
+    }
+  }
 
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-      @Override
-      public void run() {
-        configRequestWorker.open();
-        configRequestWorker.setup(new Action0() {
-          @Override
-          public void call() {
-            idlingResource.setDoneSetup(true);
-          }
-        });
+  public static class WhenTargetIsBlockedRetweet extends UserInfoActivityInstTestBase {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final Relationship relationship = mock(Relationship.class);
+      when(relationship.isSourceFollowingTarget()).thenReturn(true);
+      when(relationship.isSourceBlockingTarget()).thenReturn(false);
+      when(relationship.isSourceMutingTarget()).thenReturn(false);
+      when(relationship.isSourceWantRetweets()).thenReturn(false);
+      return setupUserInfoTimeline(relationship);
+    }
+
+    @Test
+    public void checkBlockRTisAppearedInOptionMenu() {
+      onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
+
+      onView(withId(R.id.action_group_user)).perform(click());
+      checkVisibleMenuItem(UNFOLLOW, BLOCK, MUTE, UNBLOCK_RT);
+      pressBack();
+    }
+  }
+
+  private static void checkVisibleMenuItem(ActionItem... items) {
+    for (ActionItem i : items) {
+      i.checkVisible();
+    }
+  }
+
+  enum AltAction {
+    FOLLOWING(FOLLOW, UNFOLLOW), BLOCKING(BLOCK, UNBLOCK),
+    MUTING(MUTE, UNMUTE), BLOCKING_RT(BLOCK_RT, UNBLOCK_RT),;
+
+    final ActionItem a1, a2;
+    AltAction(ActionItem a1, ActionItem a2) {
+      this.a1 = a1;
+      this.a2 = a2;
+    }
+
+    static ActionItem findAltActionItem(ActionItem actionItem) {
+      for (AltAction a : values()) {
+        if (a.a1 == actionItem) {
+          return a.a2;
+        }
+        if (a.a2 == actionItem) {
+          return a.a1;
+        }
       }
-    });
+      throw new IllegalArgumentException("not registered alt action: " + actionItem);
+    }
   }
 
-  @Override
-  protected int setupTimeline() throws TwitterException {
-    return setupDefaultUserInfoTimeline();
+  enum ActionItem {
+    FOLLOW(R.string.action_follow), UNFOLLOW(R.string.action_unfollow),
+    BLOCK(R.string.action_block),UNBLOCK(R.string.action_unblock),
+    MUTE(R.string.action_mute), UNMUTE(R.string.action_unmute),
+    BLOCK_RT(R.string.action_block_retweet), UNBLOCK_RT(R.string.action_unblock_retweet);
+
+    @StringRes final int actionId;
+
+    ActionItem(@StringRes int actionId) {
+      this.actionId = actionId;
+    }
+
+    void checkVisible() {
+      onView(withText(actionId)).check(matches(isDisplayed()));
+      final int altActionId = AltAction.findAltActionItem(this).actionId;
+      onView(withText(altActionId)).check(doesNotExist());
+    }
   }
 
-  @Override
-  protected void verifyAfterLaunch() {
-    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
-    onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_write)).check(doesNotExist());
-  }
+  public abstract static class UserInfoActivityInstTestBase extends TimelineInstTestBase {
+    @Rule
+    public ActivityTestRule<UserInfoActivity> rule
+        = new ActivityTestRule<>(UserInfoActivity.class, false, false);
+    private ConfigSetupIdlingResource idlingResource;
 
-  @Override
-  @After
-  public void tearDown() throws Exception {
-    Espresso.unregisterIdlingResources(idlingResource);
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-      @Override
-      public void run() {
-        configRequestWorker.close();
-      }
-    });
-    super.tearDown();
+    @Override
+    protected ActivityTestRule<UserInfoActivity> getRule() {
+      return rule;
+    }
+
+    @Override
+    protected Intent getIntent() {
+      final User user = UserUtil.create();
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+        @Override
+        public void run() {
+          userCache.open();
+          userCache.upsert(user);
+          userCache.close();
+        }
+      });
+      return UserInfoActivity.createIntent(
+          InstrumentationRegistry.getTargetContext(), user);
+    }
+
+    @Inject
+    ConfigRequestWorker configRequestWorker;
+
+    @Override
+    public void setupConfig(User user) throws Exception {
+      super.setupConfig(user);
+      getComponent().inject(this);
+
+      idlingResource = new ConfigSetupIdlingResource();
+      Espresso.registerIdlingResources(idlingResource);
+
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+        @Override
+        public void run() {
+          configRequestWorker.open();
+          configRequestWorker.setup(new Action0() {
+            @Override
+            public void call() {
+              idlingResource.setDoneSetup(true);
+            }
+          });
+        }
+      });
+    }
+
+    @Override
+    protected void verifyAfterLaunch() {
+      onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+      onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_write)).check(doesNotExist());
+    }
+
+    @Override
+    @After
+    public void tearDown() throws Exception {
+      Espresso.unregisterIdlingResources(idlingResource);
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+        @Override
+        public void run() {
+          configRequestWorker.close();
+        }
+      });
+      super.tearDown();
+    }
   }
 
   private static class ConfigSetupIdlingResource implements IdlingResource {

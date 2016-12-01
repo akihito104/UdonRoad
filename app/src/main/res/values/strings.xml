@@ -48,19 +48,29 @@
     <string name="msg_report_spam_success">reported spam</string>
     <string name="msg_create_mute_failed">failed to mute…</string>
     <string name="msg_create_mute_success">muted</string>
+    <string name="msg_destroy_mute_failed">failed to unmute…</string>
+    <string name="msg_destroy_mute_success">unmuted</string>
     <string name="msg_follower_list_failed">failed to fetch followers…</string>
     <string name="msg_friends_list_failed">failed to fetch friends…</string>
     <string name="msg_already_rt">already retweeted…</string>
+    <string name="msg_block_retweet_failed">failed to block Retweet…</string>
+    <string name="msg_block_retweet_success">blocked Retweet</string>
+    <string name="msg_unblock_retweet_failed">failed to unblock RT…</string>
+    <string name="msg_unblock_retweet_success">RT unblocked</string>
+    <string name="msg_fetch_relationship_failed">failed to get friendship with this user…</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>
     <string name="action_group_user">action for the user</string>
     <string name="action_follow">follow</string>
-    <string name="action_remove">remove</string>
+    <string name="action_unfollow">unfollow</string>
     <string name="action_block_retweet">block retweet</string>
     <string name="action_mute">mute</string>
+    <string name="action_unmute">unmute</string>
     <string name="action_block">block</string>
     <string name="action_r4s">report for spam</string>
+    <string name="action_unblock">unblock</string>
+    <string name="action_unblock_retweet">unblock RT</string>
 
     <string name="user_following">following</string>
     <string name="user_muting">muting</string>

@@ -365,7 +365,7 @@ public abstract class TimelineInstTestBase {
     return responseList.size();
   }
 
-  protected int setupDefaultUserInfoTimeline() throws TwitterException {
+  protected int setupUserInfoTimeline(Relationship relationship) throws TwitterException {
     final User loginUser = getLoginUser();
     final ResponseList<Status> responseList = createDefaultResponseList(loginUser);
     this.responseList = responseList;
@@ -380,9 +380,6 @@ public abstract class TimelineInstTestBase {
     when(twitter.getFollowersList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
     when(twitter.getFriendsList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
 
-    final Relationship relationship = mock(Relationship.class);
-    when(relationship.isSourceFollowingTarget()).thenReturn(true);
-    when(relationship.isSourceMutingTarget()).thenReturn(false);
     when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
     return responseList.size();
   }

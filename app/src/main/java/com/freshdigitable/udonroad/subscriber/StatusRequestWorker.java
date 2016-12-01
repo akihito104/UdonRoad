@@ -32,7 +32,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subjects.PublishSubject;
@@ -164,7 +163,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   public void createFavorite(long statusId) {
     observeCreateFavorite(statusId)
-        .subscribe(StatusRequestWorker.<Status>nopSubscriber());
+        .subscribe(RequestWorkerBase.<Status>nopSubscriber());
   }
 
   public Observable<Status> observeRetweetStatus(final long statusId) {
@@ -197,7 +196,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   public void retweetStatus(long statusId) {
     observeRetweetStatus(statusId)
-        .subscribe(StatusRequestWorker.<Status>nopSubscriber());
+        .subscribe(RequestWorkerBase.<Status>nopSubscriber());
   }
 
   public void destroyFavorite(long statusId) {
@@ -244,22 +243,6 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
       @Override
       public void call(Status statuses) {
         cache.upsert(statuses);
-      }
-    };
-  }
-
-  public static <T> Subscriber<T> nopSubscriber() {
-    return new Subscriber<T>() {
-      @Override
-      public void onCompleted() {
-      }
-
-      @Override
-      public void onError(Throwable e) {
-      }
-
-      @Override
-      public void onNext(T o) {
       }
     };
   }

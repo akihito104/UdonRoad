@@ -28,6 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import twitter4j.Relationship;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -41,6 +42,7 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.Mockito.mock;
 
 /**
  * MainActivityResumeInstTest tests MainActivity can resume from home button pushed.
@@ -56,7 +58,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Override
   protected int setupTimeline() throws TwitterException {
     final int initCount = setupDefaultTimeline();
-    setupDefaultUserInfoTimeline();
+    setupUserInfoTimeline(mock(Relationship.class));
     return initCount;
   }
 

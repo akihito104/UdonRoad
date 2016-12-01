@@ -312,7 +312,7 @@ public class UserInfoPagerFragment extends Fragment {
       Observable.concatDelayError(Arrays.asList(
           statusRequestWorker.observeCreateFavorite(statusId),
           statusRequestWorker.observeRetweetStatus(statusId))
-      ).subscribe(StatusRequestWorker.<Status>nopSubscriber());
+      ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
     }
   }
 

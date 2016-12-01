@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.UserInfoActivityInstTest.UserInfoActivityInstTestBase;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
@@ -35,5 +36,5 @@ import dagger.Component;
 public interface MockAppComponent extends AppComponent {
   void inject(TimelineInstTestBase mainActivityInstTest);
 
-  void inject(UserInfoActivityInstTest userInfoActivityInstTest);
+  void inject(UserInfoActivityInstTestBase userInfoActivityInstTest);
 }
