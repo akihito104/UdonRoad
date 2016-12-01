@@ -375,20 +375,13 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void observeUpdateStatus(Observable<Status> updateStatusObservable) {
-    updateStatusObservable.subscribe(
-        new Action1<Status>() {
-          @Override
-          public void call(Status status) {
-            cancelWritingSelected();
-          }
-        },
-        new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-          }
-        }
-    );
+  public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
+    return updateStatusObservable.doOnNext(new Action1<Status>() {
+      @Override
+      public void call(Status status) {
+        cancelWritingSelected();
+      }
+    });
   }
 
   @Override

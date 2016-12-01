@@ -40,6 +40,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -284,15 +285,13 @@ public class TweetInputFragment extends Fragment {
         @Override
         public void onClick(final View v) {
           v.setClickable(false);
-          ((TweetSendable) activity).observeUpdateStatus(
-              observeUpdateStatus()
-                  .doOnCompleted(new Action0() {
-                    @Override
-                    public void call() {
-                      v.setClickable(true);
-                    }
-                  })
-          );
+          ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
+              .doOnCompleted(new Action0() {
+                @Override
+                public void call() {
+                  v.setClickable(true);
+                }
+              }).subscribe(RequestWorkerBase.<Status>nopSubscriber());
         }
       };
     } else {
@@ -300,14 +299,12 @@ public class TweetInputFragment extends Fragment {
         @Override
         public void onClick(final View view) {
           view.setClickable(false);
-          observeUpdateStatus()
-              .doOnCompleted(new Action0() {
-                @Override
-                public void call() {
-                  view.setClickable(true);
-                }
-              })
-              .subscribe();
+          observeUpdateStatus().doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+              view.setClickable(true);
+            }
+          }).subscribe(RequestWorkerBase.<Status>nopSubscriber());
         }
       };
     }
@@ -376,7 +373,7 @@ public class TweetInputFragment extends Fragment {
   interface TweetSendable {
     void setupInput(@TweetType int type, long statusId);
 
-    void observeUpdateStatus(Observable<Status> updateStatusObservable);
+    Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable);
   }
 
   public static final int TYPE_DEFAULT = 0;
