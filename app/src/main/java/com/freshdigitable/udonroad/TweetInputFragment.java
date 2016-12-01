@@ -39,8 +39,8 @@ import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import java.lang.annotation.Retention;
@@ -54,7 +54,6 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Status;
@@ -72,9 +71,8 @@ public class TweetInputFragment extends Fragment {
   private static final String LOADINGTAG_TWEET_INPUT_ICON = "TweetInputIcon";
   private FragmentTweetInputBinding binding;
   @Inject
-  TwitterApi twitterApi;
-  @Inject
-  TypedCache<Status> statusCache;
+  StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
+  private TypedCache<Status> statusCache;
   @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject
@@ -161,7 +159,8 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    statusCache.open();
+    statusRequestWorker.open();
+    statusCache = statusRequestWorker.getCache();
     configRequestWorker.open();
     appSettings.open();
     final Bundle arguments = getArguments();
@@ -175,7 +174,7 @@ public class TweetInputFragment extends Fragment {
     super.onStop();
     appSettings.close();
     configRequestWorker.close();
-    statusCache.close();
+    statusRequestWorker.close();
   }
 
   private FloatingActionButton tweetSendFab;
@@ -321,7 +320,7 @@ public class TweetInputFragment extends Fragment {
   private Observable<Status> createSendObservable() {
     final String sendingText = binding.mainTweetInputView.getText().toString();
     if (!isStatusUpdateNeeded()) {
-      return twitterApi.updateStatus(sendingText);
+      return statusRequestWorker.observeUpdateStatus(sendingText);
     }
     String s = sendingText;
     for (long q : quoteStatusIds) {
@@ -335,13 +334,12 @@ public class TweetInputFragment extends Fragment {
     if (replyEntity != null) {
       statusUpdate.setInReplyToStatusId(replyEntity.inReplyToStatusId);
     }
-    return twitterApi.updateStatus(statusUpdate);
+    return statusRequestWorker.observeUpdateStatus(statusUpdate);
   }
 
   private Observable<Status> observeUpdateStatus() {
     final TweetInputView inputText = binding.mainTweetInputView;
     return createSendObservable()
-        .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(new Action1<Status>() {
           @Override
           public void call(Status status) {

@@ -31,13 +31,11 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.UserAction.Resource;
@@ -293,8 +291,6 @@ public class UserInfoActivity extends AppCompatActivity
         new Action1<Throwable>() {
           @Override
           public void call(Throwable throwable) {
-            Toast.makeText(getApplicationContext(), "send tweet: failure...", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "send tweet; ", throwable);
           }
         });
   }

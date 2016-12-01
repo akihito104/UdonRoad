@@ -31,6 +31,7 @@ import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -41,6 +42,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -66,12 +68,13 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     when(twitter.updateStatus(any(StatusUpdate.class))).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
-        final StatusUpdate text = invocation.getArgumentAt(0, StatusUpdate.class);
-        final Status mockResponse = mock(Status.class);
-        when(mockResponse.getId()).thenReturn(21000L);
-        when(mockResponse.getText()).thenReturn(text.getStatus());
+        final StatusUpdate statusUpdate = invocation.getArgumentAt(0, StatusUpdate.class);
         final User user = UserUtil.create();
-        when(mockResponse.getUser()).thenReturn(user);
+        final Status mockResponse = createStatus(21000L, user);
+        when(mockResponse.getText()).thenReturn(statusUpdate.getStatus());
+        final UserMentionEntity umeMock = mock(UserMentionEntity.class);
+        when(umeMock.getId()).thenReturn(statusUpdate.getInReplyToStatusId());
+        when(mockResponse.getUserMentionEntities()).thenReturn(new UserMentionEntity[]{umeMock});
         return mockResponse;
       }
     });

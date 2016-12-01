@@ -36,7 +36,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineFragment.OnFetchTweets;
@@ -370,10 +369,6 @@ public class MainActivity extends AppCompatActivity
         .commit();
   }
 
-  private void showToast(String text) {
-    Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
-  }
-
   @Override
   public void setupInput(@TweetType int type, long statusId) {
     sendStatusSelected(type, statusId);
@@ -391,8 +386,6 @@ public class MainActivity extends AppCompatActivity
         new Action1<Throwable>() {
           @Override
           public void call(Throwable throwable) {
-            showToast("send tweet: failure...");
-            Log.e(TAG, "update status: " + throwable);
           }
         }
     );

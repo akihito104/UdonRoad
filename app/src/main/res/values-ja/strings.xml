@@ -77,4 +77,6 @@
     <string name="msg_unblock_retweet_failed">RTをブロックできませんでした…</string>
     <string name="msg_unblock_retweet_success">RTをブロックしました</string>
     <string name="msg_fetch_relationship_failed">このユーザとの関連性を取得できませんでした…</string>
+    <string name="msg_updateStatus_failed">ツイートを送信できませんでした…</string>
+    <string name="msg_updateStatus_success">ツイートしました</string>
 </resources>
