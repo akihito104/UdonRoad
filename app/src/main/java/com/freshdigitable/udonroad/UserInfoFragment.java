@@ -33,7 +33,6 @@ import android.view.ViewGroup;
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
@@ -57,8 +56,6 @@ public class UserInfoFragment extends Fragment {
   private static final String LOADINGTAG_USER_INFO_IMAGES = "UserInfoImages";
   private FragmentUserInfoBinding binding;
   private Subscription subscription;
-  @Inject
-  TwitterApi twitterApi;
 
   @Override
   public void onAttach(Context context) {
@@ -83,7 +80,7 @@ public class UserInfoFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     final long userId = getUserId();
-    twitterApi.showFriendship(userId)
+    configRequestWorker.observeFetchRelationship(userId)
         .doOnNext(updateRelationship())
         .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
   }

@@ -48,20 +48,12 @@ public class UserRequestWorker<T extends BaseOperation<User>>
     super(twitterApi, userStore, feedback);
   }
 
-  public void createFriendship(final long userId) {
-    observeCreateFriendship(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
-  }
-
   public Observable<User> observeCreateFriendship(long userId) {
     return twitterApi.createFriendship(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
         .doOnError(onErrorFeedback(R.string.msg_create_friendship_failed))
         .doOnCompleted(onCompleteFeedback(R.string.msg_create_friendship_success));
-  }
-
-  public void destroyFriendship(long userId) {
-    observeDestroyFriendship(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
   }
 
   public Observable<User> observeDestroyFriendship(long userId) {

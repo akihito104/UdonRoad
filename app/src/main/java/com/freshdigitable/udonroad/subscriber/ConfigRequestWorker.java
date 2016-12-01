@@ -164,8 +164,9 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
         .doOnError(onErrorAction);
   }
 
-  public void createBlock(final long userId) {
-    observeCreateBlock(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
+  public Observable<Relationship> observeFetchRelationship(long userId) {
+    return twitterApi.showFriendship(userId)
+        .doOnError(onErrorFeedback(R.string.msg_fetch_relationship_failed));
   }
 
   public Observable<User> observeCreateBlock(long userId) {
@@ -174,10 +175,6 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
         .doOnNext(addIgnoringUserAction())
         .doOnError(onErrorFeedback(R.string.msg_create_block_failed))
         .doOnCompleted(onCompleteFeedback(R.string.msg_create_block_success));
-  }
-
-  public void destroyBlock(final long userId) {
-    observeDestroyBlock(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
   }
 
   public Observable<User> observeDestroyBlock(long userId) {
@@ -197,20 +194,12 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
             onCompleteFeedback(R.string.msg_report_spam_success));
   }
 
-  public void createMute(long userId) {
-    observeCreateMute(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
-  }
-
   public Observable<User> observeCreateMute(long userId) {
     return twitterApi.createMute(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(addIgnoringUserAction())
         .doOnError(onErrorFeedback(R.string.msg_create_mute_failed))
         .doOnCompleted(onCompleteFeedback(R.string.msg_create_mute_success));
-  }
-
-  public void destroyMute(long userId) {
-    observeDestroyMute(userId).subscribe(RequestWorkerBase.<User>nopSubscriber());
   }
 
   public Observable<User> observeDestroyMute(long userId) {
