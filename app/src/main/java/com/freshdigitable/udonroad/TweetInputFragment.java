@@ -73,7 +73,6 @@ public class TweetInputFragment extends Fragment {
   private FragmentTweetInputBinding binding;
   @Inject
   StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
-  private TypedCache<Status> statusCache;
   @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject
@@ -161,7 +160,6 @@ public class TweetInputFragment extends Fragment {
   public void onStart() {
     super.onStart();
     statusRequestWorker.open();
-    statusCache = statusRequestWorker.getCache();
     configRequestWorker.open();
     appSettings.open();
     final Bundle arguments = getArguments();
@@ -224,7 +222,7 @@ public class TweetInputFragment extends Fragment {
   private ReplyEntity replyEntity;
 
   private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
-    final Status inReplyTo = statusCache.find(inReplyToStatusId);
+    final Status inReplyTo = statusRequestWorker.getCache().find(inReplyToStatusId);
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo == null) {
       stretchTweetInputView();
@@ -321,7 +319,7 @@ public class TweetInputFragment extends Fragment {
     }
     String s = sendingText;
     for (long q : quoteStatusIds) {
-      final Status status = statusCache.find(q);
+      final Status status = statusRequestWorker.getCache().find(q);
       if (status == null) {
         continue;
       }
