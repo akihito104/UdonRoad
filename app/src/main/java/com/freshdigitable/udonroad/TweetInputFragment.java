@@ -286,7 +286,7 @@ public class TweetInputFragment extends Fragment {
         public void onClick(final View v) {
           v.setClickable(false);
           ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
-              .doOnCompleted(new Action0() {
+              .doOnTerminate(new Action0() {
                 @Override
                 public void call() {
                   v.setClickable(true);
@@ -299,7 +299,7 @@ public class TweetInputFragment extends Fragment {
         @Override
         public void onClick(final View view) {
           view.setClickable(false);
-          observeUpdateStatus().doOnCompleted(new Action0() {
+          observeUpdateStatus().doOnTerminate(new Action0() {
             @Override
             public void call() {
               view.setClickable(true);
@@ -344,6 +344,12 @@ public class TweetInputFragment extends Fragment {
             inputText.clearFocus();
             inputText.disappearing();
             setupMenuVisibility();
+          }
+        }).doOnCompleted(new Action0() {
+          @Override
+          public void call() {
+            replyEntity = null;
+            quoteStatusIds.clear();
           }
         });
   }
