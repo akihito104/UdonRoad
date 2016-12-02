@@ -39,8 +39,9 @@ import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import java.lang.annotation.Retention;
@@ -54,7 +55,6 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.Status;
@@ -72,9 +72,7 @@ public class TweetInputFragment extends Fragment {
   private static final String LOADINGTAG_TWEET_INPUT_ICON = "TweetInputIcon";
   private FragmentTweetInputBinding binding;
   @Inject
-  TwitterApi twitterApi;
-  @Inject
-  TypedCache<Status> statusCache;
+  StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
   @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject
@@ -161,7 +159,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    statusCache.open();
+    statusRequestWorker.open();
     configRequestWorker.open();
     appSettings.open();
     final Bundle arguments = getArguments();
@@ -175,7 +173,7 @@ public class TweetInputFragment extends Fragment {
     super.onStop();
     appSettings.close();
     configRequestWorker.close();
-    statusCache.close();
+    statusRequestWorker.close();
   }
 
   private FloatingActionButton tweetSendFab;
@@ -224,7 +222,7 @@ public class TweetInputFragment extends Fragment {
   private ReplyEntity replyEntity;
 
   private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
-    final Status inReplyTo = statusCache.find(inReplyToStatusId);
+    final Status inReplyTo = statusRequestWorker.getCache().find(inReplyToStatusId);
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo == null) {
       stretchTweetInputView();
@@ -285,15 +283,13 @@ public class TweetInputFragment extends Fragment {
         @Override
         public void onClick(final View v) {
           v.setClickable(false);
-          ((TweetSendable) activity).observeUpdateStatus(
-              observeUpdateStatus()
-                  .doOnCompleted(new Action0() {
-                    @Override
-                    public void call() {
-                      v.setClickable(true);
-                    }
-                  })
-          );
+          ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
+              .doOnTerminate(new Action0() {
+                @Override
+                public void call() {
+                  v.setClickable(true);
+                }
+              }).subscribe(RequestWorkerBase.<Status>nopSubscriber());
         }
       };
     } else {
@@ -301,14 +297,12 @@ public class TweetInputFragment extends Fragment {
         @Override
         public void onClick(final View view) {
           view.setClickable(false);
-          observeUpdateStatus()
-              .doOnCompleted(new Action0() {
-                @Override
-                public void call() {
-                  view.setClickable(true);
-                }
-              })
-              .subscribe();
+          observeUpdateStatus().doOnTerminate(new Action0() {
+            @Override
+            public void call() {
+              view.setClickable(true);
+            }
+          }).subscribe(RequestWorkerBase.<Status>nopSubscriber());
         }
       };
     }
@@ -321,11 +315,11 @@ public class TweetInputFragment extends Fragment {
   private Observable<Status> createSendObservable() {
     final String sendingText = binding.mainTweetInputView.getText().toString();
     if (!isStatusUpdateNeeded()) {
-      return twitterApi.updateStatus(sendingText);
+      return statusRequestWorker.observeUpdateStatus(sendingText);
     }
     String s = sendingText;
     for (long q : quoteStatusIds) {
-      final Status status = statusCache.find(q);
+      final Status status = statusRequestWorker.getCache().find(q);
       if (status == null) {
         continue;
       }
@@ -335,13 +329,12 @@ public class TweetInputFragment extends Fragment {
     if (replyEntity != null) {
       statusUpdate.setInReplyToStatusId(replyEntity.inReplyToStatusId);
     }
-    return twitterApi.updateStatus(statusUpdate);
+    return statusRequestWorker.observeUpdateStatus(statusUpdate);
   }
 
   private Observable<Status> observeUpdateStatus() {
     final TweetInputView inputText = binding.mainTweetInputView;
     return createSendObservable()
-        .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(new Action1<Status>() {
           @Override
           public void call(Status status) {
@@ -349,6 +342,12 @@ public class TweetInputFragment extends Fragment {
             inputText.clearFocus();
             inputText.disappearing();
             setupMenuVisibility();
+          }
+        }).doOnCompleted(new Action0() {
+          @Override
+          public void call() {
+            replyEntity = null;
+            quoteStatusIds.clear();
           }
         });
   }
@@ -378,7 +377,7 @@ public class TweetInputFragment extends Fragment {
   interface TweetSendable {
     void setupInput(@TweetType int type, long statusId);
 
-    void observeUpdateStatus(Observable<Status> updateStatusObservable);
+    Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable);
   }
 
   public static final int TYPE_DEFAULT = 0;

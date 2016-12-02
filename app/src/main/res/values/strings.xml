@@ -58,6 +58,8 @@
     <string name="msg_unblock_retweet_failed">failed to unblock RT…</string>
     <string name="msg_unblock_retweet_success">RT unblocked</string>
     <string name="msg_fetch_relationship_failed">failed to get friendship with this user…</string>
+    <string name="msg_updateStatus_failed">failed to send tweet…</string>
+    <string name="msg_updateStatus_success">tweeted</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>

@@ -37,6 +37,7 @@ import rx.functions.Action1;
 import rx.subjects.PublishSubject;
 import twitter4j.Paging;
 import twitter4j.Status;
+import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 
 /**
@@ -225,6 +226,22 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
             },
             onErrorFeedback(R.string.msg_rt_delete_failed),
             onCompleteFeedback(R.string.msg_rt_delete_success));
+  }
+
+  public Observable<Status> observeUpdateStatus(String text) {
+    return twitterApi.updateStatus(text)
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnNext(createUpsertAction())
+        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_updateStatus_success));
+  }
+
+  public Observable<Status> observeUpdateStatus(StatusUpdate statusUpdate) {
+    return twitterApi.updateStatus(statusUpdate)
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnNext(createUpsertAction())
+        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed))
+        .doOnCompleted(onCompleteFeedback(R.string.msg_updateStatus_success));
   }
 
   @NonNull
