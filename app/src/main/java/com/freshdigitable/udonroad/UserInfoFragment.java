@@ -133,8 +133,13 @@ public class UserInfoFragment extends Fragment {
           R.id.action_unblock, R.id.action_block, menu);
       switchVisibility(relationship.isSourceMutingTarget(),
           R.id.action_unmute, R.id.action_mute, menu);
-      switchVisibility(relationship.isSourceWantRetweets(),
-          R.id.action_block_retweet, R.id.action_unblock_retweet, menu);
+      if (relationship.isSourceFollowingTarget()) {
+        switchVisibility(relationship.isSourceWantRetweets(),
+            R.id.action_block_retweet, R.id.action_unblock_retweet, menu);
+      } else {
+        menu.findItem(R.id.action_block_retweet).setVisible(false);
+        menu.findItem(R.id.action_unblock_retweet).setVisible(false);
+      }
     }
   }
 

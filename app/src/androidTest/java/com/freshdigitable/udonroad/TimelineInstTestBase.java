@@ -366,6 +366,9 @@ public abstract class TimelineInstTestBase {
   }
 
   protected int setupUserInfoTimeline(Relationship relationship) throws TwitterException {
+    if (!relationship.isSourceFollowingTarget() && relationship.isSourceWantRetweets()) {
+      throw new IllegalArgumentException("follower only can receive RT.");
+    }
     final User loginUser = getLoginUser();
     final ResponseList<Status> responseList = createDefaultResponseList(loginUser);
     this.responseList = responseList;

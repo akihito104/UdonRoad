@@ -36,33 +36,33 @@
                 android:orderInCategory="101"
             />
             <item
-                android:id="@+id/action_block"
-                android:title="@string/action_block"
-                android:orderInCategory="200"
-            />
-            <item
-                android:id="@+id/action_unblock"
-                android:title="@string/action_unblock"
-                android:orderInCategory="201"
-            />
-            <item
                 android:id="@+id/action_block_retweet"
                 android:title="@string/action_block_retweet"
-                android:orderInCategory="210"
+                android:orderInCategory="200"
             />
             <item
                 android:id="@+id/action_unblock_retweet"
                 android:title="@string/action_unblock_retweet"
-                android:orderInCategory="211"
+                android:orderInCategory="201"
             />
             <item
                 android:id="@+id/action_mute"
                 android:title="@string/action_mute"
-                android:orderInCategory="220"
+                android:orderInCategory="210"
             />
             <item
                 android:id="@+id/action_unmute"
                 android:title="@string/action_unmute"
+                android:orderInCategory="211"
+            />
+            <item
+                android:id="@+id/action_block"
+                android:title="@string/action_block"
+                android:orderInCategory="220"
+            />
+            <item
+                android:id="@+id/action_unblock"
+                android:title="@string/action_unblock"
                 android:orderInCategory="221"
             />
             <item

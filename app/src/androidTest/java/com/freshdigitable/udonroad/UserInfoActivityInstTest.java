@@ -58,6 +58,10 @@ import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UN
 import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNBLOCK_RT;
 import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNFOLLOW;
 import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.UNMUTE;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.AltAction.BLOCKING;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.AltAction.BLOCKING_RT;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.AltAction.FOLLOWING;
+import static com.freshdigitable.udonroad.UserInfoActivityInstTest.AltAction.MUTING;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -113,7 +117,10 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      checkVisibleMenuItem(UNFOLLOW, BLOCK, MUTE, BLOCK_RT);
+      FOLLOWING.checkVisibleItemIs(UNFOLLOW);
+      BLOCKING.checkVisibleItemIs(BLOCK);
+      MUTING.checkVisibleItemIs(MUTE);
+      BLOCKING_RT.checkVisibleItemIs(BLOCK_RT);
       pressBack();
     }
 
@@ -139,7 +146,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
-      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      when(relationship.isSourceWantRetweets()).thenReturn(false);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -149,7 +156,10 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      checkVisibleMenuItem(FOLLOW, BLOCK, MUTE, BLOCK_RT);
+      FOLLOWING.checkVisibleItemIs(FOLLOW);
+      BLOCKING.checkVisibleItemIs(BLOCK);
+      MUTING.checkVisibleItemIs(MUTE);
+      BLOCKING_RT.checkBothInvisible();
       pressBack();
     }
 
@@ -163,7 +173,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(isDisplayed()));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      UNMUTE.checkVisible();
+      MUTING.checkVisibleItemIs(UNMUTE);
       pressBack();
     }
 
@@ -177,7 +187,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(isDisplayed()));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      UNFOLLOW.checkVisible();
+      FOLLOWING.checkVisibleItemIs(UNFOLLOW);
       pressBack();
     }
 
@@ -192,7 +202,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      UNBLOCK.checkVisible();
+      BLOCKING.checkVisibleItemIs(UNBLOCK);
       pressBack();
     }
   }
@@ -204,7 +214,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(true);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
-      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      when(relationship.isSourceWantRetweets()).thenReturn(false);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -214,7 +224,10 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      checkVisibleMenuItem(FOLLOW, UNBLOCK, MUTE, BLOCK_RT);
+      FOLLOWING.checkVisibleItemIs(FOLLOW);
+      BLOCKING.checkVisibleItemIs(UNBLOCK);
+      MUTING.checkVisibleItemIs(MUTE);
+      BLOCKING_RT.checkBothInvisible();
       pressBack();
     }
 
@@ -228,7 +241,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      BLOCK.checkVisible();
+      BLOCKING.checkVisibleItemIs(BLOCK);
       pressBack();
     }
   }
@@ -240,7 +253,7 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(true);
-      when(relationship.isSourceWantRetweets()).thenReturn(true);
+      when(relationship.isSourceWantRetweets()).thenReturn(false);
       return setupUserInfoTimeline(relationship);
     }
 
@@ -250,7 +263,10 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      checkVisibleMenuItem(FOLLOW, BLOCK, UNMUTE, BLOCK_RT);
+      FOLLOWING.checkVisibleItemIs(FOLLOW);
+      BLOCKING.checkVisibleItemIs(BLOCK);
+      MUTING.checkVisibleItemIs(UNMUTE);
+      BLOCKING_RT.checkBothInvisible();
       pressBack();
     }
 
@@ -264,7 +280,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      MUTE.checkVisible();
+      MUTING.checkVisibleItemIs(MUTE);
       pressBack();
     }
   }
@@ -286,7 +302,10 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      checkVisibleMenuItem(UNFOLLOW, BLOCK, UNMUTE, BLOCK_RT);
+      FOLLOWING.checkVisibleItemIs(UNFOLLOW);
+      BLOCKING.checkVisibleItemIs(BLOCK);
+      MUTING.checkVisibleItemIs(UNMUTE);
+      BLOCKING_RT.checkVisibleItemIs(BLOCK_RT);
       pressBack();
     }
   }
@@ -307,14 +326,11 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
 
       onView(withId(R.id.action_group_user)).perform(click());
-      checkVisibleMenuItem(UNFOLLOW, BLOCK, MUTE, UNBLOCK_RT);
+      FOLLOWING.checkVisibleItemIs(UNFOLLOW);
+      BLOCKING.checkVisibleItemIs(BLOCK);
+      MUTING.checkVisibleItemIs(MUTE);
+      BLOCKING_RT.checkVisibleItemIs(UNBLOCK_RT);
       pressBack();
-    }
-  }
-
-  private static void checkVisibleMenuItem(ActionItem... items) {
-    for (ActionItem i : items) {
-      i.checkVisible();
     }
   }
 
@@ -328,16 +344,21 @@ public class UserInfoActivityInstTest {
       this.a2 = a2;
     }
 
-    static ActionItem findAltActionItem(ActionItem actionItem) {
-      for (AltAction a : values()) {
-        if (a.a1 == actionItem) {
-          return a.a2;
-        }
-        if (a.a2 == actionItem) {
-          return a.a1;
-        }
+    void checkVisibleItemIs(ActionItem item) {
+      if (item != a1 && item != a2) {
+        throw new IllegalArgumentException();
       }
-      throw new IllegalArgumentException("not registered alt action: " + actionItem);
+      item.checkVisible();
+      if (item == a1) {
+        a2.checkInvisible();
+      } else {
+        a1.checkInvisible();
+      }
+    }
+
+    void checkBothInvisible() {
+      a1.checkInvisible();
+      a2.checkInvisible();
     }
   }
 
@@ -355,8 +376,10 @@ public class UserInfoActivityInstTest {
 
     void checkVisible() {
       onView(withText(actionId)).check(matches(isDisplayed()));
-      final int altActionId = AltAction.findAltActionItem(this).actionId;
-      onView(withText(altActionId)).check(doesNotExist());
+    }
+
+    private void checkInvisible() {
+      onView(withText(actionId)).check(doesNotExist());
     }
   }
 
