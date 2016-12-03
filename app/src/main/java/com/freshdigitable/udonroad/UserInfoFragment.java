@@ -41,6 +41,7 @@ import com.squareup.picasso.Picasso;
 import javax.inject.Inject;
 
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import twitter4j.RateLimitStatus;
@@ -79,10 +80,6 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
-    final long userId = getUserId();
-    configRequestWorker.observeFetchRelationship(userId)
-        .doOnNext(updateRelationship())
-        .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
   }
 
   @Override
@@ -92,10 +89,15 @@ public class UserInfoFragment extends Fragment {
     configRequestWorker.open();
 
     final long userId = getUserId();
+    configRequestWorker.observeFetchRelationship(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnNext(updateRelationship())
+        .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
     final TypedCache<User> userCache = userRequestWorker.getCache();
     final User user = userCache.find(userId);
     showUserInfo(user);
     subscription = userCache.observeById(userId)
+        .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<User>() {
           @Override
           public void call(User user) {
