@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.view.View;
 import android.widget.Toast;
 
@@ -63,7 +62,7 @@ public class UserFeedbackSubscriber {
           public void call(final UserFeedbackEvent msg) {
             Subscription schedule = null;
             try {
-              final Action0 feedbackAction = createFeedbackAction(msg.msgResId);
+              final Action0 feedbackAction = createFeedbackAction(msg);
               schedule = AndroidSchedulers.mainThread().createWorker()
                   .schedule(feedbackAction);
               Thread.sleep(1000);
@@ -76,15 +75,16 @@ public class UserFeedbackSubscriber {
             }
           }
 
-          private Action0 createFeedbackAction(@StringRes final int msg) {
+          private Action0 createFeedbackAction(final UserFeedbackEvent msg) {
             final View view = rootView.get();
+            final CharSequence message = msg.createMessage(context);
             if (view != null) {
-              return SnackBarUtil.action(view, msg);
+              return SnackBarUtil.action(view, message);
             }
             return new Action0() {
               @Override
               public void call() {
-                final Toast toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
+                final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
                 toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
                 toast.show();
               }

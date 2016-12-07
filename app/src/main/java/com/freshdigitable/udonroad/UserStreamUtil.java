@@ -139,7 +139,9 @@ public class UserStreamUtil {
     public void onStatus(final Status status) {
       statusPublishSubject.onNext(status);
       if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == userId) {
-        feedback.onNext(new UserFeedbackEvent(R.string.msg_retweeted_by_someone));
+        feedback.onNext(
+            new UserFeedbackEvent(R.string.msg_retweeted_by_someone,
+                status.getUser().getScreenName()));
       }
     }
 
@@ -148,14 +150,16 @@ public class UserStreamUtil {
       Log.d(TAG, "onFavorite: src> " + source.getScreenName() + ", tgt> " + target.getScreenName() +
           ", stt> " + favoritedStatus.getText());
       if (target.getId() == userId) {
-        feedback.onNext(new UserFeedbackEvent(R.string.msg_faved_by_someone));
+        feedback.onNext(
+            new UserFeedbackEvent(R.string.msg_faved_by_someone, source.getScreenName()));
       }
     }
 
     @Override
     public void onFollow(User source, User followedUser) {
       if (followedUser.getId() == userId) {
-        feedback.onNext(new UserFeedbackEvent(R.string.msg_followed_by_someone));
+        feedback.onNext(
+            new UserFeedbackEvent(R.string.msg_followed_by_someone, source.getScreenName()));
       }
     }
 

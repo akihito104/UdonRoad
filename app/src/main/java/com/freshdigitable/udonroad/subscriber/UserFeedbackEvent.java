@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
+import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 
 /**
@@ -23,10 +25,20 @@ import android.support.annotation.StringRes;
  */
 
 public class UserFeedbackEvent {
-    @StringRes
-    final int msgResId;
+  @StringRes
+  private final int msgResId;
+  private final Object[] args;
 
-    public UserFeedbackEvent(@StringRes int msgResId) {
-      this.msgResId = msgResId;
-    }
+  public UserFeedbackEvent(@StringRes int msgResId) {
+    this(msgResId, (String[]) null);
+  }
+
+  public UserFeedbackEvent(@StringRes int msgResId, @Nullable String... args) {
+    this.msgResId = msgResId;
+    this.args = args;
+  }
+
+  CharSequence createMessage(Context context) {
+    return context.getString(msgResId, args);
+  }
 }
