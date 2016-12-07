@@ -60,6 +60,7 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
+import twitter4j.TwitterStream;
 import twitter4j.User;
 import twitter4j.UserStreamListener;
 
@@ -91,6 +92,8 @@ import static org.mockito.Mockito.when;
 public abstract class TimelineInstTestBase {
   @Inject
   Twitter twitter;
+  @Inject
+  TwitterStream twitterStream;
   @Inject
   TypedCache<Status> statusCache;
   @Inject
@@ -192,6 +195,7 @@ public abstract class TimelineInstTestBase {
     when(twitter.getId()).thenReturn(userId);
     when(twitter.showUser(userId)).thenReturn(loginUser);
     when(twitter.verifyCredentials()).thenReturn(loginUser);
+    when(twitterStream.getId()).thenReturn(userId);
 
     final IDs ignoringUserIDsMock = mock(IDs.class);
     when(ignoringUserIDsMock.getIDs()).thenReturn(new long[0]);

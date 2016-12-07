@@ -60,6 +60,10 @@
     <string name="msg_fetch_relationship_failed">failed to get friendship with this user…</string>
     <string name="msg_updateStatus_failed">failed to send tweet…</string>
     <string name="msg_updateStatus_success">tweeted</string>
+    <string name="msg_userId_failed">failed to get User ID…</string>
+    <string name="msg_faved_by_someone">your tweet was favoried</string>
+    <string name="msg_followed_by_someone">followed</string>
+    <string name="msg_retweeted_by_someone">your tweet was retweeted</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>

@@ -20,6 +20,10 @@ import android.content.SharedPreferences;
 
 import javax.inject.Inject;
 
+import rx.Observable;
+import rx.Subscriber;
+import rx.schedulers.Schedulers;
+import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.UserStreamListener;
 import twitter4j.auth.AccessToken;
@@ -51,5 +55,19 @@ public class TwitterStreamApi {
   public void disconnectStreamListener() {
     twitterStream.shutdown();
     twitterStream.clearListeners();
+  }
+
+  public Observable<Long> getId() {
+    return Observable.create(new Observable.OnSubscribe<Long>() {
+      @Override
+      public void call(Subscriber<? super Long> subscriber) {
+        try {
+          subscriber.onNext(twitterStream.getId());
+          subscriber.onCompleted();
+        } catch (TwitterException e) {
+          subscriber.onError(e);
+        }
+      }
+    }).subscribeOn(Schedulers.io());
   }
 }
