@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.module;
 import android.content.Context;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import javax.inject.Singleton;
@@ -69,13 +70,13 @@ public class TwitterApiModule {
 
   @Singleton
   @Provides
-  public UserFeedbackSubscriber provideUserFeedbackSubscriber(PublishSubject<Integer> pub) {
+  public UserFeedbackSubscriber provideUserFeedbackSubscriber(PublishSubject<UserFeedbackEvent> pub) {
     return new UserFeedbackSubscriber(context, pub);
   }
 
   @Provides
   @Singleton
-  public PublishSubject<Integer> providePublishSubjectInteger() {
+  public PublishSubject<UserFeedbackEvent> providePublishSubjectUserFeedbackEvent() {
     return PublishSubject.create();
   }
 }

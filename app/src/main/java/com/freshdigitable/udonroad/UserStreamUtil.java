@@ -21,6 +21,7 @@ import android.util.Log;
 import com.android.annotations.NonNull;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -48,12 +49,12 @@ import twitter4j.UserStreamListener;
 public class UserStreamUtil {
   private static final String TAG = UserStreamUtil.class.getSimpleName();
   private final TwitterStreamApi streamApi;
-  private final PublishSubject<Integer> feedback;
+  private final PublishSubject<UserFeedbackEvent> feedback;
   private long userId;
 
   @Inject
   public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
-                        @NonNull PublishSubject<Integer> feedback) {
+                        @NonNull PublishSubject<UserFeedbackEvent> feedback) {
     this.streamApi = streamApi;
     this.feedback = feedback;
   }
@@ -111,7 +112,7 @@ public class UserStreamUtil {
             @Override
             public void call(Throwable throwable) {
               Log.e(TAG, "connect: ", throwable);
-              feedback.onNext(R.string.msg_userId_failed);
+              feedback.onNext(new UserFeedbackEvent(R.string.msg_userId_failed));
             }
           });
       isConnectedUserStream = true;
@@ -138,7 +139,7 @@ public class UserStreamUtil {
     public void onStatus(final Status status) {
       statusPublishSubject.onNext(status);
       if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == userId) {
-        feedback.onNext(R.string.msg_retweeted_by_someone);
+        feedback.onNext(new UserFeedbackEvent(R.string.msg_retweeted_by_someone));
       }
     }
 
@@ -147,14 +148,14 @@ public class UserStreamUtil {
       Log.d(TAG, "onFavorite: src> " + source.getScreenName() + ", tgt> " + target.getScreenName() +
           ", stt> " + favoritedStatus.getText());
       if (target.getId() == userId) {
-        feedback.onNext(R.string.msg_faved_by_someone);
+        feedback.onNext(new UserFeedbackEvent(R.string.msg_faved_by_someone));
       }
     }
 
     @Override
     public void onFollow(User source, User followedUser) {
       if (followedUser.getId() == userId) {
-        feedback.onNext(R.string.msg_followed_by_someone);
+        feedback.onNext(new UserFeedbackEvent(R.string.msg_followed_by_someone));
       }
     }
 

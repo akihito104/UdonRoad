@@ -44,7 +44,7 @@ public class UserRequestWorker<T extends BaseOperation<User>>
   @Inject
   public UserRequestWorker(@NonNull TwitterApi twitterApi,
                            @NonNull T userStore,
-                           @NonNull PublishSubject<Integer> feedback) {
+                           @NonNull PublishSubject<UserFeedbackEvent> feedback) {
     super(twitterApi, userStore, feedback);
   }
 

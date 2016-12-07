@@ -55,7 +55,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
   public StatusRequestWorker(@NonNull TwitterApi twitterApi,
                              @NonNull T statusStore,
                              @NonNull ConfigStore configStore,
-                             @NonNull PublishSubject<Integer> userFeedback) {
+                             @NonNull PublishSubject<UserFeedbackEvent> userFeedback) {
     super(twitterApi, statusStore, userFeedback);
     this.configStore = configStore;
   }
@@ -145,7 +145,9 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
             if (msg == R.string.msg_already_fav) {
               updateStatus();
             }
-            userFeedback.onNext(msg > 0 ? msg : R.string.msg_fav_create_failed);
+            final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0
+                ? msg : R.string.msg_fav_create_failed);
+            userFeedback.onNext(event);
           }
 
           private void updateStatus() {
@@ -178,7 +180,9 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
             if (msg == R.string.msg_already_rt) {
               updateStatus();
             }
-            userFeedback.onNext(msg > 0 ? msg : R.string.msg_rt_create_failed);
+            final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0 ?
+                msg : R.string.msg_rt_create_failed);
+            userFeedback.onNext(event);
           }
 
           private void updateStatus() {

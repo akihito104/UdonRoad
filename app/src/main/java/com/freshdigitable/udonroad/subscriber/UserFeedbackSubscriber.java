@@ -42,11 +42,11 @@ public class UserFeedbackSubscriber {
   @SuppressWarnings("unused")
   private static final String TAG = UserFeedbackSubscriber.class.getSimpleName();
   private Subscription feedbackSubscription;
-  private final PublishSubject<Integer> feedbackSubject;
+  private final PublishSubject<UserFeedbackEvent> feedbackSubject;
   private final Context context;
 
   public UserFeedbackSubscriber(@NonNull Context context,
-                                PublishSubject<Integer> feedbackSubject) {
+                                PublishSubject<UserFeedbackEvent> feedbackSubject) {
     this.context = context;
     this.feedbackSubject = feedbackSubject;
     subscribe();
@@ -58,12 +58,12 @@ public class UserFeedbackSubscriber {
     }
     this.feedbackSubscription = this.feedbackSubject.onBackpressureBuffer()
         .observeOn(Schedulers.newThread())
-        .subscribe(new Action1<Integer>() {
+        .subscribe(new Action1<UserFeedbackEvent>() {
           @Override
-          public void call(final Integer msg) {
+          public void call(final UserFeedbackEvent msg) {
             Subscription schedule = null;
             try {
-              final Action0 feedbackAction = createFeedbackAction(msg);
+              final Action0 feedbackAction = createFeedbackAction(msg.msgResId);
               schedule = AndroidSchedulers.mainThread().createWorker()
                   .schedule(feedbackAction);
               Thread.sleep(1000);

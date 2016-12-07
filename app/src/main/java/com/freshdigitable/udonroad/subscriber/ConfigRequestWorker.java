@@ -57,7 +57,7 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   public ConfigRequestWorker(@NonNull TwitterApi twitterApi,
                              @NonNull ConfigStore configStore,
                              @NonNull AppSettingStore appSettings,
-                             @NonNull PublishSubject<Integer> userFeedback) {
+                             @NonNull PublishSubject<UserFeedbackEvent> userFeedback) {
     super(twitterApi, configStore, userFeedback);
     this.appSettings = appSettings;
   }
