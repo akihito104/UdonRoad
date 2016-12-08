@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.support.annotation.Nullable;
+
 /**
  * Created by akihit on 2016/11/07.
  */
@@ -23,11 +25,11 @@ package com.freshdigitable.udonroad.datastore;
 public interface StatusReaction {
   long getId();
 
-  void setRetweeted(boolean retweeted);
+  void setRetweeted(@Nullable Boolean retweeted);
 
-  boolean isRetweeted();
+  Boolean isRetweeted();
 
-  void setFavorited(boolean favorited);
+  void setFavorited(@Nullable Boolean favorited);
 
-  boolean isFavorited();
+  Boolean isFavorited();
 }
