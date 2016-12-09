@@ -26,6 +26,8 @@ import android.widget.TextView;
 
 import twitter4j.Status;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * StatusDetailView is a View to show in StatusDetailFragment.
  *

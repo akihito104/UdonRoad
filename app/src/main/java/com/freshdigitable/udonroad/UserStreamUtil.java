@@ -42,6 +42,8 @@ import twitter4j.User;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * UserStreamUtil transforms twitter stream to observable subscription.
  *
@@ -165,7 +167,7 @@ public class UserStreamUtil {
             new UserFeedbackEvent(R.string.msg_faved_by_someone, source.getScreenName()));
       } else if (source.getId() == userId) {
         final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(favoritedStatus);
-        (perspectivalStatus.isRetweet() ? perspectivalStatus.getRetweetedStatus() : perspectivalStatus).getStatusReaction().setFavorited(true);
+        getBindingStatus(perspectivalStatus).getStatusReaction().setFavorited(true);
         statusPublishSubject.onNext(perspectivalStatus);
       }
     }

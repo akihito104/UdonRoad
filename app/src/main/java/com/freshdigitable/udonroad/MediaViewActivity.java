@@ -64,6 +64,8 @@ import rx.Observable;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * MediaViewActivity shows picture or video in Status.
  *
@@ -88,7 +90,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   public static Intent create(@NonNull Context context, @NonNull Status status, int startPage) {
-    final Status bindingStatus = StatusViewImageHelper.getBindingStatus(status);
+    final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getExtendedMediaEntities().length < startPage + 1) {
       throw new IllegalArgumentException(
           "startPage number exceeded ExtendedMediaEntities length: " + startPage);
@@ -214,7 +216,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       return;
     }
     final ExtendedMediaEntity[] bindingMediaEntities
-        = StatusViewImageHelper.getBindingStatus(status).getExtendedMediaEntities();
+        = getBindingStatus(status).getExtendedMediaEntities();
     final int startPage = intent.getIntExtra(CREATE_START, 0);
     binding.mediaPager.setAdapter(
         new MediaPagerAdapter(getSupportFragmentManager(), bindingMediaEntities));

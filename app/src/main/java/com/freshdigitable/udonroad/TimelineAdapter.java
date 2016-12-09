@@ -34,6 +34,8 @@ import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * TimelineAdapter is a adapter for RecyclerView.
  *
@@ -123,7 +125,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
 
   private void setupMediaView(final Status status, final StatusViewBase statusView) {
     final ExtendedMediaEntity[] extendedMediaEntities
-        = StatusViewImageHelper.getBindingStatus(status).getExtendedMediaEntities();
+        = getBindingStatus(status).getExtendedMediaEntities();
     if (extendedMediaEntities.length < 1) {
       return;
     }

@@ -43,6 +43,7 @@ import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
 
 /**
@@ -256,7 +257,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     if (status == null) {
       return Observable.empty();
     }
-    final StatusRealm bindingStatus = (StatusRealm) bindingStatus(status);
+    final StatusRealm bindingStatus = getBindingStatus(status);
     final Observable<Status> statusObservable
         = statusChangesObservable(bindingStatus, status);
     final Observable<Status> quotedObservable
@@ -267,10 +268,6 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
         = reactionObservable(bindingStatus.getQuotedStatusId(), status);
     return Observable.merge(
         statusObservable, quotedObservable, reactionObservable, qReactionObservable);
-  }
-
-  private static Status bindingStatus(Status status) {
-    return status.isRetweet() ? status.getRetweetedStatus() : status;
   }
 
   private Observable<Status> statusChangesObservable(@Nullable final StatusRealm bindings,
@@ -289,7 +286,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
           @Override
           public void onChange(StatusRealm element) {
-            final Status bindings = bindingStatus(element);
+            final Status bindings = getBindingStatus(element);
             if (isIgnorableChange(bindings)) {
               return;
             }
@@ -317,7 +314,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       @Override
       public Status call(Status status) {
         final long statusId = status.getId();
-        final StatusRealm binds = (StatusRealm) bindingStatus(original);
+        final StatusRealm binds = getBindingStatus(original);
         if (binds.getId() == statusId) {
           binds.setRetweetedStatus(status);
         } else if (binds.getQuotedStatusId() == statusId) {
@@ -330,7 +327,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
   private Observable<Status> reactionObservable(final long statusId,
                                                 @NonNull final StatusRealm original) {
-    final StatusRealm bindings = (StatusRealm) bindingStatus(original);
+    final StatusRealm bindings = getBindingStatus(original);
     return configStore.observeById(statusId)
         .map(new Func1<StatusReaction, Status>() {
           @Override

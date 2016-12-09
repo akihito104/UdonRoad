@@ -46,12 +46,8 @@ public class PerspectivalStatusImpl implements PerspectivalStatus {
   private final PerspectivalStatus quotedStatus;
 
   public PerspectivalStatusImpl(@NonNull Status status) {
-    this(status, new StatusReactionImpl(status));
-  }
-
-  public PerspectivalStatusImpl(@NonNull Status status, StatusReaction reaction) {
     this.status = status;
-    this.reaction = reaction;
+    this.reaction = new StatusReactionImpl(status);
     this.retweetedStatus = status.isRetweet()
         ? new PerspectivalStatusImpl(status.getRetweetedStatus()) : null;
     this.quotedStatus = status.getQuotedStatusId() > 0

@@ -27,6 +27,8 @@ import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * StatusViewImageHelper provides image loader for StatusView.
  *
@@ -73,12 +75,6 @@ public class StatusViewImageHelper {
 
   public static User getBindingUser(Status status) {
     return getBindingStatus(status).getUser();
-  }
-
-  public static Status getBindingStatus(Status status) {
-    return status.isRetweet()
-        ? status.getRetweetedStatus()
-        : status;
   }
 
   private static void loadRTUserIcon(Status status, FullStatusView itemView) {
