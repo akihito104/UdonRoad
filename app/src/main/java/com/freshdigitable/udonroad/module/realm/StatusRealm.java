@@ -220,11 +220,11 @@ public class StatusRealm extends RealmObject implements Status {
 
   void merge(@NonNull Status s) {
     final int favoriteCount = s.getFavoriteCount();
-    if (favoriteCount > 0 && favoriteCount != this.favoriteCount) { // favoriteCount is nullable
+    if (favoriteCount >= 0 && favoriteCount != this.favoriteCount) { // favoriteCount is nullable
       this.favoriteCount = favoriteCount;
     }
     final int retweetCount = s.getRetweetCount();
-    if (retweetCount > 0 && retweetCount != this.retweetCount) {  // retweetCount is nullable
+    if (retweetCount >= 0 && retweetCount != this.retweetCount) {  // retweetCount is nullable
       this.retweetCount = retweetCount;
     }
   }

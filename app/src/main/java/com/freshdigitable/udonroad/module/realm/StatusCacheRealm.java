@@ -21,7 +21,9 @@ import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
+import com.freshdigitable.udonroad.datastore.PerspectivalStatus;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
+import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -175,7 +177,11 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
   private Collection<StatusReaction> splitUpsertingStatusReaction(Collection<Status> statuses) {
     Map<Long, StatusReaction> res = new LinkedHashMap<>(statuses.size());
     for (Status s : statuses) {
-      res.put(s.getId(), new StatusReactionRealm(s));
+      if (s instanceof PerspectivalStatus) {
+        res.put(s.getId(), ((PerspectivalStatus) s).getStatusReaction());
+      } else {
+        res.put(s.getId(), new StatusReactionImpl(s));
+      }
     }
     return res.values();
   }

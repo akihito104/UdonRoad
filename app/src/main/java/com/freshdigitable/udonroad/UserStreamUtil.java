@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.util.Log;
 
 import com.android.annotations.NonNull;
+import com.freshdigitable.udonroad.datastore.PerspectivalStatusImpl;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
@@ -137,12 +138,22 @@ public class UserStreamUtil {
 
     @Override
     public void onStatus(final Status status) {
-      statusPublishSubject.onNext(status);
-      if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == userId) {
-        feedback.onNext(
-            new UserFeedbackEvent(R.string.msg_retweeted_by_someone,
-                status.getUser().getScreenName()));
+      if (isRetweetOfMine(status)) {
+        final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(status);
+        perspectivalStatus.getRetweetedStatus().getStatusReaction().setRetweeted(true);
+        statusPublishSubject.onNext(perspectivalStatus);
+      } else {
+        statusPublishSubject.onNext(status);
+        if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == userId) {
+          feedback.onNext(
+              new UserFeedbackEvent(R.string.msg_retweeted_by_someone,
+                  status.getUser().getScreenName()));
+        }
       }
+    }
+
+    private boolean isRetweetOfMine(Status status) {
+      return status.isRetweet() && status.getUser().getId() == userId;
     }
 
     @Override
@@ -152,6 +163,10 @@ public class UserStreamUtil {
       if (target.getId() == userId) {
         feedback.onNext(
             new UserFeedbackEvent(R.string.msg_faved_by_someone, source.getScreenName()));
+      } else if (source.getId() == userId) {
+        final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(favoritedStatus);
+        (perspectivalStatus.isRetweet() ? perspectivalStatus.getRetweetedStatus() : perspectivalStatus).getStatusReaction().setFavorited(true);
+        statusPublishSubject.onNext(perspectivalStatus);
       }
     }
 

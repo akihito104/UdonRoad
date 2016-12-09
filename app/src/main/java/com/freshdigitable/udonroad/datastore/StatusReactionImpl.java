@@ -30,9 +30,13 @@ public class StatusReactionImpl implements StatusReaction {
   private Boolean retweeted;
 
   public StatusReactionImpl(Status status) {
-    this.id = status.getId();
-    this.favorited = status.isFavorited();
-    this.retweeted = status.isRetweeted();
+    this(status.getId(), status.isRetweeted(), status.isFavorited());
+  }
+
+  public StatusReactionImpl(long statusId, Boolean retweeted, Boolean favorited) {
+    this.id = statusId;
+    this.retweeted = retweeted;
+    this.favorited = favorited;
   }
 
   @Override
