@@ -34,6 +34,8 @@ import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 /**
+ * PerspectivalStatusImpl is as a wrapper class of Status.
+ *
  * Created by akihit on 2016/12/08.
  */
 

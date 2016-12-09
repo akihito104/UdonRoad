@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.PerspectivalStatus;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
 
@@ -40,7 +41,7 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
-public class StatusRealm extends RealmObject implements Status {
+public class StatusRealm extends RealmObject implements PerspectivalStatus {
   static final String KEY_ID = "id";
   static final String KEY_RETWEETED_STATUS_ID = "retweetedStatusId";
   static final String KEY_QUOTAD_STATUS_ID = "quotedStatusId";
@@ -214,8 +215,14 @@ public class StatusRealm extends RealmObject implements Status {
     return userId;
   }
 
-  void setReaction(StatusReaction reaction) {
+  @Override
+  public void setStatusReaction(StatusReaction reaction) {
     this.reaction = reaction;
+  }
+
+  @Override
+  public StatusReaction getStatusReaction() {
+    return reaction;
   }
 
   void merge(@NonNull Status s) {

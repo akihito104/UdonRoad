@@ -19,6 +19,9 @@ package com.freshdigitable.udonroad.datastore;
 import twitter4j.Status;
 
 /**
+ * PerspectivalStatus is to define Status has StatusReaction.
+ * StatusReaction is a perspective data of Status.
+ *
  * Created by akihit on 2016/12/08.
  */
 

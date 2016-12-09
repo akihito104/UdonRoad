@@ -337,9 +337,9 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
           public Status call(StatusReaction reaction) {
             final long statusId = reaction.getId();
             if (bindings.getId() == statusId) {
-              bindings.setReaction(reaction);
+              bindings.setStatusReaction(reaction);
             } else if (bindings.getQuotedStatusId() == statusId) {
-              ((StatusRealm) bindings.getQuotedStatus()).setReaction(reaction);
+              ((StatusRealm) bindings.getQuotedStatus()).setStatusReaction(reaction);
             }
             return original;
           }
@@ -358,7 +358,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
       return null;
     }
     status.setUser(userTypedCache.find(status.getUserId()));
-    status.setReaction(configStore.find(id));
+    status.setStatusReaction(configStore.find(id));
     return status;
   }
 
