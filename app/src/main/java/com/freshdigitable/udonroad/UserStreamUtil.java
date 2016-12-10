@@ -16,9 +16,10 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.android.annotations.NonNull;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatusImpl;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
@@ -54,12 +55,15 @@ public class UserStreamUtil {
   private final TwitterStreamApi streamApi;
   private final PublishSubject<UserFeedbackEvent> feedback;
   private long userId;
+  private final AppSettingStore appSettings;
 
   @Inject
   public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
+                        @NonNull AppSettingStore appSettings,
                         @NonNull PublishSubject<UserFeedbackEvent> feedback) {
     this.streamApi = streamApi;
     this.feedback = feedback;
+    this.appSettings = appSettings;
   }
 
   private boolean isConnectedUserStream = false;
@@ -102,35 +106,31 @@ public class UserStreamUtil {
           }, onErrorAction);
     }
     if (!isConnectedUserStream) {
-      streamApi.loadAccessToken();
+      appSettings.open();
+      streamApi.setOAuthAccessToken(appSettings.getCurrentUserAccessToken());
       streamApi.connectUserStream(statusListener);
-      streamApi.getId()
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<Long>() {
-            @Override
-            public void call(Long id) {
-              userId = id;
-            }
-          }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-              Log.e(TAG, "connect: ", throwable);
-              feedback.onNext(new UserFeedbackEvent(R.string.msg_userId_failed));
-            }
-          });
+      userId = appSettings.getCurrentUserId();
       isConnectedUserStream = true;
     }
   }
 
   public void disconnect() {
-    streamApi.disconnectStreamListener();
-    isConnectedUserStream = false;
+    if (isConnectedUserStream) {
+      appSettings.close();
+      streamApi.disconnectStreamListener();
+      isConnectedUserStream = false;
+    }
 
-    statusPublishSubject.onCompleted();
+    if (statusPublishSubject != null) {
+      statusPublishSubject.onCompleted();
+    }
     if (onStatusSubscription != null && !onStatusSubscription.isUnsubscribed()) {
       onStatusSubscription.unsubscribe();
     }
-    deletionPublishSubject.onCompleted();
+
+    if (deletionPublishSubject != null) {
+      deletionPublishSubject.onCompleted();
+    }
     if (onDeletionSubscription != null && !onDeletionSubscription.isUnsubscribed()) {
       onDeletionSubscription.unsubscribe();
     }

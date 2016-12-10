@@ -16,9 +16,6 @@
 
 package com.freshdigitable.udonroad.module.twitter;
 
-import android.content.SharedPreferences;
-import android.support.annotation.Nullable;
-
 import java.util.List;
 
 import javax.inject.Inject;
@@ -46,25 +43,15 @@ import twitter4j.auth.AccessToken;
 public class TwitterApi {
   @SuppressWarnings("unused")
   private static final String TAG = TwitterApi.class.getSimpleName();
-  private static final String TOKEN = "token";
-  private static final String TOKEN_SECRET = "token_secret";
-
   private final Twitter twitter;
-  private final SharedPreferences sharedPreference;
 
   @Inject
-  public TwitterApi(Twitter twitter, SharedPreferences sprefs) {
+  public TwitterApi(Twitter twitter) {
     this.twitter = twitter;
-    this.sharedPreference = sprefs;
   }
 
-  public boolean loadAccessToken() {
-    final AccessToken accessToken = loadAccessToken(sharedPreference);
-    if (accessToken == null) {
-      return false;
-    }
+  public void setOAuthAccessToken(AccessToken accessToken) {
     twitter.setOAuthAccessToken(accessToken);
-    return true;
   }
 
   public Observable<Long> getId() {
@@ -109,27 +96,6 @@ public class TwitterApi {
         }
       }
     }).subscribeOn(Schedulers.io());
-  }
-
-  public static void storeAccessToken(SharedPreferences sharedPreferences, AccessToken token) {
-    final SharedPreferences.Editor editor = sharedPreferences.edit();
-    editor.putString(TOKEN, token.getToken());
-    editor.putString(TOKEN_SECRET, token.getTokenSecret());
-    editor.apply();
-  }
-
-  @Nullable
-  public static AccessToken loadAccessToken(SharedPreferences sharedPreference) {
-    String token = sharedPreference.getString(TOKEN, null);
-    if (token == null) {
-      return null;
-    }
-    String tokenSecret = sharedPreference.getString(TOKEN_SECRET, null);
-    if (tokenSecret == null) {
-      return null;
-    }
-
-    return new AccessToken(token, tokenSecret);
   }
 
   public Observable<Status> updateStatus(final String sendingText) {

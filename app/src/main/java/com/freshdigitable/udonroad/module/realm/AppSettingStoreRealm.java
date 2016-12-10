@@ -21,12 +21,15 @@ import android.content.SharedPreferences;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
+import twitter4j.auth.AccessToken;
 
 import static com.freshdigitable.udonroad.subscriber.ConfigRequestWorker.TWITTER_API_CONFIG_DATE;
 
@@ -70,6 +73,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
       }
     });
   }
+
   @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
     realm.executeTransaction(new Realm.Transaction() {
@@ -137,5 +141,49 @@ public class AppSettingStoreRealm implements AppSettingStore {
     }
     final long now = System.currentTimeMillis();
     return now - lastTime > TimeUnit.DAYS.toMillis(1);
+  }
+
+  private static final String AUTHENTICATED_USERS = "authenticatedUsers";
+  private static final String CURRENT_USER_ID = "currentUserId";
+  private static final String ACCESS_TOKEN_PREFIX = "accessToken_";
+  private static final String TOKEN_SECRET_PREFIX = "tokenSecret_";
+
+  @Override
+  public void storeAccessToken(AccessToken token) {
+    final long userId = token.getUserId();
+    final Set<String> authedUsers = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<String>());
+    authedUsers.add(Long.toString(userId));
+
+    prefs.edit()
+        .putStringSet(AUTHENTICATED_USERS, authedUsers)
+        .putString(ACCESS_TOKEN_PREFIX + userId, token.getToken())
+        .putString(TOKEN_SECRET_PREFIX + userId, token.getTokenSecret())
+        .apply();
+  }
+
+  @Override
+  public AccessToken getCurrentUserAccessToken() {
+    final long currentUserId = getCurrentUserId();
+    if (currentUserId < 0) {
+      return null;
+    }
+    final String token = prefs.getString(ACCESS_TOKEN_PREFIX + currentUserId, null);
+    final String secret = prefs.getString(TOKEN_SECRET_PREFIX + currentUserId, null);
+    if (token == null || secret == null) {
+      return null;
+    }
+    return new AccessToken(token, secret);
+  }
+
+  @Override
+  public long getCurrentUserId() {
+    return prefs.getLong(CURRENT_USER_ID, -1);
+  }
+
+  @Override
+  public void setCurrentUserId(long userId) {
+    prefs.edit()
+        .putLong(CURRENT_USER_ID, userId)
+        .apply();
   }
 }

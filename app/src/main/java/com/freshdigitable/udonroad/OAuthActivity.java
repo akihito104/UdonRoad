@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -25,8 +24,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import javax.inject.Inject;
 
@@ -51,7 +50,7 @@ public class OAuthActivity extends AppCompatActivity {
   @Inject
   Twitter twitter;
   @Inject
-  SharedPreferences prefs;
+  AppSettingStore appSettings;
   private View oauthButton;
 
   @Override
@@ -74,6 +73,18 @@ public class OAuthActivity extends AppCompatActivity {
   protected void onDestroy() {
     super.onDestroy();
     oauthButton.setOnClickListener(null);
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+    appSettings.open();
+  }
+
+  @Override
+  protected void onStop() {
+    super.onStop();
+    appSettings.close();
   }
 
   private RequestToken requestToken;
@@ -170,8 +181,10 @@ public class OAuthActivity extends AppCompatActivity {
   private void checkOAuth(AccessToken accessToken) {
     if (accessToken == null) {
       Toast.makeText(this, "authentication is failed...", Toast.LENGTH_LONG).show();
+      return;
     }
-    TwitterApi.storeAccessToken(prefs, accessToken);
+    appSettings.storeAccessToken(accessToken);
+    appSettings.setCurrentUserId(accessToken.getUserId());
     Toast.makeText(this, "authentication is success!", Toast.LENGTH_LONG).show();
     Intent intent = new Intent(this, MainActivity.class);
     startActivity(intent);

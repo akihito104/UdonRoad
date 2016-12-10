@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.datastore;
 
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
+import twitter4j.auth.AccessToken;
 
 /**
  * Created by akihit on 2016/11/07.
@@ -33,4 +34,12 @@ public interface AppSettingStore extends BaseCache {
   TwitterAPIConfiguration getTwitterAPIConfig();
 
   boolean isTwitterAPIConfigFetchable();
+
+  void storeAccessToken(AccessToken accessToken);
+
+  AccessToken getCurrentUserAccessToken();
+
+  long getCurrentUserId();
+
+  void setCurrentUserId(long userId);
 }

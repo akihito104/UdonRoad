@@ -16,35 +16,22 @@
 
 package com.freshdigitable.udonroad.module.twitter;
 
-import android.content.SharedPreferences;
-
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.schedulers.Schedulers;
-import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.UserStreamListener;
 import twitter4j.auth.AccessToken;
 
 public class TwitterStreamApi {
   private final TwitterStream twitterStream;
-  private final SharedPreferences sharedPreferences;
 
   @Inject
-  public TwitterStreamApi(TwitterStream twitterStream, SharedPreferences sharedPreferences) {
+  public TwitterStreamApi(TwitterStream twitterStream) {
     this.twitterStream = twitterStream;
-    this.sharedPreferences = sharedPreferences;
   }
 
-  public boolean loadAccessToken() {
-    final AccessToken accessToken = TwitterApi.loadAccessToken(sharedPreferences);
-    if (accessToken == null) {
-      return false;
-    }
+  public void setOAuthAccessToken(AccessToken accessToken) {
     twitterStream.setOAuthAccessToken(accessToken);
-    return true;
   }
 
   public void connectUserStream(UserStreamListener listener) {
@@ -55,19 +42,5 @@ public class TwitterStreamApi {
   public void disconnectStreamListener() {
     twitterStream.shutdown();
     twitterStream.clearListeners();
-  }
-
-  public Observable<Long> getId() {
-    return Observable.create(new Observable.OnSubscribe<Long>() {
-      @Override
-      public void call(Subscriber<? super Long> subscriber) {
-        try {
-          subscriber.onNext(twitterStream.getId());
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
-      }
-    }).subscribeOn(Schedulers.io());
   }
 }

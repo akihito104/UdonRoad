@@ -43,6 +43,7 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -66,6 +67,7 @@ import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.auth.AccessToken;
 
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
@@ -96,17 +98,22 @@ public class MainActivity extends AppCompatActivity
   ConfigRequestWorker configRequestWorker;
   @Inject
   UserFeedbackSubscriber userFeedback;
+  @Inject
+  AppSettingStore appSettings;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     InjectionUtil.getComponent(this).inject(this);
-    if (!twitterApi.loadAccessToken()) {
+    appSettings.open();
+    final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
+    if (accessToken == null) {
       startActivity(new Intent(this, OAuthActivity.class));
       finish();
       return;
     }
+    twitterApi.setOAuthAccessToken(accessToken);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
@@ -284,16 +291,15 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    if (userStream != null) {
-      userStream.disconnect();
-    }
     if (binding != null) {
+      userStream.disconnect();
       binding.ffab.setOnFlingListener(null);
       binding.navDrawer.setNavigationItemSelectedListener(null);
+      configRequestWorker.close();
+      statusRequestWorker.close();
+      appSettings.close();
+      userFeedback.unsubscribe();
     }
-    configRequestWorker.close();
-    statusRequestWorker.close();
-    userFeedback.unsubscribe();
   }
 
   @Override
