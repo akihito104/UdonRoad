@@ -22,7 +22,6 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +32,8 @@ import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
 /**
+ * AppSettingStoreRealm is implementation of AppSettingStore with Realm.
+ *
  * Created by akihit on 2016/11/07.
  */
 
@@ -162,11 +163,12 @@ public class AppSettingStoreRealm implements AppSettingStore {
   @Override
   public void storeAccessToken(AccessToken token) {
     final long userId = token.getUserId();
-    final Set<String> authedUsers = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<String>());
-    authedUsers.add(Long.toString(userId));
+    final Set<String> authenticatedUsers
+        = prefs.getStringSet(AUTHENTICATED_USERS, Collections.<String>emptySet());
+    authenticatedUsers.add(Long.toString(userId));
 
     prefs.edit()
-        .putStringSet(AUTHENTICATED_USERS, authedUsers)
+        .putStringSet(AUTHENTICATED_USERS, authenticatedUsers)
         .putString(ACCESS_TOKEN_PREFIX + userId, token.getToken())
         .putString(TOKEN_SECRET_PREFIX + userId, token.getTokenSecret())
         .apply();
