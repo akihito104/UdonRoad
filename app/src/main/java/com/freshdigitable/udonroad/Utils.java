@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad;
 
-import android.support.annotation.Nullable;
+import twitter4j.Status;
 
 /**
- * Created by akihit on 2016/11/07.
+ * Utils is utility method class.
+ *
+ * Created by akihit on 2016/12/09.
  */
 
-public interface StatusReaction {
-  long getId();
+public class Utils {
+  @SuppressWarnings("unchecked")
+  public static <T extends Status> T getBindingStatus(T status) {
+    return status.isRetweet() ? (T) status.getRetweetedStatus() : status;
+  }
 
-  void setRetweeted(@Nullable Boolean retweeted);
-
-  Boolean isRetweeted();
-
-  void setFavorited(@Nullable Boolean favorited);
-
-  Boolean isFavorited();
+  private Utils() {}
 }

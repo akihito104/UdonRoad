@@ -98,8 +98,8 @@ public class TwitterResponseMock {
       when(rtStatus.getFavoriteCount()).thenReturn(favCount);
     } else {
       when(rtStatus.isRetweeted()).thenReturn(false);
-      when(rtStatus.getRetweetCount()).thenReturn(0);
-      when(rtStatus.getFavoriteCount()).thenReturn(0);
+      when(rtStatus.getRetweetCount()).thenReturn(-1);
+      when(rtStatus.getFavoriteCount()).thenReturn(-1);
     }
 
     final Status status = createStatus(newStatusId);

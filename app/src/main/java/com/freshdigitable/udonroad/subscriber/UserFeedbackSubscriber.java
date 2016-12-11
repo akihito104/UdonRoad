@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.view.View;
 import android.widget.Toast;
 
@@ -42,11 +41,11 @@ public class UserFeedbackSubscriber {
   @SuppressWarnings("unused")
   private static final String TAG = UserFeedbackSubscriber.class.getSimpleName();
   private Subscription feedbackSubscription;
-  private final PublishSubject<Integer> feedbackSubject;
+  private final PublishSubject<UserFeedbackEvent> feedbackSubject;
   private final Context context;
 
   public UserFeedbackSubscriber(@NonNull Context context,
-                                PublishSubject<Integer> feedbackSubject) {
+                                PublishSubject<UserFeedbackEvent> feedbackSubject) {
     this.context = context;
     this.feedbackSubject = feedbackSubject;
     subscribe();
@@ -58,9 +57,9 @@ public class UserFeedbackSubscriber {
     }
     this.feedbackSubscription = this.feedbackSubject.onBackpressureBuffer()
         .observeOn(Schedulers.newThread())
-        .subscribe(new Action1<Integer>() {
+        .subscribe(new Action1<UserFeedbackEvent>() {
           @Override
-          public void call(final Integer msg) {
+          public void call(final UserFeedbackEvent msg) {
             Subscription schedule = null;
             try {
               final Action0 feedbackAction = createFeedbackAction(msg);
@@ -76,15 +75,16 @@ public class UserFeedbackSubscriber {
             }
           }
 
-          private Action0 createFeedbackAction(@StringRes final int msg) {
+          private Action0 createFeedbackAction(final UserFeedbackEvent msg) {
             final View view = rootView.get();
+            final CharSequence message = msg.createMessage(context);
             if (view != null) {
-              return SnackBarUtil.action(view, msg);
+              return SnackBarUtil.action(view, message);
             }
             return new Action0() {
               @Override
               public void call() {
-                final Toast toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
+                final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
                 toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
                 toast.show();
               }

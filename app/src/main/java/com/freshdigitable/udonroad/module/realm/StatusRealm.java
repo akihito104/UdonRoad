@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.PerspectivalStatus;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
 
@@ -40,7 +41,7 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
-public class StatusRealm extends RealmObject implements Status {
+public class StatusRealm extends RealmObject implements PerspectivalStatus {
   static final String KEY_ID = "id";
   static final String KEY_RETWEETED_STATUS_ID = "retweetedStatusId";
   static final String KEY_QUOTAD_STATUS_ID = "quotedStatusId";
@@ -111,56 +112,26 @@ public class StatusRealm extends RealmObject implements Status {
     return id;
   }
 
-  public void setId(long id) {
-    this.id = id;
-  }
-
   public String getText() {
     return text;
-  }
-
-  public void setText(String text) {
-    this.text = text;
   }
 
   public String getSource() {
     return source;
   }
 
-  public void setSource(String source) {
-    this.source = source;
-  }
-
-  public boolean isTruncated() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public long getInReplyToStatusId() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public long getInReplyToUserId() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public String getInReplyToScreenName() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public GeoLocation getGeoLocation() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public Place getPlace() {
-    throw new RuntimeException("not implement yet.");
-  }
-
   public boolean isFavorited() {
-    return reaction != null && reaction.isFavorited();
+    if (reaction == null || reaction.isFavorited() == null) {
+      return false;
+    }
+    return reaction.isFavorited();
   }
 
   public boolean isRetweeted() {
-    return reaction != null && reaction.isRetweeted();
+    if (reaction == null || reaction.isRetweeted() == null) {
+      return false;
+    }
+    return reaction.isRetweeted();
   }
 
   public int getFavoriteCount() {
@@ -171,7 +142,7 @@ public class StatusRealm extends RealmObject implements Status {
     return user;
   }
 
-  public void setUser(User user) {
+  void setUser(User user) {
     this.user = user;
   }
 
@@ -187,36 +158,8 @@ public class StatusRealm extends RealmObject implements Status {
     this.retweetedStatus = retweetedStatus;
   }
 
-  public long[] getContributors() {
-    throw new RuntimeException("not implement yet.");
-  }
-
   public int getRetweetCount() {
     return retweetCount;
-  }
-
-  public boolean isRetweetedByMe() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public long getCurrentUserRetweetId() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public boolean isPossiblySensitive() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public String getLang() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public Scopes getScopes() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public String[] getWithheldInCountries() {
-    throw new RuntimeException("not implement yet.");
   }
 
   @Override
@@ -233,10 +176,6 @@ public class StatusRealm extends RealmObject implements Status {
     this.quotedStatus = quotedStatus;
   }
 
-  public int compareTo(@NonNull Status another) {
-    throw new RuntimeException("not implement yet.");
-  }
-
   public UserMentionEntity[] getUserMentionEntities() {
     return userMentionEntities.toArray(new UserMentionEntity[userMentionEntities.size()]);
   }
@@ -248,28 +187,12 @@ public class StatusRealm extends RealmObject implements Status {
     return urlEntities.toArray(new URLEntity[urlEntities.size()]);
   }
 
-  public HashtagEntity[] getHashtagEntities() {
-    throw new RuntimeException("not implement yet.");
-  }
-
   public MediaEntity[] getMediaEntities() {
     return getExtendedMediaEntities();
   }
 
   public ExtendedMediaEntity[] getExtendedMediaEntities() {
     return mediaEntities.toArray(new ExtendedMediaEntity[mediaEntities.size()]);
-  }
-
-  public SymbolEntity[] getSymbolEntities() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public RateLimitStatus getRateLimitStatus() {
-    throw new RuntimeException("not implement yet.");
-  }
-
-  public int getAccessLevel() {
-    throw new RuntimeException("not implement yet.");
   }
 
   @Override
@@ -292,18 +215,98 @@ public class StatusRealm extends RealmObject implements Status {
     return userId;
   }
 
-  void setReaction(StatusReaction reaction) {
+  @Override
+  public void setStatusReaction(StatusReaction reaction) {
     this.reaction = reaction;
+  }
+
+  @Override
+  public StatusReaction getStatusReaction() {
+    return reaction;
   }
 
   void merge(@NonNull Status s) {
     final int favoriteCount = s.getFavoriteCount();
-    if (favoriteCount > 0 && favoriteCount != this.favoriteCount) { // favoriteCount is nullable
+    if (favoriteCount >= 0 && favoriteCount != this.favoriteCount) { // favoriteCount is nullable
       this.favoriteCount = favoriteCount;
     }
     final int retweetCount = s.getRetweetCount();
-    if (retweetCount > 0 && retweetCount != this.retweetCount) {  // retweetCount is nullable
+    if (retweetCount >= 0 && retweetCount != this.retweetCount) {  // retweetCount is nullable
       this.retweetCount = retweetCount;
     }
+  }
+
+  private static final String NOT_IMPLEMENT_YET = "not implement yet.";
+
+  public long[] getContributors() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public boolean isRetweetedByMe() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public long getCurrentUserRetweetId() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public boolean isPossiblySensitive() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public String getLang() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public Scopes getScopes() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public String[] getWithheldInCountries() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public boolean isTruncated() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public long getInReplyToStatusId() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public long getInReplyToUserId() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public String getInReplyToScreenName() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public GeoLocation getGeoLocation() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public Place getPlace() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public HashtagEntity[] getHashtagEntities() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public SymbolEntity[] getSymbolEntities() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public RateLimitStatus getRateLimitStatus() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public int getAccessLevel() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  public int compareTo(@NonNull Status another) {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
   }
 }

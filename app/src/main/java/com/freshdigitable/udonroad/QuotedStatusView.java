@@ -25,6 +25,8 @@ import android.widget.TextView;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * QuotedStatusView is for quoted tweet in StatusView and StatusDetailFragment.<br>
  *   QuotedStatusView does not have QuotedStatusView.

@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.support.annotation.Nullable;
+
 import twitter4j.Status;
 
 /**
@@ -24,13 +26,17 @@ import twitter4j.Status;
 
 public class StatusReactionImpl implements StatusReaction {
   private long id;
-  private boolean favorited;
-  private boolean retweeted;
+  private Boolean favorited;
+  private Boolean retweeted;
 
   public StatusReactionImpl(Status status) {
-    this.id = status.getId();
-    this.favorited = status.isFavorited();
-    this.retweeted = status.isRetweeted();
+    this(status.getId(), status.isRetweeted(), status.isFavorited());
+  }
+
+  public StatusReactionImpl(long statusId, Boolean retweeted, Boolean favorited) {
+    this.id = statusId;
+    this.retweeted = retweeted;
+    this.favorited = favorited;
   }
 
   @Override
@@ -39,22 +45,22 @@ public class StatusReactionImpl implements StatusReaction {
   }
 
   @Override
-  public void setRetweeted(boolean retweeted) {
+  public void setRetweeted(@Nullable Boolean retweeted) {
     this.retweeted = retweeted;
   }
 
   @Override
-  public boolean isRetweeted() {
+  public Boolean isRetweeted() {
     return retweeted;
   }
 
   @Override
-  public void setFavorited(boolean favorited) {
+  public void setFavorited(@Nullable Boolean favorited) {
     this.favorited = favorited;
   }
 
   @Override
-  public boolean isFavorited() {
+  public Boolean isFavorited() {
     return favorited;
   }
 }

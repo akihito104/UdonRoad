@@ -25,6 +25,8 @@ import android.widget.TextView;
 import twitter4j.Status;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * FullStatusView defines StatusView which has full of elements.
  *

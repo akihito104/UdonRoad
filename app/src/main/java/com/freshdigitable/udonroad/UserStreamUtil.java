@@ -16,11 +16,14 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.android.annotations.NonNull;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.PerspectivalStatusImpl;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +43,8 @@ import twitter4j.User;
 import twitter4j.UserStreamAdapter;
 import twitter4j.UserStreamListener;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * UserStreamUtil transforms twitter stream to observable subscription.
  *
@@ -48,10 +53,17 @@ import twitter4j.UserStreamListener;
 public class UserStreamUtil {
   private static final String TAG = UserStreamUtil.class.getSimpleName();
   private final TwitterStreamApi streamApi;
+  private final PublishSubject<UserFeedbackEvent> feedback;
+  private long userId;
+  private final AppSettingStore appSettings;
 
   @Inject
-  public UserStreamUtil(@NonNull TwitterStreamApi streamApi) {
+  public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
+                        @NonNull AppSettingStore appSettings,
+                        @NonNull PublishSubject<UserFeedbackEvent> feedback) {
     this.streamApi = streamApi;
+    this.feedback = feedback;
+    this.appSettings = appSettings;
   }
 
   private boolean isConnectedUserStream = false;
@@ -94,21 +106,31 @@ public class UserStreamUtil {
           }, onErrorAction);
     }
     if (!isConnectedUserStream) {
-      streamApi.loadAccessToken();
+      appSettings.open();
+      streamApi.setOAuthAccessToken(appSettings.getCurrentUserAccessToken());
       streamApi.connectUserStream(statusListener);
+      userId = appSettings.getCurrentUserId();
       isConnectedUserStream = true;
     }
   }
 
   public void disconnect() {
-    streamApi.disconnectStreamListener();
-    isConnectedUserStream = false;
+    if (isConnectedUserStream) {
+      appSettings.close();
+      streamApi.disconnectStreamListener();
+      isConnectedUserStream = false;
+    }
 
-    statusPublishSubject.onCompleted();
+    if (statusPublishSubject != null) {
+      statusPublishSubject.onCompleted();
+    }
     if (onStatusSubscription != null && !onStatusSubscription.isUnsubscribed()) {
       onStatusSubscription.unsubscribe();
     }
-    deletionPublishSubject.onCompleted();
+
+    if (deletionPublishSubject != null) {
+      deletionPublishSubject.onCompleted();
+    }
     if (onDeletionSubscription != null && !onDeletionSubscription.isUnsubscribed()) {
       onDeletionSubscription.unsubscribe();
     }
@@ -118,14 +140,44 @@ public class UserStreamUtil {
 
     @Override
     public void onStatus(final Status status) {
-      statusPublishSubject.onNext(status);
+      if (isRetweetOfMine(status)) {
+        final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(status);
+        perspectivalStatus.getRetweetedStatus().getStatusReaction().setRetweeted(true);
+        statusPublishSubject.onNext(perspectivalStatus);
+      } else {
+        statusPublishSubject.onNext(status);
+        if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == userId) {
+          feedback.onNext(
+              new UserFeedbackEvent(R.string.msg_retweeted_by_someone,
+                  status.getUser().getScreenName()));
+        }
+      }
+    }
+
+    private boolean isRetweetOfMine(Status status) {
+      return status.isRetweet() && status.getUser().getId() == userId;
     }
 
     @Override
     public void onFavorite(User source, User target, Status favoritedStatus) {
-      super.onFavorite(source, target, favoritedStatus);
       Log.d(TAG, "onFavorite: src> " + source.getScreenName() + ", tgt> " + target.getScreenName() +
-          ", stt> " + favoritedStatus.toString());
+          ", stt> " + favoritedStatus.getText());
+      if (target.getId() == userId) {
+        feedback.onNext(
+            new UserFeedbackEvent(R.string.msg_faved_by_someone, source.getScreenName()));
+      } else if (source.getId() == userId) {
+        final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(favoritedStatus);
+        getBindingStatus(perspectivalStatus).getStatusReaction().setFavorited(true);
+        statusPublishSubject.onNext(perspectivalStatus);
+      }
+    }
+
+    @Override
+    public void onFollow(User source, User followedUser) {
+      if (followedUser.getId() == userId) {
+        feedback.onNext(
+            new UserFeedbackEvent(R.string.msg_followed_by_someone, source.getScreenName()));
+      }
     }
 
     @Override

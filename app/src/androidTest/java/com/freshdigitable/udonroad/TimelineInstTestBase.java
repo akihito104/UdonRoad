@@ -60,15 +60,16 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
+import twitter4j.TwitterStream;
 import twitter4j.User;
 import twitter4j.UserStreamListener;
+import twitter4j.auth.AccessToken;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.subscriber.ConfigRequestWorker.TWITTER_API_CONFIG_DATE;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.is;
@@ -91,6 +92,8 @@ import static org.mockito.Mockito.when;
 public abstract class TimelineInstTestBase {
   @Inject
   Twitter twitter;
+  @Inject
+  TwitterStream twitterStream;
   @Inject
   TypedCache<Status> statusCache;
   @Inject
@@ -175,11 +178,6 @@ public abstract class TimelineInstTestBase {
     clearCache(userFavsTLStore, "user_favs");
     clearCache(userFollowers, "user_followers");
     clearCache(userFriends, "user_friends");
-    sprefs.edit()
-        .remove(TWITTER_API_CONFIG_DATE)
-        .putString("token", "validtoken")
-        .putString("token_secret", "validtokensecret")
-        .apply();
     checkAllRealmInstanceCleared();
   }
 
@@ -192,6 +190,7 @@ public abstract class TimelineInstTestBase {
     when(twitter.getId()).thenReturn(userId);
     when(twitter.showUser(userId)).thenReturn(loginUser);
     when(twitter.verifyCredentials()).thenReturn(loginUser);
+    when(twitterStream.getId()).thenReturn(userId);
 
     final IDs ignoringUserIDsMock = mock(IDs.class);
     when(ignoringUserIDsMock.getIDs()).thenReturn(new long[0]);
@@ -200,6 +199,11 @@ public abstract class TimelineInstTestBase {
     when(twitter.getBlocksIDs()).thenReturn(ignoringUserIDsMock);
     when(twitter.getBlocksIDs(anyLong())).thenReturn(ignoringUserIDsMock);
     when(twitter.getMutesIDs(anyLong())).thenReturn(ignoringUserIDsMock);
+
+    appSettings.open();
+    appSettings.storeAccessToken(new AccessToken(userId + "-validToken", "validSecret"));
+    appSettings.setCurrentUserId(userId);
+    appSettings.close();
   }
 
   protected abstract int setupTimeline() throws TwitterException;
@@ -329,14 +333,15 @@ public abstract class TimelineInstTestBase {
     });
   }
 
-  protected void setupRetweetStatus(final long rtStatusId) throws TwitterException {
+  protected void setupRetweetStatus(final long rtStatusId, final int rtCount, final int favCount)
+      throws TwitterException {
     when(twitter.retweetStatus(anyLong())).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
         final Long id = invocation.getArgumentAt(0, Long.class);
         final Status rtedStatus = findByStatusId(id);
         receiveStatuses(true, TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, false));
-        return TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, true);
+        return TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, rtCount, favCount, true);
       }
     });
   }

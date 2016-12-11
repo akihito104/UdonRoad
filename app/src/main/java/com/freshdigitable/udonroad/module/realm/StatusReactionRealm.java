@@ -30,19 +30,19 @@ import twitter4j.Status;
 public class StatusReactionRealm implements StatusReaction, RealmModel {
   @PrimaryKey
   private long id;
-  private boolean retweeted;
-  private boolean favorited;
+  private Boolean retweeted;
+  private Boolean favorited;
 
   public StatusReactionRealm() {
   }
 
-  public StatusReactionRealm(Status status) {
+  StatusReactionRealm(Status status) {
     this.id = status.getId();
     this.retweeted = status.isRetweeted();
     this.favorited = status.isFavorited();
   }
 
-  public StatusReactionRealm(StatusReaction reaction) {
+  StatusReactionRealm(StatusReaction reaction) {
     this.id = reaction.getId();
     this.retweeted = reaction.isRetweeted();
     this.favorited = reaction.isFavorited();
@@ -54,33 +54,37 @@ public class StatusReactionRealm implements StatusReaction, RealmModel {
   }
 
   @Override
-  public void setRetweeted(boolean retweeted) {
+  public void setRetweeted(Boolean retweeted) {
     this.retweeted = retweeted;
   }
 
   @Override
-  public boolean isRetweeted() {
+  public Boolean isRetweeted() {
     return retweeted;
   }
 
   @Override
-  public void setFavorited(boolean favorited) {
+  public void setFavorited(Boolean favorited) {
     this.favorited = favorited;
   }
 
   @Override
-  public boolean isFavorited() {
+  public Boolean isFavorited() {
     return favorited;
   }
 
   public void merge(StatusReaction others) {
     // `Status.favorited` is nullable and in the case `favoried` is false.
-    if (!this.favorited && others.isFavorited()) {
+    if (isNullOrFalse(this.favorited) && others.isFavorited() != null) {
       this.favorited = others.isFavorited();
     }
     // `Status.retweeted` is nullable and in the case `retweeted` is false.
-    if (!this.retweeted && others.isRetweeted()) {
+    if (isNullOrFalse(this.retweeted) && others.isRetweeted() != null) {
       this.retweeted = others.isRetweeted();
     }
+  }
+
+  private static boolean isNullOrFalse(Boolean bool) {
+    return bool == null || !bool;
   }
 }

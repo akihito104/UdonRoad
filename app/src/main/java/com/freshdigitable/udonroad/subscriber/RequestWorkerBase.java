@@ -38,11 +38,11 @@ import rx.subjects.PublishSubject;
 public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   TwitterApi twitterApi;
   T cache;
-  PublishSubject<Integer> userFeedback;
+  PublishSubject<UserFeedbackEvent> userFeedback;
 
   RequestWorkerBase(@NonNull TwitterApi twitterApi,
                     @NonNull T cache,
-                    @NonNull PublishSubject<Integer> userFeedback) {
+                    @NonNull PublishSubject<UserFeedbackEvent> userFeedback) {
     this.twitterApi = twitterApi;
     this.cache = cache;
     this.userFeedback = userFeedback;
@@ -78,7 +78,7 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
     return new Action1<Throwable>() {
       @Override
       public void call(Throwable throwable) {
-        userFeedback.onNext(msg);
+        userFeedback.onNext(new UserFeedbackEvent(msg));
       }
     };
   }
@@ -88,7 +88,7 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
     return new Action0() {
       @Override
       public void call() {
-        userFeedback.onNext(msg);
+        userFeedback.onNext(new UserFeedbackEvent(msg));
       }
     };
   }

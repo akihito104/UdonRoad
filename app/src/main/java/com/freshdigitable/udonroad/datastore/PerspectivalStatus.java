@@ -16,30 +16,18 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import twitter4j.TwitterAPIConfiguration;
-import twitter4j.User;
-import twitter4j.auth.AccessToken;
+import twitter4j.Status;
 
 /**
- * Created by akihit on 2016/11/07.
+ * PerspectivalStatus is to define Status has StatusReaction.
+ * StatusReaction is a perspective data of Status.
+ *
+ * Created by akihit on 2016/12/08.
  */
 
-public interface AppSettingStore extends BaseCache {
-  void addAuthenticatedUser(User authenticatedUser);
+public interface PerspectivalStatus extends Status {
 
-  User getAuthenticatedUser(long userId);
+  StatusReaction getStatusReaction();
 
-  void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
-
-  TwitterAPIConfiguration getTwitterAPIConfig();
-
-  boolean isTwitterAPIConfigFetchable();
-
-  void storeAccessToken(AccessToken accessToken);
-
-  AccessToken getCurrentUserAccessToken();
-
-  long getCurrentUserId();
-
-  void setCurrentUserId(long userId);
+  void setStatusReaction(StatusReaction reaction);
 }

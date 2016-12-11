@@ -79,4 +79,7 @@
     <string name="msg_fetch_relationship_failed">このユーザとの関連性を取得できませんでした…</string>
     <string name="msg_updateStatus_failed">ツイートを送信できませんでした…</string>
     <string name="msg_updateStatus_success">ツイートしました</string>
+    <string name="msg_faved_by_someone">ふぁぼられました: \@%1$s</string>
+    <string name="msg_followed_by_someone">フォローされました: \@%1$s</string>
+    <string name="msg_retweeted_by_someone">リツイートされました: \@%1$s</string>
 </resources>

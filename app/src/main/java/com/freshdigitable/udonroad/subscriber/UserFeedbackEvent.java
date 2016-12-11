@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad.subscriber;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 
 /**
- * Created by akihit on 2016/11/07.
+ * Created by akihit on 2016/12/07.
  */
 
-public interface StatusReaction {
-  long getId();
+public class UserFeedbackEvent {
+  @StringRes
+  private final int msgResId;
+  private final Object[] args;
 
-  void setRetweeted(@Nullable Boolean retweeted);
+  public UserFeedbackEvent(@StringRes int msgResId) {
+    this(msgResId, (String[]) null);
+  }
 
-  Boolean isRetweeted();
+  public UserFeedbackEvent(@StringRes int msgResId, @Nullable String... args) {
+    this.msgResId = msgResId;
+    this.args = args;
+  }
 
-  void setFavorited(@Nullable Boolean favorited);
-
-  Boolean isFavorited();
+  CharSequence createMessage(Context context) {
+    return context.getString(msgResId, args);
+  }
 }

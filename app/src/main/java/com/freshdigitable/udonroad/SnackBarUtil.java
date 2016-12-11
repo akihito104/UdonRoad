@@ -28,11 +28,11 @@ import rx.functions.Action0;
  */
 public class SnackBarUtil {
 
-  public static Snackbar create(@NonNull final View root, final String text) {
+  public static Snackbar create(@NonNull final View root, final CharSequence text) {
     return create(root, text, Snackbar.LENGTH_SHORT);
   }
 
-  public static Snackbar create(@NonNull View root, String text, int length) {
+  public static Snackbar create(@NonNull View root, CharSequence text, int length) {
     return Snackbar.make(root, text, length);
   }
 
@@ -40,7 +40,7 @@ public class SnackBarUtil {
     return Snackbar.make(root, resId, Snackbar.LENGTH_SHORT);
   }
 
-  public static void show(@NonNull final View root, final String text) {
+  public static void show(@NonNull final View root, final CharSequence text) {
     create(root, text).show();
   }
 
@@ -48,7 +48,7 @@ public class SnackBarUtil {
     create(root, text).show();
   }
 
-  public static Action0 action(@NonNull final View root, final String text) {
+  public static Action0 action(@NonNull final View root, final CharSequence text) {
     return new Action0() {
       @Override
       public void call() {

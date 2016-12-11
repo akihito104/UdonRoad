@@ -38,6 +38,8 @@ import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * StatusViewBase defines how to bind Status and StatusView.
  *
@@ -205,12 +207,6 @@ public abstract class StatusViewBase extends RelativeLayout {
     final ExtendedMediaEntity[] extendedMediaEntities
         = getBindingStatus(status).getExtendedMediaEntities();
     mediaContainer.bindMediaEntities(extendedMediaEntities);
-  }
-
-  protected Status getBindingStatus(Status status) {
-    return status.isRetweet()
-        ? status.getRetweetedStatus()
-        : status;
   }
 
   protected void setTint(ImageView view, @ColorRes int color) {

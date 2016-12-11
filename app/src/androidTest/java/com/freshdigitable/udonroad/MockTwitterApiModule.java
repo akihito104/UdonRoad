@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
@@ -58,9 +57,8 @@ public class MockTwitterApiModule extends TwitterApiModule {
 
     @Singleton
     @Provides
-    public TwitterStreamApi provideTwitterStreamApi(
-        TwitterStream twitterStream, SharedPreferences pref) {
-      return new TwitterStreamApi(twitterStream, pref) {
+    public TwitterStreamApi provideTwitterStreamApi(TwitterStream twitterStream) {
+      return new TwitterStreamApi(twitterStream) {
         @Override
         public void connectUserStream(UserStreamListener listener) {
           userStreamListener = listener;

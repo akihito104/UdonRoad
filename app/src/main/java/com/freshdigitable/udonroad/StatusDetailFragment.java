@@ -59,6 +59,8 @@ import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * StatusDetailFragment shows Status with link text and twitter card.
  *
@@ -184,7 +186,7 @@ public class StatusDetailFragment extends Fragment {
           }
         });
 
-    final Status bindingStatus = StatusViewImageHelper.getBindingStatus(status);
+    final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
       return;
     }

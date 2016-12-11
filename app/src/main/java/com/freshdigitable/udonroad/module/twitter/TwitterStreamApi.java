@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.module.twitter;
 
-import android.content.SharedPreferences;
-
 import javax.inject.Inject;
 
 import twitter4j.TwitterStream;
@@ -26,21 +24,14 @@ import twitter4j.auth.AccessToken;
 
 public class TwitterStreamApi {
   private final TwitterStream twitterStream;
-  private final SharedPreferences sharedPreferences;
 
   @Inject
-  public TwitterStreamApi(TwitterStream twitterStream, SharedPreferences sharedPreferences) {
+  public TwitterStreamApi(TwitterStream twitterStream) {
     this.twitterStream = twitterStream;
-    this.sharedPreferences = sharedPreferences;
   }
 
-  public boolean loadAccessToken() {
-    final AccessToken accessToken = TwitterApi.loadAccessToken(sharedPreferences);
-    if (accessToken == null) {
-      return false;
-    }
+  public void setOAuthAccessToken(AccessToken accessToken) {
     twitterStream.setOAuthAccessToken(accessToken);
-    return true;
   }
 
   public void connectUserStream(UserStreamListener listener) {

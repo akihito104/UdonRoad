@@ -21,16 +21,19 @@ import android.content.SharedPreferences;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
-
-import static com.freshdigitable.udonroad.subscriber.ConfigRequestWorker.TWITTER_API_CONFIG_DATE;
+import twitter4j.auth.AccessToken;
 
 /**
+ * AppSettingStoreRealm is implementation of AppSettingStore with Realm.
+ *
  * Created by akihit on 2016/11/07.
  */
 
@@ -69,7 +72,18 @@ public class AppSettingStoreRealm implements AppSettingStore {
         realm.deleteAll();
       }
     });
+    final Set<String> users = prefs.getStringSet(AUTHENTICATED_USERS, Collections.<String>emptySet());
+    final SharedPreferences.Editor editor = prefs.edit();
+    editor.remove(TWITTER_API_CONFIG_DATE);
+    editor.remove(CURRENT_USER_ID);
+    for (String u : users) {
+      editor.remove(ACCESS_TOKEN_PREFIX + u)
+          .remove(TOKEN_SECRET_PREFIX + u);
+    }
+    editor.remove(AUTHENTICATED_USERS);
+    editor.apply();
   }
+
   @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
     realm.executeTransaction(new Realm.Transaction() {
@@ -115,6 +129,8 @@ public class AppSettingStoreRealm implements AppSettingStore {
         .findFirst();
   }
 
+  private static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
+
   private void setFetchTwitterAPIConfigTime(long timestamp) {
     prefs.edit()
         .putLong(TWITTER_API_CONFIG_DATE, timestamp)
@@ -137,5 +153,50 @@ public class AppSettingStoreRealm implements AppSettingStore {
     }
     final long now = System.currentTimeMillis();
     return now - lastTime > TimeUnit.DAYS.toMillis(1);
+  }
+
+  private static final String AUTHENTICATED_USERS = "authenticatedUsers";
+  private static final String CURRENT_USER_ID = "currentUserId";
+  private static final String ACCESS_TOKEN_PREFIX = "accessToken_";
+  private static final String TOKEN_SECRET_PREFIX = "tokenSecret_";
+
+  @Override
+  public void storeAccessToken(AccessToken token) {
+    final long userId = token.getUserId();
+    final Set<String> authenticatedUsers
+        = prefs.getStringSet(AUTHENTICATED_USERS, Collections.<String>emptySet());
+    authenticatedUsers.add(Long.toString(userId));
+
+    prefs.edit()
+        .putStringSet(AUTHENTICATED_USERS, authenticatedUsers)
+        .putString(ACCESS_TOKEN_PREFIX + userId, token.getToken())
+        .putString(TOKEN_SECRET_PREFIX + userId, token.getTokenSecret())
+        .apply();
+  }
+
+  @Override
+  public AccessToken getCurrentUserAccessToken() {
+    final long currentUserId = getCurrentUserId();
+    if (currentUserId < 0) {
+      return null;
+    }
+    final String token = prefs.getString(ACCESS_TOKEN_PREFIX + currentUserId, null);
+    final String secret = prefs.getString(TOKEN_SECRET_PREFIX + currentUserId, null);
+    if (token == null || secret == null) {
+      return null;
+    }
+    return new AccessToken(token, secret);
+  }
+
+  @Override
+  public long getCurrentUserId() {
+    return prefs.getLong(CURRENT_USER_ID, -1);
+  }
+
+  @Override
+  public void setCurrentUserId(long userId) {
+    prefs.edit()
+        .putLong(CURRENT_USER_ID, userId)
+        .apply();
   }
 }

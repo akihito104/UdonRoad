@@ -27,6 +27,8 @@ import android.widget.TextView;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
+import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+
 /**
  * StatusView shows Status data in RecyclerView.
  *

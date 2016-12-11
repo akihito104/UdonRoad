@@ -115,7 +115,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void fetchRT_then_RtIconAndCountAreDisplayed() throws Exception {
     // setup
-    setupRetweetStatus(25000);
+    setupRetweetStatus(25000, 1, 0);
     // exec.
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
@@ -143,7 +143,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   public void receiveStatusDeletionNoticeForRTStatus_then_removedRTStatus()
       throws Exception {
     // setup
-    setupRetweetStatus(25000);
+    setupRetweetStatus(25000, 1, 0);
     // exec.
     final Status rtTarget = findByStatusId(20000);
     PerformUtil.selectItemViewAt(0);
@@ -160,7 +160,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   public void receiveStatusDeletionNoticeForRTingStatus_then_removedOriginalAndRTedStatuses()
       throws Exception {
     // setup
-    setupRetweetStatus(25000);
+    setupRetweetStatus(25000, 1, 0);
     // exec.
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
@@ -278,7 +278,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {
     // setup
     setupCreateFavorite(0, 1);
-    setupRetweetStatus(25000);
+    setupRetweetStatus(25000, 1, 1);
     // exec.
     PerformUtil.selectItemViewAt(0);
     PerformUtil.fav_retweet();
@@ -300,7 +300,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     when(twitterException.getStatusCode()).thenReturn(403);
     when(twitterException.getErrorCode()).thenReturn(139);
     when(twitter.createFavorite(anyLong())).thenThrow(twitterException);
-    setupRetweetStatus(25000);
+    setupRetweetStatus(25000, 1, expectedFavCount);
     // exec.
     PerformUtil.selectItemViewAt(0);
     PerformUtil.fav_retweet();
