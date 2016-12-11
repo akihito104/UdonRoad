@@ -63,13 +63,13 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.User;
 import twitter4j.UserStreamListener;
+import twitter4j.auth.AccessToken;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static com.freshdigitable.udonroad.subscriber.ConfigRequestWorker.TWITTER_API_CONFIG_DATE;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.is;
@@ -178,11 +178,6 @@ public abstract class TimelineInstTestBase {
     clearCache(userFavsTLStore, "user_favs");
     clearCache(userFollowers, "user_followers");
     clearCache(userFriends, "user_friends");
-    sprefs.edit()
-        .remove(TWITTER_API_CONFIG_DATE)
-        .putString("token", "validtoken")
-        .putString("token_secret", "validtokensecret")
-        .apply();
     checkAllRealmInstanceCleared();
   }
 
@@ -204,6 +199,11 @@ public abstract class TimelineInstTestBase {
     when(twitter.getBlocksIDs()).thenReturn(ignoringUserIDsMock);
     when(twitter.getBlocksIDs(anyLong())).thenReturn(ignoringUserIDsMock);
     when(twitter.getMutesIDs(anyLong())).thenReturn(ignoringUserIDsMock);
+
+    appSettings.open();
+    appSettings.storeAccessToken(new AccessToken(userId + "-validToken", "validSecret"));
+    appSettings.setCurrentUserId(userId);
+    appSettings.close();
   }
 
   protected abstract int setupTimeline() throws TwitterException;

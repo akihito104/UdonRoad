@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +31,6 @@ import io.realm.RealmConfiguration;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
-
-import static com.freshdigitable.udonroad.subscriber.ConfigRequestWorker.TWITTER_API_CONFIG_DATE;
 
 /**
  * Created by akihit on 2016/11/07.
@@ -72,6 +71,16 @@ public class AppSettingStoreRealm implements AppSettingStore {
         realm.deleteAll();
       }
     });
+    final Set<String> users = prefs.getStringSet(AUTHENTICATED_USERS, Collections.<String>emptySet());
+    final SharedPreferences.Editor editor = prefs.edit();
+    editor.remove(TWITTER_API_CONFIG_DATE);
+    editor.remove(CURRENT_USER_ID);
+    for (String u : users) {
+      editor.remove(ACCESS_TOKEN_PREFIX + u)
+          .remove(TOKEN_SECRET_PREFIX + u);
+    }
+    editor.remove(AUTHENTICATED_USERS);
+    editor.apply();
   }
 
   @Override
@@ -118,6 +127,8 @@ public class AppSettingStoreRealm implements AppSettingStore {
     return realm.where(TwitterAPIConfigurationRealm.class)
         .findFirst();
   }
+
+  private static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
 
   private void setFetchTwitterAPIConfigTime(long timestamp) {
     prefs.edit()

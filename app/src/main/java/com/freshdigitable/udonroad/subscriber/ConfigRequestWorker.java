@@ -49,7 +49,6 @@ import twitter4j.User;
  * Created by akihit on 2016/09/23.
  */
 public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
-  public static final String TWITTER_API_CONFIG_DATE = "twitterAPIConfigDate";
   private final String TAG = ConfigRequestWorker.class.getSimpleName();
   private final AppSettingStore appSettings;
 
