@@ -22,6 +22,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -164,7 +165,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
   public void storeAccessToken(AccessToken token) {
     final long userId = token.getUserId();
     final Set<String> authenticatedUsers
-        = prefs.getStringSet(AUTHENTICATED_USERS, Collections.<String>emptySet());
+        = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<String>());
     authenticatedUsers.add(Long.toString(userId));
 
     prefs.edit()
