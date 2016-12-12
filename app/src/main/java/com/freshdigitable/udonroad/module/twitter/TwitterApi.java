@@ -214,11 +214,6 @@ public class TwitterApi {
     }).subscribeOn(Schedulers.io());
   }
 
-  public Observable<List<Status>> getUserTimeline(final User user) {
-    final long userId = user.getId();
-    return getUserTimeline(userId);
-  }
-
   public Observable<List<Status>> getUserTimeline(final long userId) {
     return Observable.create(new Observable.OnSubscribe<List<Status>>() {
       @Override
@@ -485,9 +480,5 @@ public class TwitterApi {
         }
       }
     }).subscribeOn(Schedulers.io());
-  }
-
-  public Twitter getTwitter() {
-    return twitter;
   }
 }
