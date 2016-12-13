@@ -49,8 +49,7 @@ public class TwitterApiModule {
   @Singleton
   @Provides
   public Twitter provideTwitter() {
-    final TwitterFactory twitterFactory = new TwitterFactory();
-    final Twitter twitter = twitterFactory.getInstance();
+    final Twitter twitter = TwitterFactory.getSingleton();
     final String key = context.getString(R.string.consumer_key);
     final String secret = context.getString(R.string.consumer_secret);
     twitter.setOAuthConsumer(key, secret);
@@ -60,8 +59,7 @@ public class TwitterApiModule {
   @Singleton
   @Provides
   public TwitterStream provideTwitterStream() {
-    final TwitterStreamFactory twitterStreamFactory = new TwitterStreamFactory();
-    final TwitterStream twitterStream = twitterStreamFactory.getInstance();
+    final TwitterStream twitterStream = TwitterStreamFactory.getSingleton();
     final String key = context.getString(R.string.consumer_key);
     final String secret = context.getString(R.string.consumer_secret);
     twitterStream.setOAuthConsumer(key, secret);
