@@ -19,12 +19,11 @@ package com.freshdigitable.udonroad;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
-import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.Test;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -32,9 +31,12 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,14 +51,34 @@ public class VerifiedUserTest extends TimelineInstTestBase {
   @Test
   public void showVerifiedIconForVerifiedUsersTweet() {
     final User verifiedUser = UserUtil.createVerifiedUser();
-    onView(withId(R.id.tl_names))
-        .check(matches(withText(verifiedUser.getName() + " @" + verifiedUser.getScreenName() + "  ")));
+    onView(ofStatusViewAt(R.id.timeline, 2))
+        .check(selectedDescendantsMatch(withId(R.id.tl_names),
+            withText(verifiedUser.getName() + " @" + verifiedUser.getScreenName() + "  ")));
+  }
+
+  @Test
+  public void showProtectedIconForProtectedUsersTweet() {
+    final User protectedUser = UserUtil.createProtectedUser();
+    onView(ofStatusViewAt(R.id.timeline, 1))
+        .check(selectedDescendantsMatch(withId(R.id.tl_names),
+            withText(protectedUser.getName() + " @" + protectedUser.getScreenName() + "  ")));
+  }
+
+  @Test
+  public void showBothIconForVerifiedAndProtectedUsersTweet() {
+    final User bothUser = UserUtil.createVerifiedAndProtectedUser();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(selectedDescendantsMatch(withId(R.id.tl_names),
+            withText(bothUser.getName() + " @" + bothUser.getScreenName() + "    ")));
   }
 
   @Override
   protected int setupTimeline() throws TwitterException {
-    final Status status = TwitterResponseMock.createStatus(10000L, UserUtil.createVerifiedUser());
-    final ResponseList<Status> responseList = TwitterResponseMock.createResponseList(Collections.singletonList(status));
+    final ResponseList<Status> responseList = createResponseList(Arrays.asList(
+        createStatus(10000L, UserUtil.createVerifiedUser()),
+        createStatus(10001L, UserUtil.createProtectedUser()),
+        createStatus(10002L, UserUtil.createVerifiedAndProtectedUser())
+    ));
     when(twitter.getHomeTimeline()).thenReturn(responseList);
     return responseList.size();
   }

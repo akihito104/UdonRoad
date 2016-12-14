@@ -27,24 +27,47 @@ import static org.mockito.Mockito.when;
  */
 public class UserUtil {
   public static User createUserA() {
-    final User mock = mock(User.class);
+    final User mock = createDefaultUser();
     when(mock.getScreenName()).thenReturn("userA");
     when(mock.getName()).thenReturn("User A");
     when(mock.getId()).thenReturn(2000L);
-    when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
-    when(mock.getDescription()).thenReturn("user description is here.");
-    when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);
-    when(mock.getURL()).thenReturn(null);
-    when(mock.getLocation()).thenReturn(null);
+    when(mock.isVerified()).thenReturn(false);
+    when(mock.isProtected()).thenReturn(false);
     return mock;
   }
 
   public static User createVerifiedUser() {
-    final User mock = mock(User.class);
+    final User mock = createDefaultUser();
     when(mock.getScreenName()).thenReturn("verifiedUser");
     when(mock.getName()).thenReturn("Verified User");
     when(mock.getId()).thenReturn(3000L);
     when(mock.isVerified()).thenReturn(true);
+    when(mock.isProtected()).thenReturn(false);
+    return mock;
+  }
+
+  public static User createProtectedUser() {
+    final User mock = createDefaultUser();
+    when(mock.getScreenName()).thenReturn("protectedUser");
+    when(mock.getName()).thenReturn("Protected User");
+    when(mock.getId()).thenReturn(4000L);
+    when(mock.isVerified()).thenReturn(false);
+    when(mock.isProtected()).thenReturn(true);
+    return mock;
+  }
+
+  public static User createVerifiedAndProtectedUser() {
+    final User mock = createDefaultUser();
+    when(mock.getScreenName()).thenReturn("gene");
+    when(mock.getName()).thenReturn("Verified and Protected User");
+    when(mock.getId()).thenReturn(5000L);
+    when(mock.isVerified()).thenReturn(true);
+    when(mock.isProtected()).thenReturn(true);
+    return mock;
+  }
+
+  private static User createDefaultUser() {
+    final User mock = mock(User.class);
     when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
     when(mock.getDescription()).thenReturn("user description is here.");
     when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);
