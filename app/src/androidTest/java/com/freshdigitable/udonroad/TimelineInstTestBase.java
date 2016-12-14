@@ -130,7 +130,7 @@ public abstract class TimelineInstTestBase {
     getComponent().inject(this);
 
     initStorage();
-    loginUser = UserUtil.create();
+    loginUser = UserUtil.createUserA();
     screenNameMatcher = withText("@" + loginUser.getScreenName());
     setupConfig(loginUser);
 

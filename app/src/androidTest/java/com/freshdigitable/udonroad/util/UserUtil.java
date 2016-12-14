@@ -26,11 +26,48 @@ import static org.mockito.Mockito.when;
  * Created by akihit on 2016/07/31.
  */
 public class UserUtil {
-  public static User create() {
-    final User mock = mock(User.class);
-    when(mock.getScreenName()).thenReturn("akihito104");
-    when(mock.getName()).thenReturn("Akihito Matsuda");
+  public static User createUserA() {
+    final User mock = createDefaultUser();
+    when(mock.getScreenName()).thenReturn("userA");
+    when(mock.getName()).thenReturn("User A");
     when(mock.getId()).thenReturn(2000L);
+    when(mock.isVerified()).thenReturn(false);
+    when(mock.isProtected()).thenReturn(false);
+    return mock;
+  }
+
+  public static User createVerifiedUser() {
+    final User mock = createDefaultUser();
+    when(mock.getScreenName()).thenReturn("verifiedUser");
+    when(mock.getName()).thenReturn("Verified User");
+    when(mock.getId()).thenReturn(3000L);
+    when(mock.isVerified()).thenReturn(true);
+    when(mock.isProtected()).thenReturn(false);
+    return mock;
+  }
+
+  public static User createProtectedUser() {
+    final User mock = createDefaultUser();
+    when(mock.getScreenName()).thenReturn("protectedUser");
+    when(mock.getName()).thenReturn("Protected User");
+    when(mock.getId()).thenReturn(4000L);
+    when(mock.isVerified()).thenReturn(false);
+    when(mock.isProtected()).thenReturn(true);
+    return mock;
+  }
+
+  public static User createVerifiedAndProtectedUser() {
+    final User mock = createDefaultUser();
+    when(mock.getScreenName()).thenReturn("gene");
+    when(mock.getName()).thenReturn("Verified and Protected User");
+    when(mock.getId()).thenReturn(5000L);
+    when(mock.isVerified()).thenReturn(true);
+    when(mock.isProtected()).thenReturn(true);
+    return mock;
+  }
+
+  private static User createDefaultUser() {
+    final User mock = mock(User.class);
     when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
     when(mock.getDescription()).thenReturn("user description is here.");
     when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);
