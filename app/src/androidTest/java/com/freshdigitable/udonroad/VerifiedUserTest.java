@@ -75,9 +75,9 @@ public class VerifiedUserTest extends TimelineInstTestBase {
   @Override
   protected int setupTimeline() throws TwitterException {
     final ResponseList<Status> responseList = createResponseList(Arrays.asList(
-        createStatus(10000L, UserUtil.createVerifiedUser()),
+        createStatus(10002L, UserUtil.createVerifiedAndProtectedUser()),
         createStatus(10001L, UserUtil.createProtectedUser()),
-        createStatus(10002L, UserUtil.createVerifiedAndProtectedUser())
+        createStatus(10000L, UserUtil.createVerifiedUser())
     ));
     when(twitter.getHomeTimeline()).thenReturn(responseList);
     return responseList.size();
