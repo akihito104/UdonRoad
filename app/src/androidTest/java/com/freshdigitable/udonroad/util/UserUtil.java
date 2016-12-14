@@ -26,11 +26,25 @@ import static org.mockito.Mockito.when;
  * Created by akihit on 2016/07/31.
  */
 public class UserUtil {
-  public static User create() {
+  public static User createUserA() {
     final User mock = mock(User.class);
-    when(mock.getScreenName()).thenReturn("akihito104");
-    when(mock.getName()).thenReturn("Akihito Matsuda");
+    when(mock.getScreenName()).thenReturn("userA");
+    when(mock.getName()).thenReturn("User A");
     when(mock.getId()).thenReturn(2000L);
+    when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
+    when(mock.getDescription()).thenReturn("user description is here.");
+    when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);
+    when(mock.getURL()).thenReturn(null);
+    when(mock.getLocation()).thenReturn(null);
+    return mock;
+  }
+
+  public static User createVerifiedUser() {
+    final User mock = mock(User.class);
+    when(mock.getScreenName()).thenReturn("verifiedUser");
+    when(mock.getName()).thenReturn("Verified User");
+    when(mock.getId()).thenReturn(3000L);
+    when(mock.isVerified()).thenReturn(true);
     when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
     when(mock.getDescription()).thenReturn("user description is here.");
     when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);

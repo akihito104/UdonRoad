@@ -396,7 +396,7 @@ public class UserInfoActivityInstTest {
 
     @Override
     protected Intent getIntent() {
-      final User user = UserUtil.create();
+      final User user = UserUtil.createUserA();
       InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
         @Override
         public void run() {

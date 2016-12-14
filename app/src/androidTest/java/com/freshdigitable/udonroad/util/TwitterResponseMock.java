@@ -61,7 +61,7 @@ public class TwitterResponseMock {
   }
 
   public static Status createStatus(long id) {
-    final User user = UserUtil.create();
+    final User user = UserUtil.createUserA();
     return createStatus(id, user);
   }
 

@@ -18,10 +18,16 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.DrawableRes;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.style.DynamicDrawableSpan;
+import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.util.AttributeSet;
 
@@ -60,9 +66,26 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
         + "@" + screenName;
     final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(formatted);
     spannableStringBuilder.setSpan(STYLE_BOLD, 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    if (user.isVerified()) {
+      appendIconToEnd(spannableStringBuilder, R.drawable.ic_check_circle);
+    }
+    if (user.isProtected()) {
+      appendIconToEnd(spannableStringBuilder, R.drawable.ic_lock);
+    }
     setText(spannableStringBuilder);
     this.name = name;
     this.screenName = screenName;
+  }
+
+  private void appendIconToEnd(SpannableStringBuilder ssb, @DrawableRes int drawable) {
+    // SpannableStringBuilder.append(CharSequence,Object,int) is available in API 21+
+    final Drawable iconDrawable = ContextCompat.getDrawable(getContext(), drawable);
+    iconDrawable.setBounds(0, 0, getLineHeight(), getLineHeight());
+    DrawableCompat.setTint(iconDrawable, getCurrentTextColor());
+    final ImageSpan icon = new ImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BASELINE);
+    final int start = ssb.length();
+    ssb.append("  ");
+    ssb.setSpan(icon, start + 1, start + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
   }
 
   private static final StyleSpan STYLE_BOLD = new StyleSpan(Typeface.BOLD);
