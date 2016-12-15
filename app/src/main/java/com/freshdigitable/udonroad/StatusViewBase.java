@@ -19,10 +19,8 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.CallSuper;
-import android.support.annotation.ColorRes;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Html;
 import android.util.AttributeSet;
 import android.view.View;
@@ -51,10 +49,8 @@ public abstract class StatusViewBase extends RelativeLayout {
   protected CombinedScreenNameTextView names;
   protected TextView tweet;
   protected TextView clientName;
-  protected ImageView rtIcon;
-  protected TextView rtCount;
-  protected ImageView favIcon;
-  protected TextView favCount;
+  protected IconAttachedCounterView rtCount;
+  protected IconAttachedCounterView favCount;
   protected MediaContainer mediaContainer;
   protected final int grid;
   protected static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
@@ -184,8 +180,8 @@ public abstract class StatusViewBase extends RelativeLayout {
   protected void bindRT(Status bindingStatus) {
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0 || bindingStatus.isRetweeted()) {
-      this.setRtCountVisibility(VISIBLE);
-      setTint(rtIcon, bindingStatus.isRetweeted()
+      this.rtCount.setVisibility(VISIBLE);
+      this.rtCount.tintIcon(bindingStatus.isRetweeted()
           ? R.color.twitter_action_retweeted
           : R.color.twitter_action_normal);
       this.rtCount.setText(String.valueOf(rtCount));
@@ -195,8 +191,8 @@ public abstract class StatusViewBase extends RelativeLayout {
   protected void bindFavorite(Status bindingStatus) {
     final int favCount = bindingStatus.getFavoriteCount();
     if (favCount > 0 || bindingStatus.isFavorited()) {
-      this.setFavCountVisibility(VISIBLE);
-      setTint(favIcon, bindingStatus.isFavorited()
+      this.favCount.setVisibility(VISIBLE);
+      this.favCount.tintIcon(bindingStatus.isFavorited()
           ? R.color.twitter_action_faved
           : R.color.twitter_action_normal);
       this.favCount.setText(String.valueOf(favCount));
@@ -209,21 +205,6 @@ public abstract class StatusViewBase extends RelativeLayout {
     mediaContainer.bindMediaEntities(extendedMediaEntities);
   }
 
-  protected void setTint(ImageView view, @ColorRes int color) {
-//    Log.d(TAG, "setTint: " + color);
-    DrawableCompat.setTint(view.getDrawable(), ContextCompat.getColor(getContext(), color));
-  }
-
-  protected void setRtCountVisibility(int visibility) {
-    rtIcon.setVisibility(visibility);
-    rtCount.setVisibility(visibility);
-  }
-
-  protected void setFavCountVisibility(int visibility) {
-    favIcon.setVisibility(visibility);
-    favCount.setVisibility(visibility);
-  }
-
   protected void setTextColor(int color) {
     names.setTextColor(color);
     createdAt.setTextColor(color);
@@ -233,12 +214,12 @@ public abstract class StatusViewBase extends RelativeLayout {
   @CallSuper
   public void reset() {
     setBackgroundColor(Color.TRANSPARENT);
-    setRtCountVisibility(GONE);
-    setFavCountVisibility(GONE);
+    rtCount.setVisibility(GONE);
+    favCount.setVisibility(GONE);
     setTextColor(Color.GRAY);
 
-    setTint(rtIcon, R.color.twitter_action_normal);
-    setTint(favIcon, R.color.twitter_action_normal);
+    rtCount.tintIcon(R.color.twitter_action_normal);
+    favCount.tintIcon(R.color.twitter_action_normal);
 
     icon.setImageDrawable(null);
     icon.setImageResource(android.R.color.transparent);

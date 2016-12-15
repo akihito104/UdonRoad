@@ -53,10 +53,8 @@ public class QuotedStatusView extends StatusViewBase {
     names = (CombinedScreenNameTextView) v.findViewById(R.id.q_names);
     tweet = (TextView) v.findViewById(R.id.q_tweet);
     clientName = (TextView) v.findViewById(R.id.q_via);
-    rtIcon = (ImageView) v.findViewById(R.id.q_rt_icon);
-    rtCount = (TextView) v.findViewById(R.id.q_rtcount);
-    favIcon = (ImageView) v.findViewById(R.id.q_fav_icon);
-    favCount = (TextView) v.findViewById(R.id.q_favcount);
+    rtCount = (IconAttachedCounterView) v.findViewById(R.id.q_rtcount);
+    favCount = (IconAttachedCounterView) v.findViewById(R.id.q_favcount);
     mediaContainer = (MediaContainer) v.findViewById(R.id.q_image_group);
   }
 

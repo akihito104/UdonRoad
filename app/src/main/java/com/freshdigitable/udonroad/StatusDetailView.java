@@ -51,10 +51,8 @@ public class StatusDetailView extends FullStatusView {
     tweet = (TextView) v.findViewById(R.id.d_tweet);
     tweet.setMovementMethod(LinkMovementMethod.getInstance());
     clientName = (TextView) v.findViewById(R.id.d_via);
-    rtIcon = (ImageView) v.findViewById(R.id.d_rt_icon);
-    rtCount = (TextView) v.findViewById(R.id.d_rtcount);
-    favIcon = (ImageView) v.findViewById(R.id.d_fav_icon);
-    favCount = (TextView) v.findViewById(R.id.d_favcount);
+    rtCount = (IconAttachedCounterView) v.findViewById(R.id.d_rtcount);
+    favCount = (IconAttachedCounterView) v.findViewById(R.id.d_favcount);
     mediaContainer = (MediaContainer) v.findViewById(R.id.d_image_group);
     rtUserContainer = (LinearLayout) v.findViewById(R.id.d_rt_user_container);
     rtUser = (TextView) v.findViewById(R.id.d_rt_user);

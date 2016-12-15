@@ -68,7 +68,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     onView(ofStatusView(withText(received.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
     onView(ofStatusView(withText(received.getText())))
-        .check(selectedDescendantsMatch(withId(R.id.tl_fav_icon), not(isDisplayed())));
+        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), not(isDisplayed())));
 
     final Status received29 = createStatus(29000, getLoginUser());
     final Status received27 = createStatus(27000, getLoginUser());
@@ -251,7 +251,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // assert
     onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_fav_icon), isDisplayed()));
+        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), isDisplayed()));
   }
 
   @Test
@@ -271,7 +271,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // assert
     onView(withText(R.string.msg_already_rt)).check(matches(isDisplayed()));
     onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_rt_icon), isDisplayed()));
+        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), isDisplayed()));
   }
 
   @Test

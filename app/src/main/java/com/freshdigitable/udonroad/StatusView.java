@@ -54,10 +54,8 @@ public class StatusView extends FullStatusView {
     names = (CombinedScreenNameTextView) v.findViewById(R.id.tl_names);
     tweet = (TextView) v.findViewById(R.id.tl_tweet);
     clientName = (TextView) v.findViewById(R.id.tl_via);
-    rtIcon = (ImageView) v.findViewById(R.id.tl_rt_icon);
-    rtCount = (TextView) v.findViewById(R.id.tl_rtcount);
-    favIcon = (ImageView) v.findViewById(R.id.tl_fav_icon);
-    favCount = (TextView) v.findViewById(R.id.tl_favcount);
+    rtCount = (IconAttachedCounterView) v.findViewById(R.id.tl_rtcount);
+    favCount = (IconAttachedCounterView) v.findViewById(R.id.tl_favcount);
     rtUserContainer = (LinearLayout) v.findViewById(R.id.tl_rt_user_container);
     rtUser = (TextView) v.findViewById(R.id.tl_rt_user);
     rtUserIcon = (ImageView) v.findViewById(R.id.tl_rt_user_icon);

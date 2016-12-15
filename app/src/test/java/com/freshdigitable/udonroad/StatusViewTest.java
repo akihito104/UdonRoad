@@ -56,7 +56,7 @@ public class StatusViewTest {
   @RunWith(RobolectricGradleTestRunner.class)
   public static abstract class Base {
 
-    protected StatusView sut;
+    StatusView sut;
     protected Status status;
 
     @Before
@@ -65,36 +65,36 @@ public class StatusViewTest {
       status = create();
     }
 
-    protected TextView findTextView(@IdRes int id) {
+    TextView findTextView(@IdRes int id) {
       return (TextView) sut.findViewById(id);
     }
 
-    protected String getStringFrom(@IdRes int id) {
+    String getStringFrom(@IdRes int id) {
       return findTextView(id).getText().toString();
     }
 
-    protected int getVisibilityFrom(@IdRes int id) {
+    int getVisibilityFrom(@IdRes int id) {
       return sut.findViewById(id).getVisibility();
     }
 
-    protected int getTextColorFrom(@IdRes int id) {
+    int getTextColorFrom(@IdRes int id) {
       final TextView v = findTextView(id);
       final ColorStateList textColors = v.getTextColors();
       return textColors.getColorForState(v.getDrawableState(), 0);
     }
 
-    protected String fromFormattingResource(@StringRes int id, Object... item) {
+    String fromFormattingResource(@StringRes int id, Object... item) {
       final String format = RuntimeEnvironment.application.getString(id);
       return String.format(format, item);
     }
 
-    protected String makeNames(User user) {
+    String makeNames(User user) {
       final String s = fromFormattingResource(R.string.tweet_name_screenName,
           user.getName(), user.getScreenName());
       return Html.fromHtml(s).toString();
     }
 
-    protected void assertTextColor(@IdRes int id, @ColorInt int expected) {
+    void assertTextColor(@IdRes int id, @ColorInt int expected) {
       final int actual = getTextColorFrom(id);
       assertThat("actual color: " + Integer.toHexString(actual), actual, is(expected));
     }
@@ -122,9 +122,7 @@ public class StatusViewTest {
       sut.bindStatus(status);
 
       commonAsserts();
-      assertThat(getVisibilityFrom(R.id.tl_rt_icon), is(View.GONE));
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.GONE));
-      assertThat(getVisibilityFrom(R.id.tl_fav_icon), is(View.GONE));
       assertThat(getVisibilityFrom(R.id.tl_favcount), is(View.GONE));
     }
 
@@ -136,10 +134,8 @@ public class StatusViewTest {
       sut.bindStatus(status);
 
       commonAsserts();
-      assertThat(getVisibilityFrom(R.id.tl_rt_icon), is(View.VISIBLE));
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.VISIBLE));
       assertThat(getStringFrom(R.id.tl_rtcount), is("1"));
-      assertThat(getVisibilityFrom(R.id.tl_fav_icon), is(View.GONE));
       assertThat(getVisibilityFrom(R.id.tl_favcount), is(View.GONE));
     }
 
@@ -151,9 +147,7 @@ public class StatusViewTest {
       sut.bindStatus(status);
 
       commonAsserts();
-      assertThat(getVisibilityFrom(R.id.tl_rt_icon), is(View.GONE));
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.GONE));
-      assertThat(getVisibilityFrom(R.id.tl_fav_icon), is(View.VISIBLE));
       assertThat(getVisibilityFrom(R.id.tl_favcount), is(View.VISIBLE));
       assertThat(getStringFrom(R.id.tl_favcount), is("1"));
     }
@@ -166,10 +160,8 @@ public class StatusViewTest {
       sut.bindStatus(status);
 
       commonAsserts();
-      assertThat(getVisibilityFrom(R.id.tl_rt_icon), is(View.VISIBLE));
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.VISIBLE));
       assertThat(getStringFrom(R.id.tl_rtcount), is("1"));
-      assertThat(getVisibilityFrom(R.id.tl_fav_icon), is(View.VISIBLE));
       assertThat(getVisibilityFrom(R.id.tl_favcount), is(View.VISIBLE));
       assertThat(getStringFrom(R.id.tl_favcount), is("1"));
     }
@@ -217,10 +209,8 @@ public class StatusViewTest {
       assertTextColor(R.id.tl_create_at, rtColor);
       assertTextColor(R.id.tl_names, rtColor);
 
-      assertThat(getVisibilityFrom(R.id.tl_rt_icon), is(View.VISIBLE));
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.VISIBLE));
       assertThat(getStringFrom(R.id.tl_rtcount), is("1"));
-      assertThat(getVisibilityFrom(R.id.tl_fav_icon), is(View.GONE));
       assertThat(getVisibilityFrom(R.id.tl_favcount), is(View.GONE));
     }
   }

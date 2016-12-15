@@ -80,11 +80,13 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     });
 
     final Status replied = findByStatusId(20000);
+    final String screenName = getLoginUser().getScreenName();
     PerformUtil.selectItemView(replied);
     PerformUtil.reply();
     onView(withId(R.id.main_send_tweet)).check(matches(isEnabled()));
-    onView(withId(R.id.tw_intext)).perform(typeText("reply tweet"))
-        .check(matches(withText("@akihito104 reply tweet")));
+    final String inputText = "reply tweet";
+    onView(withId(R.id.tw_intext)).perform(typeText(inputText))
+        .check(matches(withText("@" + screenName + " " + inputText)));
     onView(withId(R.id.main_send_tweet)).perform(click());
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onView(withId(R.id.action_write)).check(matches(isDisplayed()));

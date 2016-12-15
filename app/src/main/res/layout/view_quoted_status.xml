@@ -76,33 +76,32 @@
                 />
         </LinearLayout>
 
-    <TextView
+    <com.freshdigitable.udonroad.IconAttachedCounterView
         android:id="@+id/q_rtcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/grid_margin"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_marginRight="@dimen/grid_margin_detail"
         android:textSize="@dimen/tweet_small_fontsize"
         android:layout_alignTop="@+id/q_via"
-        android:layout_toRightOf="@+id/q_rt_icon"
-        android:layout_toEndOf="@+id/q_rt_icon"
+        android:layout_alignBottom="@+id/q_via"
         android:visibility="gone"
+        app:icon="@drawable/ic_retweet"
         tools:visibility="visible"
         tools:text="Count"
         />
 
-    <TextView
+    <com.freshdigitable.udonroad.IconAttachedCounterView
         android:id="@+id/q_favcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="@dimen/grid_margin"
         android:layout_alignTop="@+id/q_rtcount"
         android:layout_alignBottom="@+id/q_rtcount"
-        android:layout_toEndOf="@+id/q_fav_icon"
-        android:layout_toRightOf="@+id/q_fav_icon"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_toEndOf="@+id/q_rtcount"
+        android:layout_toRightOf="@+id/q_rtcount"
         android:textSize="@dimen/tweet_small_fontsize"
         android:visibility="gone"
+        app:icon="@drawable/ic_like"
         tools:visibility="visible"
         tools:text="Count"
         />
@@ -121,33 +120,6 @@
         android:lines="1"
         android:ellipsize="end"
         tools:text="via clientName"
-        />
-
-    <ImageView
-        android:id="@+id/q_rt_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/q_rtcount"
-        android:layout_alignBottom="@+id/q_rtcount"
-        app:srcCompat="@drawable/ic_retweet"
-        android:tint="@color/twitter_action_normal"
-        android:contentDescription="@string/desc_tweet_retweet_icon"
-        android:visibility="gone"
-        tools:visibility="visible"
-        />
-
-    <ImageView
-        android:id="@+id/q_fav_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/q_rtcount"
-        android:layout_alignBottom="@+id/q_favcount"
-        android:layout_alignTop="@+id/q_favcount"
-        app:srcCompat="@drawable/ic_like"
-        android:tint="@color/twitter_action_normal"
-        android:contentDescription="@string/desc_tweet_favorite_icon"
-        android:visibility="gone"
-        tools:visibility="visible"
         />
 
     <com.freshdigitable.udonroad.MediaContainer

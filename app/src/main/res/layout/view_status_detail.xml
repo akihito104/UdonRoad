@@ -122,33 +122,33 @@
         tools:text="Tweet"
         />
 
-    <TextView
+    <com.freshdigitable.udonroad.IconAttachedCounterView
         android:id="@+id/d_rtcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/grid_margin"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_marginRight="@dimen/grid_margin_detail"
         android:textSize="@dimen/tweet_detail_small_size"
         android:layout_alignTop="@+id/d_via"
-        android:layout_toRightOf="@+id/d_rt_icon"
-        android:layout_toEndOf="@+id/d_rt_icon"
+        android:layout_alignBottom="@+id/d_via"
+        android:layout_alignParentStart="true"
         android:visibility="gone"
+        app:icon="@drawable/ic_retweet"
         tools:visibility="visible"
         tools:text="Count"
         />
 
-    <TextView
+    <com.freshdigitable.udonroad.IconAttachedCounterView
         android:id="@+id/d_favcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="@dimen/grid_margin"
-        android:layout_alignTop="@+id/d_rtcount"
-        android:layout_alignBottom="@+id/d_rtcount"
-        android:layout_toEndOf="@+id/d_fav_icon"
-        android:layout_toRightOf="@+id/d_fav_icon"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_alignTop="@+id/d_via"
+        android:layout_alignBottom="@+id/d_via"
+        android:layout_toEndOf="@+id/d_rtcount"
+        android:layout_toRightOf="@+id/d_rtcount"
         android:textSize="@dimen/tweet_detail_small_size"
         android:visibility="gone"
+        app:icon="@drawable/ic_like"
         tools:visibility="visible"
         tools:text="Count"
         />
@@ -167,34 +167,6 @@
         android:ellipsize="end"
         android:textAppearance="?android:attr/textAppearanceSmall"
         tools:text="via clientname"
-        />
-
-    <ImageView
-        android:id="@+id/d_rt_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignTop="@+id/d_rtcount"
-        android:layout_alignBottom="@+id/d_rtcount"
-        app:srcCompat="@drawable/ic_retweet"
-        android:tint="@color/twitter_action_normal"
-        android:contentDescription="@string/desc_tweet_retweet_icon"
-        android:visibility="gone"
-        tools:visibility="visible"
-        />
-
-    <ImageView
-        android:id="@+id/d_fav_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/d_rtcount"
-        android:layout_alignBottom="@+id/d_favcount"
-        android:layout_alignTop="@+id/d_favcount"
-        app:srcCompat="@drawable/ic_like"
-        android:tint="@color/twitter_action_normal"
-        android:contentDescription="@string/desc_tweet_favorite_icon"
-        android:visibility="gone"
-        tools:visibility="visible"
         />
 
     <com.freshdigitable.udonroad.MediaContainer
