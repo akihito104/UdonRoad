@@ -20,6 +20,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.TextViewCompat;
@@ -39,6 +40,9 @@ import twitter4j.User;
  * Created by akihit on 2016/07/09.
  */
 public class CombinedScreenNameTextView extends AppCompatTextView {
+  private final ImageSpan verifiedIcon;
+  private final ImageSpan protectedIcon;
+
   public CombinedScreenNameTextView(Context context) {
     this(context, null);
   }
@@ -49,6 +53,8 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
 
   public CombinedScreenNameTextView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
+    verifiedIcon = createIcon(R.drawable.ic_check_circle);
+    protectedIcon = createIcon(R.drawable.ic_lock);
   }
 
   private String name;
@@ -67,25 +73,18 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(formatted);
     spannableStringBuilder.setSpan(STYLE_BOLD, 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     if (user.isVerified()) {
-      appendIconToEnd(spannableStringBuilder, R.drawable.ic_check_circle);
+      appendIconToEnd(spannableStringBuilder, verifiedIcon);
     }
     if (user.isProtected()) {
-      appendIconToEnd(spannableStringBuilder, R.drawable.ic_lock);
+      appendIconToEnd(spannableStringBuilder, protectedIcon);
     }
     setText(spannableStringBuilder);
     this.name = name;
     this.screenName = screenName;
   }
 
-  private void appendIconToEnd(SpannableStringBuilder ssb, @DrawableRes int icon) {
-    // drawable is cached and if it is tinted, all icons would be tinted. so it must be mutate().
-    final Drawable iconDrawable = ContextCompat.getDrawable(getContext(), icon).mutate();
-    final int width
-        = iconDrawable.getIntrinsicWidth() * getLineHeight() / iconDrawable.getIntrinsicHeight();
-    iconDrawable.setBounds(0, 0, width, getLineHeight());
-    DrawableCompat.setTint(iconDrawable, getCurrentTextColor());
-
-    final ImageSpan iconSpan = new ImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BASELINE);
+  private void appendIconToEnd(SpannableStringBuilder ssb, ImageSpan iconSpan) {
+    DrawableCompat.setTint(iconSpan.getDrawable(), getCurrentTextColor());
     final int start = ssb.length();
     // SpannableStringBuilder.append(CharSequence,Object,int) is available in API 21+
     ssb.append("  ");
@@ -93,6 +92,16 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     // SpannableString + ImageSpan don't work in Android API 21 & 22
     // refs: http://stackoverflow.com/questions/3176033/spannablestring-with-image-example
     setTransformationMethod(null);
+  }
+
+  @NonNull
+  private ImageSpan createIcon(@DrawableRes int icon) {
+    // drawable is cached and if it is tinted, all icons would be tinted. so it must be mutate().
+    final Drawable iconDrawable = ContextCompat.getDrawable(getContext(), icon).mutate();
+    final int width
+        = iconDrawable.getIntrinsicWidth() * getLineHeight() / iconDrawable.getIntrinsicHeight();
+    iconDrawable.setBounds(0, 0, width, getLineHeight());
+    return new ImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BASELINE);
   }
 
   private static final StyleSpan STYLE_BOLD = new StyleSpan(Typeface.BOLD);
