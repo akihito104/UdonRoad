@@ -55,16 +55,19 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     super(context, attrs, defStyleAttr);
     verifiedIcon = createIcon(R.drawable.ic_check_circle);
     protectedIcon = createIcon(R.drawable.ic_lock);
+    // SpannableString + ImageSpan don't work in Android API 21 & 22
+    // refs: http://stackoverflow.com/questions/3176033/spannablestring-with-image-example
+    setTransformationMethod(null);
   }
 
-  private String name;
-  private String screenName;
+  private String name = "";
+  private String screenName = "";
 
   public void setNames(User user) {
     final String name = user.getName();
     final String screenName = user.getScreenName();
-    if (this.name != null && this.name.equals(name)
-        && this.screenName != null && this.screenName.equals(screenName)) {
+    if (this.name.equals(name)
+        && this.screenName.equals(screenName)) {
       return;
     }
     final String formatted = name
@@ -89,9 +92,6 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     // SpannableStringBuilder.append(CharSequence,Object,int) is available in API 21+
     ssb.append("  ");
     ssb.setSpan(iconSpan, start + 1, start + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    // SpannableString + ImageSpan don't work in Android API 21 & 22
-    // refs: http://stackoverflow.com/questions/3176033/spannablestring-with-image-example
-    setTransformationMethod(null);
   }
 
   @NonNull
@@ -101,7 +101,7 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     final int width
         = iconDrawable.getIntrinsicWidth() * getLineHeight() / iconDrawable.getIntrinsicHeight();
     iconDrawable.setBounds(0, 0, width, getLineHeight());
-    return new ImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BASELINE);
+    return new ImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BOTTOM);
   }
 
   private static final StyleSpan STYLE_BOLD = new StyleSpan(Typeface.BOLD);

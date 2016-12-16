@@ -17,11 +17,14 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 
 import com.android.annotations.NonNull;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Target;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -81,14 +84,30 @@ public class StatusViewImageHelper {
     if (!status.isRetweet()) {
       return;
     }
+    final RetweetUserView rtUser = itemView.getRtUser();
+    final String screenName = status.getUser().getScreenName();
     getRequest(itemView.getContext(), status.getUser().getMiniProfileImageURLHttps(), status.getId())
         .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
-        .into(itemView.getRtUserIcon());
+        .into(new Target() {
+          @Override
+          public void onPrepareLoad(Drawable placeHolderDrawable) {
+            rtUser.bindUser(placeHolderDrawable, screenName);
+          }
+
+          @Override
+          public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            rtUser.bindUser(bitmap, screenName);
+          }
+
+          @Override
+          public void onBitmapFailed(Drawable errorDrawable) {
+          }
+        });
   }
 
   private static void unloadRTUserIcon(FullStatusView itemView) {
-    unloadImage(itemView.getRtUserIcon());
+    itemView.getRtUser().setText("");
   }
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {

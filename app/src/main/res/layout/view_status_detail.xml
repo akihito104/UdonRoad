@@ -24,54 +24,29 @@
     <!--<RelativeLayout android:layout_width="match_parent"-->
     <!--android:layout_height="match_parent"-->
     <!--&gt;-->
-    <LinearLayout
-        android:id="@+id/d_rt_user_container"
+    <com.freshdigitable.udonroad.RetweetUserView
+        android:id="@+id/d_rt_user"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="@dimen/grid_margin"
+        android:layout_marginLeft="12dp"
+        android:layout_marginStart="12dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="@dimen/tweet_detail_small_size"
+        android:layout_centerVertical="true"
         android:visibility="gone"
         tools:visibility="visible"
-        >
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginRight="@dimen/grid_margin"
-            android:layout_marginEnd="@dimen/grid_margin"
-            android:text="@string/tweet_rtby"
-            android:textSize="@dimen/tweet_detail_small_size"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_gravity="center_vertical"
-            />
-        <com.freshdigitable.udonroad.RoundedCornerImageView
-            android:id="@+id/d_rt_user_icon"
-            android:layout_width="@dimen/detail_small_user_icon"
-            android:layout_height="@dimen/detail_small_user_icon"
-            android:layout_marginRight="@dimen/grid_margin"
-            android:layout_marginEnd="@dimen/grid_margin"
-            android:contentDescription="@string/desc_rt_user_icon"
-            app:maskerShape="@drawable/s_rounded_mask_small"
-            />
-        <TextView
-            android:id="@+id/d_rt_user"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textSize="@dimen/tweet_detail_small_size"
-            android:layout_gravity="center_vertical"
-            tools:text="\@name"
-            />
-    </LinearLayout>
+        tools:text="RT by @screenName"
+        />
 
     <com.freshdigitable.udonroad.RoundedCornerImageView
         android:id="@+id/d_icon"
         android:layout_width="@dimen/tweet_user_icon"
         android:layout_height="@dimen/tweet_user_icon"
-        android:layout_below="@+id/d_rt_user_container"
+        android:layout_below="@+id/d_rt_user"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:contentDescription="@string/desc_icon"
@@ -95,7 +70,7 @@
             android:textSize="@dimen/tweet_detail_small_size"
             android:lines="2"
             android:ellipsize="end"
-            tools:text="ScreenName\n\@name"
+            tools:text="name\n\@screenName"
             />
 
         <TextView
