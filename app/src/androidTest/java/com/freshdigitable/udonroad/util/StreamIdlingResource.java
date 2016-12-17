@@ -17,11 +17,11 @@
 package com.freshdigitable.udonroad.util;
 
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.test.espresso.IdlingResource;
 import android.support.v7.widget.RecyclerView;
 
-import com.android.annotations.NonNull;
 
 /**
  * StreamIdlingResource is to use waiting for updated RecyclerView by twitter stream.
