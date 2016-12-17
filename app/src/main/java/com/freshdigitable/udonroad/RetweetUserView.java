@@ -26,6 +26,8 @@ import android.text.style.ImageSpan;
 import android.util.AttributeSet;
 
 /**
+ * RetweetUserView shows retweeting user name with icon
+ *
  * Created by akihit on 2016/12/15.
  */
 
@@ -51,12 +53,12 @@ public class RetweetUserView extends AppCompatTextView {
   }
 
   public void bindUser(Bitmap icon, String screenName) {
-    bindUser(new ImageSpan(getContext(), icon), screenName);
+    bindUser(new RefinedImageSpan(getContext(), icon), screenName);
   }
 
   public void bindUser(Drawable drawable, String screenName) {
     drawable.setBounds(0, 0, iconSize, iconSize);
-    bindUser(new ImageSpan(drawable), screenName);
+    bindUser(new RefinedImageSpan(drawable), screenName);
   }
 
   private void bindUser(ImageSpan icon, String screenName) {

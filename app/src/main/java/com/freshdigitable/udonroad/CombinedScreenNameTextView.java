@@ -101,7 +101,7 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     final int width
         = iconDrawable.getIntrinsicWidth() * getLineHeight() / iconDrawable.getIntrinsicHeight();
     iconDrawable.setBounds(0, 0, width, getLineHeight());
-    return new ImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BOTTOM);
+    return new RefinedImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BOTTOM);
   }
 
   private static final StyleSpan STYLE_BOLD = new StyleSpan(Typeface.BOLD);

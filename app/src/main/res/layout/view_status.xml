@@ -35,7 +35,6 @@
             android:layout_marginStart="12dp"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textSize="@dimen/tweet_small_fontsize"
-            android:layout_centerVertical="true"
             android:visibility="gone"
             tools:visibility="visible"
             tools:text="RT by @screenName"
