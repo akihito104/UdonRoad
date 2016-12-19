@@ -34,8 +34,13 @@ import java.lang.ref.WeakReference;
  */
 
 class RefinedImageSpan extends ImageSpan {
+  static final int ALIGN_CENTER = 10;
   RefinedImageSpan(Context context, Bitmap b) {
     super(context, b);
+  }
+
+  RefinedImageSpan(Context context, Bitmap b, int verticalAlignment) {
+    super(context, b, verticalAlignment);
   }
 
   RefinedImageSpan(Drawable d) {
@@ -50,13 +55,15 @@ class RefinedImageSpan extends ImageSpan {
   public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
     final Rect bounds = getCachedDrawable().getBounds();
     if (fm != null) {
-      if (getVerticalAlignment() == ALIGN_BASELINE) {
+      final int verticalAlignment = getVerticalAlignment();
+      if (verticalAlignment == ALIGN_BASELINE) {
         fm.ascent = -bounds.bottom;
-        fm.descent = 0;
-      } else if (getVerticalAlignment() == ALIGN_BOTTOM) {
-        fm.ascent = (int) (bounds.bottom * (float) fm.top / (-fm.top + fm.bottom));
-        fm.descent = bounds.bottom + fm.ascent;
+      } else if (verticalAlignment == ALIGN_BOTTOM) {
+        fm.ascent = bounds.bottom * fm.top / (-fm.top + fm.bottom);
+      } else if (verticalAlignment == ALIGN_CENTER) {
+        fm.ascent = fm.top - (bounds.bottom - (fm.bottom - fm.top)) / 2;
       }
+      fm.descent = Math.max(bounds.bottom + fm.ascent, 0);
       fm.top = fm.ascent;
       fm.bottom = fm.descent;
     }
@@ -69,12 +76,20 @@ class RefinedImageSpan extends ImageSpan {
                    float x, int top, int baseline, int bottom,
                    Paint paint) {
     final Drawable cachedDrawable = getCachedDrawable();
+    final int drawableHeight = cachedDrawable.getBounds().bottom;
+
     canvas.save();
-    int transY = 0;
-    if (getVerticalAlignment() == ALIGN_BASELINE) {
-      transY = baseline - cachedDrawable.getBounds().bottom;
-    } else if (getVerticalAlignment() == ALIGN_BOTTOM) {
-      transY = bottom - cachedDrawable.getBounds().bottom;
+    final int transY;
+    final int verticalAlignment = getVerticalAlignment();
+    if (verticalAlignment == ALIGN_BASELINE) {
+      transY = baseline - drawableHeight;
+    } else if (verticalAlignment == ALIGN_BOTTOM) {
+      transY = bottom - drawableHeight - paint.getFontMetricsInt().leading;
+    } else if (verticalAlignment == ALIGN_CENTER) {
+      final float center = baseline + (paint.getFontMetrics().bottom + paint.getFontMetrics().top) / 2;
+      transY = (int) (center - drawableHeight / 2);
+    } else {
+      transY = top;
     }
     canvas.translate(x, transY);
     cachedDrawable.draw(canvas);

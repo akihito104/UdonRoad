@@ -53,12 +53,12 @@ public class RetweetUserView extends AppCompatTextView {
   }
 
   public void bindUser(Bitmap icon, String screenName) {
-    bindUser(new RefinedImageSpan(getContext(), icon), screenName);
+    bindUser(new RefinedImageSpan(getContext(), icon, RefinedImageSpan.ALIGN_CENTER), screenName);
   }
 
   public void bindUser(Drawable drawable, String screenName) {
     drawable.setBounds(0, 0, iconSize, iconSize);
-    bindUser(new RefinedImageSpan(drawable), screenName);
+    bindUser(new RefinedImageSpan(drawable, RefinedImageSpan.ALIGN_CENTER), screenName);
   }
 
   private void bindUser(ImageSpan icon, String screenName) {
