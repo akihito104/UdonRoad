@@ -25,8 +25,8 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.widget.ImageView;
 
 /**
  * RoundedCornerImageView is acceptable custom shape.
@@ -34,7 +34,7 @@ import android.widget.ImageView;
  * Created by akihit on 2016/09/22.
  */
 
-public class RoundedCornerImageView extends ImageView {
+public class RoundedCornerImageView extends AppCompatImageView {
   private final Paint masker;
   private final Paint copier;
   private final Drawable maskDrawable;
