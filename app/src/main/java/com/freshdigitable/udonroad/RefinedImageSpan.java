@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -35,20 +33,13 @@ import java.lang.ref.WeakReference;
 
 class RefinedImageSpan extends ImageSpan {
   static final int ALIGN_CENTER = 10;
-  RefinedImageSpan(Context context, Bitmap b) {
-    super(context, b);
-  }
+  private final int marginStart;
+  private final int marginEnd;
 
-  RefinedImageSpan(Context context, Bitmap b, int verticalAlignment) {
-    super(context, b, verticalAlignment);
-  }
-
-  RefinedImageSpan(Drawable d) {
-    super(d);
-  }
-
-  RefinedImageSpan(Drawable d, int verticalAlignment) {
+  RefinedImageSpan(Drawable d, int verticalAlignment, int marginStart, int marginEnd) {
     super(d, verticalAlignment);
+    this.marginStart = marginStart;
+    this.marginEnd = marginEnd;
   }
 
   @Override
@@ -67,7 +58,7 @@ class RefinedImageSpan extends ImageSpan {
       fm.top = fm.ascent;
       fm.bottom = fm.descent;
     }
-    return bounds.right;
+    return marginStart + bounds.right + marginEnd;
   }
 
   @Override
@@ -91,7 +82,7 @@ class RefinedImageSpan extends ImageSpan {
     } else {
       transY = top;
     }
-    canvas.translate(x, transY);
+    canvas.translate(x + marginStart, transY);
     cachedDrawable.draw(canvas);
     canvas.restore();
   }

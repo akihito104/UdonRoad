@@ -11,6 +11,7 @@
         <item name="iffabStyle">@style/Widget.FFAB.IndicatableFFAB</item>
         <item name="roundedCornerImageViewStyle">@style/Widget.RoundedCornerImageView</item>
         <item name="iconAttachedCounterViewStyle">@style/Widget.IconAttachedCounterView</item>
+        <item name="retweetUserViewStyle">@style/Widget.RetweetUserView</item>
     </style>
 
     <style name="AppDrawerArrowToggle" parent="Base.Widget.AppCompat.DrawerArrowToggle">

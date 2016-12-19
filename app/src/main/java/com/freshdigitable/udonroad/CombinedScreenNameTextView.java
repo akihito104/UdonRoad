@@ -90,8 +90,8 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     DrawableCompat.setTint(iconSpan.getDrawable(), getCurrentTextColor());
     final int start = ssb.length();
     // SpannableStringBuilder.append(CharSequence,Object,int) is available in API 21+
-    ssb.append("  ");
-    ssb.setSpan(iconSpan, start + 1, start + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    ssb.append(" ");
+    ssb.setSpan(iconSpan, start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
   }
 
   @NonNull
@@ -101,7 +101,8 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     final int width
         = iconDrawable.getIntrinsicWidth() * getLineHeight() / iconDrawable.getIntrinsicHeight();
     iconDrawable.setBounds(0, 0, width, getLineHeight());
-    return new RefinedImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BOTTOM);
+    final int margin = getContext().getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    return new RefinedImageSpan(iconDrawable, DynamicDrawableSpan.ALIGN_BOTTOM, margin, 0);
   }
 
   private static final StyleSpan STYLE_BOLD = new StyleSpan(Typeface.BOLD);

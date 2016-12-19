@@ -53,7 +53,7 @@ public class VerifiedUserTest extends TimelineInstTestBase {
     final User verifiedUser = UserUtil.createVerifiedUser();
     onView(ofStatusViewAt(R.id.timeline, 2))
         .check(selectedDescendantsMatch(withId(R.id.tl_names),
-            withText(verifiedUser.getName() + " @" + verifiedUser.getScreenName() + "  ")));
+            withText(verifiedUser.getName() + " @" + verifiedUser.getScreenName() + " ")));
   }
 
   @Test
@@ -61,7 +61,7 @@ public class VerifiedUserTest extends TimelineInstTestBase {
     final User protectedUser = UserUtil.createProtectedUser();
     onView(ofStatusViewAt(R.id.timeline, 1))
         .check(selectedDescendantsMatch(withId(R.id.tl_names),
-            withText(protectedUser.getName() + " @" + protectedUser.getScreenName() + "  ")));
+            withText(protectedUser.getName() + " @" + protectedUser.getScreenName() + " ")));
   }
 
   @Test
@@ -69,7 +69,7 @@ public class VerifiedUserTest extends TimelineInstTestBase {
     final User bothUser = UserUtil.createVerifiedAndProtectedUser();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(selectedDescendantsMatch(withId(R.id.tl_names),
-            withText(bothUser.getName() + " @" + bothUser.getScreenName() + "    ")));
+            withText(bothUser.getName() + " @" + bothUser.getScreenName() + "  ")));
   }
 
   @Override

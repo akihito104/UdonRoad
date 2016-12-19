@@ -38,6 +38,7 @@
         android:textSize="@dimen/tweet_detail_small_size"
         android:layout_centerVertical="true"
         android:visibility="gone"
+        app:iconSize="@dimen/detail_small_user_icon"
         tools:visibility="visible"
         tools:text="RT by @screenName"
         />

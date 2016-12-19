@@ -17,7 +17,9 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.AppCompatTextView;
 import android.text.SpannableStringBuilder;
@@ -36,34 +38,43 @@ public class RetweetUserView extends AppCompatTextView {
   private final String rtBy;
   private final String screenNameTemplate;
   private final int iconSize;
+  private final int iconMargin;
 
   public RetweetUserView(Context context) {
     this(context, null);
   }
 
   public RetweetUserView(Context context, AttributeSet attrs) {
-    this(context, attrs, 0);
+    this(context, attrs, R.attr.retweetUserViewStyle);
   }
 
   public RetweetUserView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     rtBy = getResources().getString(R.string.tweet_rtby);
     screenNameTemplate = getResources().getString(R.string.tweet_name);
-    iconSize = getResources().getDimensionPixelSize(R.dimen.small_user_icon);
+    final TypedArray a = context.obtainStyledAttributes(
+        attrs, R.styleable.RetweetUserView, defStyleAttr, R.style.Widget_RetweetUserView);
+    try {
+      iconSize = a.getDimensionPixelSize(R.styleable.RetweetUserView_iconSize, -1);
+      iconMargin = a.getDimensionPixelSize(R.styleable.RetweetUserView_iconMargin, -1);
+    } finally {
+      a.recycle();
+    }
   }
 
   public void bindUser(Bitmap icon, String screenName) {
-    bindUser(new RefinedImageSpan(getContext(), icon, RefinedImageSpan.ALIGN_CENTER), screenName);
+    final BitmapDrawable bitmapDrawable = new BitmapDrawable(getContext().getResources(), icon);
+    bindUser(bitmapDrawable, screenName);
   }
 
   public void bindUser(Drawable drawable, String screenName) {
     drawable.setBounds(0, 0, iconSize, iconSize);
-    bindUser(new RefinedImageSpan(drawable, RefinedImageSpan.ALIGN_CENTER), screenName);
+    bindUser(new RefinedImageSpan(drawable, RefinedImageSpan.ALIGN_CENTER, iconMargin, iconMargin), screenName);
   }
 
   private void bindUser(ImageSpan icon, String screenName) {
-    SpannableStringBuilder ssb = new SpannableStringBuilder(rtBy + "   ");
-    ssb.setSpan(icon, rtBy.length() + 1, rtBy.length() + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    SpannableStringBuilder ssb = new SpannableStringBuilder(rtBy + " ");
+    ssb.setSpan(icon, rtBy.length(), rtBy.length() + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     ssb.append(String.format(screenNameTemplate, screenName));
     setText(ssb);
   }
