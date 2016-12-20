@@ -16,19 +16,5 @@
   -->
 
 <resources>
-    <declare-styleable name="RetweetUserView">
-        <attr name="iconSize" format="dimension"/>
-        <attr name="iconMargin" format="dimension"/>
-    </declare-styleable>
-
-    <declare-styleable name="RetweetUserViewTheme">
-        <attr name="retweetUserViewStyle" format="reference"/>
-    </declare-styleable>
-
-    <style name="Widget.RetweetUserView" parent="android:Widget.TextView">
-        <item name="iconSize">@dimen/small_user_icon</item>
-        <item name="iconMargin">@dimen/grid_margin</item>
-    </style>
-
-    <string name="tweet_retweet_user">RT by \@%1$s</string>
+    <string name="tweet_retweet_user">\@%1$s さんがリツイート</string>
 </resources>

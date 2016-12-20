@@ -221,7 +221,7 @@ public class UserInfoActivity extends AppCompatActivity
   public static void bindUserScreenName(TextView textView, User user) {
     final Resources resources = textView.getContext().getResources();
     textView.setText(
-        String.format(resources.getString(R.string.tweet_name), user.getScreenName()));
+        String.format(resources.getString(R.string.tweet_screenName), user.getScreenName()));
   }
 
   private void showTwitterInputView(@TweetType int type, long statusId) {

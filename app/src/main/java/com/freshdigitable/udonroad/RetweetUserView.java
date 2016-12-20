@@ -30,18 +30,20 @@ import android.text.style.ImageSpan;
 import android.util.AttributeSet;
 
 /**
- * RetweetUserView shows retweeting user name with icon
+ * RetweetUserView shows retweeting user name with icon.<br>
+ * Icon image is inserted before `@`.
  *
  * Created by akihit on 2016/12/15.
  */
 
 public class RetweetUserView extends AppCompatTextView {
 
-  private final String rtBy;
-  private final String screenNameTemplate;
   private final int iconSize;
   private final int iconMargin;
   private final Drawable maskerDrawable;
+  private final String retweetUserTemplate;
+  private final int iconStart;
+  private final int iconEnd;
 
   public RetweetUserView(Context context) {
     this(context, null);
@@ -53,8 +55,24 @@ public class RetweetUserView extends AppCompatTextView {
 
   public RetweetUserView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    rtBy = getResources().getString(R.string.tweet_rtby);
-    screenNameTemplate = getResources().getString(R.string.tweet_name);
+    final String rtTemplate = context.getString(R.string.tweet_retweet_user);
+    final int atIndex = rtTemplate.indexOf("@");
+    if (atIndex < 0) {
+      throw new IllegalArgumentException("R.string.tweet_retweet_user must contain '@', but now one is: " + rtTemplate);
+    } else if (atIndex == 0) {
+      retweetUserTemplate = " " + rtTemplate;
+      iconStart = 0;
+    } else {
+      if (rtTemplate.charAt(atIndex - 1) == ' ') {
+        retweetUserTemplate = rtTemplate;
+        iconStart = atIndex - 1;
+      } else {
+        retweetUserTemplate = rtTemplate.replace("@", " @");
+        iconStart = atIndex;
+      }
+    }
+    iconEnd = iconStart + 1;
+
     maskerDrawable = ContextCompat.getDrawable(context, R.drawable.s_rounded_mask_small);
     final TypedArray a = context.obtainStyledAttributes(
         attrs, R.styleable.RetweetUserView, defStyleAttr, R.style.Widget_RetweetUserView);
@@ -68,8 +86,7 @@ public class RetweetUserView extends AppCompatTextView {
 
   public void bindUser(Bitmap icon, String screenName) {
     final BitmapDrawable wrappedIcon = new BitmapDrawable(getResources(), icon);
-    final RoundedCornerDrawable roundedIcon = new RoundedCornerDrawable(maskerDrawable, wrappedIcon);
-    bindUser(roundedIcon, screenName);
+    bindUser(wrappedIcon, screenName);
   }
 
   public void bindUser(Drawable icon, String screenName) {
@@ -81,14 +98,14 @@ public class RetweetUserView extends AppCompatTextView {
   }
 
   private void bindUser(ImageSpan icon, String screenName) {
-    SpannableStringBuilder ssb = new SpannableStringBuilder(rtBy + " ");
-    ssb.setSpan(icon, rtBy.length(), rtBy.length() + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    ssb.append(String.format(screenNameTemplate, screenName));
+    SpannableStringBuilder ssb = new SpannableStringBuilder(String.format(retweetUserTemplate, screenName));
+    ssb.setSpan(icon, iconStart, iconEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     setText(ssb);
   }
 
   @NonNull
   private RefinedImageSpan createIconSpan(RoundedCornerDrawable roundedCornerDrawable) {
-    return new RefinedImageSpan(roundedCornerDrawable, RefinedImageSpan.ALIGN_CENTER, iconMargin, iconMargin);
+    return new RefinedImageSpan(roundedCornerDrawable, RefinedImageSpan.ALIGN_CENTER,
+        iconStart == 0 ? 0 : iconMargin, iconMargin);
   }
 }
