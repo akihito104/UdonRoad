@@ -32,6 +32,8 @@ import java.lang.ref.WeakReference;
  */
 
 class RefinedImageSpan extends ImageSpan {
+  @SuppressWarnings("unused")
+  private static final String TAG = RefinedImageSpan.class.getSimpleName();
   static final int ALIGN_CENTER = 10;
   private final int marginStart;
   private final int marginEnd;
@@ -46,13 +48,14 @@ class RefinedImageSpan extends ImageSpan {
   public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
     final Rect bounds = getCachedDrawable().getBounds();
     if (fm != null) {
+      final Paint.FontMetrics fontMetrics = paint.getFontMetrics();
       final int verticalAlignment = getVerticalAlignment();
       if (verticalAlignment == ALIGN_BASELINE) {
         fm.ascent = -bounds.bottom;
       } else if (verticalAlignment == ALIGN_BOTTOM) {
-        fm.ascent = bounds.bottom * fm.top / (-fm.top + fm.bottom);
+        fm.ascent = (int) (bounds.bottom * fontMetrics.top / (-fontMetrics.top + fontMetrics.bottom));
       } else if (verticalAlignment == ALIGN_CENTER) {
-        fm.ascent = fm.top - (bounds.bottom - (fm.bottom - fm.top)) / 2;
+        fm.ascent = (int) (fontMetrics.top - (bounds.bottom - (fontMetrics.bottom - fontMetrics.top)) / 2);
       }
       fm.descent = Math.max(bounds.bottom + fm.ascent, 0);
       fm.top = fm.ascent;
