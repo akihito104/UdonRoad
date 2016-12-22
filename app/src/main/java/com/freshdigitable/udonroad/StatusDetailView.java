@@ -21,7 +21,6 @@ import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import twitter4j.Status;
@@ -54,9 +53,7 @@ public class StatusDetailView extends FullStatusView {
     rtCount = (IconAttachedCounterView) v.findViewById(R.id.d_rtcount);
     favCount = (IconAttachedCounterView) v.findViewById(R.id.d_favcount);
     mediaContainer = (MediaContainer) v.findViewById(R.id.d_image_group);
-    rtUserContainer = (LinearLayout) v.findViewById(R.id.d_rt_user_container);
-    rtUser = (TextView) v.findViewById(R.id.d_rt_user);
-    rtUserIcon = (ImageView) v.findViewById(R.id.d_rt_user_icon);
+    rtUser = (RetweetUserView) v.findViewById(R.id.d_rt_user);
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.d_quoted);
   }
 

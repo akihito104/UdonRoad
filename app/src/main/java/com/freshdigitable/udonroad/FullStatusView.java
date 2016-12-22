@@ -18,12 +18,8 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import twitter4j.Status;
-import twitter4j.User;
 
 import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
@@ -33,10 +29,8 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  * Created by akihit on 2016/08/20.
  */
 public abstract class FullStatusView extends StatusViewBase {
-  protected TextView rtUser;
-  protected ImageView rtUserIcon;
-  protected LinearLayout rtUserContainer;
   protected QuotedStatusView quotedStatus;
+  protected RetweetUserView rtUser;
 
   public FullStatusView(Context context) {
     super(context);
@@ -54,7 +48,7 @@ public abstract class FullStatusView extends StatusViewBase {
   public void bindStatus(final Status status) {
     super.bindStatus(status);
     if (status.isRetweet()) {
-      bindRtUser(status.getUser());
+      setRetweetedUserVisibility(VISIBLE);
     }
 
     final Status quotedBindingStatus = getBindingStatus(status).getQuotedStatus();
@@ -74,29 +68,22 @@ public abstract class FullStatusView extends StatusViewBase {
     }
   }
 
-  private void bindRtUser(User user) {
-    setRetweetedUserVisibility(VISIBLE);
-    final String formattedRtUser = formatString(R.string.tweet_retweeting_user,
-        user.getScreenName());
-    rtUser.setText(formattedRtUser);
-  }
-
   private void setRetweetedUserVisibility(int visibility) {
-    rtUserContainer.setVisibility(visibility);
+    rtUser.setVisibility(visibility);
   }
 
   @Override
   public void reset() {
     super.reset();
     setRetweetedUserVisibility(GONE);
-    rtUserIcon.setImageDrawable(null);
+    rtUser.setText("");
     quotedStatus.setBackgroundResource(R.drawable.s_rounded_frame_default);
     quotedStatus.setVisibility(GONE);
     quotedStatus.reset();
   }
 
-  public ImageView getRtUserIcon() {
-    return rtUserIcon;
+  public RetweetUserView getRtUser() {
+    return rtUser;
   }
 
   public QuotedStatusView getQuotedStatusView() {

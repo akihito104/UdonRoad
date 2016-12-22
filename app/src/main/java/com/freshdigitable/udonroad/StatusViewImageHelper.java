@@ -17,11 +17,15 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.widget.ImageView;
 
-import com.android.annotations.NonNull;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Target;
 
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.Status;
@@ -81,14 +85,49 @@ public class StatusViewImageHelper {
     if (!status.isRetweet()) {
       return;
     }
-    getRequest(itemView.getContext(), status.getUser().getMiniProfileImageURLHttps(), status.getId())
+    final Context context = itemView.getContext();
+    final String miniProfileImageURLHttps = status.getUser().getMiniProfileImageURLHttps();
+    final long tag = status.getId();
+
+    final RetweetUserView rtUser = itemView.getRtUser();
+    final String screenName = status.getUser().getScreenName();
+    final Target target = new Target() {
+      @Override
+      public void onPrepareLoad(Drawable placeHolderDrawable) {
+        rtUser.bindUser(placeHolderDrawable, screenName);
+      }
+
+      @Override
+      public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+        rtUser.bindUser(bitmap, screenName);
+      }
+
+      @Override
+      public void onBitmapFailed(Drawable errorDrawable) {
+      }
+    };
+
+    // workaround: to prevent target object will be garbage collected
+    // because of wrapped with WeakReference.
+    getRequest(context, miniProfileImageURLHttps, tag)
         .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-        .placeholder(R.drawable.ic_person_outline_black)
-        .into(itemView.getRtUserIcon());
+        .fetch(new Callback() {
+          @Override
+          public void onSuccess() {
+            getRequest(context, miniProfileImageURLHttps, tag)
+                .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+                .placeholder(R.drawable.ic_person_outline_black)
+                .into(target);
+          }
+
+          @Override
+          public void onError() {
+          }
+        });
   }
 
   private static void unloadRTUserIcon(FullStatusView itemView) {
-    unloadImage(itemView.getRtUserIcon());
+    itemView.getRtUser().setText("");
   }
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {

@@ -16,71 +16,80 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.support.v7.widget.AppCompatImageView;
-import android.util.AttributeSet;
+import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 /**
- * RoundedCornerImageView is acceptable custom shape.
+ * RoundedCornerDrawable is wrapper class to make the corners of drawable rounded.
  *
- * Created by akihit on 2016/09/22.
+ * Created by akihit on 2016/12/19.
  */
 
-public class RoundedCornerImageView extends AppCompatImageView {
+class RoundedCornerDrawable extends Drawable {
   private final Paint masker;
   private final Paint copier;
   private final Drawable maskDrawable;
+  private final Drawable drawable;
 
-  public RoundedCornerImageView(Context context) {
-    this(context, null);
-  }
-
-  public RoundedCornerImageView(Context context, AttributeSet attrs) {
-    this(context, attrs, 0);
-  }
-
-  public RoundedCornerImageView(Context context, AttributeSet attrs, int defStyleAttr) {
-    super(context, attrs, defStyleAttr);
-
+  RoundedCornerDrawable(@NonNull Drawable maskerDrawable, @NonNull Drawable drawable) {
+    this.maskDrawable = maskerDrawable;
+    this.drawable = drawable;
     masker = new Paint();
     masker.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
     copier = new Paint();
-    final TypedArray a = context.obtainStyledAttributes(attrs,
-        R.styleable.RoundedCornerImageView,
-        defStyleAttr, R.style.Widget_RoundedCornerImageView);
-    try {
-      maskDrawable = a.getDrawable(R.styleable.RoundedCornerImageView_maskerShape);
-    } finally {
-      a.recycle();
-    }
   }
 
-  private Rect bound;
   private RectF boundF;
 
   @Override
-  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    bound = new Rect(getPaddingLeft(), getPaddingTop(),
-        w - getPaddingRight(), h - getPaddingBottom());
-    boundF = new RectF(bound);
+  protected void onBoundsChange(Rect bounds) {
+    super.onBoundsChange(bounds);
+    boundF = new RectF(bounds);
   }
 
   @Override
-  protected void onDraw(Canvas canvas) {
+  public void draw(@NonNull Canvas canvas) {
     final int saved = canvas.saveLayer(boundF, copier,
         Canvas.HAS_ALPHA_LAYER_SAVE_FLAG | Canvas.FULL_COLOR_LAYER_SAVE_FLAG);
-    maskDrawable.setBounds(bound);
     maskDrawable.draw(canvas);
     canvas.saveLayer(boundF, masker, 0);
-    super.onDraw(canvas);
+    drawable.draw(canvas);
     canvas.restoreToCount(saved);
+  }
+
+  @Override
+  public void setBounds(int left, int top, int right, int bottom) {
+    super.setBounds(left, top, right, bottom);
+    maskDrawable.setBounds(left, top, right, bottom);
+    drawable.setBounds(left, top, right, bottom);
+  }
+
+  @Override
+  public void setBounds(@NonNull Rect bounds) {
+    setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom);
+  }
+
+  @Override
+  public void setAlpha(@IntRange(from = 0, to = 255) int i) {
+    drawable.setAlpha(i);
+  }
+
+  @Override
+  public void setColorFilter(@Nullable ColorFilter colorFilter) {
+    drawable.setColorFilter(colorFilter);
+  }
+
+  @Override
+  public int getOpacity() {
+    return drawable.getOpacity();
   }
 }

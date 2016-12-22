@@ -1,12 +1,10 @@
 <resources>
     <string name="app_name">UdonRoad</string>
     <string name="callback_url" translatable="false">udonr://twitter</string>
-    <string name="tweet_name" translatable="false">\@%1$s</string>
     <string name="tweet_name_screenName" translatable="false">&lt;b>%1$s&lt;/b> \@%2$s</string>
     <string name="tweet_name_screenName_lines" translatable="false">&lt;b>%1$s&lt;/b>&lt;br>\@%2$s</string>
-    <string name="tweet_retweeting_user" translatable="false">\@%1$s</string>
+    <string name="tweet_screenName" translatable="false">\@%1$s</string>
     <string name="tweet_via" translatable="false">via %1$s</string>
-    <string name="tweet_rtby" translatable="false">RT by</string>
     <string name="tweet_media_descs">user appending image of this tweet</string>
     <string name="desc_tweet_retweet_icon" translatable="false">Retweet icon</string>
     <string name="desc_tweet_favorite_icon" translatable="false">Favorite icon</string>

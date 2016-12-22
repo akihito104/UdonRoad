@@ -21,7 +21,6 @@ import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import twitter4j.Status;
@@ -56,9 +55,7 @@ public class StatusView extends FullStatusView {
     clientName = (TextView) v.findViewById(R.id.tl_via);
     rtCount = (IconAttachedCounterView) v.findViewById(R.id.tl_rtcount);
     favCount = (IconAttachedCounterView) v.findViewById(R.id.tl_favcount);
-    rtUserContainer = (LinearLayout) v.findViewById(R.id.tl_rt_user_container);
-    rtUser = (TextView) v.findViewById(R.id.tl_rt_user);
-    rtUserIcon = (ImageView) v.findViewById(R.id.tl_rt_user_icon);
+    rtUser = (RetweetUserView) v.findViewById(R.id.tl_rt_user);
     mediaContainer = (MediaContainer) v.findViewById(R.id.tl_image_group);
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.tl_quoted);
   }
