@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.widget.ImageView;
 
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
@@ -84,24 +85,43 @@ public class StatusViewImageHelper {
     if (!status.isRetweet()) {
       return;
     }
+    final Context context = itemView.getContext();
+    final String miniProfileImageURLHttps = status.getUser().getMiniProfileImageURLHttps();
+    final long tag = status.getId();
+
     final RetweetUserView rtUser = itemView.getRtUser();
     final String screenName = status.getUser().getScreenName();
-    getRequest(itemView.getContext(), status.getUser().getMiniProfileImageURLHttps(), status.getId())
+    final Target target = new Target() {
+      @Override
+      public void onPrepareLoad(Drawable placeHolderDrawable) {
+        rtUser.bindUser(placeHolderDrawable, screenName);
+      }
+
+      @Override
+      public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+        rtUser.bindUser(bitmap, screenName);
+      }
+
+      @Override
+      public void onBitmapFailed(Drawable errorDrawable) {
+      }
+    };
+
+    // workaround: to prevent target object will be garbage collected
+    // because of wrapped with WeakReference.
+    getRequest(context, miniProfileImageURLHttps, tag)
         .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-        .placeholder(R.drawable.ic_person_outline_black)
-        .into(new Target() {
+        .fetch(new Callback() {
           @Override
-          public void onPrepareLoad(Drawable placeHolderDrawable) {
-            rtUser.bindUser(placeHolderDrawable, screenName);
+          public void onSuccess() {
+            getRequest(context, miniProfileImageURLHttps, tag)
+                .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+                .placeholder(R.drawable.ic_person_outline_black)
+                .into(target);
           }
 
           @Override
-          public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            rtUser.bindUser(bitmap, screenName);
-          }
-
-          @Override
-          public void onBitmapFailed(Drawable errorDrawable) {
+          public void onError() {
           }
         });
   }

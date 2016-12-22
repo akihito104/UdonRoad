@@ -98,7 +98,8 @@ public class RetweetUserView extends AppCompatTextView {
   }
 
   private void bindUser(ImageSpan icon, String screenName) {
-    SpannableStringBuilder ssb = new SpannableStringBuilder(String.format(retweetUserTemplate, screenName));
+    final String newText = String.format(retweetUserTemplate, screenName);
+    SpannableStringBuilder ssb = new SpannableStringBuilder(newText);
     ssb.setSpan(icon, iconStart, iconEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     setText(ssb);
   }
