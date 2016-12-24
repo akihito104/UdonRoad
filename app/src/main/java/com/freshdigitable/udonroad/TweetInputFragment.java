@@ -62,6 +62,8 @@ import twitter4j.StatusUpdate;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+import static android.view.View.GONE;
+
 /**
  * TweetInputFragment provides TweetInputView and logic to send tweet.
  *
@@ -159,6 +161,9 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
+    // workaround: for support lib 25.1.0
+    binding.mainTweetInputView.setVisibility(GONE);
+
     statusRequestWorker.open();
     configRequestWorker.open();
     appSettings.open();
