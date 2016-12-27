@@ -344,6 +344,7 @@ public class TweetInputFragment extends Fragment {
           @Override
           public void call(Status status) {
             inputText.getText().clear();
+            inputText.reset();
             inputText.clearFocus();
             inputText.disappearing();
             setupMenuVisibility();

@@ -60,11 +60,6 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
 
   @Override
   protected int setupTimeline() throws TwitterException {
-    return setupDefaultTimeline();
-  }
-
-  @Test
-  public void sendValidInReplyTo() throws Exception {
     when(twitter.updateStatus(any(StatusUpdate.class))).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
@@ -78,12 +73,29 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
         return mockResponse;
       }
     });
+    return setupDefaultTimeline();
+  }
 
+  @Test
+  public void sendValidInReplyTo() throws Exception {
+    sendReply();
+  }
+
+  @Test
+  public void sendValidInReplyToAndOpenOnceMore_then_clearedTheView() throws Exception {
+    sendReply();
+
+    PerformUtil.clickWriteOnMenu();
+    onView(withId(R.id.tw_replyTo)).check(matches(not(isDisplayed())));
+  }
+
+  private void sendReply() throws Exception {
     final Status replied = findByStatusId(20000);
     final String screenName = getLoginUser().getScreenName();
     PerformUtil.selectItemView(replied);
     PerformUtil.reply();
     onView(withId(R.id.main_send_tweet)).check(matches(isEnabled()));
+    onView(withId(R.id.tw_replyTo)).check(matches(isDisplayed()));
     final String inputText = "reply tweet";
     onView(withId(R.id.tw_intext)).perform(typeText(inputText))
         .check(matches(withText("@" + screenName + " " + inputText)));
