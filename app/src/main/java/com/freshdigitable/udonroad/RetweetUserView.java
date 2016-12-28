@@ -82,6 +82,7 @@ public class RetweetUserView extends AppCompatTextView {
     } finally {
       a.recycle();
     }
+    setHeight(iconSize);
   }
 
   public void bindUser(Bitmap icon, String screenName) {
