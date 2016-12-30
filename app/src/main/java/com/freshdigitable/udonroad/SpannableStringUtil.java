@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
@@ -77,8 +77,8 @@ class SpannableStringUtil {
     final List<SpanningInfo> info = new ArrayList<>();
     final URLEntity[] urlEntities = bindingStatus.getURLEntities();
     info.addAll(createURLSpanningInfo(text, urlEntities, quotedStatusIdStr));
-    final ExtendedMediaEntity[] eme = bindingStatus.getExtendedMediaEntities();
-    for (ExtendedMediaEntity e : eme) {
+    final MediaEntity[] me = bindingStatus.getMediaEntities();
+    for (MediaEntity e : me) {
       int start = text.indexOf(e.getURL());
       int end = start + e.getURL().length();
       if (isInvalidRange(text, start, end)) {

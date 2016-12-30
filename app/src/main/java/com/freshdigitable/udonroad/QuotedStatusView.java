@@ -71,7 +71,7 @@ public class QuotedStatusView extends StatusViewBase {
     for (URLEntity u : urlEntities) {
       text = text.replace(u.getURL(), u.getDisplayURL());
     }
-    return removeMediaUrl(text, status.getExtendedMediaEntities());
+    return removeMediaUrl(text, status.getMediaEntities());
   }
 
   @Override

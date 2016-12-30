@@ -16,14 +16,14 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+
+import twitter4j.MediaEntity;
+
 /**
  * MediaCache defines to access media entities cache.
  *
  * Created by akihit on 2016/09/14.
  */
-
-import twitter4j.ExtendedMediaEntity;
-
 public interface MediaCache extends BaseCache {
-  ExtendedMediaEntity getMediaEntity(long mediaId);
+  MediaEntity getMediaEntity(long mediaId);
 }

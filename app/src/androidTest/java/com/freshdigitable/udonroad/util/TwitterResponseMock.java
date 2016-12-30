@@ -30,7 +30,7 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -74,7 +74,7 @@ public class TwitterResponseMock {
     when(status.getSource())
         .thenReturn("<a href=\"https://twitter.com/akihito104\">Udonroad</a>");
     when(status.getURLEntities()).thenReturn(new URLEntity[0]);
-    when(status.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[0]);
+    when(status.getMediaEntities()).thenReturn(new MediaEntity[0]);
     when(status.getUserMentionEntities()).thenReturn(new UserMentionEntity[0]);
     when(status.getUser()).thenReturn(user);
     return status;

@@ -31,7 +31,7 @@ import android.widget.TextView;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.util.TimeSpanConverter;
@@ -200,9 +200,8 @@ public abstract class StatusViewBase extends RelativeLayout {
   }
 
   protected void bindMediaEntities(Status status) {
-    final ExtendedMediaEntity[] extendedMediaEntities
-        = getBindingStatus(status).getExtendedMediaEntities();
-    mediaContainer.bindMediaEntities(extendedMediaEntities);
+    final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
+    mediaContainer.bindMediaEntities(mediaEntities);
   }
 
   protected void setTextColor(int color) {
@@ -246,9 +245,9 @@ public abstract class StatusViewBase extends RelativeLayout {
 
   protected abstract CharSequence parseText(Status status);
 
-  protected String removeMediaUrl(String text, ExtendedMediaEntity[] extendedMediaEntities) {
-    for (ExtendedMediaEntity eme : extendedMediaEntities) {
-      text = text.replace(eme.getURL(), "");
+  protected String removeMediaUrl(String text, MediaEntity[] mediaEntities) {
+    for (MediaEntity me : mediaEntities) {
+      text = text.replace(me.getURL(), "");
     }
     return text;
   }

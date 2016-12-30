@@ -28,7 +28,6 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -61,7 +60,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   private User user;
   private long userId;
   private RealmList<URLEntityRealm> urlEntities;
-  private RealmList<ExtendedMediaEntityRealm> mediaEntities;
+  private RealmList<MediaEntityRealm> mediaEntities;
   private RealmList<UserMentionEntityRealm> userMentionEntities;
   @Ignore
   private Status quotedStatus;
@@ -90,9 +89,9 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
 
     this.mediaEntities = new RealmList<>();
-    final ExtendedMediaEntity[] me = status.getExtendedMediaEntities();
-    for (ExtendedMediaEntity m : me) {
-      mediaEntities.add(new ExtendedMediaEntityRealm(m));
+    final MediaEntity[] me = status.getMediaEntities();
+    for (MediaEntity m : me) {
+      mediaEntities.add(new MediaEntityRealm(m));
     }
     final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
     this.userMentionEntities = new RealmList<>();
@@ -188,11 +187,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   }
 
   public MediaEntity[] getMediaEntities() {
-    return getExtendedMediaEntities();
-  }
-
-  public ExtendedMediaEntity[] getExtendedMediaEntities() {
-    return mediaEntities.toArray(new ExtendedMediaEntity[mediaEntities.size()]);
+    return mediaEntities.toArray(new MediaEntity[mediaEntities.size()]);
   }
 
   @Override
@@ -237,6 +232,16 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   }
 
   private static final String NOT_IMPLEMENT_YET = "not implement yet.";
+
+  @Override
+  public int getDisplayTextRangeStart() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
+
+  @Override
+  public int getDisplayTextRangeEnd() {
+    throw new RuntimeException(NOT_IMPLEMENT_YET);
+  }
 
   public long[] getContributors() {
     throw new RuntimeException(NOT_IMPLEMENT_YET);
