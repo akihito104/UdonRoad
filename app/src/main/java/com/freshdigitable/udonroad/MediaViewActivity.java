@@ -61,7 +61,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import rx.Observable;
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.Utils.getBindingStatus;
@@ -91,7 +91,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   public static Intent create(@NonNull Context context, @NonNull Status status, int startPage) {
     final Status bindingStatus = getBindingStatus(status);
-    if (bindingStatus.getExtendedMediaEntities().length < startPage + 1) {
+    if (bindingStatus.getMediaEntities().length < startPage + 1) {
       throw new IllegalArgumentException(
           "startPage number exceeded ExtendedMediaEntities length: " + startPage);
     }
@@ -215,8 +215,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
     }
-    final ExtendedMediaEntity[] bindingMediaEntities
-        = getBindingStatus(status).getExtendedMediaEntities();
+    final MediaEntity[] bindingMediaEntities = getBindingStatus(status).getMediaEntities();
     final int startPage = intent.getIntExtra(CREATE_START, 0);
     binding.mediaPager.setAdapter(
         new MediaPagerAdapter(getSupportFragmentManager(), bindingMediaEntities));
@@ -273,9 +272,9 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   private static class MediaPagerAdapter extends FragmentPagerAdapter {
-    private ExtendedMediaEntity[] mediaEntities;
+    private MediaEntity[] mediaEntities;
 
-    MediaPagerAdapter(FragmentManager fm, ExtendedMediaEntity[] mediaEntities) {
+    MediaPagerAdapter(FragmentManager fm, MediaEntity[] mediaEntities) {
       super(fm);
       this.mediaEntities = mediaEntities;
     }
@@ -292,7 +291,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   public static abstract class MediaFragment extends Fragment {
-    private static MediaFragment create(ExtendedMediaEntity mediaEntity) {
+    private static MediaFragment create(MediaEntity mediaEntity) {
       final MediaFragment fragment;
       final String type = mediaEntity.getType();
       if ("photo".equals(type)) {
@@ -307,7 +306,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       return fragment;
     }
 
-    protected ExtendedMediaEntity mediaEntity;
+    protected MediaEntity mediaEntity;
     protected View.OnClickListener pageClickListener;
     @Inject
     MediaCache mediaCache;

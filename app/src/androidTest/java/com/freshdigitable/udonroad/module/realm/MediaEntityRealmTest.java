@@ -27,7 +27,6 @@ import java.util.Map;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.MediaEntity;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -36,31 +35,31 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * ExtendedMediaEntityRealmTest tests ExtendedMediaEntityRealm.
+ * MediaEntityRealmTest tests MediaEntityRealm.
  *
  * Created by akihit on 2016/10/30.
  */
 @RunWith(AndroidJUnit4.class)
-public class ExtendedMediaEntityRealmTest {
+public class MediaEntityRealmTest {
 
-  private ExtendedMediaEntity extendedMediaEntity;
+  private MediaEntity mediaEntity;
 
   @Before
   public void setup() {
-    extendedMediaEntity = mock(ExtendedMediaEntity.class);
+    mediaEntity = mock(MediaEntity.class);
     Map<Integer, MediaEntity.Size> sizes = new HashMap<>();
     sizes.put(0, createSize(150, 150, 101));
     sizes.put(1, createSize(680, 510, 100));
     sizes.put(2, createSize(1024, 768, 100));
     sizes.put(3, createSize(1024, 768, 100));
-    when(extendedMediaEntity.getSizes()).thenReturn(sizes);
-    when(extendedMediaEntity.getVideoVariants()).thenReturn(new ExtendedMediaEntity.Variant[0]);
+    when(mediaEntity.getSizes()).thenReturn(sizes);
+    when(mediaEntity.getVideoVariants()).thenReturn(new MediaEntity.Variant[0]);
     assertThat(sizes.size(), is(4));
   }
 
   @Test
   public void parseSizes() {
-    final ExtendedMediaEntityRealm sut = new ExtendedMediaEntityRealm(extendedMediaEntity);
+    final MediaEntityRealm sut = new MediaEntityRealm(mediaEntity);
     final Map<Integer, MediaEntity.Size> actual = sut.getSizes();
     assertThatSizesIsSame(actual);
   }
@@ -73,7 +72,7 @@ public class ExtendedMediaEntityRealmTest {
         .build();
     final Realm realm = Realm.getInstance(conf);
     try {
-      final ExtendedMediaEntityRealm sut = new ExtendedMediaEntityRealm(extendedMediaEntity);
+      final MediaEntityRealm sut = new MediaEntityRealm(mediaEntity);
       realm.executeTransaction(new Realm.Transaction() {
         @Override
         public void execute(Realm realm) {
@@ -81,7 +80,7 @@ public class ExtendedMediaEntityRealmTest {
         }
       });
       // exec.
-      final ExtendedMediaEntityRealm actual = realm.where(ExtendedMediaEntityRealm.class)
+      final MediaEntityRealm actual = realm.where(MediaEntityRealm.class)
           .findFirst();
       final Map<Integer, MediaEntity.Size> actualSize = actual.getSizes();
       // assert
@@ -100,7 +99,7 @@ public class ExtendedMediaEntityRealmTest {
   }
 
   private void assertThatSizesIsSame(Map<Integer, MediaEntity.Size> actualSize) {
-    Map<Integer, MediaEntity.Size> sizes = extendedMediaEntity.getSizes();
+    Map<Integer, MediaEntity.Size> sizes = mediaEntity.getSizes();
     assertThat(actualSize.size(), is(sizes.size()));
     for (Map.Entry<Integer, MediaEntity.Size> s : sizes.entrySet()) {
       final MediaEntity.Size as = actualSize.get(s.getKey());

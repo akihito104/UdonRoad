@@ -25,14 +25,14 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 
 /**
- * ExtendedMediaEntityRealm is a data class to store Realm.
+ * MediaEntityRealm is a data class to store Realm.
  *
  * Created by akihit on 2016/06/23.
  */
-public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMediaEntity {
+public class MediaEntityRealm extends RealmObject implements MediaEntity {
   @PrimaryKey
   private long id;
   private String url;
@@ -52,10 +52,10 @@ public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMed
   private String sizeString;
   private RealmList<VariantRealm> videoVariants;
 
-  public ExtendedMediaEntityRealm() {
+  public MediaEntityRealm() {
   }
 
-  ExtendedMediaEntityRealm(ExtendedMediaEntity m) {
+  MediaEntityRealm(MediaEntity m) {
     this.id = m.getId();
     this.url = m.getURL();
     this.mediaUrlHttps = m.getMediaURLHttps();
@@ -71,9 +71,9 @@ public class ExtendedMediaEntityRealm extends RealmObject implements ExtendedMed
     this.sizes = m.getSizes();
     this.sizeString = parseToSizeString();
 
-    final ExtendedMediaEntity.Variant[] videoVariants = m.getVideoVariants();
+    final MediaEntity.Variant[] videoVariants = m.getVideoVariants();
     this.videoVariants = new RealmList<>();
-    for (ExtendedMediaEntity.Variant v : videoVariants) {
+    for (MediaEntity.Variant v : videoVariants) {
       this.videoVariants.add(new VariantRealm(v));
     }
   }

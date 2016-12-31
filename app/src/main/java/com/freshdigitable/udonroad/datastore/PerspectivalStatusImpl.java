@@ -20,7 +20,6 @@ import android.support.annotation.NonNull;
 
 import java.util.Date;
 
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -77,6 +76,16 @@ public class PerspectivalStatusImpl implements PerspectivalStatus {
   @Override
   public String getText() {
     return status.getText();
+  }
+
+  @Override
+  public int getDisplayTextRangeStart() {
+    return status.getDisplayTextRangeStart();
+  }
+
+  @Override
+  public int getDisplayTextRangeEnd() {
+    return status.getDisplayTextRangeEnd();
   }
 
   @Override
@@ -223,11 +232,6 @@ public class PerspectivalStatusImpl implements PerspectivalStatus {
   @Override
   public MediaEntity[] getMediaEntities() {
     return status.getMediaEntities();
-  }
-
-  @Override
-  public ExtendedMediaEntity[] getExtendedMediaEntities() {
-    return status.getExtendedMediaEntities();
   }
 
   @Override

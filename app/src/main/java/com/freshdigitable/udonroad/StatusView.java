@@ -74,7 +74,7 @@ public class StatusView extends FullStatusView {
         text = text.replace(u.getURL(), u.getDisplayURL());
       }
     }
-    return removeMediaUrl(text, bindingStatus.getExtendedMediaEntities());
+    return removeMediaUrl(text, bindingStatus.getMediaEntities());
   }
 
   @Override

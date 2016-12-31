@@ -27,7 +27,7 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -131,20 +131,18 @@ public class StatusViewImageHelper {
   }
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {
-    final ExtendedMediaEntity[] extendedMediaEntities
-        = getBindingStatus(status).getExtendedMediaEntities();
+    final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
     final MediaContainer mediaContainer = statusView.getMediaContainer();
-    mediaContainer.bindMediaEntities(extendedMediaEntities);
+    mediaContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = mediaContainer.getThumbCount();
     final long statusId = status.getId();
     for (int i = 0; i < mediaCount; i++) {
       final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
-      final String type = extendedMediaEntities[i].getType();
+      final String type = mediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
       final RequestCreator rc = getRequest(mediaContainer.getContext(),
-          extendedMediaEntities[i].getMediaURLHttps() + ":thumb",
-          statusId);
+          mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
       if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {

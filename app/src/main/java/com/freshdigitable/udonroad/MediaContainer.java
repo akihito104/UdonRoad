@@ -23,7 +23,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 
 /**
  * Created by akihit on 2016/07/10.
@@ -68,8 +68,8 @@ public class MediaContainer extends LinearLayout {
     return Math.max(thumbWidth, 0);
   }
 
-  public void bindMediaEntities(ExtendedMediaEntity[] extendedMediaEntities) {
-    final int thumbCount = Math.min(maxThumbCount, extendedMediaEntities.length);
+  public void bindMediaEntities(MediaEntity[] mediaEntities) {
+    final int thumbCount = Math.min(maxThumbCount, mediaEntities.length);
     if (thumbCount < 1) {
       setThumbCount(0);
       return;

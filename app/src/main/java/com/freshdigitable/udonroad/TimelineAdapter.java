@@ -30,7 +30,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -124,9 +124,8 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   }
 
   private void setupMediaView(final Status status, final StatusViewBase statusView) {
-    final ExtendedMediaEntity[] extendedMediaEntities
-        = getBindingStatus(status).getExtendedMediaEntities();
-    if (extendedMediaEntities.length < 1) {
+    final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
+    if (mediaEntities.length < 1) {
       return;
     }
     final MediaContainer mediaContainer = statusView.getMediaContainer();

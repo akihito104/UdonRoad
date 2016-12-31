@@ -38,7 +38,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Func1;
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -344,8 +344,8 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
   }
 
   @Override
-  public ExtendedMediaEntity getMediaEntity(long mediaId) {
-    return findById(cache, mediaId, ExtendedMediaEntityRealm.class);
+  public MediaEntity getMediaEntity(long mediaId) {
+    return findById(cache, mediaId, MediaEntityRealm.class);
   }
 
   @Nullable

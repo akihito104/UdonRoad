@@ -18,14 +18,14 @@ package com.freshdigitable.udonroad.module.realm;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
-import twitter4j.ExtendedMediaEntity;
+import twitter4j.MediaEntity;
 
 /**
  * VariantRealm is data class defined to store Realm.
  *
  * Created by akihit on 2016/06/23.
  */
-public class VariantRealm extends RealmObject implements ExtendedMediaEntity.Variant {
+public class VariantRealm extends RealmObject implements MediaEntity.Variant {
   @PrimaryKey
   private String url;
   private int bitrate;
@@ -34,7 +34,7 @@ public class VariantRealm extends RealmObject implements ExtendedMediaEntity.Var
   public VariantRealm() {
   }
 
-  VariantRealm(ExtendedMediaEntity.Variant variant) {
+  VariantRealm(MediaEntity.Variant variant) {
     this.bitrate = variant.getBitrate();
     this.contentType = variant.getContentType();
     this.url = variant.getUrl();
