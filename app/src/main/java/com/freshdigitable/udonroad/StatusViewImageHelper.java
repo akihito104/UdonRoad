@@ -20,6 +20,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Callback;
@@ -91,6 +92,7 @@ public class StatusViewImageHelper {
 
     final RetweetUserView rtUser = itemView.getRtUser();
     final String screenName = status.getUser().getScreenName();
+    rtUser.bindUser(ContextCompat.getDrawable(context, R.drawable.ic_person_outline_black), screenName);
     final Target target = new Target() {
       @Override
       public void onPrepareLoad(Drawable placeHolderDrawable) {
