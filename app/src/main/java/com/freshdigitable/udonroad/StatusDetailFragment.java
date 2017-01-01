@@ -112,7 +112,7 @@ public class StatusDetailFragment extends Fragment {
 
     final StatusDetailView statusView = binding.statusView;
     StatusViewImageHelper.load(status, statusView);
-    final User user = StatusViewImageHelper.getBindingUser(status);
+    final User user = getBindingStatus(status).getUser();
 
     final ImageView icon = statusView.getIcon();
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();

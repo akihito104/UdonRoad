@@ -78,7 +78,7 @@ public class StatusViewImageHelper {
     unloadImage(itemView.getIcon());
   }
 
-  public static User getBindingUser(Status status) {
+  private static User getBindingUser(Status status) {
     return getBindingStatus(status).getUser();
   }
 

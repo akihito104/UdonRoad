@@ -110,7 +110,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   }
 
   private void setupUserIcon(Status status, StatusView itemView) {
-    final User user = StatusViewImageHelper.getBindingUser(status);
+    final User user = getBindingStatus(status).getUser();
     setupUserIcon(user, itemView);
   }
 
