@@ -17,11 +17,14 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.Date;
 
 import twitter4j.Status;
 
@@ -55,6 +58,12 @@ public class StatusDetailView extends FullStatusView {
     mediaContainer = (MediaContainer) v.findViewById(R.id.d_image_group);
     rtUser = (RetweetUserView) v.findViewById(R.id.d_rt_user);
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.d_quoted);
+  }
+
+  @Override
+  protected void bindCreatedAt(Date tweetedDate) {
+    createdAt.setText(DateUtils.formatDateTime(getContext(), tweetedDate.getTime(),
+        DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
   }
 
   @Override
