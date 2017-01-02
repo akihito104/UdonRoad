@@ -61,11 +61,21 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/d_icon"
         android:layout_toRightOf="@id/d_icon"
-        android:layout_alignParentEnd="true"
         android:textSize="@dimen/tweet_detail_small_size"
         android:lines="2"
         android:ellipsize="end"
         tools:text="name\n\@screenName"
+        />
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/d_twitter_bird"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignTop="@id/d_names"
+        android:layout_alignBottom="@id/d_names"
+        android:layout_alignParentRight="true"
+        android:tint="@color/twitter_primary"
+        app:srcCompat="@drawable/ic_twitter_bird"
         />
 
     <TextView
