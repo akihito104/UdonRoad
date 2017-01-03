@@ -17,12 +17,17 @@
 package com.freshdigitable.udonroad;
 
 import android.support.annotation.Nullable;
+import android.text.Selection;
+import android.text.SpanWatcher;
+import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.view.View;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -172,7 +177,7 @@ class SpannableStringUtil {
     final String displayingText;
 
     SpanningInfo(@Nullable ClickableSpan span, int start, int end, @Nullable String displayingText) {
-      this.span = span;
+      this.span = span != null ? new WatchedClickableSpan(span) : null;
       this.start = start;
       this.end = end;
       this.displayingText = displayingText;
@@ -184,6 +189,51 @@ class SpannableStringUtil {
 
     boolean isReplacing() {
       return displayingText != null;
+    }
+  }
+
+  private static class WatchedClickableSpan extends ClickableSpan implements SpanWatcher {
+    final String TAG = WatchedClickableSpan.class.getSimpleName();
+    final ClickableSpan clickableSpan;
+    private boolean selected = false;
+
+    WatchedClickableSpan(ClickableSpan clickableSpan) {
+      this.clickableSpan = clickableSpan;
+    }
+
+    @Override
+    public void onSpanAdded(Spannable text, Object what, int start, int end) {
+      // dependent internal logic of LinkMovementMethod.onTouchEvent()
+      if (what == Selection.SELECTION_START) {
+        selected = true;
+      }
+    }
+
+    @Override
+    public void onSpanRemoved(Spannable text, Object what, int start, int end) {
+      // dependent internal logic of LinkMovementMethod.onTouchEvent()
+      if (what == Selection.SELECTION_START) {
+        selected = false;
+      }
+    }
+
+    @Override
+    public void onClick(View widget) {
+      // dependent internal logic of LinkMovementMethod.onTouchEvent()
+      clickableSpan.onClick(widget);
+      if (widget instanceof TextView) {
+        Selection.removeSelection(((Spannable) ((TextView) widget).getText()));
+      }
+    }
+
+    @Override
+    public void updateDrawState(TextPaint ds) {
+      ds.bgColor = selected ? 0xffeeeeee : 0;  // XXX
+      super.updateDrawState(ds);
+    }
+
+    @Override
+    public void onSpanChanged(Spannable text, Object what, int ostart, int oend, int nstart, int nend) {
     }
   }
 }
