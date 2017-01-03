@@ -116,6 +116,13 @@ public class StatusDetailFragment extends Fragment {
 
     final ImageView icon = statusView.getIcon();
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
+    final User rtUser = status.getUser();
+    statusView.getRtUser().setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        userIconClickedListener.onUserIconClicked(v, rtUser);
+      }
+    });
     icon.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -271,6 +278,7 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
+    binding.statusView.getRtUser().setOnClickListener(null);
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
