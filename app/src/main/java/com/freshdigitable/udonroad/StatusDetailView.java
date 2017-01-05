@@ -17,11 +17,13 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.text.method.LinkMovementMethod;
+import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.Date;
 
 import twitter4j.Status;
 
@@ -47,14 +49,19 @@ public class StatusDetailView extends FullStatusView {
     createdAt = (TextView) v.findViewById(R.id.d_create_at);
     icon = (ImageView) v.findViewById(R.id.d_icon);
     names = (CombinedScreenNameTextView) v.findViewById(R.id.d_names);
-    tweet = (TextView) v.findViewById(R.id.d_tweet);
-    tweet.setMovementMethod(LinkMovementMethod.getInstance());
+    tweet = (LinkableTextView) v.findViewById(R.id.d_tweet);
     clientName = (TextView) v.findViewById(R.id.d_via);
     rtCount = (IconAttachedCounterView) v.findViewById(R.id.d_rtcount);
     favCount = (IconAttachedCounterView) v.findViewById(R.id.d_favcount);
     mediaContainer = (MediaContainer) v.findViewById(R.id.d_image_group);
     rtUser = (RetweetUserView) v.findViewById(R.id.d_rt_user);
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.d_quoted);
+  }
+
+  @Override
+  protected void bindCreatedAt(Date tweetedDate) {
+    createdAt.setText(DateUtils.formatDateTime(getContext(), tweetedDate.getTime(),
+        DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
   }
 
   @Override

@@ -20,17 +20,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -43,8 +39,6 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.MediaContainer.OnMediaClickListener;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -116,6 +110,13 @@ public class StatusDetailFragment extends Fragment {
 
     final ImageView icon = statusView.getIcon();
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
+    final long rtUserId = status.getUser().getId();
+    statusView.getRtUser().setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        UserInfoActivity.start(v.getContext(), rtUserId);
+      }
+    });
     icon.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -135,54 +136,12 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
-    setTintList(binding.sdFav.getDrawable(), R.color.selector_fav_icon);
-    binding.sdFav.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (status.isFavorited()) {
-          statusRequestWorker.destroyFavorite(statusId);
-        } else {
-          statusRequestWorker.createFavorite(statusId);
-        }
-      }
-    });
-    setTintList(binding.sdRetweet.getDrawable(), R.color.selector_rt_icon);
-    binding.sdRetweet.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (status.isRetweeted()) {
-          statusRequestWorker.destroyRetweet(statusId);
-        } else {
-          statusRequestWorker.retweetStatus(statusId);
-        }
-      }
-    });
-    DrawableCompat.setTint(binding.sdReply.getDrawable(),
-        ContextCompat.getColor(getContext(), R.color.twitter_action_normal));
-    binding.sdReply.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        setupInput(TweetInputFragment.TYPE_REPLY);
-      }
-    });
-    setTintList(binding.sdQuote.getDrawable(), R.color.twitter_action_normal);
-    binding.sdQuote.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        setupInput(TweetInputFragment.TYPE_QUOTE);
-      }
-    });
-
     binding.statusView.bindStatus(status);
-    binding.sdFav.setActivated(status.isFavorited());
-    binding.sdRetweet.setActivated(status.isRetweeted());
     subscription = statusCache.observeById(statusId)
         .subscribe(new Action1<Status>() {
           @Override
           public void call(Status status) {
             binding.statusView.update(status);
-            binding.sdFav.setActivated(status.isFavorited());
-            binding.sdRetweet.setActivated(status.isRetweeted());
           }
         });
 
@@ -253,33 +212,15 @@ public class StatusDetailFragment extends Fragment {
         && !TextUtils.isEmpty(twitterCard.getUrl());
   }
 
-  private void setTintList(Drawable drawable, @ColorRes int color) {
-    DrawableCompat.setTintList(drawable,
-        ContextCompat.getColorStateList(getContext(), color));
-  }
-
-  private void setupInput(@TweetType int type) {
-    final FragmentActivity activity = getActivity();
-    final long statusId = getStatusId();
-    if (activity instanceof TweetSendable) {
-      ((TweetSendable) activity).setupInput(type, statusId);
-    } else {
-      ReplyActivity.start(activity, statusId, type, null);
-    }
-  }
-
   @Override
   public void onStop() {
     super.onStop();
+    binding.statusView.getRtUser().setOnClickListener(null);
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
     binding.statusView.reset();
     binding.sdTwitterCard.setOnClickListener(null);
-    binding.sdFav.setOnClickListener(null);
-    binding.sdRetweet.setOnClickListener(null);
-    binding.sdReply.setOnClickListener(null);
-    binding.sdQuote.setOnClickListener(null);
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
@@ -293,8 +234,6 @@ public class StatusDetailFragment extends Fragment {
   public void onDetach() {
     super.onDetach();
     binding.sdTwitterCard.setVisibility(View.GONE);
-    DrawableCompat.setTintList(binding.sdFav.getDrawable(), null);
-    DrawableCompat.setTintList(binding.sdRetweet.getDrawable(), null);
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

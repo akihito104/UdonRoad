@@ -248,6 +248,9 @@ public class MainActivity extends AppCompatActivity
   private StatusDetailFragment statusDetail;
 
   private void showStatusDetail(long status) {
+    if (statusDetail != null && statusDetail.isVisible()) {
+      return;
+    }
     statusDetail = StatusDetailFragment.getInstance(status);
     getSupportFragmentManager().beginTransaction()
         .hide(tlFragment)
@@ -255,9 +258,6 @@ public class MainActivity extends AppCompatActivity
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
     tlFragment.stopScroll();
-    if (tlFragment.isTweetSelected()) {
-      binding.ffab.hide();
-    }
   }
 
   private boolean hideStatusDetail() {
@@ -271,9 +271,6 @@ public class MainActivity extends AppCompatActivity
         .commit();
     statusDetail = null;
     tlFragment.startScroll();
-    if (tlFragment.isTweetSelected()) {
-      binding.ffab.show();
-    }
     return true;
   }
 
