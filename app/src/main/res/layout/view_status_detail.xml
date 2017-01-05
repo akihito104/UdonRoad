@@ -78,7 +78,7 @@
         app:srcCompat="@drawable/ic_twitter_bird"
         />
 
-    <TextView
+    <com.freshdigitable.udonroad.LinkableTextView
         android:id="@+id/d_tweet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

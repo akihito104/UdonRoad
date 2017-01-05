@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.text.format.DateUtils;
-import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -50,8 +49,7 @@ public class StatusDetailView extends FullStatusView {
     createdAt = (TextView) v.findViewById(R.id.d_create_at);
     icon = (ImageView) v.findViewById(R.id.d_icon);
     names = (CombinedScreenNameTextView) v.findViewById(R.id.d_names);
-    tweet = (TextView) v.findViewById(R.id.d_tweet);
-    tweet.setMovementMethod(LinkMovementMethod.getInstance());
+    tweet = (LinkableTextView) v.findViewById(R.id.d_tweet);
     clientName = (TextView) v.findViewById(R.id.d_via);
     rtCount = (IconAttachedCounterView) v.findViewById(R.id.d_rtcount);
     favCount = (IconAttachedCounterView) v.findViewById(R.id.d_favcount);
