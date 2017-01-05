@@ -110,11 +110,11 @@ public class StatusDetailFragment extends Fragment {
 
     final ImageView icon = statusView.getIcon();
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
-    final User rtUser = status.getUser();
+    final long rtUserId = status.getUser().getId();
     statusView.getRtUser().setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        userIconClickedListener.onUserIconClicked(v, rtUser);
+        UserInfoActivity.start(v.getContext(), rtUserId);
       }
     });
     icon.setOnClickListener(new View.OnClickListener() {
