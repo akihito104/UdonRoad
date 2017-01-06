@@ -150,7 +150,7 @@
         tools:text="user name"
         />
 
-    <TextView
+    <com.freshdigitable.udonroad.LinkableTextView
         android:id="@+id/user_description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

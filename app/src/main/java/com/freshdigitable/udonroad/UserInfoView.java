@@ -28,7 +28,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
-import android.text.method.LinkMovementMethod;
 import android.text.style.UnderlineSpan;
 import android.util.AttributeSet;
 import android.view.View;
@@ -75,7 +74,6 @@ public class UserInfoView extends RelativeLayout {
     name = (TextView) v.findViewById(R.id.user_name);
     screenName = (TextView) v.findViewById(R.id.user_screen_name);
     description = (TextView) v.findViewById(R.id.user_description);
-    description.setMovementMethod(LinkMovementMethod.getInstance());
     banner = (ImageView) v.findViewById(R.id.user_banner);
     icon = (ImageView) v.findViewById(R.id.user_icon);
     url = (TextView) v.findViewById(R.id.user_url);
