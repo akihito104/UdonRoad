@@ -16,16 +16,16 @@
   -->
 
 <resources>
-    <declare-styleable name="IconAttachedCounterView">
+    <declare-styleable name="IconAttachedTextView">
         <attr name="icon" format="reference"/>
         <attr name="tintIcon" format="reference|color"/>
     </declare-styleable>
 
-    <declare-styleable name="IconAttachedCounterViewTheme">
-        <attr name="iconAttachedCounterViewStyle" format="reference"/>
+    <declare-styleable name="IconAttachedTextViewTheme">
+        <attr name="iconAttachedTextViewStyle" format="reference"/>
     </declare-styleable>
 
-    <style name="Widget.IconAttachedCounterView" parent="android:Widget.TextView">
+    <style name="Widget.IconAttachedTextView" parent="android:Widget.TextView">
         <item name="tintIcon">@color/twitter_action_normal</item>
         <item name="android:drawablePadding">@dimen/grid_margin</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>

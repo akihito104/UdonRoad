@@ -118,7 +118,7 @@
         tools:text="CreatedTime"
         />
 
-    <com.freshdigitable.udonroad.IconAttachedCounterView
+    <com.freshdigitable.udonroad.IconAttachedTextView
         android:id="@+id/d_rtcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -133,7 +133,7 @@
         tools:text="Count"
         />
 
-    <com.freshdigitable.udonroad.IconAttachedCounterView
+    <com.freshdigitable.udonroad.IconAttachedTextView
         android:id="@+id/d_favcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

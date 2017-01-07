@@ -16,6 +16,10 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.res.ColorStateList;
+import android.support.v4.content.ContextCompat;
+import android.widget.TextView;
+
 import twitter4j.Status;
 
 /**
@@ -28,6 +32,12 @@ public class Utils {
   @SuppressWarnings("unchecked")
   public static <T extends Status> T getBindingStatus(T status) {
     return status.isRetweet() ? (T) status.getRetweetedStatus() : status;
+  }
+
+  public static void colorStateLinkify(TextView textView) {
+    final ColorStateList linkStateList
+        = ContextCompat.getColorStateList(textView.getContext(), R.color.selector_link_text);
+    textView.setMovementMethod(ColorStateLinkMovementMethod.getInstance(linkStateList));
   }
 
   private Utils() {}

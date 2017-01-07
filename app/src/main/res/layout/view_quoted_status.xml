@@ -76,7 +76,7 @@
                 />
         </LinearLayout>
 
-    <com.freshdigitable.udonroad.IconAttachedCounterView
+    <com.freshdigitable.udonroad.IconAttachedTextView
         android:id="@+id/q_rtcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -90,7 +90,7 @@
         tools:text="Count"
         />
 
-    <com.freshdigitable.udonroad.IconAttachedCounterView
+    <com.freshdigitable.udonroad.IconAttachedTextView
         android:id="@+id/q_favcount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

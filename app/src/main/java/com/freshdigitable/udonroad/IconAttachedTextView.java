@@ -26,26 +26,28 @@ import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 
 /**
+ * IconAttachedTextView shows text with icon at first.
+ *
  * Created by akihit on 2016/12/15.
  */
 
-public class IconAttachedCounterView extends AppCompatTextView {
+public class IconAttachedTextView extends AppCompatTextView {
 
-  public IconAttachedCounterView(Context context) {
+  public IconAttachedTextView(Context context) {
     this(context, null);
   }
 
-  public IconAttachedCounterView(Context context, AttributeSet attrs) {
-    this(context, attrs, R.attr.iconAttachedCounterViewStyle);
+  public IconAttachedTextView(Context context, AttributeSet attrs) {
+    this(context, attrs, R.attr.iconAttachedTextViewStyle);
   }
 
-  public IconAttachedCounterView(Context context, AttributeSet attrs, int defStyleAttr) {
+  public IconAttachedTextView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     final TypedArray a = context.obtainStyledAttributes(attrs,
-        R.styleable.IconAttachedCounterView, defStyleAttr, R.style.Widget_IconAttachedCounterView);
+        R.styleable.IconAttachedTextView, defStyleAttr, R.style.Widget_IconAttachedTextView);
     try {
-      Drawable icon = a.getDrawable(R.styleable.IconAttachedCounterView_icon);
-      final int iconColor = a.getColor(R.styleable.IconAttachedCounterView_tintIcon, NO_ID);
+      Drawable icon = a.getDrawable(R.styleable.IconAttachedTextView_icon);
+      final int iconColor = a.getColor(R.styleable.IconAttachedTextView_tintIcon, NO_ID);
       if (icon != null) {
         icon = icon.mutate();
         final int width

@@ -49,8 +49,8 @@ public abstract class StatusViewBase extends RelativeLayout {
   protected CombinedScreenNameTextView names;
   protected TextView tweet;
   protected TextView clientName;
-  protected IconAttachedCounterView rtCount;
-  protected IconAttachedCounterView favCount;
+  protected IconAttachedTextView rtCount;
+  protected IconAttachedTextView favCount;
   protected MediaContainer mediaContainer;
   protected final int grid;
   protected static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
