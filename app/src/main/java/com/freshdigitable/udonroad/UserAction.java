@@ -53,6 +53,7 @@ public class UserAction {
   public static void setupFlingableFAB(@NonNull IndicatableFFAB iffab,
                                        @NonNull final Map<Direction, UserAction> actionMap,
                                        @NonNull Context context) {
+    iffab.clear();
     for (Direction d : actionMap.keySet()) {
       final Resource resource = actionMap.get(d).resource;
       iffab.setIndicatorIcon(d,

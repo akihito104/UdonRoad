@@ -71,6 +71,13 @@ public class ActionIndicatorView extends FrameLayout {
     }
   }
 
+  public void clear() {
+    drawables.clear();
+    for (ImageView iv : icons.values()) {
+      iv.setImageDrawable(null);
+    }
+  }
+
   public void onActionSelected(Direction direction) {
     if (direction == Direction.UNDEFINED) {
       return;

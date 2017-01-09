@@ -189,6 +189,12 @@ public class IndicatableFFAB extends FrameLayout {
     ffab.setOnFlingListener(flingListener);
   }
 
+  public void clear() {
+    indicator.clear();
+    enableDirections.clear();
+    setOnFlingListener(null);
+  }
+
   public static class Behavior extends CoordinatorLayout.Behavior<IndicatableFFAB> {
     public Behavior() {
       super();

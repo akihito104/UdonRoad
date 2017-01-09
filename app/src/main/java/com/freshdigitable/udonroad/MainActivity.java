@@ -246,6 +246,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   private StatusDetailFragment statusDetail;
+  private UserAction detailAction;
 
   private void showStatusDetail(long status) {
     if (statusDetail != null && statusDetail.isVisible()) {
@@ -258,6 +259,8 @@ public class MainActivity extends AppCompatActivity
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
     tlFragment.stopScroll();
+    detailAction = actionMap.remove(Direction.LEFT);
+    UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
   }
 
   private boolean hideStatusDetail() {
@@ -271,6 +274,8 @@ public class MainActivity extends AppCompatActivity
         .commit();
     statusDetail = null;
     tlFragment.startScroll();
+    actionMap.put(Direction.LEFT, detailAction);
+    UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
     return true;
   }
 
