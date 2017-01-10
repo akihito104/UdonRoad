@@ -21,6 +21,7 @@
         <attr name="fabTint" format="reference|color"/>
         <attr name="indicatorTint" format="reference|color"/>
         <attr name="marginFabToIndicator" format="dimension"/>
+        <attr name="menu" format="reference"/>
     </declare-styleable>
 
     <declare-styleable name="IndicatableFFABTheme">

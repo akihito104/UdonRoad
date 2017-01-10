@@ -295,7 +295,7 @@ public class MainActivity extends AppCompatActivity
     super.onDestroy();
     if (binding != null) {
       userStream.disconnect();
-      binding.ffab.setOnFlingListener(null);
+      binding.ffab.clear();
       binding.navDrawer.setNavigationItemSelectedListener(null);
       configRequestWorker.close();
       statusRequestWorker.close();
