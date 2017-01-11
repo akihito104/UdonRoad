@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.view.ActionProvider;
 import android.view.ContextMenu;
@@ -32,34 +33,50 @@ import android.view.View;
  */
 
 class IffabMenuItem implements MenuItem {
+  private final IffabMenu menu;
+  private final int id;
+  private final int groupId;
+  private final int order;
+
+  IffabMenuItem(@NonNull IffabMenu menu, int groupId, int id,
+                int order, CharSequence title) {
+    this.menu = menu;
+    this.id = id;
+    this.groupId = groupId;
+    this.order = order;
+    this.title = title;
+  }
   @Override
   public int getItemId() {
-    throw new RuntimeException("not implemented yet...");
+    return id;
   }
 
   @Override
   public int getGroupId() {
-    throw new RuntimeException("not implemented yet...");
+    return groupId;
   }
 
   @Override
   public int getOrder() {
-    throw new RuntimeException("not implemented yet...");
+    return order;
   }
+
+  private CharSequence title;
 
   @Override
   public MenuItem setTitle(CharSequence title) {
-    throw new RuntimeException("not implemented yet...");
+    this.title = title;
+    return this;
   }
 
   @Override
   public MenuItem setTitle(@StringRes int title) {
-    throw new RuntimeException("not implemented yet...");
+    return setTitle(menu.getContext().getString(title));
   }
 
   @Override
   public CharSequence getTitle() {
-    throw new RuntimeException("not implemented yet...");
+    return title;
   }
 
   @Override
@@ -72,9 +89,12 @@ class IffabMenuItem implements MenuItem {
     throw new RuntimeException("not implemented yet...");
   }
 
+  private Drawable icon;
+
   @Override
   public MenuItem setIcon(Drawable icon) {
-    throw new RuntimeException("not implemented yet...");
+    this.icon = icon;
+    return this;
   }
 
   @Override
@@ -84,17 +104,20 @@ class IffabMenuItem implements MenuItem {
 
   @Override
   public Drawable getIcon() {
-    throw new RuntimeException("not implemented yet...");
+    return icon;
   }
+
+  private Intent intent;
 
   @Override
   public MenuItem setIntent(Intent intent) {
-    throw new RuntimeException("not implemented yet...");
+    this.intent = intent;
+    return this;
   }
 
   @Override
   public Intent getIntent() {
-    throw new RuntimeException("not implemented yet...");
+    return intent;
   }
 
   @Override

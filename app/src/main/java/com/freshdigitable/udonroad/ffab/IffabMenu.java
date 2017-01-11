@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.StringRes;
 import android.view.KeyEvent;
@@ -33,25 +34,32 @@ import java.util.List;
 
 class IffabMenu implements Menu {
   private final List<MenuItem> menuItems = new ArrayList<>();
+  private final Context context;
 
-  @Override
-  public MenuItem add(CharSequence title) {
-    throw new RuntimeException("not implemented yet...");
+  IffabMenu(Context context) {
+    this.context = context;
   }
 
   @Override
   public MenuItem add(@StringRes int titleRes) {
-    throw new RuntimeException("not implemented yet...");
+    return add(context.getString(titleRes));
   }
 
   @Override
-  public MenuItem add(int groupId, int itemId, int order, CharSequence title) {
-    throw new RuntimeException("not implemented yet...");
+  public MenuItem add(CharSequence title) {
+    return add(0, 0, 0, title);
   }
 
   @Override
   public MenuItem add(int groupId, int itemId, int order, @StringRes int titleRes) {
-    throw new RuntimeException("not implemented yet...");
+    return add(groupId, itemId, order, context.getString(titleRes));
+  }
+
+  @Override
+  public MenuItem add(int groupId, int itemId, int order, CharSequence title) {
+    final IffabMenuItem menuItem = new IffabMenuItem(this, groupId, itemId, order, title);
+    menuItems.add(menuItem);
+    return menuItem;
   }
 
   @Override
@@ -141,6 +149,11 @@ class IffabMenu implements Menu {
   public void setQwertyMode(boolean isQwerty) {
     throw new RuntimeException("not implemented yet...");
   }
+
+  Context getContext() {
+    return context;
+  }
+
   @Override
   public SubMenu addSubMenu(CharSequence title) {
     throw new RuntimeException("IndicatableFFAB does not accept sub menu.");
