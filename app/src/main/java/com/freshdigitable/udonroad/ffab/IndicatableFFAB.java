@@ -104,13 +104,13 @@ public class IndicatableFFAB extends FrameLayout {
 
       private Direction prevSelected = Direction.UNDEFINED;
 
-      public void onStart() {
+      void onStart() {
         indicator.onActionLeave(prevSelected);
         prevSelected = Direction.UNDEFINED;
         indicator.setVisibility(View.VISIBLE);
       }
 
-      public void onMoving(Direction direction) {
+      void onMoving(Direction direction) {
         if (prevSelected == direction) {
           return;
         }
@@ -130,7 +130,7 @@ public class IndicatableFFAB extends FrameLayout {
         return false;
       }
 
-      public void onFling(Handler handler) {
+      void onFling(Handler handler) {
         handler.postDelayed(new Runnable() {
           @Override
           public void run() {
