@@ -22,11 +22,14 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 import android.view.ActionProvider;
 import android.view.ContextMenu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+
+import static android.view.View.NO_ID;
 
 /**
  * Created by akihit on 2017/01/11.
@@ -90,20 +93,27 @@ class IffabMenuItem implements MenuItem {
   }
 
   private Drawable icon;
+  private int iconRes = NO_ID;
 
   @Override
   public MenuItem setIcon(Drawable icon) {
     this.icon = icon;
+    this.iconRes = NO_ID;
     return this;
   }
 
   @Override
   public MenuItem setIcon(@DrawableRes int iconRes) {
-    throw new RuntimeException("not implemented yet...");
+    this.iconRes = iconRes;
+    this.icon = null;
+    return this;
   }
 
   @Override
   public Drawable getIcon() {
+    if (icon == null) {
+      setIcon(ContextCompat.getDrawable(menu.getContext(), iconRes));
+    }
     return icon;
   }
 

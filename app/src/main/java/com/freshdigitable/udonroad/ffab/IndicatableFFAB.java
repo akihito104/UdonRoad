@@ -27,6 +27,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +50,7 @@ public class IndicatableFFAB extends FrameLayout {
   private final FlingableFAB ffab;
   private final List<Direction> enableDirections = new ArrayList<>();
   private int indicatorMargin;
+  private final IffabMenu menu;
 
   public IndicatableFFAB(Context context) {
     this(context, null);
@@ -64,6 +66,7 @@ public class IndicatableFFAB extends FrameLayout {
     indicator = (ActionIndicatorView) v.findViewById(R.id.iffab_indicator);
     ffab = (FlingableFAB) v.findViewById(R.id.iffab_ffab);
     ViewCompat.setElevation(indicator, ffab.getCompatElevation());
+    menu = new IffabMenu(getContext());
 
     final TypedArray a = context.obtainStyledAttributes(attrs,
         R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
@@ -77,6 +80,10 @@ public class IndicatableFFAB extends FrameLayout {
       final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
       indicator.setBackgroundColor(indicatorTint);
       indicatorMargin = a.getDimensionPixelSize(R.styleable.IndicatableFFAB_marginFabToIndicator, 0);
+      if (a.hasValue(R.styleable.IndicatableFFAB_menu)) {
+        final MenuInflater menuInflater = new MenuInflater(getContext());
+        menuInflater.inflate(a.getResourceId(R.styleable.IndicatableFFAB_menu, 0), menu);
+      }
     } finally {
       a.recycle();
     }
