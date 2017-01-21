@@ -29,9 +29,13 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+
 import static android.view.View.NO_ID;
 
 /**
+ * IffabMenuItem is for menu item of IndicatableFFAB.
+ *
  * Created by akihit on 2017/01/11.
  */
 
@@ -40,6 +44,7 @@ class IffabMenuItem implements MenuItem {
   private final int id;
   private final int groupId;
   private final int order;
+  private final Direction direction;
 
   IffabMenuItem(@NonNull IffabMenu menu, int groupId, int id,
                 int order, CharSequence title) {
@@ -47,8 +52,10 @@ class IffabMenuItem implements MenuItem {
     this.id = id;
     this.groupId = groupId;
     this.order = order;
+    this.direction = Direction.findByAngle(order);
     this.title = title;
   }
+
   @Override
   public int getItemId() {
     return id;
@@ -62,6 +69,10 @@ class IffabMenuItem implements MenuItem {
   @Override
   public int getOrder() {
     return order;
+  }
+
+  Direction getDirection() {
+    return direction;
   }
 
   private CharSequence title;
@@ -79,17 +90,20 @@ class IffabMenuItem implements MenuItem {
 
   @Override
   public CharSequence getTitle() {
-    return title;
+    return title != null ? title : condensedTitle;
   }
+
+  private CharSequence condensedTitle;
 
   @Override
   public MenuItem setTitleCondensed(CharSequence title) {
-    throw new RuntimeException("not implemented yet...");
+    this.condensedTitle = title;
+    return this;
   }
 
   @Override
   public CharSequence getTitleCondensed() {
-    throw new RuntimeException("not implemented yet...");
+    return condensedTitle;
   }
 
   private Drawable icon;
@@ -111,10 +125,11 @@ class IffabMenuItem implements MenuItem {
 
   @Override
   public Drawable getIcon() {
-    if (icon == null) {
-      setIcon(ContextCompat.getDrawable(menu.getContext(), iconRes));
+    if (this.icon == null && this.iconRes > 0) {
+      final Drawable icon = ContextCompat.getDrawable(menu.getContext(), this.iconRes).mutate();
+      setIcon(icon);
     }
-    return icon;
+    return this.icon;
   }
 
   private Intent intent;
@@ -132,12 +147,12 @@ class IffabMenuItem implements MenuItem {
 
   @Override
   public MenuItem setShortcut(char numericChar, char alphaChar) {
-    throw new RuntimeException("not implemented yet...");
+    return this;
   }
 
   @Override
   public MenuItem setNumericShortcut(char numericChar) {
-    throw new RuntimeException("not implemented yet...");
+    return this;
   }
 
   @Override
@@ -147,7 +162,7 @@ class IffabMenuItem implements MenuItem {
 
   @Override
   public MenuItem setAlphabeticShortcut(char alphaChar) {
-    throw new RuntimeException("not implemented yet...");
+    return this;
   }
 
   @Override
@@ -155,44 +170,56 @@ class IffabMenuItem implements MenuItem {
     throw new RuntimeException("not implemented yet...");
   }
 
+  private boolean checkable = false;
+
   @Override
   public MenuItem setCheckable(boolean checkable) {
-    throw new RuntimeException("not implemented yet...");
+    this.checkable = checkable;
+    return this;
   }
 
   @Override
   public boolean isCheckable() {
-    throw new RuntimeException("not implemented yet...");
+    return checkable;
   }
+
+  private boolean checked = false;
 
   @Override
   public MenuItem setChecked(boolean checked) {
-    throw new RuntimeException("not implemented yet...");
+    this.checked = checked;
+    return this;
   }
 
   @Override
   public boolean isChecked() {
-    throw new RuntimeException("not implemented yet...");
+    return checked;
   }
+
+  private boolean visible = false;
 
   @Override
   public MenuItem setVisible(boolean visible) {
-    throw new RuntimeException("not implemented yet...");
+    this.visible = visible;
+    return this;
   }
 
   @Override
   public boolean isVisible() {
-    throw new RuntimeException("not implemented yet...");
+    return visible;
   }
+
+  private boolean enabled = false;
 
   @Override
   public MenuItem setEnabled(boolean enabled) {
-    throw new RuntimeException("not implemented yet...");
+    this.enabled = enabled;
+    return this;
   }
 
   @Override
   public boolean isEnabled() {
-    throw new RuntimeException("not implemented yet...");
+    return enabled;
   }
 
   @Override
@@ -262,7 +289,7 @@ class IffabMenuItem implements MenuItem {
 
   @Override
   public boolean hasSubMenu() {
-    throw new RuntimeException("IndicatableFFAB does not accept sub menu.");
+    return false;
   }
 
   @Override

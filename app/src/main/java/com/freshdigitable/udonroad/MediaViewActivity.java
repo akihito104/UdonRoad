@@ -37,26 +37,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -81,7 +79,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   private Handler handler;
   @Inject
   StatusRequestWorker<TypedCache<Status>> userActionSubscriber;
-  private Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
   UserFeedbackSubscriber userFeedback;
 
@@ -229,7 +226,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     binding.mediaPager.setCurrentItem(startPage);
     setTitleWithPosition(startPage, pages);
     setupActionMap(statusId);
-    UserAction.setupFlingableFAB(binding.mediaIffab, actionMap, getApplicationContext());
   }
 
   @Override
@@ -239,8 +235,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(null);
     binding.mediaPager.clearOnPageChangeListeners();
     binding.mediaPager.setAdapter(null);
-    binding.mediaIffab.setOnFlingListener(null);
-    actionMap.clear();
+    binding.mediaIffab.setOnIffabItemSelectedListener(null);
     userActionSubscriber.close();
   }
 
@@ -403,27 +398,22 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   private void setupActionMap(final long statusId) {
-    actionMap.put(Direction.UP, new UserAction(Resource.FAV, new Runnable() {
+    binding.mediaIffab.setOnIffabItemSelectedListener(new OnIffabItemSelectedListener() {
       @Override
-      public void run() {
-        userActionSubscriber.createFavorite(statusId);
+      public void onItemSelected(@NonNull MenuItem item) {
+        final int itemId = item.getItemId();
+        if (itemId == R.id.iffabMenu_media_fav) {
+          userActionSubscriber.createFavorite(statusId);
+        } else if (itemId == R.id.iffabMenu_media_rt) {
+            userActionSubscriber.retweetStatus(statusId);
+        } else if (itemId == R.id.iffabMenu_media_favRt) {
+            Observable.concatDelayError(Arrays.asList(
+                userActionSubscriber.observeCreateFavorite(statusId),
+                userActionSubscriber.observeRetweetStatus(statusId))
+            ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
+        }
       }
-    }));
-    actionMap.put(Direction.RIGHT, new UserAction(Resource.RETWEET, new Runnable() {
-      @Override
-      public void run() {
-        userActionSubscriber.retweetStatus(statusId);
-      }
-    }));
-    actionMap.put(Direction.UP_RIGHT, new UserAction(null, new Runnable() {
-      @Override
-      public void run() {
-        Observable.concatDelayError(Arrays.asList(
-            userActionSubscriber.observeCreateFavorite(statusId),
-            userActionSubscriber.observeRetweetStatus(statusId))
-        ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
-      }
-    }));
+    });
   }
 
   private boolean isInMultiWindowModeCompat() {

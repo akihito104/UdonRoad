@@ -23,6 +23,7 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
@@ -38,15 +39,11 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
-import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -75,7 +72,6 @@ public class UserInfoActivity extends AppCompatActivity
   TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
-  private Map<Direction, UserAction> actionMap = new HashMap<>();
   private Subscription subscription;
   private StatusDetailFragment statusDetailFragment;
 
@@ -167,14 +163,12 @@ public class UserInfoActivity extends AppCompatActivity
 
     setSupportActionBar(binding.userInfoToolbar);
     setupActionMap();
-    UserAction.setupFlingableFAB(binding.userInfoIffab, actionMap, getApplicationContext());
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    binding.userInfoIffab.setOnFlingListener(null);
-    actionMap.clear();
+    binding.userInfoIffab.setOnIffabItemSelectedListener(null);
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
@@ -290,45 +284,28 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   private void setupActionMap() {
-    actionMap.put(Direction.UP, new UserAction(Resource.FAV, new Runnable() {
+    binding.userInfoIffab.setOnIffabItemSelectedListener(new OnIffabItemSelectedListener() {
       @Override
-      public void run() {
-        viewPager.createFavorite();
+      public void onItemSelected(@NonNull MenuItem item) {
+        final int itemId = item.getItemId();
+        if (itemId == R.id.iffabMenu_main_fav) {
+          viewPager.createFavorite();
+        } else if (itemId == R.id.iffabMenu_main_rt) {
+          viewPager.retweetStatus();
+        } else if (itemId == R.id.iffabMenu_main_favRt) {
+          viewPager.createFavAndRetweet();
+        } else if (itemId == R.id.iffabMenu_main_reply) {
+          final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+          showTwitterInputView(TYPE_REPLY, selectedTweetId);
+        } else if (itemId == R.id.iffabMenu_main_quote) {
+          final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+          showTwitterInputView(TYPE_QUOTE, selectedTweetId);
+        } else if (itemId == R.id.iffabMenu_main_detail) {
+          final long statusId = viewPager.getCurrentSelectedStatusId();
+          showStatusDetail(statusId);
+        }
       }
-    }));
-    actionMap.put(Direction.RIGHT, new UserAction(Resource.RETWEET, new Runnable() {
-      @Override
-      public void run() {
-        viewPager.retweetStatus();
-      }
-    }));
-    actionMap.put(Direction.UP_RIGHT, new UserAction(null, new Runnable() {
-      @Override
-      public void run() {
-        viewPager.createFavAndRetweet();
-      }
-    }));
-    actionMap.put(Direction.DOWN, new UserAction(Resource.REPLY, new Runnable() {
-      @Override
-      public void run() {
-        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
-        showTwitterInputView(TYPE_REPLY, selectedTweetId);
-      }
-    }));
-    actionMap.put(Direction.DOWN_RIGHT, new UserAction(Resource.QUOTE, new Runnable() {
-      @Override
-      public void run() {
-        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
-        showTwitterInputView(TYPE_QUOTE, selectedTweetId);
-      }
-    }));
-    actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {
-      @Override
-      public void run() {
-        final long statusId = viewPager.getCurrentSelectedStatusId();
-        showStatusDetail(statusId);
-      }
-    }));
+    });
   }
 
   private void showStatusDetail(long statusId) {

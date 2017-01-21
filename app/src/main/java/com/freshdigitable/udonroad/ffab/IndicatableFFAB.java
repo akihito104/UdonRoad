@@ -17,27 +17,18 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.MenuItem;
 import android.widget.FrameLayout;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * IndicatableFFAB is a view group of FlingableFAB and ActionIndicatorView.
@@ -46,11 +37,8 @@ import java.util.List;
  */
 @CoordinatorLayout.DefaultBehavior(IndicatableFFAB.Behavior.class)
 public class IndicatableFFAB extends FrameLayout {
-  private final ActionIndicatorView indicator;
-  private final FlingableFAB ffab;
-  private final List<Direction> enableDirections = new ArrayList<>();
-  private int indicatorMargin;
   private final IffabMenu menu;
+  private final IffabMenuPresenter presenter = new IffabMenuPresenter();
 
   public IndicatableFFAB(Context context) {
     this(context, null);
@@ -62,144 +50,72 @@ public class IndicatableFFAB extends FrameLayout {
 
   public IndicatableFFAB(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    final View v = View.inflate(context, R.layout.view_indicatable_ffab, this);
-    indicator = (ActionIndicatorView) v.findViewById(R.id.iffab_indicator);
-    ffab = (FlingableFAB) v.findViewById(R.id.iffab_ffab);
-    ViewCompat.setElevation(indicator, ffab.getCompatElevation());
-    menu = new IffabMenu(getContext());
+    presenter.getView(this);
+    menu = new IffabMenu(context);
 
     final TypedArray a = context.obtainStyledAttributes(attrs,
         R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
     try {
       final Drawable fabIcon = a.getDrawable(R.styleable.IndicatableFFAB_fabIcon);
-      ffab.setImageDrawable(fabIcon);
+      presenter.setFabIcon(fabIcon);
       final int fabTint = a.getColor(R.styleable.IndicatableFFAB_fabTint, NO_ID);
       if (fabTint != NO_ID) {
-        ViewCompat.setBackgroundTintList(ffab, ColorStateList.valueOf(fabTint));
+        presenter.setFabTint(fabTint);
       }
       final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
-      indicator.setBackgroundColor(indicatorTint);
-      indicatorMargin = a.getDimensionPixelSize(R.styleable.IndicatableFFAB_marginFabToIndicator, 0);
+      presenter.setIndicatorTint(indicatorTint);
+      final int indicatorIconTint = a.getColor(R.styleable.IndicatableFFAB_indicatorIconTint, 0);
+      presenter.setIndicatorIconTint(indicatorIconTint);
+      final int indicatorMargin = a.getDimensionPixelSize(R.styleable.IndicatableFFAB_marginFabToIndicator, 0);
+      presenter.setIndicatorMargin(indicatorMargin);
+
+      presenter.initForMenu(menu);
       if (a.hasValue(R.styleable.IndicatableFFAB_menu)) {
-        final MenuInflater menuInflater = new MenuInflater(getContext());
-        menuInflater.inflate(a.getResourceId(R.styleable.IndicatableFFAB_menu, 0), menu);
+        final int menuRes = a.getResourceId(R.styleable.IndicatableFFAB_menu, 0);
+        inflateMenu(menuRes);
       }
     } finally {
       a.recycle();
     }
 
-    ffab.setOnTouchListener(new OnTouchListener() {
-      private MotionEvent old;
-
-      @Override
-      public boolean onTouch(View view, MotionEvent motionEvent) {
-        final int action = motionEvent.getAction();
-        if (action == MotionEvent.ACTION_DOWN) {
-          old = MotionEvent.obtain(motionEvent);
-          onStart();
-          return false;
-        }
-        final Direction direction = Direction.getDirection(old, motionEvent);
-        if (action == MotionEvent.ACTION_MOVE) {
-          onMoving(direction);
-        } else if (action == MotionEvent.ACTION_UP) {
-          old.recycle();
-          onFling(view.getHandler());
-        }
-        return false;
-      }
-
-      private Direction prevSelected = Direction.UNDEFINED;
-
-      void onStart() {
-        indicator.onActionLeave(prevSelected);
-        prevSelected = Direction.UNDEFINED;
-        indicator.setVisibility(View.VISIBLE);
-      }
-
-      void onMoving(Direction direction) {
-        if (prevSelected == direction) {
-          return;
-        }
-        indicator.onActionLeave(prevSelected);
-        if (isDirectionEnabled(direction)) {
-          indicator.onActionSelected(direction);
-        }
-        prevSelected = direction;
-      }
-
-      private boolean isDirectionEnabled(Direction direction) {
-        for (Direction d : enableDirections) {
-          if (d == direction) {
-            return true;
-          }
-        }
-        return false;
-      }
-
-      void onFling(Handler handler) {
-        handler.postDelayed(new Runnable() {
-          @Override
-          public void run() {
-            indicator.setVisibility(View.INVISIBLE);
-          }
-        }, 200);
-      }
-    });
-
     if (isInEditMode()) {
-      indicator.setVisibility(VISIBLE);
+      presenter.setIndicatorVisibility(VISIBLE);
     }
+  }
+
+  private void inflateMenu(int menuRes) {
+    final MenuInflater menuInflater = new MenuInflater(getContext());
+    menuInflater.inflate(menuRes, menu);
+    presenter.updateMenu();
   }
 
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed, left, top, right, bottom);
-    setIndicatorMargin();
+    presenter.setIndicatorMargin();
   }
 
-  private void setIndicatorMargin() {
-    if (indicator.getVisibility() != VISIBLE) {
-      return;
-    }
-    final ViewGroup.MarginLayoutParams layoutParams = (MarginLayoutParams) indicator.getLayoutParams();
-    final MarginLayoutParams ffabLp = (MarginLayoutParams) ffab.getLayoutParams();
-    layoutParams.bottomMargin = indicatorMargin + ffab.getHeight() + ffabLp.bottomMargin;
-  }
-
-  public void setIndicatorIcon(@NonNull Direction direction, @Nullable Drawable drawable) {
-    if (drawable != null) {
-      indicator.setDrawable(direction, drawable);
-    }
-    addEnableDirection(direction);
-  }
-
-  public void addEnableDirection(Direction direction) {
-    enableDirections.add(direction);
-  }
-
-  public void removeEnableDirection(Direction direction) {
-    enableDirections.remove(direction);
+  public Menu getMenu() {
+    return menu;
   }
 
   public void hide() {
-    ffab.hide();
+    presenter.hide();
     setVisibility(INVISIBLE);
   }
 
   public void show() {
     setVisibility(VISIBLE);
-    ffab.show();
+    presenter.show();
   }
 
-  public void setOnFlingListener(OnFlingListener flingListener) {
-    ffab.setOnFlingListener(flingListener);
+  public void setOnIffabItemSelectedListener(OnIffabItemSelectedListener selectedListener) {
+    menu.setOnIffabItemSelectedListener(selectedListener);
   }
 
   public void clear() {
-    indicator.clear();
-    enableDirections.clear();
-    setOnFlingListener(null);
+    presenter.clear();
+    setOnIffabItemSelectedListener(null);
   }
 
   public static class Behavior extends CoordinatorLayout.Behavior<IndicatableFFAB> {
@@ -215,5 +131,9 @@ public class IndicatableFFAB extends FrameLayout {
     public void onAttachedToLayoutParams(@NonNull CoordinatorLayout.LayoutParams params) {
       params.dodgeInsetEdges |= Gravity.BOTTOM;
     }
+  }
+
+  public interface OnIffabItemSelectedListener {
+    void onItemSelected(@NonNull MenuItem item);
   }
 }

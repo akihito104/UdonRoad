@@ -23,7 +23,7 @@ import android.view.MotionEvent;
  *
  * Created by akihit on 2016/03/22.
  */
-public interface OnFlingListener {
+interface OnFlingListener {
   void onStart();
 
   void onMoving(Direction direction);
@@ -107,6 +107,19 @@ public interface OnFlingListener {
 
     public boolean isOnAxis() {
       return index >= 0 && index % 2 == 0;
+    }
+
+    static Direction findByAngle(int angle) {
+      if (angle < 0) {
+        return UNDEFINED;
+      }
+      final int index = (8 - angle / 45) % 8; // XXX
+      for (Direction d : values()) {
+        if (d.index == index) {
+          return d;
+        }
+      }
+      return UNDEFINED;
     }
   }
 }

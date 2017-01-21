@@ -25,6 +25,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,8 +36,9 @@ import java.util.List;
  */
 
 class IffabMenu implements Menu {
-  private final List<MenuItem> menuItems = new ArrayList<>();
+  private final List<IffabMenuItem> menuItems = new ArrayList<>();
   private final Context context;
+  private OnIffabItemSelectedListener selectedListener;
 
   IffabMenu(Context context) {
     this.context = context;
@@ -63,13 +67,15 @@ class IffabMenu implements Menu {
   }
 
   @Override
-  public int addIntentOptions(int groupId, int itemId, int order, ComponentName caller, Intent[] specifics, Intent intent, int flags, MenuItem[] outSpecificItems) {
+  public int addIntentOptions(int groupId, int itemId, int order,
+                              ComponentName caller, Intent[] specifics, Intent intent, int flags,
+                              MenuItem[] outSpecificItems) {
     throw new RuntimeException("not implemented yet...");
   }
 
   @Override
   public void removeItem(int id) {
-    final MenuItem item = findItem(id);
+    final IffabMenuItem item = findItem(id);
     if (item != null) {
       menuItems.remove(item);
     }
@@ -95,19 +101,58 @@ class IffabMenu implements Menu {
     throw new RuntimeException("not implemented yet...");
   }
 
-  @Override
-  public boolean hasVisibleItems() {
-    throw new RuntimeException("not implemented yet...");
+  private IffabMenuItem findItemByDirection(Direction direction) {
+    for (IffabMenuItem item : menuItems) {
+      if (item.getDirection() == direction) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  boolean isEnabledByDirection(Direction direction) {
+    final IffabMenuItem item = findItemByDirection(direction);
+    return item != null && item.isEnabled();
+  }
+
+  List<IffabMenuItem> getVisibleItems() {
+    final List<IffabMenuItem> res = new ArrayList<>();
+    for (IffabMenuItem item : menuItems) {
+      if (item.isVisible()) {
+        res.add(item);
+      }
+    }
+    return res;
   }
 
   @Override
-  public MenuItem findItem(int id) {
-    for (MenuItem i : menuItems) {
+  public boolean hasVisibleItems() {
+    return getVisibleItems().size() > 0;
+  }
+
+  @Override
+  public IffabMenuItem findItem(int id) {
+    for (IffabMenuItem i : menuItems) {
       if (i.getItemId() == id) {
         return i;
       }
     }
     return null;
+  }
+
+  void dispatchMenuItemSelected(Direction direction) {
+    if (selectedListener == null) {
+      return;
+    }
+    final IffabMenuItem item = findItemByDirection(direction);
+    if (item == null) {
+      return;
+    }
+    selectedListener.onItemSelected(item);
+  }
+
+  void setOnIffabItemSelectedListener(OnIffabItemSelectedListener selectedListener) {
+    this.selectedListener = selectedListener;
   }
 
   @Override
