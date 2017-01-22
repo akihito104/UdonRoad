@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.ffab;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -28,10 +29,13 @@ import android.view.SubMenu;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * IffabMenu integrates menu items.
+ *
  * Created by akihit on 2017/01/11.
  */
 
@@ -39,9 +43,11 @@ class IffabMenu implements Menu {
   private final List<IffabMenuItem> menuItems = new ArrayList<>();
   private final Context context;
   private OnIffabItemSelectedListener selectedListener;
+  private final WeakReference<IffabMenuPresenter> presenter;
 
-  IffabMenu(Context context) {
+  IffabMenu(Context context, IffabMenuPresenter presenter) {
     this.context = context;
+    this.presenter = new WeakReference<>(presenter);
   }
 
   @Override
@@ -87,11 +93,6 @@ class IffabMenu implements Menu {
   }
 
   @Override
-  public void setGroupCheckable(int group, boolean checkable, boolean exclusive) {
-    throw new RuntimeException("not implemented yet...");
-  }
-
-  @Override
   public void setGroupVisible(int group, boolean visible) {
     throw new RuntimeException("not implemented yet...");
   }
@@ -101,18 +102,33 @@ class IffabMenu implements Menu {
     throw new RuntimeException("not implemented yet...");
   }
 
-  private IffabMenuItem findItemByDirection(Direction direction) {
+  @NonNull
+  private List<IffabMenuItem> findItemByDirection(Direction direction) {
+    final ArrayList<IffabMenuItem> res = new ArrayList<>(menuItems.size());
     for (IffabMenuItem item : menuItems) {
       if (item.getDirection() == direction) {
-        return item;
+        res.add(item);
       }
     }
-    return null;
+    return res;
+  }
+
+  boolean isVisibleByDirectin(Direction direction) {
+    for (IffabMenuItem item : findItemByDirection(direction)) {
+      if (item.isVisible()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   boolean isEnabledByDirection(Direction direction) {
-    final IffabMenuItem item = findItemByDirection(direction);
-    return item != null && item.isEnabled();
+    for (IffabMenuItem item : findItemByDirection(direction)) {
+      if (item.isEnabled()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   List<IffabMenuItem> getVisibleItems() {
@@ -144,11 +160,19 @@ class IffabMenu implements Menu {
     if (selectedListener == null) {
       return;
     }
-    final IffabMenuItem item = findItemByDirection(direction);
-    if (item == null) {
-      return;
+    for (IffabMenuItem item : findItemByDirection(direction)) {
+      if (item.isEnabled()) {
+        selectedListener.onItemSelected(item);
+        return;
+      }
     }
-    selectedListener.onItemSelected(item);
+  }
+
+  void dispatchUpdatePresenter() {
+    final IffabMenuPresenter iffabMenuPresenter = presenter.get();
+    if (iffabMenuPresenter != null) {
+      iffabMenuPresenter.updateMenu();
+    }
   }
 
   void setOnIffabItemSelectedListener(OnIffabItemSelectedListener selectedListener) {
@@ -217,5 +241,10 @@ class IffabMenu implements Menu {
   @Override
   public SubMenu addSubMenu(int groupId, int itemId, int order, @StringRes int titleRes) {
     throw new RuntimeException("IndicatableFFAB does not accept sub menu.");
+  }
+
+  @Override
+  public void setGroupCheckable(int group, boolean checkable, boolean exclusive) {
+    throw new RuntimeException("IffabMenu is not checkable.");
   }
 }

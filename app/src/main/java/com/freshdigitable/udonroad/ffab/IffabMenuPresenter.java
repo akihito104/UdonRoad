@@ -32,6 +32,8 @@ import java.util.List;
 import static android.view.View.VISIBLE;
 
 /**
+ * IffabMenuPresenter manages iffab view object, FlingableFAB and IndicatorView.
+ *
  * Created by akihit on 2017/01/18.
  */
 
@@ -91,7 +93,7 @@ class IffabMenuPresenter {
           return;
         }
         indicator.onActionLeave(prevSelected);
-        if (menu.isEnabledByDirection(direction)) {
+        if (menu.isVisibleByDirectin(direction)) {
           indicator.onActionSelected(direction);
         }
         prevSelected = direction;
@@ -151,10 +153,20 @@ class IffabMenuPresenter {
   }
 
   void updateMenu() {
+    if (pendingUpdate) {
+      return;
+    }
     final List<IffabMenuItem> items = menu.getVisibleItems();
+    indicator.clear();
     for (IffabMenuItem i : items) {
       indicator.setDrawable(i.getDirection(), i.getIcon());
     }
+  }
+
+  private boolean pendingUpdate = false;
+
+  void setPendingUpdate(boolean pendingUpdate) {
+    this.pendingUpdate = pendingUpdate;
   }
 
   void setIndicatorIconTint(int indicatorIconTint) {

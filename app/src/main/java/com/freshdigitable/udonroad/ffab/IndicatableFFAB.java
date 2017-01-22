@@ -51,7 +51,7 @@ public class IndicatableFFAB extends FrameLayout {
   public IndicatableFFAB(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     presenter.getView(this);
-    menu = new IffabMenu(context);
+    menu = new IffabMenu(context, presenter);
 
     final TypedArray a = context.obtainStyledAttributes(attrs,
         R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
@@ -84,8 +84,10 @@ public class IndicatableFFAB extends FrameLayout {
   }
 
   private void inflateMenu(int menuRes) {
+    presenter.setPendingUpdate(true);
     final MenuInflater menuInflater = new MenuInflater(getContext());
     menuInflater.inflate(menuRes, menu);
+    presenter.setPendingUpdate(false);
     presenter.updateMenu();
   }
 

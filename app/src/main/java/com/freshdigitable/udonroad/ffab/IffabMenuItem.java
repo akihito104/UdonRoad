@@ -113,6 +113,7 @@ class IffabMenuItem implements MenuItem {
   public MenuItem setIcon(Drawable icon) {
     this.icon = icon;
     this.iconRes = NO_ID;
+    menu.dispatchUpdatePresenter();
     return this;
   }
 
@@ -120,6 +121,7 @@ class IffabMenuItem implements MenuItem {
   public MenuItem setIcon(@DrawableRes int iconRes) {
     this.iconRes = iconRes;
     this.icon = null;
+    menu.dispatchUpdatePresenter();
     return this;
   }
 
@@ -170,37 +172,13 @@ class IffabMenuItem implements MenuItem {
     throw new RuntimeException("not implemented yet...");
   }
 
-  private boolean checkable = false;
-
-  @Override
-  public MenuItem setCheckable(boolean checkable) {
-    this.checkable = checkable;
-    return this;
-  }
-
-  @Override
-  public boolean isCheckable() {
-    return checkable;
-  }
-
-  private boolean checked = false;
-
-  @Override
-  public MenuItem setChecked(boolean checked) {
-    this.checked = checked;
-    return this;
-  }
-
-  @Override
-  public boolean isChecked() {
-    return checked;
-  }
-
   private boolean visible = false;
 
   @Override
   public MenuItem setVisible(boolean visible) {
     this.visible = visible;
+    this.enabled = visible;
+    menu.dispatchUpdatePresenter();
     return this;
   }
 
@@ -214,6 +192,8 @@ class IffabMenuItem implements MenuItem {
   @Override
   public MenuItem setEnabled(boolean enabled) {
     this.enabled = enabled;
+    this.visible = enabled;
+    menu.dispatchUpdatePresenter();
     return this;
   }
 
@@ -285,6 +265,26 @@ class IffabMenuItem implements MenuItem {
   @Override
   public MenuItem setOnActionExpandListener(OnActionExpandListener listener) {
     throw new RuntimeException("not implemented yet...");
+  }
+
+  @Override
+  public MenuItem setCheckable(boolean checkable) {
+    return this;
+  }
+
+  @Override
+  public boolean isCheckable() {
+    return false;
+  }
+
+  @Override
+  public MenuItem setChecked(boolean checked) {
+    return this;
+  }
+
+  @Override
+  public boolean isChecked() {
+    return false;
   }
 
   @Override

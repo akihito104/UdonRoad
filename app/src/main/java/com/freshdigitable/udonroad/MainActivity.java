@@ -254,8 +254,6 @@ public class MainActivity extends AppCompatActivity
         .commit();
     tlFragment.stopScroll();
     binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
-//    detailAction = actionMap.remove(Direction.LEFT);
-//    UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
   }
 
   private boolean hideStatusDetail() {
@@ -269,8 +267,6 @@ public class MainActivity extends AppCompatActivity
         .commit();
     statusDetail = null;
     tlFragment.startScroll();
-//    actionMap.put(Direction.LEFT, detailAction);
-//    UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
     binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(true);
     return true;
   }
