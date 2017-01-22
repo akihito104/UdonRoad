@@ -20,7 +20,9 @@
         <attr name="fabIcon" format="reference"/>
         <attr name="fabTint" format="reference|color"/>
         <attr name="indicatorTint" format="reference|color"/>
+        <attr name="indicatorIconTint" format="reference|color"/>
         <attr name="marginFabToIndicator" format="dimension"/>
+        <attr name="menu" format="reference"/>
     </declare-styleable>
 
     <declare-styleable name="IndicatableFFABTheme">
@@ -30,6 +32,7 @@
     <style name="Widget.FFAB.IndicatableFFAB" parent="android:Widget">
         <item name="fabIcon">@drawable/ic_add</item>
         <item name="indicatorTint">#cccc</item>
+        <item name="indicatorIconTint">@android:color/white</item>
         <item name="marginFabToIndicator">60dp</item>
     </style>
 </resources>

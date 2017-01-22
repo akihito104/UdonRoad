@@ -18,7 +18,9 @@ package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
@@ -36,7 +38,7 @@ import java.util.Map;
  *
  * Created by akihit on 2016/07/04.
  */
-public class ActionIndicatorView extends FrameLayout {
+class ActionIndicatorView extends FrameLayout {
   private final Map<Direction, ImageView> icons = new HashMap<>();
   private final Map<Direction, Drawable> drawables = new HashMap<>();
 
@@ -65,9 +67,17 @@ public class ActionIndicatorView extends FrameLayout {
   }
 
   public void setDrawable(Direction direction, Drawable drawable) {
+    tintIcon(drawable, this.indicatorIconTint);
     drawables.put(direction, drawable);
     if (direction.isOnAxis()) {
       icons.get(direction).setImageDrawable(drawable);
+    }
+  }
+
+  public void clear() {
+    drawables.clear();
+    for (ImageView iv : icons.values()) {
+      iv.setImageDrawable(null);
     }
   }
 
@@ -168,6 +178,22 @@ public class ActionIndicatorView extends FrameLayout {
   private static void setTranslation(View ic, float dX, float dY) {
     ViewCompat.setTranslationX(ic, dX);
     ViewCompat.setTranslationY(ic, dY);
+  }
+
+  private int indicatorIconTint;
+
+  public void setIndicatorIconTint(int indicatorIconTint) {
+    this.indicatorIconTint = indicatorIconTint;
+    for (Drawable d : drawables.values()) {
+      tintIcon(d, this.indicatorIconTint);
+    }
+  }
+
+  private static void tintIcon(Drawable drawable, @ColorInt int color) {
+    if (drawable == null) {
+      return;
+    }
+    DrawableCompat.setTint(drawable, color);
   }
 
   private enum TransCoefs {

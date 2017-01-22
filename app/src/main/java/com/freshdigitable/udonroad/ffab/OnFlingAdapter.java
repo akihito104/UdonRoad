@@ -17,9 +17,11 @@
 package com.freshdigitable.udonroad.ffab;
 
 /**
+ * OnFlingAdapter is a adapter class for OnFlingListener.
+ *
  * Created by akihit on 2016/07/03.
  */
-public abstract class OnFlingAdapter implements OnFlingListener {
+abstract class OnFlingAdapter implements OnFlingListener {
   @Override
   public void onStart() {
   }

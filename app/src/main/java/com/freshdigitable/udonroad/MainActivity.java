@@ -41,11 +41,10 @@ import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineFragment.OnFetchTweets;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
-import com.freshdigitable.udonroad.UserAction.Resource;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
@@ -55,8 +54,6 @@ import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -93,7 +90,6 @@ public class MainActivity extends AppCompatActivity
   StatusRequestWorker<SortedCache<Status>> statusRequestWorker;
   @Inject
   UserStreamUtil userStream;
-  private final Map<Direction, UserAction> actionMap = new HashMap<>();
   @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject
@@ -241,7 +237,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     setupActionMap();
-    UserAction.setupFlingableFAB(binding.ffab, actionMap, getApplicationContext());
     userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
@@ -258,6 +253,7 @@ public class MainActivity extends AppCompatActivity
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
     tlFragment.stopScroll();
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
   }
 
   private boolean hideStatusDetail() {
@@ -271,15 +267,15 @@ public class MainActivity extends AppCompatActivity
         .commit();
     statusDetail = null;
     tlFragment.startScroll();
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(true);
     return true;
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    binding.ffab.setOnFlingListener(null);
+    binding.ffab.setOnIffabItemSelectedListener(null);
     userFeedback.unregisterRootView(binding.mainTimelineContainer);
-    actionMap.clear();
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
@@ -290,7 +286,7 @@ public class MainActivity extends AppCompatActivity
     super.onDestroy();
     if (binding != null) {
       userStream.disconnect();
-      binding.ffab.setOnFlingListener(null);
+      binding.ffab.clear();
       binding.navDrawer.setNavigationItemSelectedListener(null);
       configRequestWorker.close();
       statusRequestWorker.close();
@@ -398,46 +394,29 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupActionMap() {
-    actionMap.put(Direction.UP, new UserAction(Resource.FAV, new Runnable() {
+    binding.ffab.setOnIffabItemSelectedListener(new OnIffabItemSelectedListener() {
       @Override
-      public void run() {
-        statusRequestWorker.createFavorite(tlFragment.getSelectedTweetId());
-      }
-    }));
-    actionMap.put(Direction.RIGHT, new UserAction(Resource.RETWEET, new Runnable() {
-      @Override
-      public void run() {
-        statusRequestWorker.retweetStatus(tlFragment.getSelectedTweetId());
-      }
-    }));
-    actionMap.put(Direction.UP_RIGHT, new UserAction(null, new Runnable() {
-      @Override
-      public void run() {
+      public void onItemSelected(@NonNull MenuItem item) {
+        final int itemId = item.getItemId();
         final long selectedTweetId = tlFragment.getSelectedTweetId();
-        Observable.concatDelayError(Arrays.asList(
-            statusRequestWorker.observeCreateFavorite(selectedTweetId),
-            statusRequestWorker.observeRetweetStatus(selectedTweetId))
-        ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
+        if (itemId == R.id.iffabMenu_main_fav) {
+          statusRequestWorker.createFavorite(selectedTweetId);
+        } else if (itemId == R.id.iffabMenu_main_rt) {
+          statusRequestWorker.retweetStatus(selectedTweetId);
+        } else if (itemId == R.id.iffabMenu_main_favRt) {
+          Observable.concatDelayError(Arrays.asList(
+              statusRequestWorker.observeCreateFavorite(selectedTweetId),
+              statusRequestWorker.observeRetweetStatus(selectedTweetId))
+          ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
+        } else if (itemId == R.id.iffabMenu_main_detail) {
+          showStatusDetail(selectedTweetId);
+        } else if (itemId == R.id.iffabMenu_main_reply) {
+          sendStatusSelected(TYPE_REPLY, selectedTweetId);
+        } else if (itemId == R.id.iffabMenu_main_quote) {
+          sendStatusSelected(TYPE_QUOTE, selectedTweetId);
+        }
       }
-    }));
-    actionMap.put(Direction.LEFT, new UserAction(Resource.MENU, new Runnable() {
-      @Override
-      public void run() {
-        showStatusDetail(tlFragment.getSelectedTweetId());
-      }
-    }));
-    actionMap.put(Direction.DOWN, new UserAction(Resource.REPLY, new Runnable() {
-      @Override
-      public void run() {
-        sendStatusSelected(TYPE_REPLY, tlFragment.getSelectedTweetId());
-      }
-    }));
-    actionMap.put(Direction.DOWN_RIGHT, new UserAction(Resource.QUOTE, new Runnable() {
-      @Override
-      public void run() {
-        sendStatusSelected(TYPE_QUOTE, tlFragment.getSelectedTweetId());
-      }
-    }));
+    });
   }
 
   @Override

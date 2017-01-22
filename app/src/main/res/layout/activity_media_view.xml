@@ -46,6 +46,7 @@
                 android:layout_gravity="bottom|center_horizontal"
                 app:fabTint="@color/layer_black_immersive"
                 app:indicatorTint="@color/layer_black_immersive"
+                app:menu="@menu/iffab_media"
                 />
         </FrameLayout>
 
