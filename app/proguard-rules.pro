@@ -17,3 +17,5 @@
 #}
 -keep class com.freshdigitable.udonroad.** { *; }
 -keepnames class ** { *; }
+
+-dontwarn java.lang.invoke.*
