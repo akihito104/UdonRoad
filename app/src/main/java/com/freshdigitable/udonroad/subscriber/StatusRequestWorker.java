@@ -166,7 +166,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   public void createFavorite(long statusId) {
     observeCreateFavorite(statusId)
-        .subscribe(RequestWorkerBase.<Status>nopSubscriber());
+        .subscribe(RequestWorkerBase.nopSubscriber());
   }
 
   public Observable<Status> observeRetweetStatus(final long statusId) {
@@ -201,19 +201,14 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   public void retweetStatus(long statusId) {
     observeRetweetStatus(statusId)
-        .subscribe(RequestWorkerBase.<Status>nopSubscriber());
+        .subscribe(RequestWorkerBase.nopSubscriber());
   }
 
   public void destroyFavorite(long statusId) {
     twitterApi.destroyFavorite(statusId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-                cache.insert(status);
-              }
-            },
+            status -> cache.insert(status),
             onErrorFeedback(R.string.msg_fav_delete_failed),
             onCompleteFeedback(R.string.msg_fav_delete_success));
   }
@@ -222,12 +217,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     twitterApi.destroyStatus(statusId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            new Action1<Status>() {
-              @Override
-              public void call(Status status) {
-                cache.insert(status);
-              }
-            },
+            status -> cache.insert(status),
             onErrorFeedback(R.string.msg_rt_delete_failed),
             onCompleteFeedback(R.string.msg_rt_delete_success));
   }
@@ -250,22 +240,12 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   @NonNull
   private Action1<List<Status>> createListUpsertAction() {
-    return new Action1<List<Status>>() {
-      @Override
-      public void call(List<Status> statuses) {
-        cache.upsert(statuses);
-      }
-    };
+    return statuses -> cache.upsert(statuses);
   }
 
   @NonNull
   private Action1<Status> createUpsertAction() {
-    return new Action1<Status>() {
-      @Override
-      public void call(Status statuses) {
-        cache.upsert(statuses);
-      }
-    };
+    return statuses -> cache.upsert(statuses);
   }
 
   @StringRes

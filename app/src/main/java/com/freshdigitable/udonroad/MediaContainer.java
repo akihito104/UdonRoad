@@ -26,6 +26,8 @@ import android.widget.LinearLayout;
 import twitter4j.MediaEntity;
 
 /**
+ * MediaContainer is view group contains image thumbnails.
+ *
  * Created by akihit on 2016/07/10.
  */
 public class MediaContainer extends LinearLayout {
@@ -81,14 +83,11 @@ public class MediaContainer extends LinearLayout {
       final int num = i;
       final View mediaView = getChildAt(i);
       mediaView.setVisibility(VISIBLE);
-      mediaView.setOnClickListener(new OnClickListener() {
-        @Override
-        public void onClick(View view) {
-          if (mediaClickListener == null) {
-            return;
-          }
-          mediaClickListener.onMediaClicked(view, num);
+      mediaView.setOnClickListener(view -> {
+        if (mediaClickListener == null) {
+          return;
         }
+        mediaClickListener.onMediaClicked(view, num);
       });
     }
   }

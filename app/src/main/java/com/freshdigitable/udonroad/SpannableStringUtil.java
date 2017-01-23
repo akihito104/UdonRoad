@@ -26,7 +26,6 @@ import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import twitter4j.MediaEntity;
@@ -143,12 +142,7 @@ class SpannableStringUtil {
   private static CharSequence createClickableSpan(String text, List<SpanningInfo> info) {
     // to manipulate changing tweet text length, sort descending
     SpannableStringBuilder ssb = new SpannableStringBuilder(text);
-    Collections.sort(info, new Comparator<SpanningInfo>() {
-      @Override
-      public int compare(SpanningInfo l, SpanningInfo r) {
-        return r.start - l.start;
-      }
-    });
+    Collections.sort(info, (l, r) -> r.start - l.start);
     for (SpanningInfo si : info) {
       if (si.isSpanning()) {
         ssb.setSpan(si.span, si.start, si.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

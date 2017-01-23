@@ -61,12 +61,7 @@ public class OAuthActivity extends AppCompatActivity {
 
     callbackUrl = getString(R.string.callback_url);
     oauthButton = findViewById(R.id.button_oauth);
-    oauthButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        startAuthorization();
-      }
-    });
+    oauthButton.setOnClickListener(v -> startAuthorization());
   }
 
   @Override
@@ -90,17 +85,14 @@ public class OAuthActivity extends AppCompatActivity {
   private RequestToken requestToken;
 
   private void startAuthorization() {
-    Observable.create(new Observable.OnSubscribe<String>() {
-      @Override
-      public void call(Subscriber<? super String> subscriber) {
-        try {
-          requestToken = twitter.getOAuthRequestToken(callbackUrl);
-          String authUrl = requestToken.getAuthorizationURL();
-          subscriber.onNext(authUrl);
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
+    Observable.create((Observable.OnSubscribe<String>) subscriber -> {
+      try {
+        requestToken = twitter.getOAuthRequestToken(callbackUrl);
+        String authUrl = requestToken.getAuthorizationURL();
+        subscriber.onNext(authUrl);
+        subscriber.onCompleted();
+      } catch (TwitterException e) {
+        subscriber.onError(e);
       }
     })
         .subscribeOn(Schedulers.io())
@@ -147,16 +139,13 @@ public class OAuthActivity extends AppCompatActivity {
   }
 
   private void startAuthentication(final String verifier) {
-    Observable.create(new Observable.OnSubscribe<AccessToken>() {
-      @Override
-      public void call(Subscriber<? super AccessToken> subscriber) {
-        try {
-          AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
-          subscriber.onNext(accessToken);
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
-        }
+    Observable.create((Observable.OnSubscribe<AccessToken>) subscriber -> {
+      try {
+        AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
+        subscriber.onNext(accessToken);
+        subscriber.onCompleted();
+      } catch (TwitterException e) {
+        subscriber.onError(e);
       }
     })
         .subscribeOn(Schedulers.io())

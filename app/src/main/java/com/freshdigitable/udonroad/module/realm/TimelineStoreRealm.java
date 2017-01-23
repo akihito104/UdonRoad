@@ -27,12 +27,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
-import rx.functions.Action1;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
@@ -99,22 +97,14 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
 
     final List<StatusIDs> inserts = createInsertList(statuses);
     final List<StatusIDs> updates = createUpdateList(statuses);
-    statusCache.observeUpsert(statuses).subscribe(new Action1<Void>() {
-      @Override
-      public void call(Void aVoid) {
-        if (!inserts.isEmpty()) {
-          insertStatus(inserts);
-        }
-        if (!updates.isEmpty()) {
-          notifyChanged(updates);
-        }
+    statusCache.observeUpsert(statuses).subscribe(aVoid -> {
+      if (!inserts.isEmpty()) {
+        insertStatus(inserts);
       }
-    }, new Action1<Throwable>() {
-      @Override
-      public void call(Throwable throwable) {
-        Log.e(TAG, "upsert: ", throwable);
+      if (!updates.isEmpty()) {
+        notifyChanged(updates);
       }
-    });
+    }, throwable -> Log.e(TAG, "upsert: ", throwable));
   }
 
   private List<StatusIDs> createInsertList(List<Status> statuses) {
@@ -323,12 +313,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
 
   @Override
   public void clear() {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.deleteAll();
-      }
-    });
+    realm.executeTransaction(_realm -> _realm.deleteAll());
   }
 
   @Override

@@ -34,7 +34,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import rx.Observable;
-import rx.Subscriber;
 import rx.schedulers.Schedulers;
 
 /**
@@ -46,16 +45,13 @@ public class TwitterCardFetcher {
   private static final String TAG = TwitterCardFetcher.class.getSimpleName();
 
   public static Observable<TwitterCard> observeFetch(final String expandedURL) {
-    return Observable.create(new Observable.OnSubscribe<TwitterCard>() {
-      @Override
-      public void call(Subscriber<? super TwitterCard> subscriber) {
-        try {
-          final TwitterCard twitterCard = fetch(expandedURL);
-          subscriber.onNext(twitterCard);
-          subscriber.onCompleted();
-        } catch (IOException | XmlPullParserException e) {
-          subscriber.onError(e);
-        }
+    return Observable.create((Observable.OnSubscribe<TwitterCard>) subscriber -> {
+      try {
+        final TwitterCard twitterCard = fetch(expandedURL);
+        subscriber.onNext(twitterCard);
+        subscriber.onCompleted();
+      } catch (IOException | XmlPullParserException e) {
+        subscriber.onError(e);
       }
     }).subscribeOn(Schedulers.io());
   }

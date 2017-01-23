@@ -66,12 +66,7 @@ abstract class BaseCacheRealm implements BaseCache {
 
   @Override
   public void clear() {
-    cache.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.deleteAll();
-      }
-    });
+    cache.executeTransaction(realm -> realm.deleteAll());
   }
 
   @Override

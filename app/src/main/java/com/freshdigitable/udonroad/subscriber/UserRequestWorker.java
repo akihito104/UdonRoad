@@ -80,21 +80,11 @@ public class UserRequestWorker<T extends BaseOperation<User>>
 
   @NonNull
   private Action1<User> createUpsertAction() {
-    return new Action1<User>() {
-      @Override
-      public void call(User user) {
-        cache.upsert(user);
-      }
-    };
+    return user -> cache.upsert(user);
   }
 
   @NonNull
   private Action1<List<User>> createUpsertListAction() {
-    return new Action1<List<User>>() {
-      @Override
-      public void call(List<User> users) {
-        cache.upsert(users);
-      }
-    };
+    return users -> cache.upsert(users);
   }
 }

@@ -21,7 +21,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
@@ -55,281 +54,148 @@ public class TwitterApi {
   }
 
   public Observable<Long> getId() {
-    return observeThrowableFetch(new ThrowableFetch<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return twitter.getId();
-      }
-    });
+    return observeThrowableFetch(twitter::getId);
   }
 
   public Observable<User> verifyCredentials() {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.showUser(twitter.getId());
-      }
-    });
+    return observeThrowableFetch(() -> twitter.showUser(twitter.getId()));
   }
 
   public Observable<TwitterAPIConfiguration> getTwitterAPIConfiguration() {
-    return observeThrowableFetch(new ThrowableFetch<TwitterAPIConfiguration>() {
-      @Override
-      public TwitterAPIConfiguration call() throws Exception {
-        return twitter.getAPIConfiguration();
-      }
-    });
+    return observeThrowableFetch(twitter::getAPIConfiguration);
   }
 
   public Observable<Status> updateStatus(final String sendingText) {
-    return observeThrowableFetch(new ThrowableFetch<Status>() {
-      @Override
-      public Status call() throws Exception {
-        return twitter.updateStatus(sendingText);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.updateStatus(sendingText));
   }
 
   public Observable<Status> updateStatus(final StatusUpdate statusUpdate) {
-    return observeThrowableFetch(new ThrowableFetch<Status>() {
-      @Override
-      public Status call() throws Exception {
-        return twitter.updateStatus(statusUpdate);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.updateStatus(statusUpdate));
   }
 
   public Observable<Status> retweetStatus(final long tweetId) {
-    return observeThrowableFetch(new ThrowableFetch<Status>() {
-      @Override
-      public Status call() throws Exception {
-        return twitter.retweetStatus(tweetId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.retweetStatus(tweetId));
   }
 
   public Observable<Status> createFavorite(final long tweetId) {
-    return observeThrowableFetch(new ThrowableFetch<Status>() {
-      @Override
-      public Status call() throws Exception {
-        return twitter.createFavorite(tweetId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.createFavorite(tweetId));
   }
 
   public Observable<List<Status>> getHomeTimeline() {
-    return observeThrowableFetch(new ThrowableFetch<List<Status>>() {
-      @Override
-      public List<Status> call() throws Exception {
-        return twitter.getHomeTimeline();
-      }
-    });
+    return observeThrowableFetch(twitter::getHomeTimeline);
   }
 
   public Observable<List<Status>> getHomeTimeline(final Paging paging) {
-    return observeThrowableFetch(new ThrowableFetch<List<Status>>(){
-      @Override
-      public List<Status> call() throws Exception {
-        return twitter.getHomeTimeline(paging);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.getHomeTimeline(paging));
   }
 
   public Observable<Status> destroyStatus(final long id) {
-    return observeThrowableFetch(new ThrowableFetch<Status>() {
-      @Override
-      public Status call() throws Exception {
-        return twitter.destroyStatus(id);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.destroyStatus(id));
   }
 
   public Observable<Status> destroyFavorite(final long id) {
-    return observeThrowableFetch(new ThrowableFetch<Status>() {
-      @Override
-      public Status call() throws Exception {
-        return twitter.destroyFavorite(id);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.destroyFavorite(id));
   }
 
   public Observable<List<Status>> getUserTimeline(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<List<Status>>() {
-      @Override
-      public List<Status> call() throws Exception {
-        return twitter.getUserTimeline(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.getUserTimeline(userId));
   }
 
   public Observable<List<Status>> getUserTimeline(final long userId, final Paging paging) {
-    return observeThrowableFetch(new ThrowableFetch<List<Status>>() {
-      @Override
-      public List<Status> call() throws Exception {
-        return twitter.getUserTimeline(userId, paging);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.getUserTimeline(userId, paging));
   }
 
   public Observable<List<Status>> getFavorites(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<List<Status>>() {
-      @Override
-      public List<Status> call() throws Exception {
-        return twitter.getFavorites(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.getFavorites(userId));
   }
 
   public Observable<List<Status>> getFavorites(final long userId, final Paging paging) {
-    return observeThrowableFetch(new ThrowableFetch<List<Status>>() {
-      @Override
-      public List<Status> call() throws Exception {
-        return twitter.getFavorites(userId, paging);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.getFavorites(userId, paging));
   }
 
   public Observable<User> createFriendship(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.createFriendship(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.createFriendship(userId));
   }
 
   public Observable<User> destroyFriendship(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.destroyFriendship(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.destroyFriendship(userId));
   }
 
   public Observable<Relationship> updateFriendship(final long userId,
                                                    final boolean enableDeviceNotification,
                                                    final boolean enableRetweet) {
-    return observeThrowableFetch(new ThrowableFetch<Relationship>() {
-      @Override
-      public Relationship call() throws Exception {
-        return twitter.updateFriendship(userId, enableDeviceNotification, enableRetweet);
-      }
-    });
+    return observeThrowableFetch(
+        () -> twitter.updateFriendship(userId, enableDeviceNotification, enableRetweet));
   }
 
   public Observable<User> createBlock(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.createBlock(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.createBlock(userId));
   }
 
   public Observable<User> destroyBlock(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.destroyBlock(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.destroyBlock(userId));
   }
 
   public Observable<User> reportSpam(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.reportSpam(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.reportSpam(userId));
   }
 
   public Observable<User> createMute(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.createMute(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.createMute(userId));
   }
 
   public Observable<User> destroyMute(final long userId) {
-    return observeThrowableFetch(new ThrowableFetch<User>() {
-      @Override
-      public User call() throws Exception {
-        return twitter.destroyMute(userId);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.destroyMute(userId));
   }
 
   public Observable<PagableResponseList<User>> getFollowersList(final long userId, final long cursor) {
-    return observeThrowableFetch(new ThrowableFetch<PagableResponseList<User>>() {
-      @Override
-      public PagableResponseList<User> call() throws Exception {
-        return twitter.getFollowersList(userId, cursor, 20, true, false);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.getFollowersList(userId, cursor, 20, true, false));
   }
 
   public Observable<PagableResponseList<User>> getFriendsList(final long userId, final long cursor) {
-    return observeThrowableFetch(new ThrowableFetch<PagableResponseList<User>>() {
-      @Override
-      public PagableResponseList<User> call() throws Exception {
-        return twitter.getFriendsList(userId, cursor, 20, true, false);
-      }
-    });
+    return observeThrowableFetch(() -> twitter.getFriendsList(userId, cursor, 20, true, false));
   }
 
   public Observable<IDs> getAllBlocksIDs() {
-    return Observable.create(new Observable.OnSubscribe<IDs>() {
-      @Override
-      public void call(Subscriber<? super IDs> subscriber) {
-        try {
-          IDs blocksIDs = null;
-          while (blocksIDs == null || blocksIDs.hasNext()) {
-            final long cursor = blocksIDs == null
-                ? -1
-                : blocksIDs.getNextCursor();
-            blocksIDs = twitter.getBlocksIDs(cursor);
-            subscriber.onNext(blocksIDs);
-          }
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
+    return Observable.create((Observable.OnSubscribe<IDs>) subscriber -> {
+      try {
+        IDs blocksIDs = null;
+        while (blocksIDs == null || blocksIDs.hasNext()) {
+          final long cursor = blocksIDs == null
+              ? -1
+              : blocksIDs.getNextCursor();
+          blocksIDs = twitter.getBlocksIDs(cursor);
+          subscriber.onNext(blocksIDs);
         }
+        subscriber.onCompleted();
+      } catch (TwitterException e) {
+        subscriber.onError(e);
       }
     }).subscribeOn(Schedulers.io());
   }
 
   public Observable<IDs> getAllMutesIDs() {
-    return Observable.create(new Observable.OnSubscribe<IDs>() {
-      @Override
-      public void call(Subscriber<? super IDs> subscriber) {
-        try {
-          IDs mutesIDs = null;
-          while (mutesIDs == null || mutesIDs.hasNext()) {
-            final long cursor = mutesIDs == null
-                ? -1
-                : mutesIDs.getNextCursor();
-            mutesIDs = twitter.getMutesIDs(cursor);
-            subscriber.onNext(mutesIDs);
-          }
-          subscriber.onCompleted();
-        } catch (TwitterException e) {
-          subscriber.onError(e);
+    return Observable.create((Observable.OnSubscribe<IDs>) subscriber -> {
+      try {
+        IDs mutesIDs = null;
+        while (mutesIDs == null || mutesIDs.hasNext()) {
+          final long cursor = mutesIDs == null
+              ? -1
+              : mutesIDs.getNextCursor();
+          mutesIDs = twitter.getMutesIDs(cursor);
+          subscriber.onNext(mutesIDs);
         }
+        subscriber.onCompleted();
+      } catch (TwitterException e) {
+        subscriber.onError(e);
       }
     }).subscribeOn(Schedulers.io());
   }
 
   public Observable<Relationship> showFriendship(final long targetId) {
-    return observeThrowableFetch(new ThrowableFetch<Relationship>() {
-      @Override
-      public Relationship call() throws Exception {
-        final long sourceId = twitter.getId();
-        return twitter.showFriendship(sourceId, targetId);
-      }
+    return observeThrowableFetch(() -> {
+      final long sourceId = twitter.getId();
+      return twitter.showFriendship(sourceId, targetId);
     });
   }
 
@@ -338,16 +204,13 @@ public class TwitterApi {
   }
 
   private static <T> Observable<T> observeThrowableFetch(final ThrowableFetch<T> fetch) {
-    return Observable.create(new Observable.OnSubscribe<T>() {
-      @Override
-      public void call(Subscriber<? super T> subscriber) {
-        try {
-          final T ret = fetch.call();
-          subscriber.onNext(ret);
-          subscriber.onCompleted();
-        } catch (Exception e) {
-          subscriber.onError(e);
-        }
+    return Observable.create((Observable.OnSubscribe<T>) subscriber -> {
+      try {
+        final T ret = fetch.call();
+        subscriber.onNext(ret);
+        subscriber.onCompleted();
+      } catch (Exception e) {
+        subscriber.onError(e);
       }
     }).subscribeOn(Schedulers.io());
   }

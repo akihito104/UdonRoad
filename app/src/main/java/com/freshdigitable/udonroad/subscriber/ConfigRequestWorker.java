@@ -24,8 +24,6 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.TreeSet;
 
 import javax.inject.Inject;
@@ -35,8 +33,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Action2;
-import rx.functions.Func0;
-import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import twitter4j.IDs;
 import twitter4j.Relationship;
@@ -77,35 +73,23 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
         verifyCredentials(),
         fetchTwitterAPIConfig(),
         fetchAllIgnoringUsers())
-        .subscribe(new Action1<Serializable>() {
-          @Override
-          public void call(Serializable serializable) {
-            //nop
-          }
-        }, onErrorAction, completeAction);
+        .subscribe(
+            serializable -> { /* nop */ },
+            onErrorAction,
+            completeAction);
   }
 
   private Observable<User> verifyCredentials() {
     return twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            appSettings.addAuthenticatedUser(user);
-          }
-        })
+        .doOnNext(appSettings::addAuthenticatedUser)
         .doOnError(onErrorAction);
   }
 
   public Observable<User> getAuthenticatedUser() {
     return twitterApi.getId()
         .observeOn(AndroidSchedulers.mainThread())
-        .map(new Func1<Long, User>() {
-          @Override
-          public User call(Long userId) {
-            return appSettings.getAuthenticatedUser(userId);
-          }
-        });
+        .map(appSettings::getAuthenticatedUser);
   }
 
   private Observable<TwitterAPIConfiguration> fetchTwitterAPIConfig() {
@@ -116,50 +100,23 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
     Log.d(TAG, "fetchTwitterAPIConfig: fetching");
     return twitterApi.getTwitterAPIConfiguration()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<TwitterAPIConfiguration>() {
-          @Override
-          public void call(TwitterAPIConfiguration configuration) {
-            appSettings.setTwitterAPIConfig(configuration);
-          }
-        }).doOnError(onErrorAction);
+        .doOnNext(appSettings::setTwitterAPIConfig)
+        .doOnError(onErrorAction);
   }
 
-  private final Action1<Throwable> onErrorAction = new Action1<Throwable>() {
-    @Override
-    public void call(Throwable throwable) {
-      Log.e(TAG, "call: ", throwable);
-    }
-  };
+  private final Action1<Throwable> onErrorAction = throwable -> Log.e(TAG, "call: ", throwable);
 
   private Observable<TreeSet<Long>> fetchAllIgnoringUsers() {
     return Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
-        .map(new Func1<IDs, long[]>() {
-          @Override
-          public long[] call(IDs iDs) {
-            return iDs.getIDs();
-          }
-        })
-        .collect(new Func0<TreeSet<Long>>() {
-                   @Override
-                   public TreeSet<Long> call() {
-                     return new TreeSet<>();
-                   }
-                 },
-            new Action2<TreeSet<Long>, long[]>() {
-              @Override
-              public void call(TreeSet<Long> collector, long[] ids) {
-                for (long l : ids) {
-                  collector.add(l);
-                }
+        .map(IDs::getIDs)
+        .collect(TreeSet::new,
+            (Action2<TreeSet<Long>, long[]>) (collector, ids) -> {
+              for (long l : ids) {
+                collector.add(l);
               }
             })
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(new Action1<Collection<Long>>() {
-          @Override
-          public void call(Collection<Long> ids) {
-            cache.replaceIgnoringUsers(ids);
-          }
-        })
+        .doOnNext(ids -> cache.replaceIgnoringUsers(ids))
         .doOnError(onErrorAction);
   }
 
@@ -225,21 +182,11 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
 
   @NonNull
   private Action1<User> addIgnoringUserAction() {
-    return new Action1<User>() {
-      @Override
-      public void call(User user) {
-        cache.addIgnoringUser(user);
-      }
-    };
+    return user -> cache.addIgnoringUser(user);
   }
 
   @NonNull
   private Action1<User> removeIgnoringUserAction() {
-    return new Action1<User>() {
-      @Override
-      public void call(User user) {
-        cache.removeIgnoringUser(user);
-      }
-    };
+    return user -> cache.removeIgnoringUser(user);
   }
 }

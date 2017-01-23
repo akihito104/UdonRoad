@@ -37,7 +37,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.freshdigitable.udonroad.MediaContainer.OnMediaClickListener;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -49,7 +48,6 @@ import javax.inject.Inject;
 
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -111,39 +109,18 @@ public class StatusDetailFragment extends Fragment {
     final ImageView icon = statusView.getIcon();
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     final long rtUserId = status.getUser().getId();
-    statusView.getRtUser().setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        UserInfoActivity.start(v.getContext(), rtUserId);
-      }
-    });
-    icon.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        userIconClickedListener.onUserIconClicked(view, user);
-      }
-    });
-    statusView.getUserName().setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        userIconClickedListener.onUserIconClicked(icon, user);
-      }
-    });
-    statusView.getMediaContainer().setOnMediaClickListener(new OnMediaClickListener() {
-      @Override
-      public void onMediaClicked(View view, int index) {
-        MediaViewActivity.start(view.getContext(), status, index);
-      }
-    });
+    statusView.getRtUser().setOnClickListener(
+        view -> UserInfoActivity.start(view.getContext(), rtUserId));
+    icon.setOnClickListener(
+        view -> userIconClickedListener.onUserIconClicked(view, user));
+    statusView.getUserName().setOnClickListener(
+        view -> userIconClickedListener.onUserIconClicked(icon, user));
+    statusView.getMediaContainer().setOnMediaClickListener(
+        (view, index) -> MediaViewActivity.start(view.getContext(), status, index));
 
     binding.statusView.bindStatus(status);
     subscription = statusCache.observeById(statusId)
-        .subscribe(new Action1<Status>() {
-          @Override
-          public void call(Status status) {
-            binding.statusView.update(status);
-          }
-        });
+        .subscribe(_status -> binding.statusView.update(_status));
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
@@ -154,17 +131,8 @@ public class StatusDetailFragment extends Fragment {
     } else {
       TwitterCardFetcher.observeFetch(bindingStatus.getURLEntities()[0].getExpandedURL())
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<TwitterCard>() {
-            @Override
-            public void call(final TwitterCard twitterCard) {
-              setupTwitterCard(twitterCard);
-            }
-          }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-              Log.e(TAG, "card fetch: ", throwable);
-            }
-          });
+          .subscribe(this::setupTwitterCard,
+              throwable -> Log.e(TAG, "card fetch: ", throwable));
     }
   }
 
@@ -199,12 +167,7 @@ public class StatusDetailFragment extends Fragment {
     } else {
       intent.setData(Uri.parse(twitterCard.getUrl()));
     }
-    binding.sdTwitterCard.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        getContext().startActivity(intent);
-      }
-    });
+    binding.sdTwitterCard.setOnClickListener(view -> getContext().startActivity(intent));
   }
 
   private boolean isValidForView(TwitterCard twitterCard) {
@@ -241,12 +204,7 @@ public class StatusDetailFragment extends Fragment {
     if (activity instanceof OnUserIconClickedListener) {
       return (OnUserIconClickedListener) activity;
     } else {
-      return new OnUserIconClickedListener() {
-        @Override
-        public void onUserIconClicked(View view, User user) {
-          UserInfoActivity.start(activity, user, view);
-        }
-      };
+      return (view, user) -> UserInfoActivity.start(activity, user, view);
     }
   }
 

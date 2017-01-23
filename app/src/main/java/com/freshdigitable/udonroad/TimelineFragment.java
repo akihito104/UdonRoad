@@ -39,15 +39,12 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.TimelineAdapter.LastItemBoundListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 
 import rx.Subscription;
-import rx.functions.Action1;
 import twitter4j.Paging;
-import twitter4j.User;
 
 /**
  * TimelineFragment provides RecyclerView to show timeline.
@@ -130,34 +127,21 @@ public class TimelineFragment<T> extends Fragment {
     tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
     binding.timeline.setItemAnimator(new TimelineAnimator());
-    binding.timeline.setOnTouchListener(new View.OnTouchListener() {
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
+    binding.timeline.setOnTouchListener((v, event) -> {
 //        Log.d(TAG, "onTouch: " + event.getAction());
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-          final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
-          isScrolledByUser = firstVisibleItemPosition != 0;
-          isAddedUntilStopped();
-        }
-        return false;
+      if (event.getAction() == MotionEvent.ACTION_UP) {
+        final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
+        isScrolledByUser = firstVisibleItemPosition != 0;
+        isAddedUntilStopped();
       }
+      return false;
     });
 
     tlAdapter = new TimelineAdapter<>(timelineStore);
     insertEventSubscription = timelineStore.observeInsertEvent()
-        .subscribe(new Action1<Integer>() {
-          @Override
-          public void call(Integer position) {
-            tlAdapter.notifyItemInserted(position);
-          }
-        });
+        .subscribe(position -> tlAdapter.notifyItemInserted(position));
     deleteEventSubscription = timelineStore.observeDeleteEvent()
-        .subscribe(new Action1<Integer>() {
-          @Override
-          public void call(Integer position) {
-            tlAdapter.notifyItemRemoved(position);
-          }
-        });
+        .subscribe(position -> tlAdapter.notifyItemRemoved(position));
 
     if (getActivity() instanceof FabHandleable) {
       tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
@@ -172,12 +156,8 @@ public class TimelineFragment<T> extends Fragment {
         }
       });
     }
-    tlAdapter.setLastItemBoundListener(new LastItemBoundListener() {
-      @Override
-      public void onLastItemBound(long lastPageCursor) {
-        fetchTweet(new Paging(1, 20, 1, lastPageCursor));
-      }
-    });
+    tlAdapter.setLastItemBoundListener(
+        lastPageCursor -> fetchTweet(new Paging(1, 20, 1, lastPageCursor)));
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     binding.timeline.setAdapter(tlAdapter);
@@ -340,12 +320,7 @@ public class TimelineFragment<T> extends Fragment {
     if (activity instanceof OnUserIconClickedListener) {
       return ((OnUserIconClickedListener) activity);
     } else {
-      return new OnUserIconClickedListener() {
-        @Override
-        public void onUserIconClicked(View view, User user) {
-          // nop
-        }
-      };
+      return (view, user) -> { /* nop */ };
     }
   }
 

@@ -401,15 +401,12 @@ public class TimelineAnimator extends SimpleItemAnimator {
       moves.addAll(pendingMoves);
       moveAnimList.add(moves);
       pendingMoves.clear();
-      final Runnable mover = new Runnable() {
-        @Override
-        public void run() {
-          for (Move move : moves) {
-            animateMoveImpl(move);
-          }
-          moves.clear();
-          moveAnimList.remove(moves);
+      final Runnable mover = () -> {
+        for (Move move : moves) {
+          animateMoveImpl(move);
         }
+        moves.clear();
+        moveAnimList.remove(moves);
       };
       if (isPendingRemove) {
         ViewCompat.postOnAnimationDelayed(moves.get(0).holder.itemView, mover, getRemoveDuration());
@@ -423,15 +420,12 @@ public class TimelineAnimator extends SimpleItemAnimator {
       changes.addAll(pendingChange);
       changeAnimList.add(changes);
       pendingChange.clear();
-      final Runnable changer = new Runnable() {
-        @Override
-        public void run() {
-          for (Change c : changes) {
-            animateChangeImpl(c);
-          }
-          changes.clear();
-          changeAnimList.remove(changes);
+      final Runnable changer = () -> {
+        for (Change c : changes) {
+          animateChangeImpl(c);
         }
+        changes.clear();
+        changeAnimList.remove(changes);
       };
       if (isPendingRemove) {
         ViewCompat.postOnAnimationDelayed(changes.get(0).oldHolder.itemView,
@@ -446,15 +440,12 @@ public class TimelineAnimator extends SimpleItemAnimator {
       adds.addAll(pendingAdd);
       addAnimList.add(adds);
       pendingAdd.clear();
-      final Runnable adder = new Runnable() {
-        @Override
-        public void run() {
-          for (ViewHolder add : adds) {
-            animateAddImpl(add);
-          }
-          adds.clear();
-          addAnimList.remove(adds);
+      final Runnable adder = () -> {
+        for (ViewHolder add : adds) {
+          animateAddImpl(add);
         }
+        adds.clear();
+        addAnimList.remove(adds);
       };
       if (isPendingRemove || isPendingMove || isPendingChange) {
         long removeDuration = isPendingRemove ? getRemoveDuration() : 0;

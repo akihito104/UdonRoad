@@ -22,9 +22,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -44,7 +42,6 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
@@ -59,8 +56,6 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
-import rx.functions.Action0;
-import rx.functions.Action1;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
@@ -118,25 +113,22 @@ public class MainActivity extends AppCompatActivity
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    binding.navDrawer.setNavigationItemSelectedListener(new OnNavigationItemSelectedListener() {
-      @Override
-      public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == R.id.menu_home) {
-          Log.d(TAG, "home is selected");
-          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-        } else if (itemId == R.id.menu_mention) {
-          Log.d(TAG, "mention is selected");
-          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-        } else if (itemId == R.id.menu_fav) {
-          Log.d(TAG, "fav is selected");
-          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-        } else if (itemId == R.id.menu_license) {
-          startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
-          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-        }
-        return false;
+    binding.navDrawer.setNavigationItemSelectedListener(item -> {
+      int itemId = item.getItemId();
+      if (itemId == R.id.menu_home) {
+        Log.d(TAG, "home is selected");
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      } else if (itemId == R.id.menu_mention) {
+        Log.d(TAG, "mention is selected");
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      } else if (itemId == R.id.menu_fav) {
+        Log.d(TAG, "fav is selected");
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      } else if (itemId == R.id.menu_license) {
+        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       }
+      return false;
     });
 
     binding.ffab.hide();
@@ -154,14 +146,9 @@ public class MainActivity extends AppCompatActivity
     tlFragment.setSortedCache(homeTimeline);
 
     configRequestWorker.open();
-    configRequestWorker.setup(new Action0() {
-      @Override
-      public void call() {
-        getSupportFragmentManager().beginTransaction()
-            .replace(R.id.main_timeline_container, tlFragment)
-            .commit();
-      }
-    });
+    configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_timeline_container, tlFragment)
+        .commit());
   }
 
   private Subscription subscription;
@@ -169,12 +156,7 @@ public class MainActivity extends AppCompatActivity
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
     subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            setupNavigationDrawer(user);
-          }
-        });
+        .subscribe(this::setupNavigationDrawer);
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -375,12 +357,7 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnNext(new Action1<Status>() {
-      @Override
-      public void call(Status status) {
-        cancelWritingSelected();
-      }
-    });
+    return updateStatusObservable.doOnNext(status -> cancelWritingSelected());
   }
 
   @Override
@@ -394,27 +371,24 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupActionMap() {
-    binding.ffab.setOnIffabItemSelectedListener(new OnIffabItemSelectedListener() {
-      @Override
-      public void onItemSelected(@NonNull MenuItem item) {
-        final int itemId = item.getItemId();
-        final long selectedTweetId = tlFragment.getSelectedTweetId();
-        if (itemId == R.id.iffabMenu_main_fav) {
-          statusRequestWorker.createFavorite(selectedTweetId);
-        } else if (itemId == R.id.iffabMenu_main_rt) {
-          statusRequestWorker.retweetStatus(selectedTweetId);
-        } else if (itemId == R.id.iffabMenu_main_favRt) {
-          Observable.concatDelayError(Arrays.asList(
-              statusRequestWorker.observeCreateFavorite(selectedTweetId),
-              statusRequestWorker.observeRetweetStatus(selectedTweetId))
-          ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
-        } else if (itemId == R.id.iffabMenu_main_detail) {
-          showStatusDetail(selectedTweetId);
-        } else if (itemId == R.id.iffabMenu_main_reply) {
-          sendStatusSelected(TYPE_REPLY, selectedTweetId);
-        } else if (itemId == R.id.iffabMenu_main_quote) {
-          sendStatusSelected(TYPE_QUOTE, selectedTweetId);
-        }
+    binding.ffab.setOnIffabItemSelectedListener(item -> {
+      final int itemId = item.getItemId();
+      final long selectedTweetId = tlFragment.getSelectedTweetId();
+      if (itemId == R.id.iffabMenu_main_fav) {
+        statusRequestWorker.createFavorite(selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_rt) {
+        statusRequestWorker.retweetStatus(selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_favRt) {
+        Observable.concatDelayError(Arrays.asList(
+            statusRequestWorker.observeCreateFavorite(selectedTweetId),
+            statusRequestWorker.observeRetweetStatus(selectedTweetId))
+        ).subscribe(RequestWorkerBase.nopSubscriber());
+      } else if (itemId == R.id.iffabMenu_main_detail) {
+        showStatusDetail(selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_reply) {
+        sendStatusSelected(TYPE_REPLY, selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_quote) {
+        sendStatusSelected(TYPE_QUOTE, selectedTweetId);
       }
     });
   }

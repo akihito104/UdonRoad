@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import rx.Observable;
@@ -62,12 +61,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
 
   @Override
   public void clear() {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.deleteAll();
-      }
-    });
+    realm.executeTransaction(_realm -> _realm.deleteAll());
   }
 
   @Override

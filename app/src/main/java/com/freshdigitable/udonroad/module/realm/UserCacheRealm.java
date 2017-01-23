@@ -25,10 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
 import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action0;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -65,31 +62,23 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
   @NonNull
   @Override
   public Realm.Transaction upsertTransaction(final Collection<User> entities) {
-    return new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final List<UserRealm> upserts = new ArrayList<>(entities.size());
-        for (User u : entities) {
-          final UserRealm user = findById(realm, u.getId(), UserRealm.class);
-          if (user == null) {
-            upserts.add(new UserRealm(u));
-          } else {
-            user.merge(u, realm);
-          }
+    return realm -> {
+      final List<UserRealm> upserts = new ArrayList<>(entities.size());
+      for (User u : entities) {
+        final UserRealm user = findById(realm, u.getId(), UserRealm.class);
+        if (user == null) {
+          upserts.add(new UserRealm(u));
+        } else {
+          user.merge(u, realm);
         }
-        realm.insertOrUpdate(upserts);
       }
+      realm.insertOrUpdate(upserts);
     };
   }
 
   @Override
   public void insert(final User entity) {
-    cache.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.insertOrUpdate(new UserRealm(entity));
-      }
-    });
+    cache.executeTransaction(realm -> realm.insertOrUpdate(new UserRealm(entity)));
   }
 
   void upsert(UserMentionEntity[] mentionEntity) {
@@ -104,12 +93,7 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
       }
     }
     if (!upserts.isEmpty()) {
-      cache.executeTransaction(new Realm.Transaction() {
-        @Override
-        public void execute(Realm realm) {
-          realm.insertOrUpdate(upserts);
-        }
-      });
+      cache.executeTransaction(realm -> realm.insertOrUpdate(upserts));
     }
   }
 
@@ -126,22 +110,9 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
     if (user == null) {
       return Observable.empty();
     }
-    return Observable.create(new Observable.OnSubscribe<User>() {
-      @Override
-      public void call(final Subscriber<? super User> subscriber) {
-        UserRealm.addChangeListener(user, new RealmChangeListener<UserRealm>() {
-          @Override
-          public void onChange(UserRealm element) {
-            subscriber.onNext(element);
-          }
-        });
-      }
-    }).doOnUnsubscribe(new Action0() {
-      @Override
-      public void call() {
-        UserRealm.removeChangeListeners(user);
-      }
-    });
+    return Observable.create(
+        (Observable.OnSubscribe<User>) subscriber -> UserRealm.addChangeListener(user, subscriber::onNext))
+        .doOnUnsubscribe(() -> UserRealm.removeChangeListeners(user));
   }
 
   @Override

@@ -153,14 +153,11 @@ public class TweetInputView extends RelativeLayout {
     super.onAttachedToWindow();
     final InputMethodManager inputMethodManager
         = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-    inputText.setOnFocusChangeListener(new OnFocusChangeListener() {
-      @Override
-      public void onFocusChange(View v, boolean hasFocus) {
-        if (hasFocus) {
-          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-        } else {
-          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
+    inputText.setOnFocusChangeListener((v, hasFocus) -> {
+      if (hasFocus) {
+        inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
+      } else {
+        inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
       }
     });
     inputText.addTextChangedListener(textWatcher);
