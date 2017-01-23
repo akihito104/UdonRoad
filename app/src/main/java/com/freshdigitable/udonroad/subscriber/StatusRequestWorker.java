@@ -22,8 +22,10 @@ import android.support.annotation.StringRes;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
+import com.freshdigitable.udonroad.datastore.StatusReaction;
 import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
@@ -138,28 +140,15 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     return twitterApi.createFavorite(statusId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
-        .doOnError(new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            final int msg = findMessageByTwitterExeption(throwable);
-            if (msg == R.string.msg_already_fav) {
-              updateStatus();
-            }
-            final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0
-                ? msg : R.string.msg_fav_create_failed);
-            userFeedback.onNext(event);
+        .doOnError(throwable -> {
+          final int msg = findMessageByTwitterExeption(throwable);
+          if (msg == R.string.msg_already_fav) {
+            updateStatusWithReaction(statusId,
+                reaction -> reaction.setFavorited(true));
           }
-
-          private void updateStatus() {
-            final Status status = cache.find(statusId);
-            if (status == null) {
-              return;
-            }
-            final Status bindingStatus = status.isRetweet() ? status.getRetweetedStatus() : status;
-            final StatusReactionImpl reaction = new StatusReactionImpl(bindingStatus);
-            reaction.setFavorited(true);
-            configStore.insert(reaction);
-          }
+          final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0
+              ? msg : R.string.msg_fav_create_failed);
+          userFeedback.onNext(event);
         })
         .doOnCompleted(onCompleteFeedback(R.string.msg_fav_create_success));
   }
@@ -173,28 +162,15 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     return twitterApi.retweetStatus(statusId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
-        .doOnError(new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            final int msg = findMessageByTwitterExeption(throwable);
-            if (msg == R.string.msg_already_rt) {
-              updateStatus();
-            }
-            final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0 ?
-                msg : R.string.msg_rt_create_failed);
-            userFeedback.onNext(event);
+        .doOnError(throwable -> {
+          final int msg = findMessageByTwitterExeption(throwable);
+          if (msg == R.string.msg_already_rt) {
+            updateStatusWithReaction(statusId,
+                reaction -> reaction.setRetweeted(true));
           }
-
-          private void updateStatus() {
-            final Status status = cache.find(statusId);
-            if (status == null) {
-              return;
-            }
-            final Status bindingStatus = status.isRetweet() ? status.getRetweetedStatus() : status;
-            final StatusReactionImpl reaction = new StatusReactionImpl(bindingStatus);
-            reaction.setRetweeted(true);
-            configStore.insert(reaction);
-          }
+          final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0 ?
+              msg : R.string.msg_rt_create_failed);
+          userFeedback.onNext(event);
         })
         .doOnCompleted(onCompleteFeedback(R.string.msg_rt_create_success));
   }
@@ -263,5 +239,15 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     }
     Log.d(TAG, "not registered exception: ", throwable);
     return 0;
+  }
+
+  private void updateStatusWithReaction(long statusId, Action1<StatusReaction> action) {
+    final Status status = cache.find(statusId);
+    if (status == null) {
+      return;
+    }
+    final StatusReactionImpl reaction = new StatusReactionImpl(Utils.getBindingStatus(status));
+    action.call(reaction);
+    configStore.insert(reaction);
   }
 }
