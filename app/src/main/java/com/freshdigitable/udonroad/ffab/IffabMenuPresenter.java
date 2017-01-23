@@ -100,12 +100,7 @@ class IffabMenuPresenter {
       }
 
       void onFling(Handler handler) {
-        handler.postDelayed(new Runnable() {
-          @Override
-          public void run() {
-            indicator.setVisibility(View.INVISIBLE);
-          }
-        }, 200);
+        handler.postDelayed(() -> indicator.setVisibility(View.INVISIBLE), 200);
       }
     });
     return v;

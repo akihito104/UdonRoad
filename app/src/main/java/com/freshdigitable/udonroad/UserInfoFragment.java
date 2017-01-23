@@ -92,18 +92,13 @@ public class UserInfoFragment extends Fragment {
     configRequestWorker.observeFetchRelationship(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(updateRelationship())
-        .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
+        .subscribe(RequestWorkerBase.nopSubscriber());
     final TypedCache<User> userCache = userRequestWorker.getCache();
     final User user = userCache.find(userId);
     showUserInfo(user);
     subscription = userCache.observeById(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            showUserInfo(user);
-          }
-        });
+        .subscribe(this::showUserInfo);
   }
 
   @Override
@@ -162,35 +157,35 @@ public class UserInfoFragment extends Fragment {
     if (itemId == R.id.action_follow) {
       userRequestWorker.observeCreateFriendship(userId)
           .doOnCompleted(updateFollowing(true))
-          .subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_unfollow) {
       userRequestWorker.observeDestroyFriendship(userId)
           .doOnCompleted(updateFollowing(false))
-          .subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_block) {
       configRequestWorker.observeCreateBlock(userId)
           .doOnCompleted(updateBlocking(true))
-          .subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_unblock) {
       configRequestWorker.observeDestroyBlock(userId)
           .doOnCompleted(updateBlocking(false))
-          .subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_block_retweet) {
       configRequestWorker.observeBlockRetweet(relationship)
           .doOnNext(updateRelationship())
-          .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_unblock_retweet) {
       configRequestWorker.observeUnblockRetweet(relationship)
           .doOnNext(updateRelationship())
-          .subscribe(RequestWorkerBase.<Relationship>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_mute) {
       configRequestWorker.observeCreateMute(userId)
           .doOnCompleted(updateMuting(true))
-          .subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_unmute) {
       configRequestWorker.observeDestroyMute(userId)
           .doOnCompleted(updateMuting(false))
-          .subscribe(RequestWorkerBase.<User>nopSubscriber());
+          .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
     }
@@ -246,44 +241,30 @@ public class UserInfoFragment extends Fragment {
 
   @NonNull
   private Action0 updateFollowing(final boolean following) {
-    return new Action0() {
-      @Override
-      public void call() {
-        relationship.setFollowing(following);
-        notifyRelationshipChanged();
-      }
+    return () -> {
+      relationship.setFollowing(following);
+      notifyRelationshipChanged();
     };
   }
 
   @NonNull
   private Action0 updateBlocking(final boolean blocking) {
-    return new Action0() {
-      @Override
-      public void call() {
-        relationship.setBlocking(blocking);
-        notifyRelationshipChanged();
-      }
+    return () -> {
+      relationship.setBlocking(blocking);
+      notifyRelationshipChanged();
     };
   }
 
   @NonNull
   private Action0 updateMuting(final boolean muting) {
-    return new Action0() {
-      @Override
-      public void call() {
-        relationship.setMuting(muting);
-        notifyRelationshipChanged();
-      }
+    return () -> {
+      relationship.setMuting(muting);
+      notifyRelationshipChanged();
     };
   }
 
   private Action1<Relationship> updateRelationship() {
-    return new Action1<Relationship>() {
-      @Override
-      public void call(Relationship relationship) {
-        setRelationship(new RelationshipImpl(relationship));
-      }
-    };
+    return relationship1 -> setRelationship(new RelationshipImpl(relationship1));
   }
 
   private static class RelationshipImpl implements Relationship {

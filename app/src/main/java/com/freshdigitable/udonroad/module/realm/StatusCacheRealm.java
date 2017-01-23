@@ -35,9 +35,6 @@ import java.util.Map;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.functions.Func1;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
@@ -112,20 +109,17 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
   @NonNull
   @Override
   public Realm.Transaction upsertTransaction(final Collection<Status> updates) {
-    return new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final ArrayList<StatusRealm> inserts = new ArrayList<>(updates.size());
-        for (Status s : updates) {
-          final StatusRealm update = findById(realm, s.getId(), StatusRealm.class);
-          if (update == null) {
-            inserts.add(new StatusRealm(s));
-          } else {
-            update.merge(s);
-          }
+    return realm -> {
+      final ArrayList<StatusRealm> inserts = new ArrayList<>(updates.size());
+      for (Status s : updates) {
+        final StatusRealm update = findById(realm, s.getId(), StatusRealm.class);
+        if (update == null) {
+          inserts.add(new StatusRealm(s));
+        } else {
+          update.merge(s);
         }
-        realm.insertOrUpdate(inserts);
       }
+      realm.insertOrUpdate(inserts);
     };
   }
 
@@ -189,15 +183,10 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
   @Override
   public void delete(final long statusId) {
-    cache.executeTransactionAsync(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.where(StatusRealm.class)
-            .equalTo(KEY_ID, statusId)
-            .findAll()
-            .deleteAllFromRealm();
-      }
-    });
+    cache.executeTransactionAsync(realm -> realm.where(StatusRealm.class)
+        .equalTo(KEY_ID, statusId)
+        .findAll()
+        .deleteAllFromRealm());
     configStore.delete(statusId);
   }
 
@@ -221,12 +210,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
         entities.add(new StatusRealm(s));
       }
     }
-    cache.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.insertOrUpdate(entities);
-      }
-    });
+    cache.executeTransaction(realm -> realm.insertOrUpdate(entities));
   }
 
   @Override
@@ -277,51 +261,40 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     }
     final int favoriteCount = bindings.getFavoriteCount();
     final int retweetCount = bindings.getRetweetCount();
-    final Observable<Status> statusObservable = Observable.create(new Observable.OnSubscribe<Status>() {
-      @Override
-      public void call(final Subscriber<? super Status> subscriber) {
-        StatusRealm.addChangeListener(bindings, new RealmChangeListener<StatusRealm>() {
-          private int prevFav = favoriteCount;
-          private int prevRT = retweetCount;
+    final Observable<Status> statusObservable = Observable.create(
+        (Observable.OnSubscribe<Status>) subscriber -> StatusRealm.addChangeListener(bindings,
+            new RealmChangeListener<StatusRealm>() {
+              private int prevFav = favoriteCount;
+              private int prevRT = retweetCount;
 
-          @Override
-          public void onChange(StatusRealm element) {
-            final Status bindings = getBindingStatus(element);
-            if (isIgnorableChange(bindings)) {
-              return;
-            }
-            subscriber.onNext(element);
-            prevRT = bindings.getRetweetCount();
-            prevFav = bindings.getFavoriteCount();
-          }
+              @Override
+              public void onChange(StatusRealm element) {
+                final Status bindings1 = getBindingStatus(element);
+                if (isIgnorableChange(bindings1)) {
+                  return;
+                }
+                subscriber.onNext(element);
+                prevRT = bindings1.getRetweetCount();
+                prevFav = bindings1.getFavoriteCount();
+              }
 
-          private boolean isIgnorableChange(Status bindings) {
-            return bindings.getFavoriteCount() == prevFav
-                && bindings.getRetweetCount() == prevRT;
-          }
-        });
-      }
-    }).doOnUnsubscribe(new Action0() {
-      @Override
-      public void call() {
-        StatusRealm.removeChangeListeners(bindings);
-      }
-    });
+              private boolean isIgnorableChange(Status bindings1) {
+                return bindings1.getFavoriteCount() == prevFav
+                    && bindings1.getRetweetCount() == prevRT;
+              }
+            })).doOnUnsubscribe(() -> StatusRealm.removeChangeListeners(bindings));
     if (original.getId() == bindings.getId()) {
       return statusObservable;
     }
-    return statusObservable.map(new Func1<Status, Status>() {
-      @Override
-      public Status call(Status status) {
-        final long statusId = status.getId();
-        final StatusRealm binds = getBindingStatus(original);
-        if (binds.getId() == statusId) {
-          binds.setRetweetedStatus(status);
-        } else if (binds.getQuotedStatusId() == statusId) {
-          binds.setQuotedStatus(status);
-        }
-        return original;
+    return statusObservable.map(status -> {
+      final long statusId = status.getId();
+      final StatusRealm binds = getBindingStatus(original);
+      if (binds.getId() == statusId) {
+        binds.setRetweetedStatus(status);
+      } else if (binds.getQuotedStatusId() == statusId) {
+        binds.setQuotedStatus(status);
       }
+      return original;
     });
   }
 
@@ -329,17 +302,14 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
                                                 @NonNull final StatusRealm original) {
     final StatusRealm bindings = getBindingStatus(original);
     return configStore.observeById(statusId)
-        .map(new Func1<StatusReaction, Status>() {
-          @Override
-          public Status call(StatusReaction reaction) {
-            final long statusId = reaction.getId();
-            if (bindings.getId() == statusId) {
-              bindings.setStatusReaction(reaction);
-            } else if (bindings.getQuotedStatusId() == statusId) {
-              ((StatusRealm) bindings.getQuotedStatus()).setStatusReaction(reaction);
-            }
-            return original;
+        .map(reaction -> {
+          final long statusId1 = reaction.getId();
+          if (bindings.getId() == statusId1) {
+            bindings.setStatusReaction(reaction);
+          } else if (bindings.getQuotedStatusId() == statusId1) {
+            ((StatusRealm) bindings.getQuotedStatus()).setStatusReaction(reaction);
           }
+          return original;
         });
   }
 

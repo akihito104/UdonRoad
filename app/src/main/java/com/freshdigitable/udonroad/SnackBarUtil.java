@@ -49,21 +49,11 @@ public class SnackBarUtil {
   }
 
   public static Action0 action(@NonNull final View root, final CharSequence text) {
-    return new Action0() {
-      @Override
-      public void call() {
-        show(root, text);
-      }
-    };
+    return () -> show(root, text);
   }
 
   public static Action0 action(@NonNull final View root, final @StringRes int text) {
-    return new Action0() {
-      @Override
-      public void call() {
-        show(root, text);
-      }
-    };
+    return () -> show(root, text);
   }
   private SnackBarUtil() {
   }

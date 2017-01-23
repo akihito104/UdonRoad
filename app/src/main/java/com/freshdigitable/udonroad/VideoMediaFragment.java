@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -30,13 +29,11 @@ import android.widget.VideoView;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import twitter4j.MediaEntity.Variant;
 
@@ -44,6 +41,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
+ * VideoMediaFragment shows video media.
+ *
  * Created by akihit on 2016/07/17.
  */
 public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
@@ -82,63 +81,46 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
       return;
     }
 
-    rootView.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (pageClickListener != null) {
-          pageClickListener.onClick(view);
-        }
-        if (isCompleted) {
-          final VideoView video = (VideoView) view.findViewById(R.id.media_video);
-          video.seekTo(0);
-          video.resume();
-          isCompleted = false;
-        }
+    rootView.setOnClickListener(view -> {
+      if (pageClickListener != null) {
+        pageClickListener.onClick(view);
+      }
+      if (isCompleted) {
+        final VideoView video = (VideoView) view.findViewById(R.id.media_video);
+        video.seekTo(0);
+        video.resume();
+        isCompleted = false;
       }
     });
     rootView.setOnTouchListener(super.touchListener);
 
-    videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-      @Override
-      public void onPrepared(MediaPlayer mediaPlayer) {
-        progressBar.setMax(mediaPlayer.getDuration());
-        videoView.start();
-      }
+    videoView.setOnPreparedListener(mediaPlayer -> {
+      progressBar.setMax(mediaPlayer.getDuration());
+      videoView.start();
     });
-    videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-      @Override
-      public void onCompletion(MediaPlayer mediaPlayer) {
-        videoView.stopPlayback();
-        isCompleted = true;
-      }
+    videoView.setOnCompletionListener(mediaPlayer -> {
+      videoView.stopPlayback();
+      isCompleted = true;
     });
     videoView.setVideoURI(Uri.parse(url));
 
     subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
         .onBackpressureLatest()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Long>() {
-          @Override
-          public void call(Long aLong) {
-            if (!videoView.isPlaying()) {
-              return;
-            }
-
-            final int currentPosition = videoView.getCurrentPosition();
-            progressBar.setProgress(currentPosition);
-
-            final int remain = videoView.getDuration() - currentPosition;
-            final long minutes = MILLISECONDS.toMinutes(remain);
-            final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
-            progressText.setText(
-                String.format(getString(R.string.media_remain_time), minutes, seconds));
+        .subscribe(aLong -> {
+          if (!videoView.isPlaying()) {
+            return;
           }
-        }, new Action1<Throwable>() {
-          @Override
-          public void call(Throwable throwable) {
-            Log.e(TAG, "call: ", throwable);
-          }
-        });
+
+          final int currentPosition = videoView.getCurrentPosition();
+          progressBar.setProgress(currentPosition);
+
+          final int remain = videoView.getDuration() - currentPosition;
+          final long minutes = MILLISECONDS.toMinutes(remain);
+          final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
+          progressText.setText(
+              String.format(getString(R.string.media_remain_time), minutes, seconds));
+        }, throwable -> Log.e(TAG, "call: ", throwable));
   }
 
   private String selectVideo() {
@@ -149,12 +131,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
       return playableMedia.get(0).getUrl();
     }
 
-    Collections.sort(playableMedia, new Comparator<Variant>() {
-      @Override
-      public int compare(Variant l, Variant r) {
-        return l.getBitrate() - r.getBitrate();
-      }
-    });
+    Collections.sort(playableMedia, (l, r) -> l.getBitrate() - r.getBitrate());
     return playableMedia.get(1).getUrl();
   }
 

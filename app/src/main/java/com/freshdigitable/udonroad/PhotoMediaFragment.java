@@ -26,6 +26,8 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 /**
+ * PhotoMediaFragment shows general image file such a photo.
+ *
  * Created by akihit on 2016/07/17.
  */
 public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {

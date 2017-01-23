@@ -79,12 +79,7 @@ public class UserStreamUtil {
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<List<Status>>() {
-            @Override
-            public void call(List<Status> statuses) {
-              timelineStore.upsert(statuses);
-            }
-          }, onErrorAction);
+          .subscribe(timelineStore::upsert, onErrorAction);
     }
     if (onDeletionSubscription == null || onDeletionSubscription.isUnsubscribed()) {
       deletionPublishSubject = PublishSubject.create();
@@ -98,12 +93,7 @@ public class UserStreamUtil {
               return Observable.from(deletionIds);
             }
           })
-          .subscribe(new Action1<Long>() {
-            @Override
-            public void call(Long deletionId) {
-              timelineStore.delete(deletionId);
-            }
-          }, onErrorAction);
+          .subscribe(timelineStore::delete, onErrorAction);
     }
     if (!isConnectedUserStream) {
       appSettings.open();
@@ -207,10 +197,5 @@ public class UserStreamUtil {
     }
   };
 
-  private final Action1<Throwable> onErrorAction = new Action1<Throwable>() {
-    @Override
-    public void call(Throwable throwable) {
-      Log.d(TAG, "error: " + throwable);
-    }
-  };
+  private final Action1<Throwable> onErrorAction = throwable -> Log.d(TAG, "error: " + throwable);
 }

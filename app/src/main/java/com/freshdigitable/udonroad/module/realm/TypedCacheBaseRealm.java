@@ -24,7 +24,6 @@ import java.util.Collection;
 
 import io.realm.Realm;
 import rx.Observable;
-import rx.Subscriber;
 
 /**
  * TypedCacheBaseRealm is basis class for implemented TypedCache interface.
@@ -52,24 +51,11 @@ abstract class TypedCacheBaseRealm<T> extends BaseCacheRealm implements TypedCac
 
   static Observable<Void> observeUpsertImpl(@NonNull final Realm cache,
                                             @NonNull final Realm.Transaction upsertTransaction) {
-    return Observable.create(new Observable.OnSubscribe<Void>() {
-      @Override
-      public void call(final Subscriber<? super Void> subscriber) {
-        cache.executeTransactionAsync(upsertTransaction,
-            new Realm.Transaction.OnSuccess() {
-              @Override
-              public void onSuccess() {
-                subscriber.onNext(null);
-                subscriber.onCompleted();
-              }
-            }, new Realm.Transaction.OnError() {
-              @Override
-              public void onError(Throwable error) {
-                subscriber.onError(error);
-              }
-            });
-      }
-    });
+    return Observable.create(subscriber -> cache.executeTransactionAsync(upsertTransaction,
+        () -> {
+          subscriber.onNext(null);
+          subscriber.onCompleted();
+        }, subscriber::onError));
   }
 
   abstract Realm.Transaction upsertTransaction(Collection<T> entities);

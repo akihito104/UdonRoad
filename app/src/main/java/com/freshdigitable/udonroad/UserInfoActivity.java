@@ -23,7 +23,6 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
@@ -42,7 +41,6 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import javax.inject.Inject;
@@ -50,7 +48,6 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -149,14 +146,11 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoTabs.setupWithViewPager(viewPager.getViewPager());
     subscription = userCache.observeById(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User user) {
-            for (UserPageInfo p : UserPageInfo.values()) {
-              final TabLayout.Tab tab = binding.userInfoTabs.getTabAt(p.ordinal());
-              if (tab != null) {
-                tab.setText(p.createTitle(user));
-              }
+        .subscribe(_user -> {
+          for (UserPageInfo p : UserPageInfo.values()) {
+            final TabLayout.Tab tab = binding.userInfoTabs.getTabAt(p.ordinal());
+            if (tab != null) {
+              tab.setText(p.createTitle(_user));
             }
           }
         });
@@ -275,35 +269,27 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnNext(new Action1<Status>() {
-      @Override
-      public void call(Status status) {
-        closeTwitterInputView();
-      }
-    });
+    return updateStatusObservable.doOnNext(status -> closeTwitterInputView());
   }
 
   private void setupActionMap() {
-    binding.userInfoIffab.setOnIffabItemSelectedListener(new OnIffabItemSelectedListener() {
-      @Override
-      public void onItemSelected(@NonNull MenuItem item) {
-        final int itemId = item.getItemId();
-        if (itemId == R.id.iffabMenu_main_fav) {
-          viewPager.createFavorite();
-        } else if (itemId == R.id.iffabMenu_main_rt) {
-          viewPager.retweetStatus();
-        } else if (itemId == R.id.iffabMenu_main_favRt) {
-          viewPager.createFavAndRetweet();
-        } else if (itemId == R.id.iffabMenu_main_reply) {
-          final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
-          showTwitterInputView(TYPE_REPLY, selectedTweetId);
-        } else if (itemId == R.id.iffabMenu_main_quote) {
-          final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
-          showTwitterInputView(TYPE_QUOTE, selectedTweetId);
-        } else if (itemId == R.id.iffabMenu_main_detail) {
-          final long statusId = viewPager.getCurrentSelectedStatusId();
-          showStatusDetail(statusId);
-        }
+    binding.userInfoIffab.setOnIffabItemSelectedListener(item -> {
+      final int itemId = item.getItemId();
+      if (itemId == R.id.iffabMenu_main_fav) {
+        viewPager.createFavorite();
+      } else if (itemId == R.id.iffabMenu_main_rt) {
+        viewPager.retweetStatus();
+      } else if (itemId == R.id.iffabMenu_main_favRt) {
+        viewPager.createFavAndRetweet();
+      } else if (itemId == R.id.iffabMenu_main_reply) {
+        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+        showTwitterInputView(TYPE_REPLY, selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_quote) {
+        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+        showTwitterInputView(TYPE_QUOTE, selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_detail) {
+        final long statusId = viewPager.getCurrentSelectedStatusId();
+        showStatusDetail(statusId);
       }
     });
   }

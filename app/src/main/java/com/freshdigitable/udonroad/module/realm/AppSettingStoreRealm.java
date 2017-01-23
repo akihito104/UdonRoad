@@ -67,13 +67,8 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void clear() {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        realm.deleteAll();
-      }
-    });
-    final Set<String> users = prefs.getStringSet(AUTHENTICATED_USERS, Collections.<String>emptySet());
+    realm.executeTransaction(_realm -> _realm.deleteAll());
+    final Set<String> users = prefs.getStringSet(AUTHENTICATED_USERS, Collections.emptySet());
     final SharedPreferences.Editor editor = prefs.edit();
     editor.remove(TWITTER_API_CONFIG_DATE);
     editor.remove(CURRENT_USER_ID);
@@ -87,12 +82,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final UserRealm userRealm = new UserRealm(authenticatedUser);
-        realm.insertOrUpdate(userRealm);
-      }
+    realm.executeTransaction(_realm -> {
+      final UserRealm userRealm = new UserRealm(authenticatedUser);
+      _realm.insertOrUpdate(userRealm);
     });
     cache.upsert(authenticatedUser);
   }
@@ -113,13 +105,10 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void setTwitterAPIConfig(final TwitterAPIConfiguration twitterAPIConfig) {
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm) {
-        final TwitterAPIConfigurationRealm twitterAPIConfiguration
-            = new TwitterAPIConfigurationRealm(twitterAPIConfig);
-        realm.insertOrUpdate(twitterAPIConfiguration);
-      }
+    realm.executeTransaction(_realm -> {
+      final TwitterAPIConfigurationRealm twitterAPIConfiguration
+          = new TwitterAPIConfigurationRealm(twitterAPIConfig);
+      _realm.insertOrUpdate(twitterAPIConfiguration);
     });
     setFetchTwitterAPIConfigTime(System.currentTimeMillis());
   }
@@ -165,7 +154,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
   public void storeAccessToken(AccessToken token) {
     final long userId = token.getUserId();
     final Set<String> authenticatedUsers
-        = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<String>());
+        = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<>());
     authenticatedUsers.add(Long.toString(userId));
 
     prefs.edit()

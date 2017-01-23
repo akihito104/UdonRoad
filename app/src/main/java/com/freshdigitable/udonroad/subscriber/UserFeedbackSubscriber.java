@@ -81,13 +81,10 @@ public class UserFeedbackSubscriber {
             if (view != null) {
               return SnackBarUtil.action(view, message);
             }
-            return new Action0() {
-              @Override
-              public void call() {
-                final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
-                toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
-                toast.show();
-              }
+            return () -> {
+              final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
+              toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
+              toast.show();
             };
           }
         });

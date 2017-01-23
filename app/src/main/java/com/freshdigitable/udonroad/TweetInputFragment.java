@@ -55,8 +55,6 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
-import rx.functions.Action0;
-import rx.functions.Action1;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.User;
@@ -248,16 +246,13 @@ public class TweetInputFragment extends Fragment {
   private void setUpTweetInputView() {
     final TweetInputView inputText = binding.mainTweetInputView;
     subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(new Action1<User>() {
-          @Override
-          public void call(User authenticatedUser) {
-            inputText.setUserInfo(authenticatedUser);
-            Picasso.with(inputText.getContext())
-                .load(authenticatedUser.getMiniProfileImageURLHttps())
-                .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-                .tag(LOADINGTAG_TWEET_INPUT_ICON)
-                .into(inputText.getIcon());
-          }
+        .subscribe(authenticatedUser -> {
+          inputText.setUserInfo(authenticatedUser);
+          Picasso.with(inputText.getContext())
+              .load(authenticatedUser.getMiniProfileImageURLHttps())
+              .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+              .tag(LOADINGTAG_TWEET_INPUT_ICON)
+              .into(inputText.getIcon());
         });
     inputText.addTextWatcher(textWatcher);
     inputText.setShortUrlLength(
@@ -284,31 +279,18 @@ public class TweetInputFragment extends Fragment {
   private View.OnClickListener createSendClickListener() {
     final FragmentActivity activity = getActivity();
     if (activity instanceof TweetSendable) {
-      return new View.OnClickListener() {
-        @Override
-        public void onClick(final View v) {
-          v.setClickable(false);
-          ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
-              .doOnTerminate(new Action0() {
-                @Override
-                public void call() {
-                  v.setClickable(true);
-                }
-              }).subscribe(RequestWorkerBase.<Status>nopSubscriber());
-        }
+      return v -> {
+        v.setClickable(false);
+        ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
+            .doOnTerminate(() -> v.setClickable(true))
+            .subscribe(RequestWorkerBase.nopSubscriber());
       };
     } else {
-      return new View.OnClickListener() {
-        @Override
-        public void onClick(final View view) {
-          view.setClickable(false);
-          observeUpdateStatus().doOnTerminate(new Action0() {
-            @Override
-            public void call() {
-              view.setClickable(true);
-            }
-          }).subscribe(RequestWorkerBase.<Status>nopSubscriber());
-        }
+      return view -> {
+        view.setClickable(false);
+        observeUpdateStatus()
+            .doOnTerminate(() -> view.setClickable(true))
+            .subscribe(RequestWorkerBase.nopSubscriber());
       };
     }
   }
@@ -340,21 +322,15 @@ public class TweetInputFragment extends Fragment {
   private Observable<Status> observeUpdateStatus() {
     final TweetInputView inputText = binding.mainTweetInputView;
     return createSendObservable()
-        .doOnNext(new Action1<Status>() {
-          @Override
-          public void call(Status status) {
-            inputText.getText().clear();
-            inputText.reset();
-            inputText.clearFocus();
-            inputText.disappearing();
-            setupMenuVisibility();
-          }
-        }).doOnCompleted(new Action0() {
-          @Override
-          public void call() {
-            replyEntity = null;
-            quoteStatusIds.clear();
-          }
+        .doOnNext(status -> {
+          inputText.getText().clear();
+          inputText.reset();
+          inputText.clearFocus();
+          inputText.disappearing();
+          setupMenuVisibility();
+        }).doOnCompleted(() -> {
+          replyEntity = null;
+          quoteStatusIds.clear();
         });
   }
 

@@ -75,22 +75,12 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
 
   @NonNull
   Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
-    return new Action1<Throwable>() {
-      @Override
-      public void call(Throwable throwable) {
-        userFeedback.onNext(new UserFeedbackEvent(msg));
-      }
-    };
+    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 
   @NonNull
   Action0 onCompleteFeedback(@StringRes final int msg) {
-    return new Action0() {
-      @Override
-      public void call() {
-        userFeedback.onNext(new UserFeedbackEvent(msg));
-      }
-    };
+    return () -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 
   @NonNull

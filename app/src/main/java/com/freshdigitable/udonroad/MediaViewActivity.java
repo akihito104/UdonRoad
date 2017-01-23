@@ -37,7 +37,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +47,6 @@ import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
@@ -120,18 +118,14 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
     final ActionBar actionBar = getSupportActionBar();
     final IndicatableFFAB mediaIffab = binding.mediaIffab;
-    getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
-        new View.OnSystemUiVisibilityChangeListener() {
-          @Override
-          public void onSystemUiVisibilityChange(int visibility) {
-            Log.d(TAG, "onSystemUiVisibilityChange: " + visibility);
-            if (isSystemUIVisible(visibility)) {
-              showOverlayUI(actionBar, mediaIffab);
-            } else {
-              hideOverlayUI(actionBar, mediaIffab);
-            }
-          }
-        });
+    getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(visibility -> {
+      Log.d(TAG, "onSystemUiVisibilityChange: " + visibility);
+      if (isSystemUIVisible(visibility)) {
+        showOverlayUI(actionBar, mediaIffab);
+      } else {
+        hideOverlayUI(actionBar, mediaIffab);
+      }
+    });
   }
 
   private boolean isSystemUIVisible() {
@@ -239,12 +233,9 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     userActionSubscriber.close();
   }
 
-  private final Runnable hideSystemUITask = new Runnable() {
-    @Override
-    public void run() {
-      Log.d(TAG, "handler.postDelayed: ");
-      hideSystemUI();
-    }
+  private final Runnable hideSystemUITask = () -> {
+    Log.d(TAG, "handler.postDelayed: ");
+    hideSystemUI();
   };
 
   @Override
@@ -398,20 +389,17 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   private void setupActionMap(final long statusId) {
-    binding.mediaIffab.setOnIffabItemSelectedListener(new OnIffabItemSelectedListener() {
-      @Override
-      public void onItemSelected(@NonNull MenuItem item) {
-        final int itemId = item.getItemId();
-        if (itemId == R.id.iffabMenu_media_fav) {
-          userActionSubscriber.createFavorite(statusId);
-        } else if (itemId == R.id.iffabMenu_media_rt) {
-            userActionSubscriber.retweetStatus(statusId);
-        } else if (itemId == R.id.iffabMenu_media_favRt) {
-            Observable.concatDelayError(Arrays.asList(
-                userActionSubscriber.observeCreateFavorite(statusId),
-                userActionSubscriber.observeRetweetStatus(statusId))
-            ).subscribe(RequestWorkerBase.<Status>nopSubscriber());
-        }
+    binding.mediaIffab.setOnIffabItemSelectedListener(item -> {
+      final int itemId = item.getItemId();
+      if (itemId == R.id.iffabMenu_media_fav) {
+        userActionSubscriber.createFavorite(statusId);
+      } else if (itemId == R.id.iffabMenu_media_rt) {
+          userActionSubscriber.retweetStatus(statusId);
+      } else if (itemId == R.id.iffabMenu_media_favRt) {
+          Observable.concatDelayError(Arrays.asList(
+              userActionSubscriber.observeCreateFavorite(statusId),
+              userActionSubscriber.observeRetweetStatus(statusId))
+          ).subscribe(RequestWorkerBase.nopSubscriber());
       }
     });
   }
