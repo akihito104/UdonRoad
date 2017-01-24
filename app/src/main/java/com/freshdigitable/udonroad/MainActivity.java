@@ -50,7 +50,9 @@ import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 
 import javax.inject.Inject;
 
@@ -348,6 +350,36 @@ public class MainActivity extends AppCompatActivity
     getSupportFragmentManager().beginTransaction()
         .add(R.id.main_appbar_container, tweetInputFragment)
         .commit();
+  }
+
+  @Inject
+  StatusRequestWorker<SortedCache<Status>> conversationRequestWorker;
+  private final Deque<String> conversationFragmentStack = new ArrayDeque<>();
+
+  private void setupConversationGroup(long statusId) {
+    if (conversationRequestWorker.isOpened()) {
+      conversationRequestWorker.close();
+    }
+    final String name = "conv_" + Long.toString(statusId);
+    conversationRequestWorker.open(name);
+
+    final TimelineFragment<Status> conversationFragment = new TimelineFragment<>();
+    conversationFragment.setSortedCache(conversationRequestWorker.getCache());
+
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_timeline_container, conversationFragment, name)
+        .addToBackStack(name) // XXX
+        .commit();
+
+    conversationFragmentStack.push(name);
+    conversationRequestWorker.fetchConversations(statusId);
+  }
+
+  private void tearDownConversationGroup() {
+    final String name = conversationFragmentStack.pop();
+    getSupportFragmentManager().popBackStack(name, 0);
+    conversationRequestWorker.getCache().clear();
+    conversationRequestWorker.close();
   }
 
   @Override
