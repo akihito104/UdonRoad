@@ -23,6 +23,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -50,9 +52,7 @@ import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
 
 import javax.inject.Inject;
 
@@ -224,39 +224,6 @@ public class MainActivity extends AppCompatActivity
     userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
-  private StatusDetailFragment statusDetail;
-
-  private void showStatusDetail(long status) {
-    if (statusDetail != null && statusDetail.isVisible()) {
-      return;
-    }
-    statusDetail = StatusDetailFragment.getInstance(status);
-    getSupportFragmentManager().beginTransaction()
-        .hide(tlFragment)
-        .add(R.id.main_timeline_container, statusDetail)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-        .commit();
-    tlFragment.stopScroll();
-    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
-    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(true);
-  }
-
-  private boolean hideStatusDetail() {
-    if (statusDetail == null) {
-      return false;
-    }
-    getSupportFragmentManager().beginTransaction()
-        .remove(statusDetail)
-        .show(tlFragment)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-        .commit();
-    statusDetail = null;
-    tlFragment.startScroll();
-    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(true);
-    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(false);
-    return true;
-  }
-
   @Override
   protected void onStop() {
     super.onStop();
@@ -292,21 +259,28 @@ public class MainActivity extends AppCompatActivity
       cancelWritingSelected();
       return;
     }
-    if (!conversationFragmentStack.isEmpty()) {
-      final String tag = conversationFragmentStack.peekLast();
-      final TimelineFragment f = (TimelineFragment) getSupportFragmentManager().findFragmentByTag(tag);
-      if (f != null && f.isVisible()) {
-        if (f.isTweetSelected()) {
-          f.clearSelectedTweet();
+
+    final FragmentManager fm = getSupportFragmentManager();
+    final int backStackEntryCount = fm.getBackStackEntryCount();
+    if (backStackEntryCount > 0) {
+      final Fragment fragment = fm.findFragmentById(R.id.main_timeline_container);
+      fm.popBackStack();
+      if (backStackEntryCount == 1) {
+        tlFragment.startScroll();
+      }
+      if (fragment instanceof StatusDetailFragment) {
+        binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(true);
+        binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(false);
+        return;
+      } else if (fragment instanceof TimelineFragment) {
+        final TimelineFragment tf = (TimelineFragment) fragment;
+        if (tf.isTweetSelected()) {
+          tf.clearSelectedTweet();
           return;
         }
         tearDownConversationGroup();
         return;
       }
-    }
-    if (statusDetail != null && statusDetail.isVisible()) {
-      hideStatusDetail();
-      return;
     }
     if (tlFragment.isTweetSelected()) {
       tlFragment.clearSelectedTweet();
@@ -366,9 +340,16 @@ public class MainActivity extends AppCompatActivity
         .commit();
   }
 
+  private void showStatusDetail(long status) {
+    StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(status);
+    replaceTimelineContainer("detail_" + Long.toString(status), statusDetail);
+    tlFragment.stopScroll();
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(true);
+  }
+
   @Inject
   StatusRequestWorker<SortedCache<Status>> conversationRequestWorker;
-  private final Deque<String> conversationFragmentStack = new ArrayDeque<>();
 
   private void setupConversationGroup(long statusId) {
     if (conversationRequestWorker.isOpened()) {
@@ -379,14 +360,7 @@ public class MainActivity extends AppCompatActivity
 
     final TimelineFragment<Status> conversationFragment = new TimelineFragment<>();
     conversationFragment.setSortedCache(conversationRequestWorker.getCache());
-
-    getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_timeline_container, conversationFragment, name)
-        .addToBackStack(null)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-        .commit();
-
-    conversationFragmentStack.push(name);
+    replaceTimelineContainer(name, conversationFragment);
     conversationRequestWorker.fetchConversations(statusId);
 
     binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(false);
@@ -394,13 +368,19 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void tearDownConversationGroup() {
-    conversationFragmentStack.pop();
-    getSupportFragmentManager().popBackStack();
     conversationRequestWorker.getCache().clear();
     conversationRequestWorker.close();
 
     binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(true);
     binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
+  }
+
+  private void replaceTimelineContainer(String name, Fragment fragment) {
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_timeline_container, fragment, name)
+        .addToBackStack(null)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+        .commit();
   }
 
   @Override

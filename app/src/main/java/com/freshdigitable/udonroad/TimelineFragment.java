@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -62,18 +61,6 @@ public class TimelineFragment<T> extends Fragment {
   private Subscription insertEventSubscription;
   private Subscription deleteEventSubscription;
   private SortedCache<T> timelineStore;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-  }
-
-  @Override
-  public void onDetach() {
-    super.onDetach();
-    insertEventSubscription.unsubscribe();
-    deleteEventSubscription.unsubscribe();
-  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -127,40 +114,7 @@ public class TimelineFragment<T> extends Fragment {
     tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
     binding.timeline.setItemAnimator(new TimelineAnimator());
-    binding.timeline.setOnTouchListener((v, event) -> {
-//        Log.d(TAG, "onTouch: " + event.getAction());
-      if (event.getAction() == MotionEvent.ACTION_UP) {
-        final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
-        isScrolledByUser = firstVisibleItemPosition != 0;
-        isAddedUntilStopped();
-      }
-      return false;
-    });
-
     tlAdapter = new TimelineAdapter<>(timelineStore);
-    insertEventSubscription = timelineStore.observeInsertEvent()
-        .subscribe(position -> tlAdapter.notifyItemInserted(position));
-    deleteEventSubscription = timelineStore.observeDeleteEvent()
-        .subscribe(position -> tlAdapter.notifyItemRemoved(position));
-
-    if (getActivity() instanceof FabHandleable) {
-      tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
-        @Override
-        public void onEntitySelected(long entityId) {
-          showFab();
-        }
-
-        @Override
-        public void onEntityUnselected() {
-          hideFab();
-        }
-      });
-    }
-    tlAdapter.setLastItemBoundListener(
-        lastPageCursor -> fetchTweet(new Paging(1, 20, 1, lastPageCursor)));
-    final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
-    tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
-    binding.timeline.setAdapter(tlAdapter);
     fetchTweet(null);
   }
 
@@ -213,8 +167,41 @@ public class TimelineFragment<T> extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
+    binding.timeline.setOnTouchListener((v, event) -> {
+//        Log.d(TAG, "onTouch: " + event.getAction());
+      if (event.getAction() == MotionEvent.ACTION_UP) {
+        final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
+        isScrolledByUser = firstVisibleItemPosition != 0;
+        isAddedUntilStopped();
+      }
+      return false;
+    });
+
+    insertEventSubscription = timelineStore.observeInsertEvent()
+        .subscribe(position -> tlAdapter.notifyItemInserted(position));
+    deleteEventSubscription = timelineStore.observeDeleteEvent()
+        .subscribe(position -> tlAdapter.notifyItemRemoved(position));
+
+    if (getActivity() instanceof FabHandleable) {
+      tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
+        @Override
+        public void onEntitySelected(long entityId) {
+          showFab();
+        }
+
+        @Override
+        public void onEntityUnselected() {
+          hideFab();
+        }
+      });
+    }
+    tlAdapter.setLastItemBoundListener(
+        lastPageCursor -> fetchTweet(new Paging(1, 20, 1, lastPageCursor)));
+    final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
+    tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
+    binding.timeline.setAdapter(tlAdapter);
     isAddedUntilStopped();
 
     if (isVisible()) {
@@ -236,17 +223,14 @@ public class TimelineFragment<T> extends Fragment {
     super.onStop();
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedEntityChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     tlLayoutManager.removeAllViews();
     binding.timeline.setOnTouchListener(null);
     binding.timeline.setAdapter(null);
+    insertEventSubscription.unsubscribe();
+    deleteEventSubscription.unsubscribe();
   }
 
   private void showFab() {

@@ -205,6 +205,7 @@ public class TwitterApi {
             status = null;
           }
         }
+        subscriber.onCompleted();
       } catch (TwitterException e) {
         subscriber.onError(e);
       }

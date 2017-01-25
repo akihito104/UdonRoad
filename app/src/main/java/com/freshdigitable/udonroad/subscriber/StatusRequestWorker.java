@@ -80,9 +80,11 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   @Override
   public void close() {
-    super.close();
-    configStore.close();
-    opened = false;
+    if (opened) {
+      super.close();
+      configStore.close();
+      opened = false;
+    }
   }
 
   public boolean isOpened() {
