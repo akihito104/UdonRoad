@@ -238,6 +238,7 @@ public class MainActivity extends AppCompatActivity
         .commit();
     tlFragment.stopScroll();
     binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(true);
   }
 
   private boolean hideStatusDetail() {
@@ -252,6 +253,7 @@ public class MainActivity extends AppCompatActivity
     statusDetail = null;
     tlFragment.startScroll();
     binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(true);
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(false);
     return true;
   }
 
@@ -289,6 +291,18 @@ public class MainActivity extends AppCompatActivity
       tweetInputFragment.collapseStatusInputView();
       cancelWritingSelected();
       return;
+    }
+    if (!conversationFragmentStack.isEmpty()) {
+      final String tag = conversationFragmentStack.peekLast();
+      final TimelineFragment f = (TimelineFragment) getSupportFragmentManager().findFragmentByTag(tag);
+      if (f != null && f.isVisible()) {
+        if (f.isTweetSelected()) {
+          f.clearSelectedTweet();
+          return;
+        }
+        tearDownConversationGroup();
+        return;
+      }
     }
     if (statusDetail != null && statusDetail.isVisible()) {
       hideStatusDetail();
@@ -368,18 +382,25 @@ public class MainActivity extends AppCompatActivity
 
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, conversationFragment, name)
-        .addToBackStack(name) // XXX
+        .addToBackStack(null)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
 
     conversationFragmentStack.push(name);
     conversationRequestWorker.fetchConversations(statusId);
+
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(false);
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(true);
   }
 
   private void tearDownConversationGroup() {
-    final String name = conversationFragmentStack.pop();
-    getSupportFragmentManager().popBackStack(name, 0);
+    conversationFragmentStack.pop();
+    getSupportFragmentManager().popBackStack();
     conversationRequestWorker.getCache().clear();
     conversationRequestWorker.close();
+
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_conv).setEnabled(true);
+    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
   }
 
   @Override
@@ -421,6 +442,8 @@ public class MainActivity extends AppCompatActivity
         sendStatusSelected(TYPE_REPLY, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_quote) {
         sendStatusSelected(TYPE_QUOTE, selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_conv) {
+        setupConversationGroup(selectedTweetId);
       }
     });
   }

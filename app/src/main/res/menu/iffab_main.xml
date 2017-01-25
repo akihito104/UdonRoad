@@ -51,4 +51,12 @@
         android:orderInCategory="180"
         android:title="detail"
         />
+    <item
+        android:id="@+id/iffabMenu_main_conv"
+        android:icon="@drawable/ic_forum"
+        android:orderInCategory="180"
+        android:visible="false"
+        android:enabled="false"
+        android:title="show conversation"
+        />
 </menu>
