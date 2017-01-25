@@ -192,6 +192,25 @@ public class TwitterApi {
     }).subscribeOn(Schedulers.io());
   }
 
+  public Observable<Status> fetchConversations(long statusId) {
+    return Observable.create((Observable.OnSubscribe<Status>) subscriber -> {
+      try {
+        Status status = twitter.showStatus(statusId);
+        while (status != null) {
+          subscriber.onNext(status);
+          final long inReplyToStatusId = status.getInReplyToStatusId();
+          if (inReplyToStatusId > 0) {
+            status = twitter.showStatus(inReplyToStatusId);
+          } else {
+            status = null;
+          }
+        }
+      } catch (TwitterException e) {
+        subscriber.onError(e);
+      }
+    }).subscribeOn(Schedulers.io());
+  }
+
   public Observable<Relationship> showFriendship(final long targetId) {
     return observeThrowableFetch(() -> {
       final long sourceId = twitter.getId();

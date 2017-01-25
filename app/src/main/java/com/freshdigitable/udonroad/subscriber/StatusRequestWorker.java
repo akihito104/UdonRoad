@@ -261,6 +261,9 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
   }
 
   public void fetchConversations(long statusId) {
-    // todo
+    twitterApi.fetchConversations(statusId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(createUpsertAction(),
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 }
