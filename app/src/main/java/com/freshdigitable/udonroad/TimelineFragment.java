@@ -61,6 +61,7 @@ public class TimelineFragment<T> extends Fragment {
   private Subscription insertEventSubscription;
   private Subscription deleteEventSubscription;
   private SortedCache<T> timelineStore;
+  private TimelineDecoration timelineDecoration;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,8 +88,9 @@ public class TimelineFragment<T> extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
-
+    if (binding == null) {
+      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
+    }
     if (savedInstanceState != null) {
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
@@ -107,15 +109,32 @@ public class TimelineFragment<T> extends Fragment {
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    Log.d(TAG, "onActivityCreated: ");
     super.onActivityCreated(savedInstanceState);
     binding.timeline.setHasFixedSize(true);
-    binding.timeline.addItemDecoration(new TimelineDecoration(getContext()));
-    tlLayoutManager = new LinearLayoutManager(getContext());
-    tlLayoutManager.setAutoMeasureEnabled(true);
-    binding.timeline.setLayoutManager(tlLayoutManager);
+    if (timelineDecoration == null) {
+      timelineDecoration = new TimelineDecoration(getContext());
+      binding.timeline.addItemDecoration(timelineDecoration);
+    }
+    if (tlLayoutManager == null) {
+      tlLayoutManager = new LinearLayoutManager(getContext());
+      tlLayoutManager.setAutoMeasureEnabled(true);
+      binding.timeline.setLayoutManager(tlLayoutManager);
+    }
     binding.timeline.setItemAnimator(new TimelineAnimator());
-    tlAdapter = new TimelineAdapter<>(timelineStore);
-    fetchTweet(null);
+    if (tlAdapter == null) {
+      tlAdapter = new TimelineAdapter<>(timelineStore);
+      binding.timeline.setAdapter(tlAdapter);
+      fetchTweet(null);
+    }
+    if (insertEventSubscription == null) {
+      insertEventSubscription = timelineStore.observeInsertEvent()
+          .subscribe(position -> tlAdapter.notifyItemInserted(position));
+    }
+    if (deleteEventSubscription == null) {
+      deleteEventSubscription = timelineStore.observeDeleteEvent()
+          .subscribe(position -> tlAdapter.notifyItemRemoved(position));
+    }
   }
 
   private final RecyclerView.AdapterDataObserver itemInsertedObserver
@@ -177,11 +196,6 @@ public class TimelineFragment<T> extends Fragment {
       return false;
     });
 
-    insertEventSubscription = timelineStore.observeInsertEvent()
-        .subscribe(position -> tlAdapter.notifyItemInserted(position));
-    deleteEventSubscription = timelineStore.observeDeleteEvent()
-        .subscribe(position -> tlAdapter.notifyItemRemoved(position));
-
     if (getActivity() instanceof FabHandleable) {
       tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
         @Override
@@ -201,7 +215,6 @@ public class TimelineFragment<T> extends Fragment {
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
-    binding.timeline.setAdapter(tlAdapter);
     isAddedUntilStopped();
 
     if (isVisible()) {
@@ -226,11 +239,18 @@ public class TimelineFragment<T> extends Fragment {
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedEntityChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
-    tlLayoutManager.removeAllViews();
     binding.timeline.setOnTouchListener(null);
-    binding.timeline.setAdapter(null);
+  }
+
+  @Override
+  public void onDetach() {
+    Log.d(TAG, "onDetach: ");
+    super.onDetach();
     insertEventSubscription.unsubscribe();
     deleteEventSubscription.unsubscribe();
+    binding.timeline.setAdapter(null);
+    binding.timeline.removeItemDecoration(timelineDecoration);
+    tlLayoutManager.removeAllViews();
   }
 
   private void showFab() {
