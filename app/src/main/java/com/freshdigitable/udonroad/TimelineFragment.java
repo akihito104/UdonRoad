@@ -31,7 +31,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -62,6 +61,7 @@ public class TimelineFragment<T> extends Fragment {
   private Subscription deleteEventSubscription;
   private SortedCache<T> timelineStore;
   private TimelineDecoration timelineDecoration;
+  private TimelineAnimator timelineAnimator;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -88,18 +88,20 @@ public class TimelineFragment<T> extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    if (binding == null) {
-      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
-    }
+    Log.d(TAG, "onCreateView: ");
     if (savedInstanceState != null) {
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
+    }
+    if (binding == null) {
+      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
     }
     return binding.getRoot();
   }
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
+    Log.d(TAG, "onSaveInstanceState: ");
     super.onSaveInstanceState(outState);
     outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
     outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
@@ -121,9 +123,14 @@ public class TimelineFragment<T> extends Fragment {
       tlLayoutManager.setAutoMeasureEnabled(true);
       binding.timeline.setLayoutManager(tlLayoutManager);
     }
-    binding.timeline.setItemAnimator(new TimelineAnimator());
+    if (timelineAnimator == null) {
+      timelineAnimator = new TimelineAnimator();
+      binding.timeline.setItemAnimator(timelineAnimator);
+    }
     if (tlAdapter == null) {
       tlAdapter = new TimelineAdapter<>(timelineStore);
+      tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
+      tlAdapter.registerAdapterDataObserver(createdAtObserver);
       binding.timeline.setAdapter(tlAdapter);
       fetchTweet(null);
     }
@@ -183,18 +190,27 @@ public class TimelineFragment<T> extends Fragment {
     }
   };
 
+  private RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
+    @Override
+    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+      if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+        final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
+        isScrolledByUser = firstVisibleItemPosition != 0;
+        // if first visible item is updated, isAddedUntilStopped also should be updated.
+        isAddedUntilStopped();
+
+        final RecyclerView.ViewHolder vh = recyclerView.findViewHolderForLayoutPosition(firstVisibleItemPosition);
+        Log.d(TAG, "fvi:" + timelineStore.get(vh.getAdapterPosition()).toString());
+      } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+        isScrolledByUser = true;
+      }
+    }
+  };
+
   @Override
   public void onStart() {
     super.onStart();
-    binding.timeline.setOnTouchListener((v, event) -> {
-//        Log.d(TAG, "onTouch: " + event.getAction());
-      if (event.getAction() == MotionEvent.ACTION_UP) {
-        final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
-        isScrolledByUser = firstVisibleItemPosition != 0;
-        isAddedUntilStopped();
-      }
-      return false;
-    });
+    binding.timeline.addOnScrollListener(onScrollListener);
 
     if (getActivity() instanceof FabHandleable) {
       tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
@@ -213,8 +229,6 @@ public class TimelineFragment<T> extends Fragment {
         lastPageCursor -> fetchTweet(new Paging(1, 20, 1, lastPageCursor)));
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
-    tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
-    tlAdapter.registerAdapterDataObserver(createdAtObserver);
     isAddedUntilStopped();
 
     if (isVisible()) {
@@ -232,24 +246,25 @@ public class TimelineFragment<T> extends Fragment {
 
   @Override
   public void onStop() {
-    Log.d(TAG, "onStop: ");
     super.onStop();
-    tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
-    tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedEntityChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
+    binding.timeline.removeOnScrollListener(onScrollListener);
   }
 
   @Override
   public void onDetach() {
     Log.d(TAG, "onDetach: ");
     super.onDetach();
+    tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
+    tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
     insertEventSubscription.unsubscribe();
     deleteEventSubscription.unsubscribe();
     binding.timeline.setAdapter(null);
     binding.timeline.removeItemDecoration(timelineDecoration);
+    binding.timeline.setLayoutManager(null);
     tlLayoutManager.removeAllViews();
   }
 

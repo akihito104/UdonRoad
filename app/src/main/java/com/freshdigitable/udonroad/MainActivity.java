@@ -322,9 +322,9 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void showStatusDetail(long statusId) {
+    tlFragment.stopScroll();
     StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
     replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
-    tlFragment.stopScroll();
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
   }
 
