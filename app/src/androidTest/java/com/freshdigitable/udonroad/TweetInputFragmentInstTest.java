@@ -63,7 +63,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     when(twitter.updateStatus(any(StatusUpdate.class))).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
-        final StatusUpdate statusUpdate = invocation.getArgumentAt(0, StatusUpdate.class);
+        final StatusUpdate statusUpdate = invocation.getArgument(0);
         final User user = UserUtil.createUserA();
         final Status mockResponse = createStatus(21000L, user);
         when(mockResponse.getText()).thenReturn(statusUpdate.getStatus());

@@ -323,7 +323,7 @@ public abstract class TimelineInstTestBase {
     when(twitter.createFavorite(anyLong())).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
-        final Long id = invocation.getArgumentAt(0, Long.class);
+        final Long id = invocation.getArgument(0);
         final Status status = findByStatusId(id);
         when(status.getFavoriteCount()).thenReturn(favCount);
         when(status.getRetweetCount()).thenReturn(rtCount);
@@ -338,7 +338,7 @@ public abstract class TimelineInstTestBase {
     when(twitter.retweetStatus(anyLong())).thenAnswer(new Answer<Status>() {
       @Override
       public Status answer(InvocationOnMock invocation) throws Throwable {
-        final Long id = invocation.getArgumentAt(0, Long.class);
+        final Long id = invocation.getArgument(0);
         final Status rtedStatus = findByStatusId(id);
         receiveStatuses(true, TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, false));
         return TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, rtCount, favCount, true);

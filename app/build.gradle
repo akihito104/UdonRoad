@@ -1,7 +1,10 @@
+plugins {
+    id "me.tatarka.retrolambda" version "3.5.0"
+    id 'com.github.ben-manes.versions' version '0.13.0'
+}
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 apply plugin: 'com.cookpad.android.licensetools'
-apply plugin: 'me.tatarka.retrolambda'
 
 android {
     compileSdkVersion 25
@@ -64,11 +67,11 @@ android {
 
 def supportLibVer = '25.1.0'
 def t4jVer = '4.0.6'
-def rxVer = '1.1.6'
+def rxVer = '1.2.5'
 def rxAndroidVer = '1.2.1'
-def daggerVer = "2.5"
-def supportTestVer = "0.5"
-def dexmakerVer = '1.4'
+def daggerVer = "2.8"
+def supportTestVer = "0.6-alpha"
+def dexmakerVer = '2.2.0'
 def leakcanaryVer= '1.5'
 
 dependencies {
@@ -106,9 +109,6 @@ dependencies {
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
     androidTestAnnotationProcessor "com.google.dagger:dagger-compiler:$daggerVer"
 
-    androidTestCompile "org.mockito:mockito-core:1.10.19"
-    androidTestCompile "com.crittercism.dexmaker:dexmaker:$dexmakerVer"
-    androidTestCompile "com.crittercism.dexmaker:dexmaker-dx:$dexmakerVer"
-    androidTestCompile "com.crittercism.dexmaker:dexmaker-mockito:$dexmakerVer"
+    androidTestCompile "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVer"
     androidTestCompile 'junit:junit:4.12'
 }
