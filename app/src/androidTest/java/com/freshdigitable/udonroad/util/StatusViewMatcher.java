@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.util;
 
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
-import android.support.test.espresso.core.deps.guava.base.Predicate;
 import android.support.test.espresso.core.deps.guava.collect.Iterables;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.v7.widget.RecyclerView;
@@ -31,8 +30,6 @@ import com.freshdigitable.udonroad.StatusViewBase;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-
-import javax.annotation.Nullable;
 
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.util.TreeIterables.breadthFirstViewTraversal;
@@ -56,13 +53,7 @@ public class StatusViewMatcher {
       @Override
       protected boolean matchesSafely(T item) {
         final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
-            new Predicate<View>() {
-              @Override
-              public boolean apply(@Nullable View view) {
-                return view != null
-                    && viewMatcher.matches(view);
-              }
-            });
+            view -> view != null && viewMatcher.matches(view));
         return it.iterator().hasNext();
       }
 

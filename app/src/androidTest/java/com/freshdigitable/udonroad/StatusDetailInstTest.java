@@ -36,11 +36,11 @@ import twitter4j.TwitterException;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.Visibility.GONE;
-import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,7 +60,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForSimpleStatus() {
     PerformUtil.selectItemViewAt(1);
     PerformUtil.showDetail();
-    onView(withId(R.id.timeline)).check(matches(withEffectiveVisibility(GONE)));
+    onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
   }
 
@@ -68,7 +68,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForSimpleStatus_then_clickUserIcon() {
     PerformUtil.selectItemViewAt(1);
     PerformUtil.showDetail();
-    onView(withId(R.id.timeline)).check(matches(withEffectiveVisibility(GONE)));
+    onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
     onView(withId(R.id.d_icon)).perform(click());
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
@@ -80,7 +80,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForQuotingStatus() {
     PerformUtil.selectItemViewAt(0);
     PerformUtil.showDetail();
-    onView(withId(R.id.timeline)).check(matches(withEffectiveVisibility(GONE)));
+    onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(target.getText())));
   }
 
@@ -88,7 +88,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForQuotedStatus() {
     PerformUtil.selectQuotedItemView(quoted);
     PerformUtil.showDetail();
-    onView(withId(R.id.timeline)).check(matches(withEffectiveVisibility(GONE)));
+    onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(quoted.getText())));
   }
 
@@ -96,7 +96,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForQuotedStatus_then_clickUserIcon() {
     PerformUtil.selectQuotedItemView(quoted);
     PerformUtil.showDetail();
-    onView(withId(R.id.timeline)).check(matches(withEffectiveVisibility(GONE)));
+    onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(quoted.getText())));
     onView(withId(R.id.d_icon)).perform(click());
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
@@ -115,9 +115,9 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
 
   @Override
   protected int setupTimeline() throws TwitterException {
-    quoted = TwitterResponseMock.createStatus(10000, getLoginUser());
-    target = TwitterResponseMock.createStatus(20000, getLoginUser());
-    simple = TwitterResponseMock.createStatus(5000, getLoginUser());
+    quoted = createStatus(10000, getLoginUser());
+    target = createStatus(20000, getLoginUser());
+    simple = createStatus(5000, getLoginUser());
     final long quotedId = quoted.getId();
     when(target.getQuotedStatusId()).thenReturn(quotedId);
     when(target.getQuotedStatus()).thenReturn(quoted);

@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import twitter4j.MediaEntity;
@@ -113,7 +112,7 @@ public class TwitterResponseMock {
 
   @NonNull
   public static ResponseList<Status> createResponseList() {
-    return createResponseList(new ArrayList<Status>());
+    return createResponseList(new ArrayList<>());
   }
 
   public static ResponseList<Status> createResponseList(final List<Status> list) {
@@ -259,19 +258,9 @@ public class TwitterResponseMock {
             return statuses;
           }
         })
-        .map(new Func1<Status, StatusDeletionNotice>() {
-          @Override
-          public StatusDeletionNotice call(Status status) {
-            return createDeletionNotice(status);
-          }
-        })
+        .map(TwitterResponseMock::createDeletionNotice)
         .observeOn(Schedulers.io())
-        .subscribe(new Action1<StatusDeletionNotice>() {
-          @Override
-          public void call(StatusDeletionNotice statusDeletionNotice) {
-            listener.onDeletionNotice(statusDeletionNotice);
-          }
-        });
+        .subscribe(listener::onDeletionNotice);
   }
 
   public static void receiveStatuses(final UserStreamListener listener,
@@ -279,17 +268,12 @@ public class TwitterResponseMock {
     Observable.just(Arrays.asList(statuses))
         .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
           @Override
-          public Iterable<Status> call(List<Status> statuses) {
-            return statuses;
+          public Iterable<Status> call(List<Status> statusList) {
+            return statusList;
           }
         })
         .observeOn(Schedulers.io())
-        .subscribe(new Action1<Status>() {
-          @Override
-          public void call(Status status) {
-            listener.onStatus(status);
-          }
-        });
+        .subscribe(listener::onStatus);
   }
 
   public static TwitterAPIConfiguration createTwitterAPIConfigMock() {

@@ -320,6 +320,22 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
+  @Test
+  public void receiveStatusUntilShowDetailAndBack_then_showSamePositionOfTimeline() throws Exception {
+    final Status target = findByStatusId(20000);
+    PerformUtil.selectItemView(target);
+    PerformUtil.showDetail();
+    final Status status = createStatus(25000, getLoginUser());
+    receiveStatuses(false, status);
+    Thread.sleep(1000);
+    pressBack();
+    onView(ofStatusViewAt(R.id.timeline, 1))
+        .check(matches(ofStatusView(withText(target.getText()))));
+    PerformUtil.clickHeadingOnMenu();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(status.getText()))));
+  }
+
   @Override
   protected ActivityTestRule<MainActivity> getRule() {
     return rule;
