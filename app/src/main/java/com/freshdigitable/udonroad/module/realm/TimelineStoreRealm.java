@@ -65,6 +65,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     timeline = realm
         .where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
+    setItemCount(0);
   }
 
   @Override

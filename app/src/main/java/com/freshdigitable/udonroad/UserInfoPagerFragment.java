@@ -183,6 +183,11 @@ public class UserInfoPagerFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     viewPager.setAdapter(null);
+  }
+
+  @Override
+  public void onDetach() {
+    super.onDetach();
     for (StatusRequestWorker ts : timelineSubscriberMap.values()) {
       ts.close();
     }

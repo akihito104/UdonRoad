@@ -22,13 +22,17 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -222,37 +226,6 @@ public class MainActivity extends AppCompatActivity
     userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
-  private StatusDetailFragment statusDetail;
-
-  private void showStatusDetail(long status) {
-    if (statusDetail != null && statusDetail.isVisible()) {
-      return;
-    }
-    statusDetail = StatusDetailFragment.getInstance(status);
-    getSupportFragmentManager().beginTransaction()
-        .hide(tlFragment)
-        .add(R.id.main_timeline_container, statusDetail)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-        .commit();
-    tlFragment.stopScroll();
-    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(false);
-  }
-
-  private boolean hideStatusDetail() {
-    if (statusDetail == null) {
-      return false;
-    }
-    getSupportFragmentManager().beginTransaction()
-        .remove(statusDetail)
-        .show(tlFragment)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-        .commit();
-    statusDetail = null;
-    tlFragment.startScroll();
-    binding.ffab.getMenu().findItem(R.id.iffabMenu_main_detail).setEnabled(true);
-    return true;
-  }
-
   @Override
   protected void onStop() {
     super.onStop();
@@ -288,12 +261,10 @@ public class MainActivity extends AppCompatActivity
       cancelWritingSelected();
       return;
     }
-    if (statusDetail != null && statusDetail.isVisible()) {
-      hideStatusDetail();
+    if (popBackStackTimelineContainer()) {
       return;
     }
-    if (tlFragment.isTweetSelected()) {
-      tlFragment.clearSelectedTweet();
+    if (clearSelectedCursorIfNeeded(tlFragment)) {
       return;
     }
     super.onBackPressed();
@@ -350,6 +321,81 @@ public class MainActivity extends AppCompatActivity
         .commit();
   }
 
+  private void showStatusDetail(long statusId) {
+    tlFragment.stopScroll();
+    StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
+    replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
+    switchFFABMenuTo(R.id.iffabMenu_main_conv);
+  }
+
+  private void hideStatusDetail() {
+    switchFFABMenuTo(R.id.iffabMenu_main_detail);
+  }
+
+  @Inject
+  StatusRequestWorker<SortedCache<Status>> conversationRequestWorker;
+
+  private void showConversation(long statusId) {
+    if (conversationRequestWorker.isOpened()) {
+      conversationRequestWorker.close();
+    }
+    final String name = "conv_" + Long.toString(statusId);
+    conversationRequestWorker.open(name);
+
+    final TimelineFragment<Status> conversationFragment = new TimelineFragment<>();
+    conversationFragment.setSortedCache(conversationRequestWorker.getCache());
+    replaceTimelineContainer(name, conversationFragment);
+    conversationRequestWorker.fetchConversations(statusId);
+    switchFFABMenuTo(R.id.iffabMenu_main_detail);
+  }
+
+  private void hideConversation() {
+    conversationRequestWorker.getCache().clear();
+    conversationRequestWorker.close();
+    switchFFABMenuTo(R.id.iffabMenu_main_conv);
+  }
+
+  private void replaceTimelineContainer(String name, Fragment fragment) {
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_timeline_container, fragment, name)
+        .addToBackStack(null)
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+        .commit();
+  }
+
+  private boolean popBackStackTimelineContainer() {
+    final FragmentManager fm = getSupportFragmentManager();
+    final int backStackEntryCount = fm.getBackStackEntryCount();
+    if (backStackEntryCount <= 0) {
+      return false;
+    }
+    if (backStackEntryCount == 1) {
+      tlFragment.startScroll();
+    }
+    final Fragment fragment = fm.findFragmentById(R.id.main_timeline_container);
+    if (fragment instanceof TimelineFragment) {
+      if (clearSelectedCursorIfNeeded((TimelineFragment) fragment)) {
+        return true;
+      }
+      fm.popBackStack();
+      hideConversation();
+      return true;
+    } else if (fragment instanceof StatusDetailFragment) {
+      fm.popBackStack();
+      hideStatusDetail();
+      return true;
+    }
+    throw new IllegalStateException("unknown fragment is added...");
+  }
+
+  private boolean clearSelectedCursorIfNeeded(TimelineFragment tf) {
+    if (tf.isTweetSelected()) {
+      tf.clearSelectedTweet();
+      return true;
+    }
+    return false;
+  }
+
   @Override
   public void setupInput(@TweetType int type, long statusId) {
     sendStatusSelected(type, statusId);
@@ -389,8 +435,20 @@ public class MainActivity extends AppCompatActivity
         sendStatusSelected(TYPE_REPLY, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_quote) {
         sendStatusSelected(TYPE_QUOTE, selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_conv) {
+        showConversation(selectedTweetId);
       }
     });
+  }
+
+  private static final int[] FFAB_MENU_LEFT_SETS
+      = {R.id.iffabMenu_main_conv, R.id.iffabMenu_main_detail};
+
+  private void switchFFABMenuTo(@IdRes int targetItem) {
+    final Menu menu = binding.ffab.getMenu();
+    for (@IdRes int menuItemId : FFAB_MENU_LEFT_SETS) {
+      menu.findItem(menuItemId).setEnabled(menuItemId == targetItem);
+    }
   }
 
   @Override

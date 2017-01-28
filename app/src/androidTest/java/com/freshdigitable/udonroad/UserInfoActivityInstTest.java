@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
 
-import rx.functions.Action0;
 import twitter4j.Relationship;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -397,13 +396,10 @@ public class UserInfoActivityInstTest {
     @Override
     protected Intent getIntent() {
       final User user = UserUtil.createUserA();
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-        @Override
-        public void run() {
-          userCache.open();
-          userCache.upsert(user);
-          userCache.close();
-        }
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+        userCache.open();
+        userCache.upsert(user);
+        userCache.close();
       });
       return UserInfoActivity.createIntent(
           InstrumentationRegistry.getTargetContext(), user);
@@ -420,17 +416,9 @@ public class UserInfoActivityInstTest {
       idlingResource = new ConfigSetupIdlingResource();
       Espresso.registerIdlingResources(idlingResource);
 
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-        @Override
-        public void run() {
-          configRequestWorker.open();
-          configRequestWorker.setup(new Action0() {
-            @Override
-            public void call() {
-              idlingResource.setDoneSetup(true);
-            }
-          });
-        }
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+        configRequestWorker.open();
+        configRequestWorker.setup(() -> idlingResource.setDoneSetup(true));
       });
     }
 
@@ -446,12 +434,7 @@ public class UserInfoActivityInstTest {
     @After
     public void tearDown() throws Exception {
       Espresso.unregisterIdlingResources(idlingResource);
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-        @Override
-        public void run() {
-          configRequestWorker.close();
-        }
-      });
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> configRequestWorker.close());
       super.tearDown();
     }
   }

@@ -62,22 +62,33 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     this.configStore = configStore;
   }
 
+  private boolean opened = false;
+
   @Override
   public void open() {
     super.open();
     configStore.open();
+    opened = true;
   }
 
   @Override
   public void open(@NonNull String name) {
     super.open(name);
     configStore.open();
+    opened = true;
   }
 
   @Override
   public void close() {
-    super.close();
-    configStore.close();
+    if (opened) {
+      super.close();
+      configStore.close();
+      opened = false;
+    }
+  }
+
+  public boolean isOpened() {
+    return opened;
   }
 
   public void fetchHomeTimeline() {
@@ -249,5 +260,12 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     final StatusReactionImpl reaction = new StatusReactionImpl(Utils.getBindingStatus(status));
     action.call(reaction);
     configStore.insert(reaction);
+  }
+
+  public void fetchConversations(long statusId) {
+    twitterApi.fetchConversations(statusId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(createUpsertAction(),
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 }
