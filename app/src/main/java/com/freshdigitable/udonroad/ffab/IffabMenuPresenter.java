@@ -152,9 +152,17 @@ class IffabMenuPresenter {
       return;
     }
     final List<IffabMenuItem> items = menu.getVisibleItems();
-    indicator.clear();
-    for (IffabMenuItem i : items) {
-      indicator.setDrawable(i.getDirection(), i.getIcon());
+    final Runnable task = () -> {
+      indicator.clear();
+      for (IffabMenuItem i : items) {
+        indicator.setDrawable(i.getDirection(), i.getIcon());
+      }
+    };
+    final Handler handler = ffab.getHandler();
+    if (handler != null) {
+      handler.postDelayed(task, 200);
+    } else {
+      task.run();
     }
   }
 
