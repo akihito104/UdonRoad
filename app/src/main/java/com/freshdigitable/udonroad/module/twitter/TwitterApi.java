@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.module.twitter;
 
+import com.freshdigitable.udonroad.Utils;
+
 import java.util.List;
 
 import javax.inject.Inject;
@@ -198,7 +200,7 @@ public class TwitterApi {
         Status status = twitter.showStatus(statusId);
         while (status != null) {
           subscriber.onNext(status);
-          final long inReplyToStatusId = status.getInReplyToStatusId();
+          final long inReplyToStatusId = Utils.getBindingStatus(status).getInReplyToStatusId();
           if (inReplyToStatusId > 0) {
             status = twitter.showStatus(inReplyToStatusId);
           } else {
