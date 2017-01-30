@@ -182,15 +182,20 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
-    binding.statusView.reset();
     binding.sdTwitterCard.setOnClickListener(null);
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
+    statusRequestWorker.close();
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    binding.statusView.reset();
     final long statusId = getStatusId();
     Picasso.with(getContext()).cancelTag(statusId);
     StatusViewImageHelper.unload(binding.statusView, statusId);
-    statusRequestWorker.close();
   }
 
   @Override
