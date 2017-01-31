@@ -120,7 +120,7 @@ public class StatusDetailFragment extends Fragment {
 
     binding.statusView.bindStatus(status);
     subscription = statusCache.observeById(statusId)
-        .subscribe(_status -> binding.statusView.update(_status));
+        .subscribe(binding.statusView::update);
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
