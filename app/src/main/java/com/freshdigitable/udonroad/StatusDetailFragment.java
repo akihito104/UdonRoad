@@ -132,7 +132,10 @@ public class StatusDetailFragment extends Fragment {
       TwitterCardFetcher.observeFetch(bindingStatus.getURLEntities()[0].getExpandedURL())
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(this::setupTwitterCard,
-              throwable -> Log.e(TAG, "card fetch: ", throwable));
+              throwable -> {
+                Log.e(TAG, "card fetch: ", throwable);
+                setupTwitterCard(new TwitterCard());
+              });
     }
   }
 
@@ -140,7 +143,7 @@ public class StatusDetailFragment extends Fragment {
 
   private void setupTwitterCard(@NonNull final TwitterCard twitterCard) {
     this.twitterCard = twitterCard;
-    if (!isValidForView(twitterCard)) {
+    if (!isValidForView(this.twitterCard)) {
       return;
     }
     final long statusId = getStatusId();
@@ -167,7 +170,7 @@ public class StatusDetailFragment extends Fragment {
     } else {
       intent.setData(Uri.parse(twitterCard.getUrl()));
     }
-    binding.sdTwitterCard.setOnClickListener(view -> getContext().startActivity(intent));
+    binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
   }
 
   private boolean isValidForView(TwitterCard twitterCard) {
