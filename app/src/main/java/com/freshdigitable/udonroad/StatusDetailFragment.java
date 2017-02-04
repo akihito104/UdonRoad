@@ -65,6 +65,7 @@ public class StatusDetailFragment extends Fragment {
   @Inject
   StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
   private Subscription subscription;
+  private Subscription cardSubscription;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -129,7 +130,8 @@ public class StatusDetailFragment extends Fragment {
     if (twitterCard != null) {
       setupTwitterCard(twitterCard);
     } else {
-      TwitterCardFetcher.observeFetch(bindingStatus.getURLEntities()[0].getExpandedURL())
+      final String expandedURL = bindingStatus.getURLEntities()[0].getExpandedURL();
+      cardSubscription = TwitterCard.observeFetch(expandedURL)
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(this::setupTwitterCard,
               throwable -> {
@@ -143,13 +145,13 @@ public class StatusDetailFragment extends Fragment {
 
   private void setupTwitterCard(@NonNull final TwitterCard twitterCard) {
     this.twitterCard = twitterCard;
-    if (!isValidForView(this.twitterCard)) {
+    if (!this.twitterCard.isValid()) {
       return;
     }
     final long statusId = getStatusId();
     binding.sdTwitterCard.setVisibility(View.VISIBLE);
-    binding.sdTwitterCard.bindData(twitterCard);
-    final String imageUrl = twitterCard.getImageUrl();
+    binding.sdTwitterCard.bindData(this.twitterCard);
+    final String imageUrl = this.twitterCard.getImageUrl();
     if (!TextUtils.isEmpty(imageUrl)) {
       Picasso.with(getContext())
           .load(imageUrl)
@@ -160,22 +162,17 @@ public class StatusDetailFragment extends Fragment {
     }
 
     final Intent intent = new Intent(Intent.ACTION_VIEW);
-    final String appUrl = twitterCard.getAppUrl();
+    final String appUrl = this.twitterCard.getAppUrl();
     if (!TextUtils.isEmpty(appUrl)) {
       intent.setData(Uri.parse(appUrl));
       final ComponentName componentName = intent.resolveActivity(getContext().getPackageManager());
       if (componentName == null) {
-        intent.setData(Uri.parse(twitterCard.getUrl()));
+        intent.setData(Uri.parse(this.twitterCard.getUrl()));
       }
     } else {
-      intent.setData(Uri.parse(twitterCard.getUrl()));
+      intent.setData(Uri.parse(this.twitterCard.getUrl()));
     }
     binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
-  }
-
-  private boolean isValidForView(TwitterCard twitterCard) {
-    return !TextUtils.isEmpty(twitterCard.getTitle())
-        && !TextUtils.isEmpty(twitterCard.getUrl());
   }
 
   @Override
@@ -188,6 +185,9 @@ public class StatusDetailFragment extends Fragment {
     binding.sdTwitterCard.setOnClickListener(null);
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
+    }
+    if (cardSubscription != null && !cardSubscription.isUnsubscribed()) {
+      cardSubscription.unsubscribe();
     }
     statusRequestWorker.close();
   }
