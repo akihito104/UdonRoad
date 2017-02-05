@@ -65,6 +65,7 @@ public class StatusDetailFragment extends Fragment {
   @Inject
   StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
   private Subscription subscription;
+  private Subscription cardSubscription;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -120,7 +121,7 @@ public class StatusDetailFragment extends Fragment {
 
     binding.statusView.bindStatus(status);
     subscription = statusCache.observeById(statusId)
-        .subscribe(_status -> binding.statusView.update(_status));
+        .subscribe(binding.statusView::update);
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
@@ -129,10 +130,14 @@ public class StatusDetailFragment extends Fragment {
     if (twitterCard != null) {
       setupTwitterCard(twitterCard);
     } else {
-      TwitterCardFetcher.observeFetch(bindingStatus.getURLEntities()[0].getExpandedURL())
+      final String expandedURL = bindingStatus.getURLEntities()[0].getExpandedURL();
+      cardSubscription = TwitterCard.observeFetch(expandedURL)
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(this::setupTwitterCard,
-              throwable -> Log.e(TAG, "card fetch: ", throwable));
+              throwable -> {
+                Log.e(TAG, "card fetch: ", throwable);
+                setupTwitterCard(new TwitterCard());
+              });
     }
   }
 
@@ -140,13 +145,13 @@ public class StatusDetailFragment extends Fragment {
 
   private void setupTwitterCard(@NonNull final TwitterCard twitterCard) {
     this.twitterCard = twitterCard;
-    if (!isValidForView(twitterCard)) {
+    if (!this.twitterCard.isValid()) {
       return;
     }
     final long statusId = getStatusId();
     binding.sdTwitterCard.setVisibility(View.VISIBLE);
-    binding.sdTwitterCard.bindData(twitterCard);
-    final String imageUrl = twitterCard.getImageUrl();
+    binding.sdTwitterCard.bindData(this.twitterCard);
+    final String imageUrl = this.twitterCard.getImageUrl();
     if (!TextUtils.isEmpty(imageUrl)) {
       Picasso.with(getContext())
           .load(imageUrl)
@@ -157,22 +162,17 @@ public class StatusDetailFragment extends Fragment {
     }
 
     final Intent intent = new Intent(Intent.ACTION_VIEW);
-    final String appUrl = twitterCard.getAppUrl();
+    final String appUrl = this.twitterCard.getAppUrl();
     if (!TextUtils.isEmpty(appUrl)) {
       intent.setData(Uri.parse(appUrl));
       final ComponentName componentName = intent.resolveActivity(getContext().getPackageManager());
       if (componentName == null) {
-        intent.setData(Uri.parse(twitterCard.getUrl()));
+        intent.setData(Uri.parse(this.twitterCard.getUrl()));
       }
     } else {
-      intent.setData(Uri.parse(twitterCard.getUrl()));
+      intent.setData(Uri.parse(this.twitterCard.getUrl()));
     }
-    binding.sdTwitterCard.setOnClickListener(view -> getContext().startActivity(intent));
-  }
-
-  private boolean isValidForView(TwitterCard twitterCard) {
-    return !TextUtils.isEmpty(twitterCard.getTitle())
-        && !TextUtils.isEmpty(twitterCard.getUrl());
+    binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
   }
 
   @Override
@@ -182,15 +182,23 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getMediaContainer().setOnMediaClickListener(null);
-    binding.statusView.reset();
     binding.sdTwitterCard.setOnClickListener(null);
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
+    if (cardSubscription != null && !cardSubscription.isUnsubscribed()) {
+      cardSubscription.unsubscribe();
+    }
+    statusRequestWorker.close();
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    binding.statusView.reset();
     final long statusId = getStatusId();
     Picasso.with(getContext()).cancelTag(statusId);
     StatusViewImageHelper.unload(binding.statusView, statusId);
-    statusRequestWorker.close();
   }
 
   @Override
