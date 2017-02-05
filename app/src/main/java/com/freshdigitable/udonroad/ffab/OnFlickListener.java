@@ -19,16 +19,16 @@ package com.freshdigitable.udonroad.ffab;
 import android.view.MotionEvent;
 
 /**
- * OnFlingListener defines callback method of fling event of FlingableFAB.
+ * OnFlickListener defines callback method of fling event of FlickableFAB.
  *
  * Created by akihit on 2016/03/22.
  */
-interface OnFlingListener {
+interface OnFlickListener {
   void onStart();
 
   void onMoving(Direction direction);
 
-  void onFling(Direction direction);
+  void onFlick(Direction direction);
 
 
   enum Direction {

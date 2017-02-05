@@ -25,7 +25,7 @@ import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ import static android.view.View.VISIBLE;
 
 class IffabMenuPresenter {
   private ActionIndicatorView indicator;
-  private FlingableFAB ffab;
+  private FlickableFAB ffab;
   private int indicatorMargin;
   private IffabMenu menu;
 
@@ -50,10 +50,10 @@ class IffabMenuPresenter {
   View getView(IndicatableFFAB iffab) {
     final View v = View.inflate(iffab.getContext(), R.layout.view_indicatable_ffab, iffab);
     indicator = (ActionIndicatorView) v.findViewById(R.id.iffab_indicator);
-    ffab = (FlingableFAB) v.findViewById(R.id.iffab_ffab);
-    ffab.setOnFlingListener(new OnFlingAdapter() {
+    ffab = (FlickableFAB) v.findViewById(R.id.iffab_ffab);
+    ffab.setOnFlingListener(new OnFlickAdapter() {
       @Override
-      public void onFling(Direction direction) {
+      public void onFlick(Direction direction) {
         menu.dispatchMenuItemSelected(direction);
       }
     });

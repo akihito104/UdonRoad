@@ -21,27 +21,27 @@ import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 /**
- * FlingibleFloatingActionButton accepts only fling action.<br>
- * It indicates action icon on succeeding user's fling action.
+ * FlickableFAB is a customized FloatingActionButton accepts only flick action.<br>
+ * It indicates action icon on succeeding user's flick action.
  *
  * Created by akihit on 15/11/04.
  */
-class FlingableFAB extends FloatingActionButton {
+class FlickableFAB extends FloatingActionButton {
   @SuppressWarnings("unused")
-  private static final String TAG = FlingableFAB.class.getSimpleName();
+  private static final String TAG = FlickableFAB.class.getSimpleName();
 
-  public FlingableFAB(Context context) {
+  public FlickableFAB(Context context) {
     this(context, null);
   }
 
-  public FlingableFAB(Context context, AttributeSet attributeSet) {
+  public FlickableFAB(Context context, AttributeSet attributeSet) {
     this(context, attributeSet, 0);
   }
 
-  public FlingableFAB(Context context, AttributeSet attributeSet, int defStyleAttr) {
+  public FlickableFAB(Context context, AttributeSet attributeSet, int defStyleAttr) {
     super(context, attributeSet, defStyleAttr);
   }
 
@@ -64,16 +64,16 @@ class FlingableFAB extends FloatingActionButton {
       flingListener.onMoving(direction);
       return true;
     } else if (action == MotionEvent.ACTION_UP) {
-      flingListener.onFling(direction);
+      flingListener.onFlick(direction);
       old.recycle();
       return true;
     }
     return super.onTouchEvent(motionEvent);
   }
 
-  private OnFlingListener flingListener;
+  private OnFlickListener flingListener;
 
-  public void setOnFlingListener(OnFlingListener listener) {
+  public void setOnFlingListener(OnFlickListener listener) {
     this.flingListener = listener;
   }
 }

@@ -17,11 +17,11 @@
 package com.freshdigitable.udonroad.ffab;
 
 /**
- * OnFlingAdapter is a adapter class for OnFlingListener.
+ * OnFlickAdapter is a adapter class for OnFlickListener.
  *
  * Created by akihit on 2016/07/03.
  */
-abstract class OnFlingAdapter implements OnFlingListener {
+abstract class OnFlickAdapter implements OnFlickListener {
   @Override
   public void onStart() {
   }

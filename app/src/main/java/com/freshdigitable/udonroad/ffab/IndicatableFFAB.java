@@ -31,7 +31,7 @@ import android.widget.FrameLayout;
 import com.freshdigitable.udonroad.R;
 
 /**
- * IndicatableFFAB is a view group of FlingableFAB and ActionIndicatorView.
+ * IndicatableFFAB is a view group of FlickableFAB and ActionIndicatorView.
  *
  * Created by akihit on 2016/09/05.
  */

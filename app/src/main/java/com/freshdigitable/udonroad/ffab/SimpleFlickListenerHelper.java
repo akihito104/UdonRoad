@@ -23,19 +23,19 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
-public class SimpleFlingListenerHelper implements OnTouchListener {
+public class SimpleFlickListenerHelper implements OnTouchListener {
   private final GestureDetector gestureDetector;
 
-  public SimpleFlingListenerHelper(
+  public SimpleFlickListenerHelper(
       @NonNull Context context,
-      @NonNull final OnFlingListener flingListener) {
+      @NonNull final OnFlickListener flingListener) {
     this.gestureDetector = new GestureDetector(context,
         new GestureDetector.SimpleOnGestureListener() {
           @Override
           public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            flingListener.onFling(Direction.getDirection(e1, e2, velocityX, velocityY));
+            flingListener.onFlick(Direction.getDirection(e1, e2, velocityX, velocityY));
             return true;
           }
         });

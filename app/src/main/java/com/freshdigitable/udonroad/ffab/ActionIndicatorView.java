@@ -28,13 +28,13 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ActionIndicatorView shows action icon of FlingableFAB.
+ * ActionIndicatorView shows menu icon of FlickableFAB.
  *
  * Created by akihit on 2016/07/04.
  */

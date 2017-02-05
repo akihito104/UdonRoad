@@ -29,7 +29,7 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 import static android.view.View.NO_ID;
 

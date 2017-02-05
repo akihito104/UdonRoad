@@ -27,7 +27,7 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
-import com.freshdigitable.udonroad.ffab.OnFlingListener.Direction;
+import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
