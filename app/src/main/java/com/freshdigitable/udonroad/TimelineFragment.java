@@ -274,6 +274,7 @@ public class TimelineFragment<T> extends Fragment {
     }
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
+    binding.timeline.setItemAnimator(null);
     binding.timeline.removeItemDecoration(timelineDecoration);
     tlLayoutManager.removeAllViews();
     binding.timeline.setLayoutManager(null);
