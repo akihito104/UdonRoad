@@ -30,7 +30,7 @@
         tools:visibility="visible"
         />
 
-    <com.freshdigitable.udonroad.ffab.FlingableFAB
+    <com.freshdigitable.udonroad.ffab.FlickableFAB
         android:id="@+id/iffab_ffab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
