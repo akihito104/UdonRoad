@@ -75,7 +75,7 @@ class IffabMenuPresenter {
           onMoving(direction);
         } else if (action == MotionEvent.ACTION_UP) {
           old.recycle();
-          onFling(view.getHandler());
+          onFlick(view.getHandler());
         }
         return false;
       }
@@ -99,7 +99,7 @@ class IffabMenuPresenter {
         prevSelected = direction;
       }
 
-      void onFling(Handler handler) {
+      void onFlick(Handler handler) {
         handler.postDelayed(() -> indicator.setVisibility(View.INVISIBLE), 200);
       }
     });
@@ -152,17 +152,8 @@ class IffabMenuPresenter {
       return;
     }
     final List<IffabMenuItem> items = menu.getVisibleItems();
-    final Runnable task = () -> {
-      indicator.clear();
-      for (IffabMenuItem i : items) {
-        indicator.setDrawable(i.getDirection(), i.getIcon());
-      }
-    };
-    final Handler handler = ffab.getHandler();
-    if (handler != null) {
-      handler.postDelayed(task, 200);
-    } else {
-      task.run();
+    for (IffabMenuItem i : items) {
+      indicator.setDrawable(i.getDirection(), i.getIcon());
     }
   }
 
