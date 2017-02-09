@@ -51,6 +51,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import twitter4j.Status;
 import twitter4j.User;
 
+import static android.view.View.GONE;
 import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
 /**
@@ -86,7 +87,9 @@ public class StatusDetailFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_status_detail, container, false);
+    if (binding == null) {
+      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_status_detail, container, false);
+    }
     return binding.getRoot();
   }
 
@@ -195,16 +198,12 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onDestroyView() {
     super.onDestroyView();
-    binding.statusView.reset();
     final long statusId = getStatusId();
     Picasso.with(getContext()).cancelTag(statusId);
     StatusViewImageHelper.unload(binding.statusView, statusId);
-  }
-
-  @Override
-  public void onDetach() {
-    super.onDetach();
-    binding.sdTwitterCard.setVisibility(View.GONE);
+    binding.statusView.reset();
+    binding.sdTwitterCard.setVisibility(GONE);
+    twitterCard = null;
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

@@ -117,26 +117,24 @@ public class TimelineFragment<T> extends Fragment {
     binding.timeline.setHasFixedSize(true);
     if (timelineDecoration == null) {
       timelineDecoration = new TimelineDecoration(getContext());
+      binding.timeline.addItemDecoration(timelineDecoration);
     }
-    binding.timeline.addItemDecoration(timelineDecoration);
-
     if (tlLayoutManager == null) {
       tlLayoutManager = new LinearLayoutManager(getContext());
       tlLayoutManager.setAutoMeasureEnabled(true);
+      binding.timeline.setLayoutManager(tlLayoutManager);
     }
-    binding.timeline.setLayoutManager(tlLayoutManager);
-
     if (timelineAnimator == null) {
       timelineAnimator = new TimelineAnimator();
       binding.timeline.setItemAnimator(timelineAnimator);
     }
     if (tlAdapter == null) {
       tlAdapter = new TimelineAdapter<>(timelineStore);
+      binding.timeline.setAdapter(tlAdapter);
       fetchTweet(null);
     }
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
-    binding.timeline.setAdapter(tlAdapter);
 
     if (insertEventSubscription == null || insertEventSubscription.isUnsubscribed()) {
       insertEventSubscription = timelineStore.observeInsertEvent()
@@ -274,11 +272,6 @@ public class TimelineFragment<T> extends Fragment {
     }
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
-    binding.timeline.setItemAnimator(null);
-    binding.timeline.removeItemDecoration(timelineDecoration);
-    tlLayoutManager.removeAllViews();
-    binding.timeline.setLayoutManager(null);
-    binding.timeline.setAdapter(null);
   }
 
   private final AdapterDataObserver firstItemObserver = new AdapterDataObserver() {
@@ -310,6 +303,15 @@ public class TimelineFragment<T> extends Fragment {
     if (firstVisibleItemPosOnStop >= 0) {
       tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
     }
+    binding.timeline.setItemAnimator(null);
+    timelineAnimator = null;
+    binding.timeline.removeItemDecoration(timelineDecoration);
+    timelineDecoration = null;
+    tlLayoutManager.removeAllViews();
+    binding.timeline.setLayoutManager(null);
+    tlLayoutManager = null;
+    binding.timeline.setAdapter(null);
+    tlAdapter = null;
     insertEventSubscription.unsubscribe();
     deleteEventSubscription.unsubscribe();
   }
