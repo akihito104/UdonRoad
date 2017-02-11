@@ -19,3 +19,9 @@
 -keepnames class ** { *; }
 
 -dontwarn java.lang.invoke.*
+
+# picasso
+-dontwarn com.squareup.okhttp.**
+
+# okhttp
+-dontwarn okhttp3.**
