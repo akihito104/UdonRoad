@@ -26,6 +26,10 @@
   name: design
   copyrightHolder: The Android Open Source Project
   license: The Apache Software License, Version 2.0
+- artifact: com.android.support:transition:+
+  name: transition
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
 - artifact: javax.inject:javax.inject:+
   name: javax.inject
   copyrightHolder: The JSR-330 Expert Group
