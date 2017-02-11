@@ -112,3 +112,10 @@ dependencies {
     androidTestCompile "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVer"
     androidTestCompile 'junit:junit:4.12'
 }
+
+check.dependsOn(checkLicenses)
+
+project.afterEvaluate {
+    generateDebugAssets.dependsOn (generateLicensePage)
+    generateReleaseAssets.dependsOn (generateLicensePage)
+}
