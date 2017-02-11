@@ -434,12 +434,16 @@ public class TimelineFragment<T> extends Fragment {
   public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
     if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
       if (!enter) {
-        return AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_out_right);
+        return AnimationUtils.makeOutAnimation(getContext(), true);
+      } else {
+        return AnimationUtils.makeInAnimation(getContext(), false);
       }
     }
     if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
       if (enter) {
-        return AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_in_left);
+        return AnimationUtils.makeInAnimation(getContext(), false);
+      } else {
+        return AnimationUtils.makeOutAnimation(getContext(), true);
       }
     }
     return super.onCreateAnimation(transit, enter, nextAnim);
