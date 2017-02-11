@@ -369,9 +369,6 @@ public class MainActivity extends AppCompatActivity
     if (backStackEntryCount <= 0) {
       return false;
     }
-    if (backStackEntryCount == 1) {
-      tlFragment.startScroll();
-    }
     final Fragment fragment = fm.findFragmentById(R.id.main_timeline_container);
     if (fragment instanceof TimelineFragment) {
       if (clearSelectedCursorIfNeeded((TimelineFragment) fragment)) {
@@ -382,6 +379,9 @@ public class MainActivity extends AppCompatActivity
       return true;
     } else if (fragment instanceof StatusDetailFragment) {
       fm.popBackStack();
+      if (backStackEntryCount == 1) {
+        tlFragment.startScroll();
+      }
       hideStatusDetail();
       return true;
     }

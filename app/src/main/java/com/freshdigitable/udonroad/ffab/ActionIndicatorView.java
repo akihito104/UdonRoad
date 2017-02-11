@@ -69,8 +69,15 @@ class ActionIndicatorView extends FrameLayout {
   public void setDrawable(Direction direction, Drawable drawable) {
     tintIcon(drawable, this.indicatorIconTint);
     drawables.put(direction, drawable);
-    if (direction.isOnAxis()) {
-      icons.get(direction).setImageDrawable(drawable);
+  }
+
+  @Override
+  protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
+    super.onVisibilityChanged(changedView, visibility);
+    if (changedView == this && visibility == VISIBLE) {
+      for (Direction d : icons.keySet()) {
+        icons.get(d).setImageDrawable(drawables.get(d));
+      }
     }
   }
 
@@ -139,7 +146,7 @@ class ActionIndicatorView extends FrameLayout {
       }
     }
     for (Direction d : icons.keySet()) {
-      setDrawable(d, drawables.get(d));
+      icons.get(d).setImageDrawable(drawables.get(d));
     }
     for (ImageView ic : icons.values()) {
       ic.setVisibility(VISIBLE);
