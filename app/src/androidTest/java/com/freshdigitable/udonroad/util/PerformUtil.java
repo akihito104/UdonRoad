@@ -64,34 +64,35 @@ public class PerformUtil {
   }
 
   public static ViewInteraction reply() {
-    return onView(withId(R.id.iffab_ffab)).perform(swipeDown());
+    return onIFFAB().perform(swipeDown());
   }
 
   public static ViewInteraction showDetail() {
-    return onView(withId(R.id.iffab_ffab)).perform(swipeLeft());
+    return onIFFAB().perform(swipeLeft());
   }
 
   public static ViewInteraction favo() {
-    return onView(withId(R.id.iffab_ffab)).perform(swipeUp());
+    return onIFFAB().perform(swipeUp());
   }
 
   public static ViewInteraction retweet() {
-    return onView(withId(R.id.iffab_ffab)).perform(swipeRight());
+    return onIFFAB().perform(swipeRight());
   }
 
   public static ViewInteraction fav_retweet() {
     final ViewAction viewAction = actionWithAssertions(
         new GeneralSwipeAction(Swipe.FAST, GeneralLocation.CENTER,
-        new CoordinatesProvider() {
-          @Override
-          public float[] calculateCoordinates(View view) {
-            final float[] pos = GeneralLocation.TOP_RIGHT.calculateCoordinates(view);
-            pos[0] += 0.5f * view.getWidth();
-            pos[1] += -0.5f * view.getHeight();
-            return pos;
-          }
-        }, Press.FINGER));
-    return onView(withId(R.id.iffab_ffab)).perform(viewAction);
+            view -> {
+              final float[] pos = GeneralLocation.TOP_RIGHT.calculateCoordinates(view);
+              pos[0] += 0.5f * view.getWidth();
+              pos[1] += -0.5f * view.getHeight();
+              return pos;
+            }, Press.FINGER));
+    return onIFFAB().perform(viewAction);
+  }
+
+  private static ViewInteraction onIFFAB() {
+    return onView(withId(R.id.ffab));
   }
 
   public static ViewInteraction pullDownTimeline() {

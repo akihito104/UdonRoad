@@ -30,9 +30,11 @@
     </declare-styleable>
 
     <style name="Widget.FFAB.IndicatableFFAB" parent="android:Widget">
-        <item name="fabIcon">@drawable/ic_add</item>
+        <item name="android:src">@drawable/ic_add</item>
         <item name="indicatorTint">#cccc</item>
         <item name="indicatorIconTint">@android:color/white</item>
         <item name="marginFabToIndicator">60dp</item>
+        <item name="android:layout_marginBottom">32dp</item>
+        <item name="fabSize">normal</item>
     </style>
 </resources>

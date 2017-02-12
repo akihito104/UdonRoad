@@ -18,15 +18,11 @@ package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
 import android.util.AttributeSet;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.FrameLayout;
 
 import com.freshdigitable.udonroad.R;
 
@@ -35,8 +31,7 @@ import com.freshdigitable.udonroad.R;
  *
  * Created by akihit on 2016/09/05.
  */
-@CoordinatorLayout.DefaultBehavior(IndicatableFFAB.Behavior.class)
-public class IndicatableFFAB extends FrameLayout {
+public class IndicatableFFAB extends FlickableFAB {
   private final IffabMenu menu;
   private final IffabMenuPresenter presenter = new IffabMenuPresenter();
 
@@ -50,18 +45,18 @@ public class IndicatableFFAB extends FrameLayout {
 
   public IndicatableFFAB(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    presenter.getView(this);
+    presenter.initView(this);
     menu = new IffabMenu(context, presenter);
 
     final TypedArray a = context.obtainStyledAttributes(attrs,
         R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
     try {
-      final Drawable fabIcon = a.getDrawable(R.styleable.IndicatableFFAB_fabIcon);
-      presenter.setFabIcon(fabIcon);
-      final int fabTint = a.getColor(R.styleable.IndicatableFFAB_fabTint, NO_ID);
-      if (fabTint != NO_ID) {
-        presenter.setFabTint(fabTint);
-      }
+//      final Drawable fabIcon = a.getDrawable(R.styleable.IndicatableFFAB_fabIcon);
+//      presenter.setFabIcon(fabIcon);
+//      final int fabTint = a.getColor(R.styleable.IndicatableFFAB_fabTint, NO_ID);
+//      if (fabTint != NO_ID) {
+//        presenter.setFabTint(fabTint);
+//      }
       final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
       presenter.setIndicatorTint(indicatorTint);
       final int indicatorIconTint = a.getColor(R.styleable.IndicatableFFAB_indicatorIconTint, 0);
@@ -101,15 +96,15 @@ public class IndicatableFFAB extends FrameLayout {
     return menu;
   }
 
-  public void hide() {
-    presenter.hide();
-    setVisibility(INVISIBLE);
-  }
+//  public void hide() {
+//    presenter.hide();
+//    setVisibility(INVISIBLE);
+//  }
 
-  public void show() {
-    setVisibility(VISIBLE);
-    presenter.show();
-  }
+//  public void show() {
+//    setVisibility(VISIBLE);
+//    presenter.show();
+//  }
 
   public void setOnIffabItemSelectedListener(OnIffabItemSelectedListener selectedListener) {
     menu.setOnIffabItemSelectedListener(selectedListener);
@@ -118,21 +113,6 @@ public class IndicatableFFAB extends FrameLayout {
   public void clear() {
     presenter.clear();
     setOnIffabItemSelectedListener(null);
-  }
-
-  public static class Behavior extends CoordinatorLayout.Behavior<IndicatableFFAB> {
-    public Behavior() {
-      super();
-    }
-
-    public Behavior(Context context, AttributeSet attrs) {
-      super(context, attrs);
-    }
-
-    @Override
-    public void onAttachedToLayoutParams(@NonNull CoordinatorLayout.LayoutParams params) {
-      params.dodgeInsetEdges |= Gravity.BOTTOM;
-    }
   }
 
   public interface OnIffabItemSelectedListener {

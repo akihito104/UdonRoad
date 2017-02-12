@@ -20,8 +20,10 @@ import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.v4.view.ViewCompat;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 
 import com.freshdigitable.udonroad.R;
@@ -47,10 +49,12 @@ class IffabMenuPresenter {
     this.menu = menu;
   }
 
-  View getView(IndicatableFFAB iffab) {
-    final View v = View.inflate(iffab.getContext(), R.layout.view_indicatable_ffab, iffab);
-    indicator = (ActionIndicatorView) v.findViewById(R.id.iffab_indicator);
-    ffab = (FlickableFAB) v.findViewById(R.id.iffab_ffab);
+  void initView(IndicatableFFAB iffab) {
+    final ViewGroup root = (ViewGroup) iffab.getRootView().findViewById(android.R.id.content);
+    indicator = (ActionIndicatorView) LayoutInflater.from(iffab.getContext())
+        .inflate(R.layout.view_action_indicator_layout, root);
+
+    this.ffab = iffab;
     ffab.setOnFlingListener(new OnFlickAdapter() {
       @Override
       public void onFlick(Direction direction) {
@@ -103,7 +107,6 @@ class IffabMenuPresenter {
         handler.postDelayed(() -> indicator.setVisibility(View.INVISIBLE), 200);
       }
     });
-    return v;
   }
 
   void setFabIcon(Drawable fabIcon) {
@@ -135,13 +138,13 @@ class IffabMenuPresenter {
     this.indicatorMargin = indicatorMargin;
   }
 
-  void show() {
-    ffab.show();
-  }
+//  void show() {
+//    ffab.show();
+//  }
 
-  void hide() {
-    ffab.hide();
-  }
+//  void hide() {
+//    ffab.hide();
+//  }
 
   void clear() {
     indicator.clear();
