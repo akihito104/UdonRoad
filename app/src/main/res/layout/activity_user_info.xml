@@ -98,6 +98,7 @@
             android:id="@+id/userInfo_iffab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/iffab_margin_bottom"
             android:layout_gravity="bottom|center_horizontal"
             app:menu="@menu/iffab_main"
             />

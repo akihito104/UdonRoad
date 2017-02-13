@@ -29,12 +29,13 @@
         <attr name="iffabStyle" format="reference"/>
     </declare-styleable>
 
-    <style name="Widget.FFAB.IndicatableFFAB" parent="android:Widget">
-        <item name="android:src">@drawable/ic_add</item>
+    <style name="Widget.FFAB.IndicatableFFAB" parent="@style/Widget.Design.FloatingActionButton">
         <item name="indicatorTint">#cccc</item>
         <item name="indicatorIconTint">@android:color/white</item>
         <item name="marginFabToIndicator">60dp</item>
-        <item name="android:layout_marginBottom">32dp</item>
+        <item name="android:src">@drawable/ic_add</item>
         <item name="fabSize">normal</item>
     </style>
+
+    <dimen name="iffab_margin_bottom">32dp</dimen>
 </resources>

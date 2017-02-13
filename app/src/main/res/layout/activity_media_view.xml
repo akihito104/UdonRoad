@@ -43,8 +43,9 @@
                 android:id="@+id/media_iffab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/iffab_margin_bottom"
                 android:layout_gravity="bottom|center_horizontal"
-                app:fabTint="@color/layer_black_immersive"
+                app:backgroundTint="@color/layer_black_immersive"
                 app:indicatorTint="@color/layer_black_immersive"
                 app:menu="@menu/iffab_media"
                 />
