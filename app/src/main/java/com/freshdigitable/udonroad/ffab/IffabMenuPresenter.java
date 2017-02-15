@@ -16,22 +16,19 @@
 
 package com.freshdigitable.udonroad.ffab;
 
-import android.content.res.ColorStateList;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.MarginLayoutParams;
+import android.widget.FrameLayout;
 
-import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 import java.util.List;
-
-import static android.view.View.VISIBLE;
 
 /**
  * IffabMenuPresenter manages iffab view object, FlingableFAB and IndicatorView.
@@ -50,10 +47,6 @@ class IffabMenuPresenter {
   }
 
   void initView(IndicatableFFAB iffab) {
-    final ViewGroup root = (ViewGroup) iffab.getRootView().findViewById(android.R.id.content);
-    indicator = (ActionIndicatorView) LayoutInflater.from(iffab.getContext())
-        .inflate(R.layout.view_action_indicator_layout, root);
-
     this.ffab = iffab;
     ffab.setOnFlingListener(new OnFlickAdapter() {
       @Override
@@ -61,7 +54,6 @@ class IffabMenuPresenter {
         menu.dispatchMenuItemSelected(direction);
       }
     });
-    ViewCompat.setElevation(indicator, ffab.getCompatElevation());
 
     ffab.setOnTouchListener(new View.OnTouchListener() {
       private MotionEvent old;
@@ -97,7 +89,7 @@ class IffabMenuPresenter {
           return;
         }
         indicator.onActionLeave(prevSelected);
-        if (menu.isVisibleByDirectin(direction)) {
+        if (menu.isVisibleByDirection(direction)) {
           indicator.onActionSelected(direction);
         }
         prevSelected = direction;
@@ -107,14 +99,9 @@ class IffabMenuPresenter {
         handler.postDelayed(() -> indicator.setVisibility(View.INVISIBLE), 200);
       }
     });
-  }
 
-  void setFabIcon(Drawable fabIcon) {
-    ffab.setImageDrawable(fabIcon);
-  }
-
-  void setFabTint(int fabTint) {
-    ViewCompat.setBackgroundTintList(ffab, ColorStateList.valueOf(fabTint));
+    indicator = new ActionIndicatorView(ffab.getContext());
+    ViewCompat.setElevation(indicator, ffab.getCompatElevation());
   }
 
   void setIndicatorTint(int indicatorTint) {
@@ -125,26 +112,9 @@ class IffabMenuPresenter {
     indicator.setVisibility(visibility);
   }
 
-  void setIndicatorMargin() {
-    if (indicator.getVisibility() != VISIBLE) {
-      return;
-    }
-    final MarginLayoutParams layoutParams = (MarginLayoutParams) indicator.getLayoutParams();
-    final MarginLayoutParams ffabLp = (MarginLayoutParams) ffab.getLayoutParams();
-    layoutParams.bottomMargin = indicatorMargin + ffab.getHeight() + ffabLp.bottomMargin;
-  }
-
   void setIndicatorMargin(int indicatorMargin) {
     this.indicatorMargin = indicatorMargin;
   }
-
-//  void show() {
-//    ffab.show();
-//  }
-
-//  void hide() {
-//    ffab.hide();
-//  }
 
   void clear() {
     indicator.clear();
@@ -168,5 +138,48 @@ class IffabMenuPresenter {
 
   void setIndicatorIconTint(int indicatorIconTint) {
     indicator.setIndicatorIconTint(indicatorIconTint);
+  }
+
+  void onFabAttachedToWindow() {
+    if (indicator.getParent() != null) {
+      return;
+    }
+    final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
+    final int fabHeight = ffab.getHeight() * 9 / 10;
+    final int fabWidth = ffab.getWidth();
+    if (layoutParams instanceof FrameLayout.LayoutParams) {
+      final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(fabWidth, fabHeight);
+      mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
+      setIndicatorMarginFromEdge(mlp, mlp.gravity);
+      ((ViewGroup) ffab.getParent()).addView(indicator, mlp);
+    } else if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
+      final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(fabWidth, fabHeight);
+      mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
+      setIndicatorMarginFromEdge(mlp, mlp.gravity);
+      ((ViewGroup) ffab.getParent()).addView(indicator, mlp);
+    }
+  }
+
+  private void setIndicatorMarginFromEdge(ViewGroup.MarginLayoutParams mlp, int gravity) {
+    final ViewGroup.MarginLayoutParams ffabLp = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
+    if (hasGravityFlagOf(Gravity.BOTTOM, gravity)) {
+      mlp.bottomMargin = ffabLp.bottomMargin + mlp.height + indicatorMargin;
+    } else if (hasGravityFlagOf(Gravity.TOP, gravity)) {
+      mlp.topMargin = ffabLp.topMargin + mlp.height + indicatorMargin;
+    } else if (hasGravityFlagOf(Gravity.RIGHT, gravity)) {
+      mlp.rightMargin = ffabLp.rightMargin + mlp.width + indicatorMargin;
+    } else if (hasGravityFlagOf(Gravity.LEFT, gravity)) {
+      mlp.leftMargin = ffabLp.leftMargin + mlp.width + indicatorMargin;
+    } else if (hasGravityFlagOf(Gravity.START, gravity)) {
+      MarginLayoutParamsCompat.setMarginStart(
+          mlp, MarginLayoutParamsCompat.getMarginStart(ffabLp) + mlp.width + indicatorMargin);
+    } else if (hasGravityFlagOf(Gravity.END, gravity)) {
+      MarginLayoutParamsCompat.setMarginEnd(
+          mlp, MarginLayoutParamsCompat.getMarginEnd(ffabLp) + mlp.width + indicatorMargin);
+    }
+  }
+
+  private static boolean hasGravityFlagOf(int expected, int actual) {
+    return (expected & actual) == expected;
   }
 }

@@ -54,6 +54,7 @@ public class ActionIndicatorView extends FrameLayout {
     super(context, attrs, defStyleAttr);
     final int padding = getResources().getDimensionPixelSize(R.dimen.grid_margin);
     setPadding(padding, padding, padding, padding);
+    setVisibility(INVISIBLE);
 
     final View v = View.inflate(context, R.layout.view_action_indicator, this);
     final ImageView iconUp = (ImageView) v.findViewById(R.id.indicator_up);

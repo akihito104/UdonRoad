@@ -113,7 +113,7 @@ class IffabMenu implements Menu {
     return res;
   }
 
-  boolean isVisibleByDirectin(Direction direction) {
+  boolean isVisibleByDirection(Direction direction) {
     for (IffabMenuItem item : findItemByDirection(direction)) {
       if (item.isVisible()) {
         return true;

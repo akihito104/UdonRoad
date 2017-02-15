@@ -51,12 +51,6 @@ public class IndicatableFFAB extends FlickableFAB {
     final TypedArray a = context.obtainStyledAttributes(attrs,
         R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
     try {
-//      final Drawable fabIcon = a.getDrawable(R.styleable.IndicatableFFAB_fabIcon);
-//      presenter.setFabIcon(fabIcon);
-//      final int fabTint = a.getColor(R.styleable.IndicatableFFAB_fabTint, NO_ID);
-//      if (fabTint != NO_ID) {
-//        presenter.setFabTint(fabTint);
-//      }
       final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
       presenter.setIndicatorTint(indicatorTint);
       final int indicatorIconTint = a.getColor(R.styleable.IndicatableFFAB_indicatorIconTint, 0);
@@ -87,24 +81,14 @@ public class IndicatableFFAB extends FlickableFAB {
   }
 
   @Override
-  protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-    super.onLayout(changed, left, top, right, bottom);
-    presenter.setIndicatorMargin();
+  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    super.onSizeChanged(w, h, oldw, oldh);
+    presenter.onFabAttachedToWindow();
   }
 
   public Menu getMenu() {
     return menu;
   }
-
-//  public void hide() {
-//    presenter.hide();
-//    setVisibility(INVISIBLE);
-//  }
-
-//  public void show() {
-//    setVisibility(VISIBLE);
-//    presenter.show();
-//  }
 
   public void setOnIffabItemSelectedListener(OnIffabItemSelectedListener selectedListener) {
     menu.setOnIffabItemSelectedListener(selectedListener);
