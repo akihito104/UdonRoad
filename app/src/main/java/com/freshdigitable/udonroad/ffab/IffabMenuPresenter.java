@@ -17,6 +17,8 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
@@ -71,7 +73,7 @@ class IffabMenuPresenter {
           onMoving(direction);
         } else if (action == MotionEvent.ACTION_UP) {
           old.recycle();
-          onFlick(view.getHandler());
+          onFlick();
         }
         return false;
       }
@@ -95,8 +97,10 @@ class IffabMenuPresenter {
         prevSelected = direction;
       }
 
-      void onFlick(Handler handler) {
-        handler.postDelayed(() -> indicator.setVisibility(View.INVISIBLE), 200);
+      void onFlick() {
+        final Message msg = handler.obtainMessage(
+            MSG_DISMISS_ACTION_ITEM_VIEW, View.INVISIBLE, 0, indicator);
+        handler.sendMessageDelayed(msg, 200);
       }
     });
 
@@ -140,10 +144,30 @@ class IffabMenuPresenter {
     indicator.setIndicatorIconTint(indicatorIconTint);
   }
 
+  private static final int MSG_LAYOUT_ACTION_ITEM_VIEW = 1;
+  private static final int MSG_DISMISS_ACTION_ITEM_VIEW = 2;
+
+  private final Handler handler = new Handler(Looper.getMainLooper(), msg -> {
+    if (msg.what == MSG_LAYOUT_ACTION_ITEM_VIEW) {
+      ((IffabMenuPresenter) msg.obj).layoutActionItemView();
+      return true;
+    }
+    if (msg.what == MSG_DISMISS_ACTION_ITEM_VIEW) {
+      ((ActionIndicatorView) msg.obj).setVisibility(msg.arg1);
+      return true;
+    }
+    return false;
+  });
+
   void onFabAttachedToWindow() {
     if (indicator.getParent() != null) {
       return;
     }
+    final Message msg = handler.obtainMessage(MSG_LAYOUT_ACTION_ITEM_VIEW, this);
+    handler.sendMessage(msg);
+  }
+
+  private void layoutActionItemView() {
     final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
     final int fabHeight = ffab.getHeight() * 9 / 10;
     final int fabWidth = ffab.getWidth();
