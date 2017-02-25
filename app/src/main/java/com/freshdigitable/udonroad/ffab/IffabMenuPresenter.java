@@ -146,6 +146,7 @@ class IffabMenuPresenter {
 
   private static final int MSG_LAYOUT_ACTION_ITEM_VIEW = 1;
   private static final int MSG_DISMISS_ACTION_ITEM_VIEW = 2;
+  private static final int MSG_LAYOUT_BOTTOM_TOOLBAR = 3;
 
   private final Handler handler = new Handler(Looper.getMainLooper(), msg -> {
     if (msg.what == MSG_LAYOUT_ACTION_ITEM_VIEW) {
@@ -154,6 +155,10 @@ class IffabMenuPresenter {
     }
     if (msg.what == MSG_DISMISS_ACTION_ITEM_VIEW) {
       ((ActionIndicatorView) msg.obj).setVisibility(msg.arg1);
+      return true;
+    }
+    if (msg.what == MSG_LAYOUT_BOTTOM_TOOLBAR) {
+      ((IffabMenuPresenter) msg.obj).layoutToolbar();
       return true;
     }
     return false;
@@ -168,9 +173,9 @@ class IffabMenuPresenter {
   }
 
   private void layoutActionItemView() {
-    final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
-    final int fabHeight = ffab.getHeight() * 9 / 10;
     final int fabWidth = ffab.getWidth();
+    final int fabHeight = ffab.getHeight() * 9 / 10;
+    final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
     if (layoutParams instanceof FrameLayout.LayoutParams) {
       final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(fabWidth, fabHeight);
       mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
@@ -205,5 +210,39 @@ class IffabMenuPresenter {
 
   private static boolean hasGravityFlagOf(int expected, int actual) {
     return (expected & actual) == expected;
+  }
+
+  private BottomButtonsToolbar bbt;
+
+  void showToolbar() {
+    if (bbt == null) {
+      bbt = new BottomButtonsToolbar(ffab.getContext());
+      ViewCompat.setElevation(bbt, ffab.getCompatElevation());
+    }
+    bbt.setVisibility(View.VISIBLE);
+    if (bbt.getParent() == null) {
+      final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
+      handler.sendMessage(message);
+    }
+  }
+
+  private void layoutToolbar() {
+    final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
+    final int height = BottomButtonsToolbar.getHeight(ffab.getContext());
+    if (layoutParams instanceof FrameLayout.LayoutParams) {
+      final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT, height);
+      mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
+      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
+    } else if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
+      final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT, height);
+      mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
+      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
+    }
+  }
+
+  void hideToolbar() {
+    bbt.setVisibility(View.INVISIBLE);
   }
 }

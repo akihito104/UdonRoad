@@ -326,10 +326,12 @@ public class MainActivity extends AppCompatActivity
     StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
     replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
+    binding.ffab.transToToolbar();
   }
 
   private void hideStatusDetail() {
     switchFFABMenuTo(R.id.iffabMenu_main_detail);
+    binding.ffab.transToFAB();
   }
 
   @Inject
