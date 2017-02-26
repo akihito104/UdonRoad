@@ -50,10 +50,10 @@ class IffabMenuPresenter {
 
   void initView(IndicatableFFAB iffab) {
     this.ffab = iffab;
-    ffab.setOnFlingListener(new OnFlickAdapter() {
+    ffab.setOnFlickListener(new OnFlickAdapter() {
       @Override
       public void onFlick(Direction direction) {
-        menu.dispatchMenuItemSelected(direction);
+        menu.dispatchSelectedMenuItem(direction);
       }
     });
 
@@ -121,7 +121,12 @@ class IffabMenuPresenter {
   }
 
   void clear() {
-    indicator.clear();
+    if (indicator != null) {
+      indicator.clear();
+    }
+    if (bbt != null) {
+      bbt.clear();
+    }
   }
 
   void updateMenu() {
@@ -217,6 +222,7 @@ class IffabMenuPresenter {
   void showToolbar() {
     if (bbt == null) {
       bbt = new BottomButtonsToolbar(ffab.getContext());
+      bbt.setMenu(menu);
       ViewCompat.setElevation(bbt, ffab.getCompatElevation());
     }
     bbt.setVisibility(View.VISIBLE);

@@ -73,7 +73,7 @@ public class FlickableFAB extends FloatingActionButton {
 
   private OnFlickListener flickListener;
 
-  public void setOnFlingListener(OnFlickListener listener) {
+  public void setOnFlickListener(OnFlickListener listener) {
     this.flickListener = listener;
   }
 }

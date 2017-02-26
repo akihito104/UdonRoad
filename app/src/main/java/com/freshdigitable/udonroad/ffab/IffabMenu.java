@@ -156,16 +156,23 @@ class IffabMenu implements Menu {
     return null;
   }
 
-  void dispatchMenuItemSelected(Direction direction) {
+  void dispatchSelectedMenuItem(Direction direction) {
     if (selectedListener == null) {
       return;
     }
     for (IffabMenuItem item : findItemByDirection(direction)) {
       if (item.isEnabled()) {
-        selectedListener.onItemSelected(item);
+        dispatchSelectedMenuItem(item);
         return;
       }
     }
+  }
+
+  void dispatchSelectedMenuItem(IffabMenuItem item) {
+    if (selectedListener == null) {
+      return;
+    }
+    selectedListener.onItemSelected(item);
   }
 
   void dispatchUpdatePresenter() {

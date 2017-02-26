@@ -24,10 +24,14 @@ import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.freshdigitable.udonroad.R;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * BottomButtonsToolbar shows menu items that has state.
@@ -52,19 +56,46 @@ class BottomButtonsToolbar extends Toolbar {
 
     menuContainer = new LinearLayout(context, attrs, defStyleAttr);
     menuContainer.setOrientation(LinearLayout.HORIZONTAL);
-    final LayoutParams layoutParams = new LayoutParams(MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.MATCH_PARENT);
+    final LayoutParams layoutParams = new LayoutParams(
+        MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.MATCH_PARENT);
     addView(menuContainer, layoutParams);
+
+    iconPadding = getResources().getDimensionPixelSize(R.dimen.iffab_toolbar_icon_padding);
   }
 
-  @Override
-  protected LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
-    return super.generateLayoutParams(p);
+  private final int iconPadding;
+  public static final LinearLayout.LayoutParams ICON_LAYOUT_PARAMS
+      = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
+  private IffabMenu menu;
+
+  void setMenu(IffabMenu menu) {
+    this.menu = menu;
+    final List<IffabMenuItem> visibleItems = menu.getVisibleItems();
+    Collections.sort(visibleItems, (r, l) -> r.getOrder() - l.getOrder());
+    for (IffabMenuItem item : visibleItems) {
+      addMenuItem(item);
+    }
   }
 
-  void setDrawable(int order, Drawable drawable) {
+  void addMenuItem(IffabMenuItem item) {
+    final Drawable icon = item.getIcon();
+    if (icon == null) {
+      return;
+    }
     final AppCompatImageView iv = new AppCompatImageView(getContext());
-    iv.setImageDrawable(drawable);
+    iv.setLayoutParams(ICON_LAYOUT_PARAMS);
+    iv.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
+    iv.setImageDrawable(icon);
+    iv.setOnClickListener(v -> menu.dispatchSelectedMenuItem(item));
     menuContainer.addView(iv);
+  }
+
+  void clear() {
+    final int childCount = menuContainer.getChildCount();
+    for (int i = 0; i < childCount; i++) {
+      final View child = menuContainer.getChildAt(i);
+      child.setOnClickListener(null);
+    }
   }
 
   static int getHeight(Context context) {
