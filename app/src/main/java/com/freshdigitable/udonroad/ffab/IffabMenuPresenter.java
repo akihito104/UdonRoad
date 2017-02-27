@@ -225,11 +225,28 @@ class IffabMenuPresenter {
       bbt.setMenu(menu);
       ViewCompat.setElevation(bbt, ffab.getCompatElevation());
     }
+
+    updateMenuItemCheckable(true);
     bbt.setVisibility(View.VISIBLE);
+
     if (bbt.getParent() == null) {
       final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
       handler.sendMessage(message);
     }
+  }
+
+  private void updateMenuItemCheckable(boolean checkable) {
+    final int menuSize = menu.size();
+    pendingUpdate = true;
+    for (int i = 0; i < menuSize; i++) {
+      menu.getItem(i).setCheckable(checkable);
+    }
+    pendingUpdate = false;
+  }
+
+  void hideToolbar() {
+    bbt.setVisibility(View.INVISIBLE);
+    updateMenuItemCheckable(false);
   }
 
   private void layoutToolbar() {
@@ -246,9 +263,5 @@ class IffabMenuPresenter {
       mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
       ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
     }
-  }
-
-  void hideToolbar() {
-    bbt.setVisibility(View.INVISIBLE);
   }
 }

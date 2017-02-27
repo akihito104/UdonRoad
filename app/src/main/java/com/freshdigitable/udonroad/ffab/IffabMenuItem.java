@@ -202,6 +202,33 @@ class IffabMenuItem implements MenuItem {
     return enabled;
   }
 
+  private boolean checkable = false;
+
+  @Override
+  public MenuItem setCheckable(boolean checkable) {
+    this.checkable = checkable;
+    return this;
+  }
+
+  @Override
+  public boolean isCheckable() {
+    return checkable;
+  }
+
+  private boolean checked = false;
+
+  @Override
+  public MenuItem setChecked(boolean checked) {
+    this.checked = checked;
+    menu.dispatchUpdatePresenter();
+    return this;
+  }
+
+  @Override
+  public boolean isChecked() {
+    return checked;
+  }
+
   @Override
   public MenuItem setOnMenuItemClickListener(OnMenuItemClickListener menuItemClickListener) {
     throw new RuntimeException("not implemented yet...");
@@ -265,26 +292,6 @@ class IffabMenuItem implements MenuItem {
   @Override
   public MenuItem setOnActionExpandListener(OnActionExpandListener listener) {
     throw new RuntimeException("not implemented yet...");
-  }
-
-  @Override
-  public MenuItem setCheckable(boolean checkable) {
-    return this;
-  }
-
-  @Override
-  public boolean isCheckable() {
-    return false;
-  }
-
-  @Override
-  public MenuItem setChecked(boolean checked) {
-    return this;
-  }
-
-  @Override
-  public boolean isChecked() {
-    return false;
   }
 
   @Override
