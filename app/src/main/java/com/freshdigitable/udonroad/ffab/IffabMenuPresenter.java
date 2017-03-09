@@ -246,7 +246,14 @@ class IffabMenuPresenter {
 
   void hideToolbar() {
     bbt.setVisibility(View.INVISIBLE);
+    pendingUpdate = true;
+    final int menuSize = menu.size();
+    for (int i = 0; i < menuSize; i++) {
+      menu.getItem(i).setChecked(false);
+    }
     updateMenuItemCheckable(false);
+    pendingUpdate = false;
+    updateMenu();
   }
 
   private void layoutToolbar() {

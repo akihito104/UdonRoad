@@ -23,6 +23,7 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
@@ -324,5 +325,10 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public void hideFab() {
     binding.ffab.hide();
+  }
+
+  @Override
+  public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
+    binding.ffab.getMenu().findItem(itemId).setChecked(checked);
   }
 }

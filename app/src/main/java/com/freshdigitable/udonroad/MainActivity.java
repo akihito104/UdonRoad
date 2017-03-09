@@ -423,9 +423,17 @@ public class MainActivity extends AppCompatActivity
       final int itemId = item.getItemId();
       final long selectedTweetId = tlFragment.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_fav) {
-        statusRequestWorker.createFavorite(selectedTweetId);
+        if (!item.isChecked()) {
+          statusRequestWorker.createFavorite(selectedTweetId);
+        } else {
+          statusRequestWorker.destroyFavorite(selectedTweetId);
+        }
       } else if (itemId == R.id.iffabMenu_main_rt) {
-        statusRequestWorker.retweetStatus(selectedTweetId);
+        if (!item.isChecked()) {
+          statusRequestWorker.retweetStatus(selectedTweetId);
+        } else {
+          statusRequestWorker.destroyRetweet(selectedTweetId);
+        }
       } else if (itemId == R.id.iffabMenu_main_favRt) {
         Observable.concatDelayError(Arrays.asList(
             statusRequestWorker.observeCreateFavorite(selectedTweetId),
@@ -461,6 +469,11 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void hideFab() {
     binding.ffab.hide();
+  }
+
+  @Override
+  public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
+    binding.ffab.getMenu().findItem(itemId).setChecked(checked);
   }
 
   @Override

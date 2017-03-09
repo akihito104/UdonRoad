@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.annotation.IdRes;
+
 /**
  * FabHandleable is a interface to be implemented by Activity which FAB manages.
  *
@@ -25,4 +27,6 @@ public interface FabHandleable {
   void showFab();
 
   void hideFab();
+
+  void setCheckedFabMenuItem(@IdRes int itemId, boolean checked);
 }

@@ -124,7 +124,10 @@ public class StatusDetailFragment extends Fragment {
 
     binding.statusView.bindStatus(status);
     subscription = statusCache.observeById(statusId)
-        .subscribe(binding.statusView::update);
+        .subscribe(s -> {
+          binding.statusView.update(s);
+          updateFabMenuItem(s);
+        });
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
@@ -176,6 +179,26 @@ public class StatusDetailFragment extends Fragment {
       intent.setData(Uri.parse(this.twitterCard.getUrl()));
     }
     binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    final TypedCache<Status> statusCache = statusRequestWorker.getCache();
+    final Status status = statusCache.find(getStatusId());
+    if (status == null) {
+      return;
+    }
+    updateFabMenuItem(status);
+  }
+
+  private void updateFabMenuItem(final Status status) {
+    final FragmentActivity activity = getActivity();
+    if (activity instanceof FabHandleable) {
+      final FabHandleable fabHandleable = (FabHandleable) activity;
+      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_rt, status.isRetweeted());
+      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_fav, status.isFavorited());
+    }
   }
 
   @Override
