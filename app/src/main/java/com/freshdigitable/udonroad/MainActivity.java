@@ -349,12 +349,15 @@ public class MainActivity extends AppCompatActivity
     replaceTimelineContainer(name, conversationFragment);
     conversationRequestWorker.fetchConversations(statusId);
     switchFFABMenuTo(R.id.iffabMenu_main_detail);
+    binding.ffab.transToFAB();
+    binding.ffab.hide();
   }
 
   private void hideConversation() {
     conversationRequestWorker.getCache().clear();
     conversationRequestWorker.close();
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
+    binding.ffab.transToToolbar();
   }
 
   private void replaceTimelineContainer(String name, Fragment fragment) {
