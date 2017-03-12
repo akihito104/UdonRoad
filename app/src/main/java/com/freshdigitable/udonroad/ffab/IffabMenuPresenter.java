@@ -268,6 +268,7 @@ class IffabMenuPresenter {
       final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT, height);
       mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
+      mlp.dodgeInsetEdges = Gravity.BOTTOM;
       ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
     }
   }
