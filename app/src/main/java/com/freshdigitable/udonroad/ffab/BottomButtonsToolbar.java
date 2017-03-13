@@ -78,7 +78,7 @@ class BottomButtonsToolbar extends Toolbar {
   }
 
   void addMenuItem(IffabMenuItem item) {
-    final Drawable icon = item.getIcon();
+    final Drawable icon = item.getTintedIcon();
     if (icon == null) {
       return;
     }

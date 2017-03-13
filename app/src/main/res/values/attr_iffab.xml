@@ -21,6 +21,7 @@
         <attr name="indicatorIconTint" format="reference|color"/>
         <attr name="marginFabToIndicator" format="dimension"/>
         <attr name="menu" format="reference"/>
+        <attr name="toolbarIconColorState" format="reference"/>
     </declare-styleable>
 
     <declare-styleable name="IndicatableFFABTheme">

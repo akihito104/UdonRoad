@@ -21,7 +21,6 @@ import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.R;
@@ -74,7 +73,7 @@ public class IndicatableFFAB extends FlickableFAB {
 
   private void inflateMenu(int menuRes) {
     presenter.setPendingUpdate(true);
-    final MenuInflater menuInflater = new MenuInflater(getContext());
+    final IffabMenuItemInflater menuInflater = new IffabMenuItemInflater(getContext());
     menuInflater.inflate(menuRes, menu);
     presenter.setPendingUpdate(false);
     presenter.updateMenu();

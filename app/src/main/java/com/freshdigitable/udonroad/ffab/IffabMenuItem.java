@@ -17,12 +17,14 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.ActionProvider;
 import android.view.ContextMenu;
 import android.view.MenuItem;
@@ -304,5 +306,21 @@ class IffabMenuItem implements MenuItem {
   @Override
   public SubMenu getSubMenu() {
     throw new RuntimeException("IndicatableFFAB does not accept sub menu.");
+  }
+
+  private ColorStateList toolbarIconColorStateList;
+
+  void setColorState(ColorStateList colorStateList) {
+    this.toolbarIconColorStateList = colorStateList;
+  }
+
+  Drawable getTintedIcon() {
+    final Drawable icon = getIcon();
+    if (icon == null) {
+      return null;
+    }
+    final Drawable mutated = icon.mutate();
+    DrawableCompat.setTintList(mutated, toolbarIconColorStateList);
+    return mutated;
   }
 }
