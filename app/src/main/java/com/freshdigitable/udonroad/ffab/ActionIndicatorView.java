@@ -201,7 +201,7 @@ public class ActionIndicatorView extends FrameLayout {
     if (drawable == null) {
       return;
     }
-    DrawableCompat.setTint(drawable, color);
+    DrawableCompat.setTint(drawable.mutate(), color);
   }
 
   private enum TransCoefs {

@@ -26,6 +26,7 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.freshdigitable.udonroad.R;
@@ -70,24 +71,41 @@ class BottomButtonsToolbar extends Toolbar {
 
   void setMenu(IffabMenu menu) {
     this.menu = menu;
-    final List<IffabMenuItem> visibleItems = menu.getVisibleItems();
+    updateItems();
+  }
+
+  void updateItems() {
+    final List<IffabMenuItem> visibleItems = this.menu.getVisibleItems();
     Collections.sort(visibleItems, (r, l) -> r.getOrder() - l.getOrder());
-    for (IffabMenuItem item : visibleItems) {
-      addMenuItem(item);
+    for (int i = 0; i < visibleItems.size(); i++) {
+      final int maxIconIndex = menuContainer.getChildCount() - 1;
+      final IffabMenuItem item = visibleItems.get(i);
+      if (i > maxIconIndex) {
+        addMenuItem(item);
+      } else {
+        setMenuItem((ImageView) menuContainer.getChildAt(i), item);
+      }
+    }
+    final int removedCount = menuContainer.getChildCount() - visibleItems.size();
+    if (removedCount > 0) {
+      menuContainer.removeViews(visibleItems.size(), removedCount);
     }
   }
 
-  void addMenuItem(IffabMenuItem item) {
-    final Drawable icon = item.getTintedIcon();
-    if (icon == null) {
-      return;
-    }
+  private void addMenuItem(IffabMenuItem item) {
     final AppCompatImageView iv = new AppCompatImageView(getContext());
     iv.setLayoutParams(ICON_LAYOUT_PARAMS);
     iv.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
-    iv.setImageDrawable(icon);
-    iv.setOnClickListener(v -> menu.dispatchSelectedMenuItem(item));
+    setMenuItem(iv, item);
     menuContainer.addView(iv);
+  }
+
+  private void setMenuItem(ImageView iv, IffabMenuItem item) {
+    final Drawable icon = item.getTintedIcon();
+    iv.setImageDrawable(icon);
+    iv.setImageState(item.parseToState(), false);
+    final int itemId = item.getItemId();
+    iv.setOnClickListener(v -> menu.dispatchSelectedMenuItem(itemId));
   }
 
   void clear() {
@@ -96,6 +114,7 @@ class BottomButtonsToolbar extends Toolbar {
       final View child = menuContainer.getChildAt(i);
       child.setOnClickListener(null);
     }
+    menuContainer.removeAllViews();
   }
 
   static int getHeight(Context context) {

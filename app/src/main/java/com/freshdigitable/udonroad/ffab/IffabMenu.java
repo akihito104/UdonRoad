@@ -131,10 +131,20 @@ class IffabMenu implements Menu {
     return false;
   }
 
+  List<IffabMenuItem> getEnableItems() {
+    final List<IffabMenuItem> res = new ArrayList<>();
+    for (IffabMenuItem item : menuItems) {
+      if (item.isEnabled()) {
+        res.add(item);
+      }
+    }
+    return res;
+  }
+
   List<IffabMenuItem> getVisibleItems() {
     final List<IffabMenuItem> res = new ArrayList<>();
     for (IffabMenuItem item : menuItems) {
-      if (item.isVisible()) {
+      if (item.isVisible() && item.getIcon() != null) {
         res.add(item);
       }
     }
@@ -168,7 +178,15 @@ class IffabMenu implements Menu {
     }
   }
 
-  void dispatchSelectedMenuItem(IffabMenuItem item) {
+  void dispatchSelectedMenuItem(int itemId) {
+    if (selectedListener == null) {
+      return;
+    }
+    final IffabMenuItem item = findItem(itemId);
+    dispatchSelectedMenuItem(item);
+  }
+
+  private void dispatchSelectedMenuItem(IffabMenuItem item) {
     if (selectedListener == null) {
       return;
     }

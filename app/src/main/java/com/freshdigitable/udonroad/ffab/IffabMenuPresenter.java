@@ -133,9 +133,12 @@ class IffabMenuPresenter {
     if (pendingUpdate) {
       return;
     }
-    final List<IffabMenuItem> items = menu.getVisibleItems();
+    final List<IffabMenuItem> items = menu.getEnableItems();
     for (IffabMenuItem i : items) {
       indicator.setDrawable(i.getDirection(), i.getIcon());
+    }
+    if (bbt != null) {
+      bbt.updateItems();
     }
   }
 

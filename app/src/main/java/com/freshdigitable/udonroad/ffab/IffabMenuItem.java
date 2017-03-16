@@ -130,7 +130,7 @@ class IffabMenuItem implements MenuItem {
   @Override
   public Drawable getIcon() {
     if (this.icon == null && this.iconRes > 0) {
-      final Drawable icon = ContextCompat.getDrawable(menu.getContext(), this.iconRes).mutate();
+      final Drawable icon = ContextCompat.getDrawable(menu.getContext(), this.iconRes);
       setIcon(icon);
     }
     return this.icon;
@@ -319,8 +319,26 @@ class IffabMenuItem implements MenuItem {
     if (icon == null) {
       return null;
     }
-    final Drawable mutated = icon.mutate();
-    DrawableCompat.setTintList(mutated, toolbarIconColorStateList);
-    return mutated;
+    if (toolbarIconColorStateList != null) {
+      DrawableCompat.setTintList(icon.mutate(), toolbarIconColorStateList);
+    }
+    return icon;
+  }
+
+  private static final int[] STATE_CHECKED = {android.R.attr.state_checked};
+  private static final int[] STATE_CHECKABLE
+      = {android.R.attr.state_checkable, android.R.attr.state_enabled};
+  private static final int[] STATE_ENABLE = {android.R.attr.state_enabled};
+  private static final int[] STATE_DISABLE = new int[0];
+
+  int[] parseToState() {
+    if (checkable && checked) {
+      return STATE_CHECKED;
+    } else if (checkable) {
+      return STATE_CHECKABLE;
+    } else if (enabled) {
+      return STATE_ENABLE;
+    }
+    return STATE_DISABLE;
   }
 }

@@ -196,8 +196,9 @@ public class StatusDetailFragment extends Fragment {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       final FabHandleable fabHandleable = (FabHandleable) activity;
-      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_rt, status.isRetweeted());
-      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_fav, status.isFavorited());
+      final Status bindingStatus = Utils.getBindingStatus(status);
+      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_rt, bindingStatus.isRetweeted());
+      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_fav, bindingStatus.isFavorited());
     }
   }
 
