@@ -12,7 +12,7 @@ powered by http://twitter4j.org
 
   ```
   <string name="consumer_key">[your app's Consumer Key]</string>
-  <string name="consumer_secret>[your app's Consumer Secret]</string>
+  <string name="consumer_secret">[your app's Consumer Secret]</string>
   ```
 
 3. build app
