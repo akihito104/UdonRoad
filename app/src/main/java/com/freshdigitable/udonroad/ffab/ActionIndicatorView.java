@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * Created by akihit on 2016/07/04.
  */
-public class ActionIndicatorView extends FrameLayout {
+class ActionIndicatorView extends FrameLayout {
   private final Map<Direction, ImageView> icons = new HashMap<>();
   private final Map<Direction, Drawable> drawables = new HashMap<>();
 

@@ -29,7 +29,7 @@ import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
  *
  * Created by akihit on 15/11/04.
  */
-public class FlickableFAB extends FloatingActionButton {
+class FlickableFAB extends FloatingActionButton {
   @SuppressWarnings("unused")
   private static final String TAG = FlickableFAB.class.getSimpleName();
 

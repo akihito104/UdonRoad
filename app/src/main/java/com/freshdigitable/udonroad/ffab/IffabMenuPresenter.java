@@ -16,10 +16,12 @@
 
 package com.freshdigitable.udonroad.ffab;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
 import android.view.Gravity;
@@ -40,12 +42,13 @@ import java.util.List;
 
 class IffabMenuPresenter {
   private ActionIndicatorView indicator;
-  private FlickableFAB ffab;
+  private IndicatableFFAB ffab;
   private int indicatorMargin;
   private IffabMenu menu;
 
   void initForMenu(IffabMenu menu) {
     this.menu = menu;
+    bbt.setMenu(menu);
   }
 
   void initView(IndicatableFFAB iffab) {
@@ -106,6 +109,16 @@ class IffabMenuPresenter {
 
     indicator = new ActionIndicatorView(ffab.getContext());
     ViewCompat.setElevation(indicator, ffab.getCompatElevation());
+
+    if (bbt == null) {
+      bbt = new BottomButtonsToolbar(ffab.getContext());
+      bbt.setVisibility(View.INVISIBLE);
+      ViewCompat.setElevation(bbt, ffab.getCompatElevation());
+    }
+    if (bbt.getParent() == null) {
+      final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
+      handler.sendMessage(message);
+    }
   }
 
   void setIndicatorTint(int indicatorTint) {
@@ -223,18 +236,30 @@ class IffabMenuPresenter {
   private BottomButtonsToolbar bbt;
 
   void showToolbar() {
-    if (bbt == null) {
-      bbt = new BottomButtonsToolbar(ffab.getContext());
-      bbt.setMenu(menu);
-      ViewCompat.setElevation(bbt, ffab.getCompatElevation());
-    }
-
     updateMenuItemCheckable(true);
-    bbt.setVisibility(View.VISIBLE);
+    animateToShowToolbar();
+  }
 
-    if (bbt.getParent() == null) {
-      final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
-      handler.sendMessage(message);
+  private void animateToShowToolbar() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      TransformAnimator.transToToolbar(ffab, bbt);
+    } else {
+      ffab.hide(new FloatingActionButton.OnVisibilityChangedListener() {
+        @Override
+        public void onHidden(FloatingActionButton fab) {
+          super.onHidden(fab);
+          bbt.setVisibility(View.VISIBLE);
+        }
+      });
+    }
+  }
+
+  private void animateToHideToolbar() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      TransformAnimator.transToFab(ffab, bbt);
+    } else {
+      bbt.setVisibility(View.INVISIBLE);
+      ffab.show();
     }
   }
 
@@ -248,7 +273,7 @@ class IffabMenuPresenter {
   }
 
   void hideToolbar() {
-    bbt.setVisibility(View.INVISIBLE);
+    animateToHideToolbar();
     pendingUpdate = true;
     final int menuSize = menu.size();
     for (int i = 0; i < menuSize; i++) {
