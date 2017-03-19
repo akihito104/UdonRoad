@@ -119,7 +119,8 @@ class BottomButtonsToolbar extends Toolbar {
 
   static int getHeight(Context context) {
     final TypedValue tv = new TypedValue();
-    return context.getTheme().resolveAttribute(android.support.v7.appcompat.R.attr.actionBarSize, tv, true)
+    return context.getTheme().resolveAttribute(
+        android.support.v7.appcompat.R.attr.actionBarSize, tv, true)
         ? TypedValue.complexToDimensionPixelSize(tv.data, context.getResources().getDisplayMetrics())
         : MarginLayoutParams.WRAP_CONTENT;
   }

@@ -23,6 +23,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.view.ViewPropertyAnimator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
 /**
  * TransformAnimator is for custom reveal animation of IndicatableFFAB and BottomButtonsToolbar.
@@ -32,19 +35,24 @@ import android.view.ViewAnimationUtils;
 
 class TransformAnimator {
 
+  private static final float FAB_SCALE = 1.2f;
+  private static final int FAB_MOVE_DURATION = 80;
+  private static final int TOOLBAR_MOVE_DURATION = 120;
+  private static final AccelerateInterpolator ACCELERATE_INTERPOLATOR = new AccelerateInterpolator();
+
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   static void transToToolbar(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt) {
     ffab.animate()
-        .scaleX(1.2f)
-        .scaleY(1.2f)
+        .scaleX(FAB_SCALE)
+        .scaleY(FAB_SCALE)
         .translationX(getCenterX(bbt) - getCenterX(ffab))
         .translationY(getCenterY(bbt) - getCenterY(ffab))
-        .setDuration(100)
+        .setDuration(FAB_MOVE_DURATION)
+        .setInterpolator(ACCELERATE_INTERPOLATOR)
         .setListener(new AnimatorListenerAdapter() {
           @Override
           public void onAnimationEnd(Animator animation) {
             ffab.setVisibility(View.INVISIBLE);
-            bbt.setVisibility(View.VISIBLE);
             showToolbar(ffab, bbt);
           }
         })
@@ -53,49 +61,76 @@ class TransformAnimator {
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private static void showToolbar(IndicatableFFAB ffab, BottomButtonsToolbar bbt) {
+    final int centerX = (int) (getCenterX(ffab) - bbt.getLeft());
+    final int centerY = (int) (getCenterY(ffab) - bbt.getTop());
     final Animator revealAnimator = ViewAnimationUtils.createCircularReveal(bbt,
-        bbt.getWidth() / 2,
-        bbt.getHeight() / 2,
-        ffab.getHeight() / 2,
-        (float) Math.hypot(bbt.getHeight(), bbt.getWidth()) / 2);
-    revealAnimator.setDuration(200);
+        centerX, centerY,
+        calcMinRevealRadius(ffab), calcMaxRevealRadius(ffab, bbt));
+    revealAnimator.setDuration(TOOLBAR_MOVE_DURATION);
+    revealAnimator.addListener(new AnimatorListenerAdapter() {
+      @Override
+      public void onAnimationStart(Animator animation) {
+        bbt.setVisibility(View.VISIBLE);
+      }
+    });
     revealAnimator.start();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   static void transToFab(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt) {
+    final int centerX = (int) (getCenterX(ffab) - bbt.getLeft());
+    final int centerY = (int) (getCenterY(ffab) - bbt.getTop());
     final Animator revealAnimator = ViewAnimationUtils.createCircularReveal(bbt,
-        bbt.getWidth() / 2,
-        bbt.getHeight() / 2,
-        (float) Math.hypot(bbt.getHeight(), bbt.getWidth()) / 2,
-        ffab.getHeight() / 2);
+        centerX, centerY,
+        calcMaxRevealRadius(ffab, bbt), calcMinRevealRadius(ffab));
     revealAnimator.addListener(new AnimatorListenerAdapter() {
       @Override
       public void onAnimationEnd(Animator animation) {
-        showFFAB(ffab);
         bbt.setVisibility(View.INVISIBLE);
-        ffab.setVisibility(View.VISIBLE);
+        showFFAB(ffab);
       }
     });
-    revealAnimator.setDuration(200);
+    revealAnimator.setDuration(TOOLBAR_MOVE_DURATION);
     revealAnimator.start();
   }
 
+  private static final DecelerateInterpolator DECELERATE_INTERPOLATOR = new DecelerateInterpolator();
+
   private static void showFFAB(@NonNull IndicatableFFAB ffab) {
-    ffab.animate()
+    final ViewPropertyAnimator animator = ffab.animate()
         .scaleX(1)
         .scaleY(1)
         .translationX(0)
         .translationY(0)
-        .setDuration(100)
-        .start();
+        .setInterpolator(DECELERATE_INTERPOLATOR)
+        .setDuration(FAB_MOVE_DURATION);
+    animator.setListener(new AnimatorListenerAdapter() {
+      @Override
+      public void onAnimationStart(Animator animation) {
+        ffab.setVisibility(View.VISIBLE);
+      }
+    });
+    animator.start();
   }
 
   private static float getCenterX(View v) {
-    return (v.getLeft() + v.getRight()) / 2;
+    return v.getX() + v.getPivotX();
   }
 
-  private static float getCenterY(View view) {
-    return (view.getTop() + view.getBottom()) / 2;
+  private static float getCenterY(View v) {
+    return v.getY() + v.getPivotY();
+  }
+
+  private static float calcMinRevealRadius(IndicatableFFAB ffab) {
+    return ffab.getScaleX() * ffab.getHeight() / 2;
+  }
+
+  private static float calcMaxRevealRadius(
+      @NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt) {
+    final int centerX = (int) (getCenterX(ffab) - bbt.getLeft());
+    final int centerY = (int) (getCenterY(ffab) - bbt.getTop());
+    final int radiusX = Math.max(Math.abs(centerX), Math.abs(bbt.getWidth() - centerX));
+    final int radiusY = Math.max(Math.abs(centerY), Math.abs(bbt.getHeight() - centerY));
+    return (float) Math.hypot(radiusX, radiusY);
   }
 }
