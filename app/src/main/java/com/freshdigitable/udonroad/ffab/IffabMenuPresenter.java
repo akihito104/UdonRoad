@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.ffab;
 
+import android.content.Context;
+import android.content.res.TypedArray;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,6 +26,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
+import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,6 +35,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 import java.util.List;
@@ -43,14 +47,50 @@ import java.util.List;
  */
 
 class IffabMenuPresenter {
-  private ActionIndicatorView indicator;
+  private final ActionIndicatorView indicator;
   private IndicatableFFAB ffab;
-  private int indicatorMargin;
-  private IffabMenu menu;
+  private final int indicatorMargin;
+  private final IffabMenu menu;
 
-  void initForMenu(IffabMenu menu) {
-    this.menu = menu;
-    bbt.setMenu(menu);
+  IffabMenuPresenter(Context context, AttributeSet attrs, int defStyleAttr) {
+    indicator = new ActionIndicatorView(context);
+    menu = new IffabMenu(context, this);
+
+    final TypedArray a = context.obtainStyledAttributes(attrs,
+        R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
+    try {
+      final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
+      indicator.setBackgroundColor(indicatorTint);
+      final int indicatorIconTint = a.getColor(R.styleable.IndicatableFFAB_indicatorIconTint, 0);
+      indicator.setIndicatorIconTint(indicatorIconTint);
+      this.indicatorMargin = a.getDimensionPixelSize(R.styleable.IndicatableFFAB_marginFabToIndicator, 0);
+
+      final boolean toolbarEnabled = a.getBoolean(R.styleable.IndicatableFFAB_enableToolbar, true);
+      if (toolbarEnabled) {
+        bbt = new BottomButtonsToolbar(context);
+        bbt.setVisibility(View.INVISIBLE);
+      } else {
+        bbt = null;
+      }
+
+      if (a.hasValue(R.styleable.IndicatableFFAB_menu)) {
+        final int menuRes = a.getResourceId(R.styleable.IndicatableFFAB_menu, 0);
+        inflateMenu(context, menuRes);
+      }
+    } finally {
+      a.recycle();
+    }
+  }
+
+  private void inflateMenu(Context context, int menuRes) {
+    setPendingUpdate(true);
+    final IffabMenuItemInflater menuInflater = new IffabMenuItemInflater(context);
+    menuInflater.inflate(menuRes, menu);
+    setPendingUpdate(false);
+    if (bbt != null) {
+      bbt.setMenu(menu);
+    }
+    updateMenu();
   }
 
   void initView(IndicatableFFAB iffab) {
@@ -109,30 +149,19 @@ class IffabMenuPresenter {
       }
     });
 
-    indicator = new ActionIndicatorView(ffab.getContext());
     ViewCompat.setElevation(indicator, ffab.getCompatElevation());
 
-    if (bbt == null) {
-      bbt = new BottomButtonsToolbar(ffab.getContext());
-      bbt.setVisibility(View.INVISIBLE);
+    if (bbt != null) {
       ViewCompat.setElevation(bbt, ffab.getCompatElevation());
+      if (bbt.getParent() == null) {
+        final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
+        handler.sendMessage(message);
+      }
     }
-    if (bbt.getParent() == null) {
-      final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
-      handler.sendMessage(message);
-    }
-  }
-
-  void setIndicatorTint(int indicatorTint) {
-    indicator.setBackgroundColor(indicatorTint);
   }
 
   void setIndicatorVisibility(int visibility) {
     indicator.setVisibility(visibility);
-  }
-
-  void setIndicatorMargin(int indicatorMargin) {
-    this.indicatorMargin = indicatorMargin;
   }
 
   void clear() {
@@ -161,10 +190,6 @@ class IffabMenuPresenter {
 
   void setPendingUpdate(boolean pendingUpdate) {
     this.pendingUpdate = pendingUpdate;
-  }
-
-  void setIndicatorIconTint(int indicatorIconTint) {
-    indicator.setIndicatorIconTint(indicatorIconTint);
   }
 
   private static final int MSG_LAYOUT_ACTION_ITEM_VIEW = 1;
@@ -235,7 +260,7 @@ class IffabMenuPresenter {
     return (expected & actual) == expected;
   }
 
-  private BottomButtonsToolbar bbt;
+  private final BottomButtonsToolbar bbt;
 
   void transToToolbar() {
     updateMenuItemCheckable(true);
@@ -315,7 +340,9 @@ class IffabMenuPresenter {
   }
 
   boolean isToolbarDroppedDown() {
-    return bbt.getVisibility() == View.VISIBLE && bbt.getTranslationY() != 0;
+    return bbt != null
+        && bbt.getVisibility() == View.VISIBLE
+        && bbt.getTranslationY() != 0;
   }
 
   void showToolbar() {
@@ -324,5 +351,9 @@ class IffabMenuPresenter {
         .setInterpolator(new AccelerateInterpolator())
         .setDuration(200)
         .start();
+  }
+
+  IffabMenu getMenu() {
+    return menu;
   }
 }

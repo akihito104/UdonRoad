@@ -48,6 +48,7 @@
                 app:backgroundTint="@color/layer_black_immersive"
                 app:indicatorTint="@color/layer_black_immersive"
                 app:menu="@menu/iffab_media"
+                app:enableToolbar="false"
                 />
         </FrameLayout>
 

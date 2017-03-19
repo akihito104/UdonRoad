@@ -22,6 +22,7 @@
         <attr name="marginFabToIndicator" format="dimension"/>
         <attr name="menu" format="reference"/>
         <attr name="toolbarIconColorState" format="reference"/>
+        <attr name="enableToolbar" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="IndicatableFFABTheme">
@@ -34,6 +35,7 @@
         <item name="marginFabToIndicator">60dp</item>
         <item name="srcCompat">@drawable/ic_add</item>
         <item name="fabSize">normal</item>
+        <item name="enableToolbar">true</item>
     </style>
 
     <dimen name="iffab_margin_bottom">32dp</dimen>

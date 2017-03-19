@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.Menu;
@@ -31,8 +30,7 @@ import com.freshdigitable.udonroad.R;
  * Created by akihit on 2016/09/05.
  */
 public class IndicatableFFAB extends FlickableFAB {
-  private final IffabMenu menu;
-  private final IffabMenuPresenter presenter = new IffabMenuPresenter();
+  private final IffabMenuPresenter presenter;
 
   public IndicatableFFAB(Context context) {
     this(context, null);
@@ -44,39 +42,11 @@ public class IndicatableFFAB extends FlickableFAB {
 
   public IndicatableFFAB(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
+    presenter = new IffabMenuPresenter(context, attrs, defStyleAttr);
     presenter.initView(this);
-    menu = new IffabMenu(context, presenter);
-
-    final TypedArray a = context.obtainStyledAttributes(attrs,
-        R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
-    try {
-      final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
-      presenter.setIndicatorTint(indicatorTint);
-      final int indicatorIconTint = a.getColor(R.styleable.IndicatableFFAB_indicatorIconTint, 0);
-      presenter.setIndicatorIconTint(indicatorIconTint);
-      final int indicatorMargin = a.getDimensionPixelSize(R.styleable.IndicatableFFAB_marginFabToIndicator, 0);
-      presenter.setIndicatorMargin(indicatorMargin);
-
-      presenter.initForMenu(menu);
-      if (a.hasValue(R.styleable.IndicatableFFAB_menu)) {
-        final int menuRes = a.getResourceId(R.styleable.IndicatableFFAB_menu, 0);
-        inflateMenu(menuRes);
-      }
-    } finally {
-      a.recycle();
-    }
-
     if (isInEditMode()) {
       presenter.setIndicatorVisibility(VISIBLE);
     }
-  }
-
-  private void inflateMenu(int menuRes) {
-    presenter.setPendingUpdate(true);
-    final IffabMenuItemInflater menuInflater = new IffabMenuItemInflater(getContext());
-    menuInflater.inflate(menuRes, menu);
-    presenter.setPendingUpdate(false);
-    presenter.updateMenu();
   }
 
   @Override
@@ -86,11 +56,11 @@ public class IndicatableFFAB extends FlickableFAB {
   }
 
   public Menu getMenu() {
-    return menu;
+    return presenter.getMenu();
   }
 
   public void setOnIffabItemSelectedListener(OnIffabItemSelectedListener selectedListener) {
-    menu.setOnIffabItemSelectedListener(selectedListener);
+    presenter.getMenu().setOnIffabItemSelectedListener(selectedListener);
   }
 
   public void clear() {
