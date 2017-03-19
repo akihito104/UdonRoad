@@ -28,6 +28,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 
 import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
@@ -235,7 +237,7 @@ class IffabMenuPresenter {
 
   private BottomButtonsToolbar bbt;
 
-  void showToolbar() {
+  void transToToolbar() {
     updateMenuItemCheckable(true);
     animateToShowToolbar();
   }
@@ -272,7 +274,7 @@ class IffabMenuPresenter {
     pendingUpdate = false;
   }
 
-  void hideToolbar() {
+  void transToFAB() {
     animateToHideToolbar();
     pendingUpdate = true;
     final int menuSize = menu.size();
@@ -299,5 +301,28 @@ class IffabMenuPresenter {
       mlp.dodgeInsetEdges = Gravity.BOTTOM;
       ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
     }
+  }
+
+  void hideToolbar() {
+    if (bbt.getVisibility() != View.VISIBLE) {
+      return;
+    }
+    bbt.animate()
+        .translationY(bbt.getHeight())
+        .setInterpolator(new DecelerateInterpolator())
+        .setDuration(200)
+        .start();
+  }
+
+  boolean isToolbarDroppedDown() {
+    return bbt.getVisibility() == View.VISIBLE && bbt.getTranslationY() != 0;
+  }
+
+  void showToolbar() {
+    bbt.animate()
+        .translationY(0)
+        .setInterpolator(new AccelerateInterpolator())
+        .setDuration(200)
+        .start();
   }
 }

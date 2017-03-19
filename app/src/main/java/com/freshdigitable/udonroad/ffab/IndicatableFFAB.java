@@ -99,14 +99,32 @@ public class IndicatableFFAB extends FlickableFAB {
   }
 
   public void transToToolbar() {
-    presenter.showToolbar();
+    presenter.transToToolbar();
   }
 
   public void transToFAB() {
-    presenter.hideToolbar();
+    presenter.transToFAB();
   }
 
   public interface OnIffabItemSelectedListener {
     void onItemSelected(@NonNull MenuItem item);
+  }
+
+  @Override
+  public void show() {
+    if (presenter.isToolbarDroppedDown()) {
+      presenter.showToolbar();
+    } else {
+      super.show();
+    }
+  }
+
+  @Override
+  public void hide() {
+    if (getVisibility() == VISIBLE) {
+      super.hide();
+    } else {
+      presenter.hideToolbar();
+    }
   }
 }

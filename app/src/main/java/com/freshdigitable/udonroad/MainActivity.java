@@ -348,16 +348,15 @@ public class MainActivity extends AppCompatActivity
     conversationFragment.setSortedCache(conversationRequestWorker.getCache());
     replaceTimelineContainer(name, conversationFragment);
     conversationRequestWorker.fetchConversations(statusId);
-    switchFFABMenuTo(R.id.iffabMenu_main_detail);
-    binding.ffab.transToFAB();
     binding.ffab.hide();
+    switchFFABMenuTo(R.id.iffabMenu_main_detail);
   }
 
   private void hideConversation() {
     conversationRequestWorker.getCache().clear();
     conversationRequestWorker.close();
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
-    binding.ffab.transToToolbar();
+    binding.ffab.show();
   }
 
   private void replaceTimelineContainer(String name, Fragment fragment) {
