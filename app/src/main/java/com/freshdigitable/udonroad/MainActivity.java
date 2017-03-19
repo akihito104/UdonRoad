@@ -483,7 +483,6 @@ public class MainActivity extends AppCompatActivity
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       return;
     }
-    binding.ffab.hide();
     tlFragment.stopScroll();
     UserInfoActivity.start(this, user, view);
   }
