@@ -17,12 +17,14 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.ActionProvider;
 import android.view.ContextMenu;
 import android.view.MenuItem;
@@ -128,7 +130,7 @@ class IffabMenuItem implements MenuItem {
   @Override
   public Drawable getIcon() {
     if (this.icon == null && this.iconRes > 0) {
-      final Drawable icon = ContextCompat.getDrawable(menu.getContext(), this.iconRes).mutate();
+      final Drawable icon = ContextCompat.getDrawable(menu.getContext(), this.iconRes);
       setIcon(icon);
     }
     return this.icon;
@@ -202,6 +204,35 @@ class IffabMenuItem implements MenuItem {
     return enabled;
   }
 
+  private boolean checkable = false;
+
+  @Override
+  public MenuItem setCheckable(boolean checkable) {
+    this.checkable = checkable;
+    return this;
+  }
+
+  @Override
+  public boolean isCheckable() {
+    return checkable;
+  }
+
+  private boolean checked = false;
+
+  @Override
+  public MenuItem setChecked(boolean checked) {
+    if (checkable) {
+      this.checked = checked;
+      menu.dispatchUpdatePresenter();
+    }
+    return this;
+  }
+
+  @Override
+  public boolean isChecked() {
+    return checked;
+  }
+
   @Override
   public MenuItem setOnMenuItemClickListener(OnMenuItemClickListener menuItemClickListener) {
     throw new RuntimeException("not implemented yet...");
@@ -268,26 +299,6 @@ class IffabMenuItem implements MenuItem {
   }
 
   @Override
-  public MenuItem setCheckable(boolean checkable) {
-    return this;
-  }
-
-  @Override
-  public boolean isCheckable() {
-    return false;
-  }
-
-  @Override
-  public MenuItem setChecked(boolean checked) {
-    return this;
-  }
-
-  @Override
-  public boolean isChecked() {
-    return false;
-  }
-
-  @Override
   public boolean hasSubMenu() {
     return false;
   }
@@ -295,5 +306,39 @@ class IffabMenuItem implements MenuItem {
   @Override
   public SubMenu getSubMenu() {
     throw new RuntimeException("IndicatableFFAB does not accept sub menu.");
+  }
+
+  private ColorStateList toolbarIconColorStateList;
+
+  void setColorState(ColorStateList colorStateList) {
+    this.toolbarIconColorStateList = colorStateList;
+  }
+
+  Drawable getTintedIcon() {
+    final Drawable icon = getIcon();
+    if (icon == null) {
+      return null;
+    }
+    if (toolbarIconColorStateList != null) {
+      DrawableCompat.setTintList(icon.mutate(), toolbarIconColorStateList);
+    }
+    return icon;
+  }
+
+  private static final int[] STATE_CHECKED = {android.R.attr.state_checked};
+  private static final int[] STATE_CHECKABLE
+      = {android.R.attr.state_checkable, android.R.attr.state_enabled};
+  private static final int[] STATE_ENABLE = {android.R.attr.state_enabled};
+  private static final int[] STATE_DISABLE = new int[0];
+
+  int[] parseToState() {
+    if (checkable && checked) {
+      return STATE_CHECKED;
+    } else if (checkable) {
+      return STATE_CHECKABLE;
+    } else if (enabled) {
+      return STATE_ENABLE;
+    }
+    return STATE_DISABLE;
   }
 }

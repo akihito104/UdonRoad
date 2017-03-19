@@ -16,6 +16,19 @@
   -->
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_activated="true" android:color="@color/twitter_action_faved"/>
-    <item android:color="@color/twitter_action_normal"/>
+    <item
+        android:state_activated="true"
+        android:color="@color/twitter_action_faved"
+        />
+    <item
+        android:state_checked="true"
+        android:color="@color/twitter_action_faved"
+        />
+    <item
+        android:state_enabled="false"
+        android:color="@color/twitter_action_normal"
+        />
+    <item
+        android:color="@android:color/white"
+        />
 </selector>

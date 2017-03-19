@@ -19,12 +19,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:parentTag="RelativeLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     >
-<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="match_parent"-->
-                <!--xmlns:tool="http://schemas.android.com/tools"-->
-    <!--&gt;-->
     <com.freshdigitable.udonroad.RoundedCornerImageView
         android:id="@+id/card_image"
         android:layout_width="@dimen/card_summary_image"
@@ -60,5 +58,4 @@
         android:textAppearance="?android:textAppearanceSmall"
         tools:text="www.url.com"
         />
-<!--</RelativeLayout>-->
 </merge>

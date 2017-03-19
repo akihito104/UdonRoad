@@ -113,7 +113,7 @@ class IffabMenu implements Menu {
     return res;
   }
 
-  boolean isVisibleByDirectin(Direction direction) {
+  boolean isVisibleByDirection(Direction direction) {
     for (IffabMenuItem item : findItemByDirection(direction)) {
       if (item.isVisible()) {
         return true;
@@ -131,10 +131,20 @@ class IffabMenu implements Menu {
     return false;
   }
 
+  List<IffabMenuItem> getEnableItems() {
+    final List<IffabMenuItem> res = new ArrayList<>();
+    for (IffabMenuItem item : menuItems) {
+      if (item.isEnabled()) {
+        res.add(item);
+      }
+    }
+    return res;
+  }
+
   List<IffabMenuItem> getVisibleItems() {
     final List<IffabMenuItem> res = new ArrayList<>();
     for (IffabMenuItem item : menuItems) {
-      if (item.isVisible()) {
+      if (item.isVisible() && item.getIcon() != null) {
         res.add(item);
       }
     }
@@ -156,16 +166,31 @@ class IffabMenu implements Menu {
     return null;
   }
 
-  void dispatchMenuItemSelected(Direction direction) {
+  void dispatchSelectedMenuItem(Direction direction) {
     if (selectedListener == null) {
       return;
     }
     for (IffabMenuItem item : findItemByDirection(direction)) {
       if (item.isEnabled()) {
-        selectedListener.onItemSelected(item);
+        dispatchSelectedMenuItem(item);
         return;
       }
     }
+  }
+
+  void dispatchSelectedMenuItem(int itemId) {
+    if (selectedListener == null) {
+      return;
+    }
+    final IffabMenuItem item = findItem(itemId);
+    dispatchSelectedMenuItem(item);
+  }
+
+  private void dispatchSelectedMenuItem(IffabMenuItem item) {
+    if (selectedListener == null) {
+      return;
+    }
+    selectedListener.onItemSelected(item);
   }
 
   void dispatchUpdatePresenter() {

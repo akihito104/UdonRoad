@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * Created by akihit on 2016/07/04.
  */
-public class ActionIndicatorView extends FrameLayout {
+class ActionIndicatorView extends FrameLayout {
   private final Map<Direction, ImageView> icons = new HashMap<>();
   private final Map<Direction, Drawable> drawables = new HashMap<>();
 
@@ -54,6 +54,7 @@ public class ActionIndicatorView extends FrameLayout {
     super(context, attrs, defStyleAttr);
     final int padding = getResources().getDimensionPixelSize(R.dimen.grid_margin);
     setPadding(padding, padding, padding, padding);
+    setVisibility(INVISIBLE);
 
     final View v = View.inflate(context, R.layout.view_action_indicator, this);
     final ImageView iconUp = (ImageView) v.findViewById(R.id.indicator_up);
@@ -200,7 +201,7 @@ public class ActionIndicatorView extends FrameLayout {
     if (drawable == null) {
       return;
     }
-    DrawableCompat.setTint(drawable, color);
+    DrawableCompat.setTint(drawable.mutate(), color);
   }
 
   private enum TransCoefs {

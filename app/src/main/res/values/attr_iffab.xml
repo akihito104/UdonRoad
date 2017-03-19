@@ -17,22 +17,27 @@
 
 <resources>
     <declare-styleable name="IndicatableFFAB">
-        <attr name="fabIcon" format="reference"/>
-        <attr name="fabTint" format="reference|color"/>
         <attr name="indicatorTint" format="reference|color"/>
         <attr name="indicatorIconTint" format="reference|color"/>
         <attr name="marginFabToIndicator" format="dimension"/>
         <attr name="menu" format="reference"/>
+        <attr name="toolbarIconColorState" format="reference"/>
+        <attr name="enableToolbar" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="IndicatableFFABTheme">
         <attr name="iffabStyle" format="reference"/>
     </declare-styleable>
 
-    <style name="Widget.FFAB.IndicatableFFAB" parent="android:Widget">
-        <item name="fabIcon">@drawable/ic_add</item>
+    <style name="Widget.FFAB.IndicatableFFAB" parent="@style/Widget.Design.FloatingActionButton">
         <item name="indicatorTint">#cccc</item>
         <item name="indicatorIconTint">@android:color/white</item>
         <item name="marginFabToIndicator">60dp</item>
+        <item name="srcCompat">@drawable/ic_add</item>
+        <item name="fabSize">normal</item>
+        <item name="enableToolbar">true</item>
     </style>
+
+    <dimen name="iffab_margin_bottom">32dp</dimen>
+    <dimen name="iffab_toolbar_icon_padding">12dp</dimen>
 </resources>

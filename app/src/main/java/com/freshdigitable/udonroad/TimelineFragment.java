@@ -267,8 +267,10 @@ public class TimelineFragment<T> extends Fragment {
     firstVisibleItemPosOnStop = tlLayoutManager.findFirstVisibleItemPosition();
     if (firstVisibleItemPosOnStop >= 0) {
       final RecyclerView.ViewHolder vh = binding.timeline.findViewHolderForAdapterPosition(firstVisibleItemPosOnStop);
-      firstVisibleItemTopOnStop = vh.itemView.getTop();
-      tlAdapter.registerAdapterDataObserver(firstItemObserver);
+      if (vh != null) {
+        firstVisibleItemTopOnStop = vh.itemView.getTop();
+        tlAdapter.registerAdapterDataObserver(firstItemObserver);
+      }
     }
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);

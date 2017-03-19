@@ -326,10 +326,12 @@ public class MainActivity extends AppCompatActivity
     StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
     replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
+    binding.ffab.transToToolbar();
   }
 
   private void hideStatusDetail() {
     switchFFABMenuTo(R.id.iffabMenu_main_detail);
+    binding.ffab.transToFAB();
   }
 
   @Inject
@@ -346,6 +348,7 @@ public class MainActivity extends AppCompatActivity
     conversationFragment.setSortedCache(conversationRequestWorker.getCache());
     replaceTimelineContainer(name, conversationFragment);
     conversationRequestWorker.fetchConversations(statusId);
+    binding.ffab.hide();
     switchFFABMenuTo(R.id.iffabMenu_main_detail);
   }
 
@@ -353,6 +356,7 @@ public class MainActivity extends AppCompatActivity
     conversationRequestWorker.getCache().clear();
     conversationRequestWorker.close();
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
+    binding.ffab.show();
   }
 
   private void replaceTimelineContainer(String name, Fragment fragment) {
@@ -421,9 +425,17 @@ public class MainActivity extends AppCompatActivity
       final int itemId = item.getItemId();
       final long selectedTweetId = tlFragment.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_fav) {
-        statusRequestWorker.createFavorite(selectedTweetId);
+        if (!item.isChecked()) {
+          statusRequestWorker.createFavorite(selectedTweetId);
+        } else {
+          statusRequestWorker.destroyFavorite(selectedTweetId);
+        }
       } else if (itemId == R.id.iffabMenu_main_rt) {
-        statusRequestWorker.retweetStatus(selectedTweetId);
+        if (!item.isChecked()) {
+          statusRequestWorker.retweetStatus(selectedTweetId);
+        } else {
+          statusRequestWorker.destroyRetweet(selectedTweetId);
+        }
       } else if (itemId == R.id.iffabMenu_main_favRt) {
         Observable.concatDelayError(Arrays.asList(
             statusRequestWorker.observeCreateFavorite(selectedTweetId),
@@ -462,11 +474,15 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
+  public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
+    binding.ffab.getMenu().findItem(itemId).setChecked(checked);
+  }
+
+  @Override
   public void onUserIconClicked(View view, User user) {
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
       return;
     }
-    binding.ffab.hide();
     tlFragment.stopScroll();
     UserInfoActivity.start(this, user, view);
   }

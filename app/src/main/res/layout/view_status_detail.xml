@@ -18,12 +18,10 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
        xmlns:tools="http://schemas.android.com/tools"
        xmlns:app="http://schemas.android.com/apk/res-auto"
+       tools:parentTag="RelativeLayout"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
     >
-    <!--<RelativeLayout android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--&gt;-->
     <com.freshdigitable.udonroad.RetweetUserView
         android:id="@+id/d_rt_user"
         android:layout_width="match_parent"
@@ -177,5 +175,4 @@
         android:visibility="gone"
         tools:visibility="visible"
         />
-    <!--</RelativeLayout>-->
 </merge>

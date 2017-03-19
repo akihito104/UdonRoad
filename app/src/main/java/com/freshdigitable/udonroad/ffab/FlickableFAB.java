@@ -29,7 +29,7 @@ import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
  *
  * Created by akihit on 15/11/04.
  */
-public class FlickableFAB extends FloatingActionButton {
+class FlickableFAB extends FloatingActionButton {
   @SuppressWarnings("unused")
   private static final String TAG = FlickableFAB.class.getSimpleName();
 
@@ -49,31 +49,31 @@ public class FlickableFAB extends FloatingActionButton {
 
   @Override
   public boolean onTouchEvent(MotionEvent motionEvent) {
-    if (flingListener == null) {
+    if (flickListener == null) {
       return super.onTouchEvent(motionEvent);
     }
     final int action = motionEvent.getAction();
     if (action == MotionEvent.ACTION_DOWN) {
       old = MotionEvent.obtain(motionEvent);
-      flingListener.onStart();
+      flickListener.onStart();
       return true;
     }
     final Direction direction = Direction.getDirection(old, motionEvent);
     if (action == MotionEvent.ACTION_MOVE) {
 //          Log.d(TAG, "onTouch: " + direction);
-      flingListener.onMoving(direction);
+      flickListener.onMoving(direction);
       return true;
     } else if (action == MotionEvent.ACTION_UP) {
-      flingListener.onFlick(direction);
+      flickListener.onFlick(direction);
       old.recycle();
       return true;
     }
     return super.onTouchEvent(motionEvent);
   }
 
-  private OnFlickListener flingListener;
+  private OnFlickListener flickListener;
 
-  public void setOnFlingListener(OnFlickListener listener) {
-    this.flingListener = listener;
+  public void setOnFlickListener(OnFlickListener listener) {
+    this.flickListener = listener;
   }
 }

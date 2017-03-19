@@ -106,7 +106,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     setupCreateFavorite(0, 1);
     // exec.
     PerformUtil.selectItemViewAt(0);
-    onView(withId(R.id.iffab_ffab)).check(matches(isDisplayed()));
+    onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     PerformUtil.favo();
     AssertionUtil.checkFavCountAt(0, 1);
     // TODO tint color check

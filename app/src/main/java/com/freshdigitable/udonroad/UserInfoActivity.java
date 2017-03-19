@@ -23,6 +23,7 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
@@ -81,7 +82,7 @@ public class UserInfoActivity extends AppCompatActivity
     binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
     InjectionUtil.getComponent(this).inject(this);
 
-    binding.userInfoIffab.hide();
+    binding.ffab.hide();
 
     long userId = parseIntent();
     setUpAppbar();
@@ -162,7 +163,7 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onStop() {
     super.onStop();
-    binding.userInfoIffab.setOnIffabItemSelectedListener(null);
+    binding.ffab.setOnIffabItemSelectedListener(null);
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
@@ -251,7 +252,7 @@ public class UserInfoActivity extends AppCompatActivity
       closeStatusDetail();
       return;
     }
-    if (binding.userInfoIffab.getVisibility() == View.VISIBLE) {
+    if (binding.ffab.getVisibility() == View.VISIBLE) {
       viewPager.clearSelectedTweet();  // it also hides ffab.
       return;
     }
@@ -273,7 +274,7 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   private void setupActionMap() {
-    binding.userInfoIffab.setOnIffabItemSelectedListener(item -> {
+    binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
       if (itemId == R.id.iffabMenu_main_fav) {
         viewPager.createFavorite();
@@ -295,7 +296,7 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   private void showStatusDetail(long statusId) {
-    binding.userInfoIffab.hide();
+    binding.ffab.hide();
     statusDetailFragment = StatusDetailFragment.getInstance(statusId);
     getSupportFragmentManager().beginTransaction()
         .hide(viewPager)
@@ -310,19 +311,24 @@ public class UserInfoActivity extends AppCompatActivity
         .show(viewPager)
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
         .commit();
-    binding.userInfoIffab.show();
+    binding.ffab.show();
   }
 
   @Override
   public void showFab() {
     final UserPageInfo currentPage = viewPager.getCurrentPage();
     if (currentPage.isStatus()) {
-      binding.userInfoIffab.show();
+      binding.ffab.show();
     }
   }
 
   @Override
   public void hideFab() {
-    binding.userInfoIffab.hide();
+    binding.ffab.hide();
+  }
+
+  @Override
+  public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
+    binding.ffab.getMenu().findItem(itemId).setChecked(checked);
   }
 }

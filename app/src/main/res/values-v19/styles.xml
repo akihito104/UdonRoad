@@ -18,5 +18,6 @@
 <resources>
     <style name="Theme.AppTheme.TranslucentStatusBar" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowTranslucentStatus">true</item>
+        <item name="iffabStyle">@style/Widget.FFAB.IndicatableFFAB</item>
     </style>
 </resources>

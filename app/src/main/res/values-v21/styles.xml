@@ -19,5 +19,6 @@
     <style name="Theme.AppTheme.TranslucentStatusBar" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:statusBarColor">@color/layer_black_immersive</item>
         <item name="android:navigationBarColor">@color/layer_black_immersive</item>
+        <item name="iffabStyle">@style/Widget.FFAB.IndicatableFFAB</item>
     </style>
 </resources>
