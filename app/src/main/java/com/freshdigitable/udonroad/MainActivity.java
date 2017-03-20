@@ -117,25 +117,6 @@ public class MainActivity extends AppCompatActivity
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    binding.navDrawer.setNavigationItemSelectedListener(item -> {
-      int itemId = item.getItemId();
-      if (itemId == R.id.menu_home) {
-        Log.d(TAG, "home is selected");
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.menu_mention) {
-        Log.d(TAG, "mention is selected");
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.menu_fav) {
-        Log.d(TAG, "fav is selected");
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.menu_license) {
-        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      }
-      return false;
-    });
-
-    binding.ffab.hide();
     setupHomeTimeline();
     setupTweetInputView();
     setupNavigationDrawer();
@@ -160,7 +141,24 @@ public class MainActivity extends AppCompatActivity
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
     subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(this::setupNavigationDrawer);
+        .subscribe(this::setupNavigationDrawerHeader);
+    binding.navDrawer.setNavigationItemSelectedListener(item -> {
+      int itemId = item.getItemId();
+      if (itemId == R.id.menu_home) {
+        Log.d(TAG, "home is selected");
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      } else if (itemId == R.id.menu_mention) {
+        Log.d(TAG, "mention is selected");
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      } else if (itemId == R.id.menu_fav) {
+        Log.d(TAG, "fav is selected");
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      } else if (itemId == R.id.menu_license) {
+        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      }
+      return false;
+    });
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -183,7 +181,7 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.syncState();
   }
 
-  private void setupNavigationDrawer(@Nullable User user) {
+  private void setupNavigationDrawerHeader(@Nullable User user) {
     if (user == null) {
       return;
     }
