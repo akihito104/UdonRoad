@@ -21,8 +21,18 @@ package com.freshdigitable.udonroad.datastore;
  */
 
 public enum StoreName {
-  HOME,
-  USER_HOME, USER_FAV, USER_FRIEND, USER_FOLLOWER,
-  CONFIG,
-  APP_SETTINGS
+  HOME("home"),
+  USER_HOME("user_home"),
+  USER_FAV("user_favs"),
+  USER_FRIEND("user_friends"),
+  USER_FOLLOWER("user_followers"),
+  CONVERSATION("conv"),
+  CONFIG("config"),
+  APP_SETTINGS("appSettings");
+
+  private final String cacheName;
+
+  StoreName(String cacheName) {
+    this.cacheName = cacheName;
+  }
 }
