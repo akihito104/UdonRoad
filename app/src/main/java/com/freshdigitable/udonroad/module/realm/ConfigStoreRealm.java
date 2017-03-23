@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 
@@ -51,7 +52,7 @@ public class ConfigStoreRealm implements ConfigStore {
 
   public ConfigStoreRealm() {
     config = new RealmConfiguration.Builder()
-        .name("config")
+        .name(StoreType.CONFIG.storeName)
         .deleteRealmIfMigrationNeeded()
         .build();
   }

@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupHomeTimeline() {
-    statusRequestWorker.open("home");
+    statusRequestWorker.open(StoreType.HOME.storeName);
     homeTimeline = statusRequestWorker.getCache();
     homeTimeline.clearPool();
 
@@ -339,7 +339,7 @@ public class MainActivity extends AppCompatActivity
     if (conversationRequestWorker.isOpened()) {
       conversationRequestWorker.close();
     }
-    final String name = "conv_" + Long.toString(statusId);
+    final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
     conversationRequestWorker.open(name);
 
     final TimelineFragment<Status> conversationFragment = new TimelineFragment<>();

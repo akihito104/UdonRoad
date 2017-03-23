@@ -20,7 +20,7 @@ package com.freshdigitable.udonroad;
  * Created by akihit on 2017/03/21.
  */
 
-public enum StoreName {
+public enum StoreType {
   HOME("home"),
   USER_HOME("user_home"),
   USER_FAV("user_favs"),
@@ -30,9 +30,13 @@ public enum StoreName {
   CONFIG("config"),
   APP_SETTINGS("appSettings");
 
-  final String prefix;
+  public final String storeName;
 
-  StoreName(String prefix) {
-    this.prefix = prefix;
+  StoreType(String name) {
+    this.storeName = name;
+  }
+
+  public String prefix() {
+    return storeName + "_";
   }
 }

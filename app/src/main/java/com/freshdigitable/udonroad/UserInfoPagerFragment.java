@@ -339,25 +339,25 @@ public class UserInfoPagerFragment extends Fragment {
   }
 
   enum UserPageInfo {
-    TWEET(REQUEST_CODE_USER_HOME, "user_home") {
+    TWEET(REQUEST_CODE_USER_HOME, StoreType.USER_HOME) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getStatusesCount();
       }
     },
-    FRIEND(REQUEST_CODE_USER_FRIENDS, "user_friends") {
+    FRIEND(REQUEST_CODE_USER_FRIENDS, StoreType.USER_FRIEND) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFriendsCount();
       }
     },
-    FOLLOWER(REQUEST_CODE_USER_FOLLOWERS, "user_followers") {
+    FOLLOWER(REQUEST_CODE_USER_FOLLOWERS, StoreType.USER_FOLLOWER) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFollowersCount();
       }
     },
-    FAV(REQUEST_CODE_USER_FAVS, "user_favs") {
+    FAV(REQUEST_CODE_USER_FAVS, StoreType.USER_FAV) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFavouritesCount();
@@ -365,16 +365,16 @@ public class UserInfoPagerFragment extends Fragment {
     },;
 
     final @RequestCodeEnum int requestCode;
-    final String cacheName;
+    final StoreType storeType;
 
-    UserPageInfo(@RequestCodeEnum int requestCode, String cacheName) {
+    UserPageInfo(@RequestCodeEnum int requestCode, StoreType type) {
       this.requestCode = requestCode;
-      this.cacheName = cacheName;
+      this.storeType = type;
     }
 
     <T> TimelineFragment<T> setup(RequestWorkerBase<SortedCache<T>> worker,
                                   UserInfoPagerFragment target) {
-      worker.open(cacheName);
+      worker.open(storeType.storeName);
       worker.getCache().clear();
       final TimelineFragment<T> fragment = TimelineFragment.getInstance(target, requestCode);
       fragment.setSortedCache(worker.getCache());
