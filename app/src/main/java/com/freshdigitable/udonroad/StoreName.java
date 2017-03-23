@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad;
 
 /**
  * Created by akihit on 2017/03/21.
@@ -30,9 +30,9 @@ public enum StoreName {
   CONFIG("config"),
   APP_SETTINGS("appSettings");
 
-  private final String cacheName;
+  final String prefix;
 
-  StoreName(String cacheName) {
-    this.cacheName = cacheName;
+  StoreName(String prefix) {
+    this.prefix = prefix;
   }
 }
