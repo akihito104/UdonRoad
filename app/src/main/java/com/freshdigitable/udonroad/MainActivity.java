@@ -65,6 +65,7 @@ import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
+import static com.freshdigitable.udonroad.StoreType.HOME;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
@@ -84,7 +85,6 @@ public class MainActivity extends AppCompatActivity
 
   @Inject
   TwitterApi twitterApi;
-  private SortedCache<Status> homeTimeline;
   @Inject
   StatusRequestWorker<SortedCache<Status>> statusRequestWorker;
   @Inject
@@ -123,8 +123,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupHomeTimeline() {
-    statusRequestWorker.open(StoreType.HOME.storeName);
-    homeTimeline = statusRequestWorker.getCache();
+    statusRequestWorker.open(HOME.storeName);
+    SortedCache<Status> homeTimeline = statusRequestWorker.getCache();
     homeTimeline.clearPool();
 
     tlFragment = new TimelineFragment<>();
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
-    userStream.connect(homeTimeline);
+    userStream.connect(StoreType.HOME.storeName);
 
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
