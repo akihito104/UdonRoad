@@ -35,4 +35,6 @@ public interface SortedCache<T> extends BaseOperation<T> {
   long getLastPageCursor();
 
   void clearPool();
+
+  void drop(String storeName);
 }

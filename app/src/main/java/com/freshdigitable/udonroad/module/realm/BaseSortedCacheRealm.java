@@ -68,12 +68,25 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   }
 
   @Override
+  public void drop(String storeName) {
+    final RealmConfiguration conf = new RealmConfiguration.Builder()
+        .name(storeName)
+        .build();
+    Realm.deleteRealm(conf);
+  }
+
+  @Override
   public Observable<UpdateEvent> observeUpdateEvent() {
     return updateSubject.observeUpdateEvent();
   }
 
   @Override
   public void open() {
+    throw new RuntimeException();
+  }
+
+  @Override
+  public void drop() {
     throw new RuntimeException();
   }
 }

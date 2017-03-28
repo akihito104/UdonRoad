@@ -234,15 +234,11 @@ public abstract class TimelineInstTestBase {
   }
 
   private static void clearCache(BaseCache cache) {
-    cache.open();
-    cache.clear();
-    cache.close();
+    cache.drop();
   }
 
   private static void clearCache(SortedCache cache, String name) {
-    cache.open(name);
-    cache.clear();
-    cache.close();
+    cache.drop(name);
   }
 
   private static void checkAllRealmInstanceCleared() {  // XXX
@@ -254,8 +250,8 @@ public abstract class TimelineInstTestBase {
 
   private static void checkRealmInstanceCount(String name, int count) {  // XXX
     final RealmConfiguration conf = new RealmConfiguration.Builder().name(name).build();
-    assertThat(Realm.getLocalInstanceCount(conf), is(count));
-    assertThat(Realm.getGlobalInstanceCount(conf), is(count));
+    assertThat("local instance count: " + name, Realm.getLocalInstanceCount(conf), is(count));
+    assertThat("global instance count: " + name, Realm.getGlobalInstanceCount(conf), is(count));
   }
 
   private StreamIdlingResource streamIdlingResource;

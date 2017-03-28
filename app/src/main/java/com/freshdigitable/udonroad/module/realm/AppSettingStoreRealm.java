@@ -82,6 +82,11 @@ public class AppSettingStoreRealm implements AppSettingStore {
   }
 
   @Override
+  public void drop() {
+    Realm.deleteRealm(config);
+  }
+
+  @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
     realm.executeTransaction(_realm -> {
       final UserRealm userRealm = new UserRealm(authenticatedUser);

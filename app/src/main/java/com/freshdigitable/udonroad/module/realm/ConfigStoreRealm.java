@@ -73,6 +73,11 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
+  public void drop() {
+    Realm.deleteRealm(config);
+  }
+
+  @Override
   public void replaceIgnoringUsers(final Collection<Long> iDs) {
     configStore.executeTransaction(realm -> {
       realm.delete(IgnoringUser.class);
