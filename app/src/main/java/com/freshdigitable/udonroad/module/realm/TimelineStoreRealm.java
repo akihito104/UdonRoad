@@ -22,6 +22,8 @@ import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
+import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,7 +50,9 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   private final TypedCache<Status> statusCache;
   private final ConfigStore configStore;
 
-  public TimelineStoreRealm(TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
+  public TimelineStoreRealm(UpdateSubjectFactory factory,
+                            TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
+    super(factory);
     this.statusCache = statusCacheRealm;
     this.configStore = configStore;
   }
@@ -129,7 +133,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     realm.beginTransaction();
     final List<StatusIDs> inserted = realm.copyToRealmOrUpdate(inserts);
     realm.commitTransaction();
-    if (inserted.isEmpty() || !insertEvent.hasObservers()) {
+    if (inserted.isEmpty() || !updateSubject.hasObservers()) {
       return;
     }
     timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
@@ -152,12 +156,12 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     }
     Collections.sort(index);
     for (int i : index) {
-      insertEvent.onNext(i);
+      updateSubject.onNext(EventType.INSERT, i);
     }
   }
 
   private List<StatusIDs> createUpdateList(List<Status> statuses) {
-    if (!updateEvent.hasObservers()) {
+    if (!updateSubject.hasObservers()) {
       return Collections.emptyList();
     }
 
@@ -222,7 +226,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
       return;
     }
     for (int i : index) {
-      updateEvent.onNext(i);
+      updateSubject.onNext(EventType.CHANGE, i);
     }
   }
 
@@ -275,7 +279,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     res.deleteAllFromRealm();
     realm.commitTransaction();
 
-    if (deleted.isEmpty() || !deleteEvent.hasObservers()) {
+    if (deleted.isEmpty() || !updateSubject.hasObservers()) {
       return;
     }
     timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
@@ -284,7 +288,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
         Log.d(TAG, "call: deletedStatus");
         setItemCount(element.size());
         for (int d : deleted) {
-          deleteEvent.onNext(d);
+          updateSubject.onNext(EventType.DELETE, d);
         }
         for (StatusIDs ids : res) {
           statusCache.delete(ids.getId());

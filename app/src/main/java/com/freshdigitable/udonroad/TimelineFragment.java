@@ -41,6 +41,7 @@ import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.UpdateEvent;
 
 import rx.Subscription;
 import twitter4j.Paging;
@@ -58,8 +59,7 @@ public class TimelineFragment<T> extends Fragment {
   private FragmentTimelineBinding binding;
   private TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
-  private Subscription insertEventSubscription;
-  private Subscription deleteEventSubscription;
+  private Subscription updateEventSubscription;
   private SortedCache<T> timelineStore;
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
@@ -136,13 +136,17 @@ public class TimelineFragment<T> extends Fragment {
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
 
-    if (insertEventSubscription == null || insertEventSubscription.isUnsubscribed()) {
-      insertEventSubscription = timelineStore.observeInsertEvent()
-          .subscribe(position -> tlAdapter.notifyItemInserted(position));
-    }
-    if (deleteEventSubscription == null || deleteEventSubscription.isUnsubscribed()) {
-      deleteEventSubscription = timelineStore.observeDeleteEvent()
-          .subscribe(position -> tlAdapter.notifyItemRemoved(position));
+    if (updateEventSubscription == null || updateEventSubscription.isUnsubscribed()) {
+      updateEventSubscription = timelineStore.observeUpdateEvent()
+          .subscribe(event -> {
+            if (event.type == UpdateEvent.EventType.INSERT) {
+              tlAdapter.notifyItemInserted(event.index);
+            } else if (event.type == UpdateEvent.EventType.CHANGE) {
+              tlAdapter.notifyItemChanged(event.index);
+            } else if (event.type == UpdateEvent.EventType.DELETE) {
+              tlAdapter.notifyItemRemoved(event.index);
+            }
+          });
     }
   }
 
@@ -314,8 +318,7 @@ public class TimelineFragment<T> extends Fragment {
     tlLayoutManager = null;
     binding.timeline.setAdapter(null);
     tlAdapter = null;
-    insertEventSubscription.unsubscribe();
-    deleteEventSubscription.unsubscribe();
+    updateEventSubscription.unsubscribe();
   }
 
   private void showFab() {

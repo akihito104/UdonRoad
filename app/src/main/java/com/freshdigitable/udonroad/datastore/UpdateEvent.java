@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,20 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import rx.Observable;
-
 /**
- * SortedCache defines to access storage of sorted data specified type parameter.
- *
- * Created by akihit on 2016/09/14.
+ * Created by akihit on 2017/03/28.
  */
-public interface SortedCache<T> extends BaseOperation<T> {
-  void open(String storeName);
 
-  Observable<UpdateEvent> observeUpdateEvent();
+public class UpdateEvent {
+  public final EventType type;
+  public final int index;
 
-  T get(int position);
+  public UpdateEvent(EventType type, int index) {
+    this.type = type;
+    this.index = index;
+  }
 
-  int getItemCount();
-
-  long getLastPageCursor();
-
-  void clearPool();
+  public enum EventType {
+    INSERT, CHANGE, DELETE
+  }
 }

@@ -20,11 +20,13 @@ import android.support.annotation.CallSuper;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.UpdateEvent;
+import com.freshdigitable.udonroad.datastore.UpdateSubject;
+import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import rx.Observable;
-import rx.subjects.PublishSubject;
 
 /**
  * BaseStoredCacheRealm is a base class implementing SortedCache.<br>
@@ -34,17 +36,18 @@ import rx.subjects.PublishSubject;
  */
 abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   private static final String TAG = BaseSortedCacheRealm.class.getSimpleName();
+  private final UpdateSubjectFactory factory;
   Realm realm;
-  PublishSubject<Integer> insertEvent;
-  PublishSubject<Integer> updateEvent;
-  PublishSubject<Integer> deleteEvent;
+  UpdateSubject updateSubject;
+
+  BaseSortedCacheRealm(UpdateSubjectFactory factory) {
+    this.factory = factory;
+  }
 
   @Override
   @CallSuper
   public void open(String storeName) {
-    insertEvent = PublishSubject.create();
-    updateEvent = PublishSubject.create();
-    deleteEvent = PublishSubject.create();
+    updateSubject = factory.getInstance(storeName);
     final RealmConfiguration config = new RealmConfiguration.Builder()
         .name(storeName)
         .deleteRealmIfMigrationNeeded()
@@ -60,25 +63,13 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
       return;
     }
     Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
-    insertEvent.onCompleted();
-    updateEvent.onCompleted();
-    deleteEvent.onCompleted();
+    updateSubject.onComplete();
     realm.close();
   }
 
   @Override
-  public Observable<Integer> observeInsertEvent() {
-    return insertEvent.onBackpressureBuffer();
-  }
-
-  @Override
-  public Observable<Integer> observeUpdateEvent() {
-    return updateEvent.onBackpressureBuffer();
-  }
-
-  @Override
-  public Observable<Integer> observeDeleteEvent() {
-    return deleteEvent.onBackpressureBuffer();
+  public Observable<UpdateEvent> observeUpdateEvent() {
+    return updateSubject.observeUpdateEvent();
   }
 
   @Override

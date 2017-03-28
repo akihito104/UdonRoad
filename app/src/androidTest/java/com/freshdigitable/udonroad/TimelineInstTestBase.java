@@ -44,7 +44,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -173,11 +172,11 @@ public abstract class TimelineInstTestBase {
     clearCache(statusCache);
     clearCache(configStore);
     clearCache(appSettings);
-    clearCache(homeTLStore, "home");
-    clearCache(userHomeTLStore, "user_home");
-    clearCache(userFavsTLStore, "user_favs");
-    clearCache(userFollowers, "user_followers");
-    clearCache(userFriends, "user_friends");
+    clearCache(homeTLStore, StoreType.HOME.storeName);
+    clearCache(userHomeTLStore, StoreType.USER_HOME.storeName);
+    clearCache(userFavsTLStore, StoreType.USER_FAV.storeName);
+    clearCache(userFollowers, StoreType.USER_FOLLOWER.storeName);
+    clearCache(userFriends, StoreType.USER_FRIEND.storeName);
     checkAllRealmInstanceCleared();
   }
 
@@ -247,10 +246,10 @@ public abstract class TimelineInstTestBase {
   }
 
   private static void checkAllRealmInstanceCleared() {  // XXX
-    for (String name : Arrays.asList("cache", "config", "appSettings", "home",
-        "user_home", "user_favs", "user_followers", "user_friends")) {
-      checkRealmInstanceCount(name, 0);
+    for (StoreType t : StoreType.values()) {
+      checkRealmInstanceCount(t.storeName, 0);
     }
+    checkRealmInstanceCount("cache", 0);
   }
 
   private static void checkRealmInstanceCount(String name, int count) {  // XXX

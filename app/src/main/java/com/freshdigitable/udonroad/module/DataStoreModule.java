@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
@@ -70,14 +71,21 @@ public class DataStoreModule {
   }
 
   @Provides
-  public SortedCache<Status> provideSortedCacheStatus(TypedCache<Status> statusCacheRealm,
-                                                      ConfigStore configStore) {
-    return new TimelineStoreRealm(statusCacheRealm, configStore);
+  @Singleton
+  public UpdateSubjectFactory provideUpdateSubjectFactory() {
+    return new UpdateSubjectFactory();
   }
 
   @Provides
-  public SortedCache<User> provideSortedCacheUser(TypedCache<User> userCacheRealm) {
-    return new UserSortedCacheRealm(userCacheRealm);
+  public SortedCache<Status> provideSortedCacheStatus(
+      UpdateSubjectFactory factory, TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
+    return new TimelineStoreRealm(factory, statusCacheRealm, configStore);
+  }
+
+  @Provides
+  public SortedCache<User> provideSortedCacheUser(
+      UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
+    return new UserSortedCacheRealm(factory, userCacheRealm);
   }
 
   @Singleton
