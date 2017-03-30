@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad;
 
+import java.util.Arrays;
+
 /**
  * Created by akihit on 2017/03/21.
  */
@@ -38,5 +40,23 @@ public enum StoreType {
 
   public String prefix() {
     return storeName + "_";
+  }
+
+  public boolean isForStatus() {
+    for (StoreType type : Arrays.asList(HOME, USER_HOME, USER_FAV, CONVERSATION)) {
+      if (this == type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean isForUser() {
+    for (StoreType type : Arrays.asList(USER_FOLLOWER, USER_FRIEND)) {
+      if (this == type) {
+        return true;
+      }
+    }
+    return false;
   }
 }
