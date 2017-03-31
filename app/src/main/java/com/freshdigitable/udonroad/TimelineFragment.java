@@ -16,10 +16,9 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Intent;
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -40,18 +39,24 @@ import android.view.animation.AnimationUtils;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
+import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
+import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
+
+import javax.inject.Inject;
 
 import rx.Subscription;
 import twitter4j.Paging;
+import twitter4j.Status;
+import twitter4j.User;
 
 /**
  * TimelineFragment provides RecyclerView to show timeline.
  *
  * Created by Akihit.
  */
-public class TimelineFragment<T> extends Fragment {
+public abstract class TimelineFragment<T> extends Fragment {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
@@ -60,7 +65,8 @@ public class TimelineFragment<T> extends Fragment {
   private TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Subscription updateEventSubscription;
-  private SortedCache<T> timelineStore;
+  @Inject
+  ListRequestWorker<T> requestWorker;
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
 
@@ -129,7 +135,9 @@ public class TimelineFragment<T> extends Fragment {
       binding.timeline.setItemAnimator(timelineAnimator);
     }
     if (tlAdapter == null) {
-      tlAdapter = new TimelineAdapter<>(timelineStore);
+      requestWorker.open(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
+      requestWorker.getCache().clear();
+      tlAdapter = new TimelineAdapter<>(requestWorker.getCache());
       binding.timeline.setAdapter(tlAdapter);
       fetchTweet(null);
     }
@@ -137,7 +145,7 @@ public class TimelineFragment<T> extends Fragment {
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
 
     if (updateEventSubscription == null || updateEventSubscription.isUnsubscribed()) {
-      updateEventSubscription = timelineStore.observeUpdateEvent()
+      updateEventSubscription = requestWorker.getCache().observeUpdateEvent()
           .subscribe(event -> {
             if (event.type == UpdateEvent.EventType.INSERT) {
               tlAdapter.notifyItemInserted(event.index);
@@ -317,6 +325,7 @@ public class TimelineFragment<T> extends Fragment {
     binding.timeline.setLayoutManager(null);
     tlLayoutManager = null;
     binding.timeline.setAdapter(null);
+    requestWorker.close();
     tlAdapter = null;
     updateEventSubscription.unsubscribe();
   }
@@ -396,38 +405,69 @@ public class TimelineFragment<T> extends Fragment {
     }
   }
 
-  public static final String EXTRA_PAGING = "paging";
-
   private void fetchTweet(@Nullable Paging paging) {
-    final FragmentActivity activity = getActivity();
-    if (activity instanceof OnFetchTweets) {
-      fetchTweet((OnFetchTweets) activity, paging);
-      return;
-    }
-    final Fragment targetFragment = getTargetFragment();
-    if (targetFragment != null) {
-      final Intent intent = new Intent();
-      intent.putExtra(EXTRA_PAGING, paging);
-      targetFragment.onActivityResult(getTargetRequestCode(), 1, intent);
-    }
-  }
-
-  private void fetchTweet(@NonNull OnFetchTweets fetcher, @Nullable Paging paging) {
+    final ListFetchStrategy fetcher = requestWorker.getFetchStrategy(getEntityId());
     if (paging == null) {
-      fetcher.fetchTweet();
+      fetcher.fetch();
     } else {
-      fetcher.fetchTweet(paging);
+      fetcher.fetch(paging);
     }
   }
 
-  public static <T> TimelineFragment<T> getInstance(Fragment fragment, int requestCode) {
-    final TimelineFragment<T> timelineFragment = new TimelineFragment<>();
-    timelineFragment.setTargetFragment(fragment, requestCode);
-    return timelineFragment;
+  private static final String ARGS_STORE_NAME = "store_name";
+  private static final String ARGS_ENTITY_ID = "entity_id";
+
+  private static Bundle createArgs(StoreType storeType, long entityId) {
+    final Bundle args = new Bundle();
+    args.putSerializable(ARGS_STORE_NAME, storeType);
+    args.putLong(ARGS_ENTITY_ID, entityId);
+    return args;
   }
 
-  public void setSortedCache(SortedCache<T> sortedCache) {
-    this.timelineStore = sortedCache;
+  private StoreType getStoreType() {
+    return (StoreType) getArguments().getSerializable(ARGS_STORE_NAME);
+  }
+
+  private long getEntityId() {
+    return getArguments().getLong(ARGS_ENTITY_ID, -1);
+  }
+
+  public static class StatusListFragment extends TimelineFragment<Status> {
+    public static StatusListFragment getInstance(StoreType storeType) {
+      return getInstance(storeType, -1);
+    }
+
+    public static StatusListFragment getInstance(StoreType storeType, long entityId) {
+      final Bundle args = TimelineFragment.createArgs(storeType, entityId);
+      final StatusListFragment fragment = new StatusListFragment();
+      fragment.setArguments(args);
+      return fragment;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+      super.onAttach(context);
+      InjectionUtil.getComponent(this).inject(this);
+    }
+  }
+
+  public static class UserListFragment extends TimelineFragment<User> {
+    public static UserListFragment getInstance(StoreType storeType) {
+      return getInstance(storeType, -1);
+    }
+
+    public static UserListFragment getInstance(StoreType storeType, long entityId) {
+      final Bundle args = TimelineFragment.createArgs(storeType, entityId);
+      final UserListFragment fragment = new UserListFragment();
+      fragment.setArguments(args);
+      return fragment;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+      super.onAttach(context);
+      InjectionUtil.getComponent(this).inject(this);
+    }
   }
 
   @Nullable @SuppressWarnings("unused")
@@ -452,11 +492,5 @@ public class TimelineFragment<T> extends Fragment {
       }
     }
     return super.onCreateAnimation(transit, enter, nextAnim);
-  }
-
-  interface OnFetchTweets {
-    void fetchTweet();
-
-    void fetchTweet(Paging paging);
   }
 }

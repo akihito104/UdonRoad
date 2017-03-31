@@ -31,12 +31,12 @@ import twitter4j.Status;
  * Created by akihit on 2017/03/31.
  */
 
-class StatusListRequestWorker implements ListRequestWorker<Status> {
+public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final StatusRequestWorker<SortedCache<Status>> requestWorker;
   private StoreType storeType;
 
   @Inject
-  StatusListRequestWorker(StatusRequestWorker<SortedCache<Status>> requestWorker) {
+  public StatusListRequestWorker(StatusRequestWorker<SortedCache<Status>> requestWorker) {
     this.requestWorker = requestWorker;
   }
 
@@ -107,5 +107,10 @@ class StatusListRequestWorker implements ListRequestWorker<Status> {
       };
     }
     throw new IllegalStateException();
+  }
+
+  @Override
+  public void close() {
+    requestWorker.close();
   }
 }

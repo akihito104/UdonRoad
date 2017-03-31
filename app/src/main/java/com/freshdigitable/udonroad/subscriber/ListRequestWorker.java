@@ -26,6 +26,8 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 public interface ListRequestWorker<T> {
   void open(StoreType type, String suffix);
 
+  void close();
+
   SortedCache<T> getCache();
 
   ListFetchStrategy getFetchStrategy(long id);

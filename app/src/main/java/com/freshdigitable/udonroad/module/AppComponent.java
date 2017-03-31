@@ -22,6 +22,7 @@ import com.freshdigitable.udonroad.MediaViewActivity.MediaFragment;
 import com.freshdigitable.udonroad.OAuthActivity;
 import com.freshdigitable.udonroad.ReplyActivity;
 import com.freshdigitable.udonroad.StatusDetailFragment;
+import com.freshdigitable.udonroad.TimelineFragment;
 import com.freshdigitable.udonroad.TweetInputFragment;
 import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.UserInfoFragment;
@@ -61,4 +62,8 @@ public interface AppComponent {
   void inject(UserInfoPagerFragment userInfoPagerFragment);
 
   void inject(MediaFragment mediaFragment);
+
+  void inject(TimelineFragment.StatusListFragment timelineFragment);
+
+  void inject(TimelineFragment.UserListFragment timelineFragment);
 }

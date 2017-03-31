@@ -31,6 +31,11 @@ import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
 import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
 import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
+import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
+import com.freshdigitable.udonroad.subscriber.StatusListRequestWorker;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
+import com.freshdigitable.udonroad.subscriber.UserListRequestWorker;
+import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 
 import javax.inject.Singleton;
 
@@ -54,43 +59,43 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  public TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore) {
+  TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore) {
     return new StatusCacheRealm(configStore);
   }
 
   @Singleton
   @Provides
-  public MediaCache provideMediaCache(TypedCache<Status> configStore) {
+  MediaCache provideMediaCache(TypedCache<Status> configStore) {
     return ((StatusCacheRealm) configStore);
   }
 
   @Singleton
   @Provides
-  public TypedCache<User> provideTypedCacheUser() {
+  TypedCache<User> provideTypedCacheUser() {
     return new UserCacheRealm();
   }
 
   @Provides
   @Singleton
-  public UpdateSubjectFactory provideUpdateSubjectFactory() {
+  UpdateSubjectFactory provideUpdateSubjectFactory() {
     return new UpdateSubjectFactory();
   }
 
   @Provides
-  public SortedCache<Status> provideSortedCacheStatus(
+  SortedCache<Status> provideSortedCacheStatus(
       UpdateSubjectFactory factory, TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
     return new TimelineStoreRealm(factory, statusCacheRealm, configStore);
   }
 
   @Provides
-  public SortedCache<User> provideSortedCacheUser(
+  SortedCache<User> provideSortedCacheUser(
       UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
     return new UserSortedCacheRealm(factory, userCacheRealm);
   }
 
   @Singleton
   @Provides
-  public ConfigStore provideConfigStore() {
+  ConfigStore provideConfigStore() {
     return new ConfigStoreRealm();
   }
 
@@ -102,8 +107,20 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  public AppSettingStore provideAppSettingStore(TypedCache<User> userTypedCache,
+  AppSettingStore provideAppSettingStore(TypedCache<User> userTypedCache,
                                                 SharedPreferences sharedPreferences) {
     return new AppSettingStoreRealm(userTypedCache, sharedPreferences);
+  }
+
+  @Provides
+  ListRequestWorker<Status> provideListRequestWorkerStatus(
+      StatusRequestWorker<SortedCache<Status>> worker) {
+    return new StatusListRequestWorker(worker);
+  }
+
+  @Provides
+  ListRequestWorker<User> provideListRequestWorkerUser(
+      UserRequestWorker<SortedCache<User>> worker) {
+    return new UserListRequestWorker(worker);
   }
 }

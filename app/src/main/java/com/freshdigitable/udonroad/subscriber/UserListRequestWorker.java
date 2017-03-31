@@ -30,12 +30,12 @@ import twitter4j.User;
  * Created by akihit on 2017/03/31.
  */
 
-class UserListRequestWorker implements ListRequestWorker<User> {
+public class UserListRequestWorker implements ListRequestWorker<User> {
   private final UserRequestWorker<SortedCache<User>> requestWorker;
   private StoreType storeType;
 
   @Inject
-  UserListRequestWorker(UserRequestWorker<SortedCache<User>> requestWorker) {
+  public UserListRequestWorker(UserRequestWorker<SortedCache<User>> requestWorker) {
     this.requestWorker = requestWorker;
   }
 
@@ -83,5 +83,10 @@ class UserListRequestWorker implements ListRequestWorker<User> {
       };
     }
     throw new IllegalStateException();
+  }
+
+  @Override
+  public void close() {
+    requestWorker.close();
   }
 }

@@ -17,9 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -39,8 +37,6 @@ import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,9 +44,11 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import rx.Observable;
-import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
+
+import static com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
+import static com.freshdigitable.udonroad.TimelineFragment.UserListFragment;
 
 /**
  * UserInfoPagerFragment provides ViewPager to show specified user tweets.
@@ -59,7 +57,7 @@ import twitter4j.User;
  */
 public class UserInfoPagerFragment extends Fragment {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
-  public static final String ARGS_USER_ID = "userId";
+  private static final String ARGS_USER_ID = "userId";
 
   public static UserInfoPagerFragment create(long userId) {
     final Bundle args = new Bundle();
@@ -67,6 +65,10 @@ public class UserInfoPagerFragment extends Fragment {
     final UserInfoPagerFragment res = new UserInfoPagerFragment();
     res.setArguments(args);
     return res;
+  }
+
+  private long getUserId() {
+    return getArguments().getLong(ARGS_USER_ID);
   }
 
   @Override
@@ -124,8 +126,9 @@ public class UserInfoPagerFragment extends Fragment {
     if (!page.isStatus()) {
       throw new IllegalArgumentException("page must be for Status. passed: " + page.name());
     }
+    requestWorker.open(page.storeType.prefix() + Long.toString(getUserId()));
     timelineSubscriberMap.put(page, requestWorker);
-    putToPagerAdapter(page, requestWorker);
+    putToPagerAdapter(page);
   }
 
   private void setupUserList(@NonNull UserPageInfo page,
@@ -133,13 +136,13 @@ public class UserInfoPagerFragment extends Fragment {
     if (!page.isUser()) {
       throw new IllegalArgumentException("page must be for User. passed: " + page.name());
     }
+    requestWorker.open(page.storeType.prefix() + Long.toString(getUserId()));
     userSubscriberMap.put(page, requestWorker);
-    putToPagerAdapter(page, requestWorker);
+    putToPagerAdapter(page);
   }
 
-  private <T> void putToPagerAdapter(@NonNull UserPageInfo page,
-                                 RequestWorkerBase<SortedCache<T>> worker) {
-    final TimelineFragment<T> fragment = page.setup(worker, this);
+  private void putToPagerAdapter(@NonNull UserPageInfo page) {
+    final TimelineFragment<?> fragment = page.setup(getUserId());
     pagerAdapter.putFragment(page, fragment);
   }
 
@@ -196,35 +199,6 @@ public class UserInfoPagerFragment extends Fragment {
       us.close();
     }
     userSubscriberMap.clear();
-  }
-
-  @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    final UserPageInfo reqPage = UserPageInfo.findByRequestCode(requestCode);
-    if (reqPage == null) {
-      super.onActivityResult(requestCode, resultCode, data);
-      return;
-    }
-    final long userId = getArguments().getLong(ARGS_USER_ID);
-    final Paging paging = (Paging) data.getSerializableExtra(TimelineFragment.EXTRA_PAGING);
-    if (reqPage.isStatus()) {
-      final StatusRequestWorker<SortedCache<Status>> statusRequestWorker = timelineSubscriberMap.get(reqPage);
-      if (reqPage == UserPageInfo.TWEET) {
-        statusRequestWorker.fetchHomeTimeline(userId, paging);
-      } else if (reqPage == UserPageInfo.FAV) {
-        statusRequestWorker.fetchFavorites(userId, paging);
-      }
-    } else if (reqPage.isUser()) {
-      final UserRequestWorker<SortedCache<User>> userRequestWorker = userSubscriberMap.get(reqPage);
-      final long nextCursor = paging != null
-          ? paging.getMaxId()
-          : -1;
-      if (reqPage == UserPageInfo.FOLLOWER) {
-        userRequestWorker.fetchFollowers(userId, nextCursor);
-      } else if (reqPage == UserPageInfo.FRIEND) {
-        userRequestWorker.fetchFriends(userId, nextCursor);
-      }
-    }
   }
 
   public ViewPager getViewPager() {
@@ -327,68 +301,47 @@ public class UserInfoPagerFragment extends Fragment {
     return UserPageInfo.values()[currentItem];
   }
 
-  public static final int REQUEST_CODE_USER_HOME = 10;
-  public static final int REQUEST_CODE_USER_FAVS = 11;
-  public static final int REQUEST_CODE_USER_FOLLOWERS = 12;
-  public static final int REQUEST_CODE_USER_FRIENDS = 13;
-
-  @Retention(RetentionPolicy.SOURCE)
-  @IntDef(value = {REQUEST_CODE_USER_HOME, REQUEST_CODE_USER_FAVS,
-      REQUEST_CODE_USER_FOLLOWERS, REQUEST_CODE_USER_FRIENDS})
-  @interface RequestCodeEnum {
-  }
-
   enum UserPageInfo {
-    TWEET(REQUEST_CODE_USER_HOME, StoreType.USER_HOME) {
+    TWEET(StoreType.USER_HOME) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getStatusesCount();
       }
     },
-    FRIEND(REQUEST_CODE_USER_FRIENDS, StoreType.USER_FRIEND) {
+    FRIEND(StoreType.USER_FRIEND) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFriendsCount();
       }
     },
-    FOLLOWER(REQUEST_CODE_USER_FOLLOWERS, StoreType.USER_FOLLOWER) {
+    FOLLOWER(StoreType.USER_FOLLOWER) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFollowersCount();
       }
     },
-    FAV(REQUEST_CODE_USER_FAVS, StoreType.USER_FAV) {
+    FAV(StoreType.USER_FAV) {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFavouritesCount();
       }
     },;
 
-    final @RequestCodeEnum int requestCode;
     final StoreType storeType;
 
-    UserPageInfo(@RequestCodeEnum int requestCode, StoreType type) {
-      this.requestCode = requestCode;
+    UserPageInfo(StoreType type) {
       this.storeType = type;
     }
 
-    <T> TimelineFragment<T> setup(RequestWorkerBase<SortedCache<T>> worker,
-                                  UserInfoPagerFragment target) {
-      worker.open(storeType.storeName);
-      worker.getCache().clear();
-      final TimelineFragment<T> fragment = TimelineFragment.getInstance(target, requestCode);
-      fragment.setSortedCache(worker.getCache());
-      return fragment;
-    }
-
-    @Nullable
-    static UserPageInfo findByRequestCode(int requestCode) {
-      for (UserPageInfo p : values()) {
-        if (p.requestCode == requestCode) {
-          return p;
-        }
+    @SuppressWarnings("unchecked")
+    TimelineFragment<?> setup(long id) {
+      if (storeType.isForStatus()) {
+        return StatusListFragment.getInstance(storeType, id);
       }
-      return null;
+      if (storeType.isForUser()) {
+        return UserListFragment.getInstance(storeType, id);
+      }
+      throw new IllegalStateException();
     }
 
     public boolean isStatus() {

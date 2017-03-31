@@ -40,7 +40,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.TimelineFragment.OnFetchTweets;
+import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -60,11 +60,11 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
-import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
+import static com.freshdigitable.udonroad.StoreType.CONVERSATION;
 import static com.freshdigitable.udonroad.StoreType.HOME;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
@@ -76,7 +76,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, OnFetchTweets, FabHandleable {
+    implements TweetSendable, OnUserIconClickedListener, FabHandleable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -127,8 +127,7 @@ public class MainActivity extends AppCompatActivity
     SortedCache<Status> homeTimeline = statusRequestWorker.getCache();
     homeTimeline.clearPool();
 
-    tlFragment = new TimelineFragment<>();
-    tlFragment.setSortedCache(homeTimeline);
+    tlFragment = StatusListFragment.getInstance(HOME);
 
     configRequestWorker.open();
     configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
@@ -332,27 +331,16 @@ public class MainActivity extends AppCompatActivity
     binding.ffab.transToFAB();
   }
 
-  @Inject
-  StatusRequestWorker<SortedCache<Status>> conversationRequestWorker;
-
   private void showConversation(long statusId) {
-    if (conversationRequestWorker.isOpened()) {
-      conversationRequestWorker.close();
-    }
+    final TimelineFragment<Status> conversationFragment
+        = StatusListFragment.getInstance(CONVERSATION, statusId);
     final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
-    conversationRequestWorker.open(name);
-
-    final TimelineFragment<Status> conversationFragment = new TimelineFragment<>();
-    conversationFragment.setSortedCache(conversationRequestWorker.getCache());
     replaceTimelineContainer(name, conversationFragment);
-    conversationRequestWorker.fetchConversations(statusId);
     binding.ffab.hide();
     switchFFABMenuTo(R.id.iffabMenu_main_detail);
   }
 
   private void hideConversation() {
-    conversationRequestWorker.getCache().clear();
-    conversationRequestWorker.close();
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
     binding.ffab.show();
   }
@@ -406,16 +394,6 @@ public class MainActivity extends AppCompatActivity
   @Override
   public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
     return updateStatusObservable.doOnNext(status -> cancelWritingSelected());
-  }
-
-  @Override
-  public void fetchTweet() {
-    statusRequestWorker.fetchHomeTimeline();
-  }
-
-  @Override
-  public void fetchTweet(Paging paging) {
-    statusRequestWorker.fetchHomeTimeline(paging);
   }
 
   private void setupActionMap() {
