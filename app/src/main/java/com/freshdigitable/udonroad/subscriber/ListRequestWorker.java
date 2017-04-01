@@ -29,6 +29,8 @@ public interface ListRequestWorker<T> {
 
   void close();
 
+  void drop();
+
   SortedCache<T> getCache();
 
   ListFetchStrategy getFetchStrategy(long id);

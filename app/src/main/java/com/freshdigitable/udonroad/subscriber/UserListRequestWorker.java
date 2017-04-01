@@ -34,6 +34,7 @@ import twitter4j.User;
 public class UserListRequestWorker implements ListRequestWorker<User> {
   private final UserRequestWorker<SortedCache<User>> requestWorker;
   private StoreType storeType;
+  private String storeName;
 
   @Inject
   public UserListRequestWorker(UserRequestWorker<SortedCache<User>> requestWorker) {
@@ -46,9 +47,9 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    String name = TextUtils.isEmpty(suffix)
+    storeName = TextUtils.isEmpty(suffix)
         ? type.storeName : type.prefix() + suffix;
-    requestWorker.open(name);
+    requestWorker.open(storeName);
   }
 
   @Override
@@ -94,5 +95,10 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   @Override
   public void close() {
     requestWorker.close();
+  }
+
+  @Override
+  public void drop() {
+    requestWorker.getCache().drop(storeName);
   }
 }

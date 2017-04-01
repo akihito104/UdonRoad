@@ -327,6 +327,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     binding.timeline.setAdapter(null);
     updateEventSubscription.unsubscribe();
     requestWorker.close();
+    requestWorker.drop();
     tlAdapter = null;
   }
 

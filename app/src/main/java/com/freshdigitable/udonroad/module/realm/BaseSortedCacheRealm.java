@@ -48,12 +48,16 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   @CallSuper
   public void open(String storeName) {
     updateSubject = factory.getInstance(storeName);
-    final RealmConfiguration config = new RealmConfiguration.Builder()
-        .name(storeName)
-        .deleteRealmIfMigrationNeeded()
-        .build();
+    final RealmConfiguration config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
     Log.d(TAG, "openRealm: " + config.getRealmFileName());
+  }
+
+  private RealmConfiguration getRealmConfiguration(String storeName) {
+    return new RealmConfiguration.Builder()
+          .name(storeName)
+          .deleteRealmIfMigrationNeeded()
+          .build();
   }
 
   @Override
@@ -71,10 +75,11 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
 
   @Override
   public void drop(String storeName) {
-    final RealmConfiguration conf = new RealmConfiguration.Builder()
-        .name(storeName)
-        .build();
-    Realm.deleteRealm(conf);
+    final RealmConfiguration conf = getRealmConfiguration(storeName);
+    if (Realm.getGlobalInstanceCount(conf) <= 0) {
+      Log.d(TAG, "drop: " + storeName);
+      Realm.deleteRealm(conf);
+    }
   }
 
   @Override

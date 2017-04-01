@@ -40,6 +40,7 @@ import twitter4j.Status;
 public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final StatusRequestWorker<SortedCache<Status>> requestWorker;
   private StoreType storeType;
+  private String storeName;
 
   @Inject
   public StatusListRequestWorker(StatusRequestWorker<SortedCache<Status>> requestWorker) {
@@ -52,9 +53,9 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    final String name = TextUtils.isEmpty(suffix)
+    storeName = TextUtils.isEmpty(suffix)
         ? type.storeName : type.prefix() + suffix;
-    requestWorker.open(name);
+    requestWorker.open(storeName);
   }
 
   @Override
@@ -143,5 +144,10 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   @Override
   public void close() {
     requestWorker.close();
+  }
+
+  @Override
+  public void drop() {
+    requestWorker.getCache().drop(storeName);
   }
 }
