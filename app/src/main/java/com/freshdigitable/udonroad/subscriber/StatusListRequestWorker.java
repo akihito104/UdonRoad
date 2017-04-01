@@ -18,12 +18,18 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+
+import java.util.Arrays;
 
 import javax.inject.Inject;
 
+import rx.Observable;
 import twitter4j.Paging;
 import twitter4j.Status;
 
@@ -46,7 +52,7 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    final String name = suffix == null || suffix.length() <= 0
+    final String name = TextUtils.isEmpty(suffix)
         ? type.storeName : type.prefix() + suffix;
     requestWorker.open(name);
   }
@@ -107,6 +113,31 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       };
     }
     throw new IllegalStateException();
+  }
+
+  @Override
+  public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
+    return item -> {
+      final int itemId = item.getItemId();
+      if (itemId == R.id.iffabMenu_main_fav) {
+        if (!item.isChecked()) {
+          requestWorker.createFavorite(selectedId);
+        } else {
+          requestWorker.destroyFavorite(selectedId);
+        }
+      } else if (itemId == R.id.iffabMenu_main_rt) {
+        if (!item.isChecked()) {
+          requestWorker.retweetStatus(selectedId);
+        } else {
+          requestWorker.destroyRetweet(selectedId);
+        }
+      } else if (itemId == R.id.iffabMenu_main_favRt) {
+        Observable.concatDelayError(Arrays.asList(
+            requestWorker.observeCreateFavorite(selectedId),
+            requestWorker.observeRetweetStatus(selectedId))
+        ).subscribe(RequestWorkerBase.nopSubscriber());
+      }
+    };
   }
 
   @Override

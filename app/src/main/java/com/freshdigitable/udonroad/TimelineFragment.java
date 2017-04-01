@@ -40,6 +40,7 @@ import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
@@ -136,7 +137,6 @@ public abstract class TimelineFragment<T> extends Fragment {
     }
     if (tlAdapter == null) {
       requestWorker.open(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
-      requestWorker.getCache().clear();
       tlAdapter = new TimelineAdapter<>(requestWorker.getCache());
       binding.timeline.setAdapter(tlAdapter);
       fetchTweet(null);
@@ -325,15 +325,22 @@ public abstract class TimelineFragment<T> extends Fragment {
     binding.timeline.setLayoutManager(null);
     tlLayoutManager = null;
     binding.timeline.setAdapter(null);
+    updateEventSubscription.unsubscribe();
     requestWorker.close();
     tlAdapter = null;
-    updateEventSubscription.unsubscribe();
   }
+
+  private OnIffabItemSelectedListener iffabItemSelectedListener;
 
   private void showFab() {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       ((FabHandleable) activity).showFab();
+      if (iffabItemSelectedListener != null) {
+        ((FabHandleable) activity).removeOnItemSelectedListener(iffabItemSelectedListener);
+      }
+      iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedTweetId());
+      ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);
     }
   }
 
@@ -341,6 +348,8 @@ public abstract class TimelineFragment<T> extends Fragment {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       ((FabHandleable) activity).hideFab();
+      ((FabHandleable) activity).removeOnItemSelectedListener(iffabItemSelectedListener);
+      iffabItemSelectedListener = null;
     }
   }
 
@@ -420,7 +429,9 @@ public abstract class TimelineFragment<T> extends Fragment {
   private static Bundle createArgs(StoreType storeType, long entityId) {
     final Bundle args = new Bundle();
     args.putSerializable(ARGS_STORE_NAME, storeType);
-    args.putLong(ARGS_ENTITY_ID, entityId);
+    if (entityId > 0) {
+      args.putLong(ARGS_ENTITY_ID, entityId);
+    }
     return args;
   }
 

@@ -20,6 +20,7 @@ import android.text.TextUtils;
 
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 
 import javax.inject.Inject;
 
@@ -83,6 +84,11 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
       };
     }
     throw new IllegalStateException();
+  }
+
+  @Override
+  public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
+    return item -> { /* nop */ };
   }
 
   @Override

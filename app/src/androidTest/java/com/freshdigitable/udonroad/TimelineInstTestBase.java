@@ -22,15 +22,13 @@ import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
+import android.support.test.espresso.core.deps.guava.io.PatternFilenameFilter;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.BaseCache;
-import com.freshdigitable.udonroad.datastore.ConfigStore;
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.util.StreamIdlingResource;
 import com.freshdigitable.udonroad.util.StreamIdlingResource.Operation;
@@ -75,6 +73,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -94,21 +93,7 @@ public abstract class TimelineInstTestBase {
   @Inject
   TwitterStream twitterStream;
   @Inject
-  TypedCache<Status> statusCache;
-  @Inject
   TypedCache<User> userCache;
-  @Inject
-  SortedCache<Status> homeTLStore;
-  @Inject
-  SortedCache<Status> userHomeTLStore;
-  @Inject
-  SortedCache<Status> userFavsTLStore;
-  @Inject
-  SortedCache<User> userFollowers;
-  @Inject
-  SortedCache<User> userFriends;
-  @Inject
-  ConfigStore configStore;
   @Inject
   SharedPreferences sprefs;
   @Inject
@@ -169,15 +154,32 @@ public abstract class TimelineInstTestBase {
   }
 
   private void initStorage() {
-    clearCache(statusCache);
-    clearCache(configStore);
-    clearCache(appSettings);
-    clearCache(homeTLStore, StoreType.HOME.storeName);
-    clearCache(userHomeTLStore, StoreType.USER_HOME.storeName);
-    clearCache(userFavsTLStore, StoreType.USER_FAV.storeName);
-    clearCache(userFollowers, StoreType.USER_FOLLOWER.storeName);
-    clearCache(userFriends, StoreType.USER_FRIEND.storeName);
-    checkAllRealmInstanceCleared();
+    for (String l : listStorage()) {
+      final RealmConfiguration config = new RealmConfiguration.Builder()
+          .name(l)
+          .deleteRealmIfMigrationNeeded()
+          .build();
+      final int globalInstanceCount = Realm.getGlobalInstanceCount(config);
+      if (globalInstanceCount > 0) {
+        final Realm realm = Realm.getInstance(config);
+        realm.executeTransaction(r -> r.deleteAll());
+        realm.close();
+      } else {
+        final boolean b = Realm.deleteRealm(config);
+        assertTrue(b);
+      }
+    }
+  }
+
+  private static String[] listStorage() {
+    final Realm realm = Realm.getDefaultInstance();
+    final String[] list = realm.getConfiguration().getRealmDirectory()
+        .list(new PatternFilenameFilter("^.*\\.management$"));
+    realm.close();
+    for (int i = 0; i < list.length; i++) {
+      list[i] = list[i].replace(".management", "");
+    }
+    return list;
   }
 
   protected void setupConfig(User loginUser) throws Exception {
@@ -233,19 +235,10 @@ public abstract class TimelineInstTestBase {
     return new Intent();
   }
 
-  private static void clearCache(BaseCache cache) {
-    cache.drop();
-  }
-
-  private static void clearCache(SortedCache cache, String name) {
-    cache.drop(name);
-  }
-
   private static void checkAllRealmInstanceCleared() {  // XXX
-    for (StoreType t : StoreType.values()) {
-      checkRealmInstanceCount(t.storeName, 0);
+    for (String l : listStorage()) {
+      checkRealmInstanceCount(l, 0);
     }
-    checkRealmInstanceCount("cache", 0);
   }
 
   private static void checkRealmInstanceCount(String name, int count) {  // XXX

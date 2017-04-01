@@ -30,21 +30,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
-import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
-import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import twitter4j.Status;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
@@ -102,43 +95,10 @@ public class UserInfoPagerFragment extends Fragment {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    setupTimeline(UserPageInfo.TWEET, userHomeRequestWorker);
-    setupUserList(UserPageInfo.FOLLOWER, userFollowersRequestWorker);
-    setupUserList(UserPageInfo.FRIEND, userFriendsRequestWorker);
-    setupTimeline(UserPageInfo.FAV, userFavRequestWorker);
+    for (UserPageInfo page : UserPageInfo.values()) {
+      putToPagerAdapter(page);
+    }
     viewPager.setAdapter(pagerAdapter);
-  }
-
-  private Map<UserPageInfo, StatusRequestWorker<SortedCache<Status>>> timelineSubscriberMap = new HashMap<>();
-  private Map<UserPageInfo, UserRequestWorker<SortedCache<User>>> userSubscriberMap = new HashMap<>();
-
-  @Inject
-  StatusRequestWorker<SortedCache<Status>> userHomeRequestWorker;
-  @Inject
-  StatusRequestWorker<SortedCache<Status>> userFavRequestWorker;
-  @Inject
-  UserRequestWorker<SortedCache<User>> userFollowersRequestWorker;
-  @Inject
-  UserRequestWorker<SortedCache<User>> userFriendsRequestWorker;
-
-  private void setupTimeline(@NonNull UserPageInfo page,
-                             @NonNull StatusRequestWorker<SortedCache<Status>> requestWorker) {
-    if (!page.isStatus()) {
-      throw new IllegalArgumentException("page must be for Status. passed: " + page.name());
-    }
-    requestWorker.open(page.storeType.prefix() + Long.toString(getUserId()));
-    timelineSubscriberMap.put(page, requestWorker);
-    putToPagerAdapter(page);
-  }
-
-  private void setupUserList(@NonNull UserPageInfo page,
-                             @NonNull UserRequestWorker<SortedCache<User>> requestWorker) {
-    if (!page.isUser()) {
-      throw new IllegalArgumentException("page must be for User. passed: " + page.name());
-    }
-    requestWorker.open(page.storeType.prefix() + Long.toString(getUserId()));
-    userSubscriberMap.put(page, requestWorker);
-    putToPagerAdapter(page);
   }
 
   private void putToPagerAdapter(@NonNull UserPageInfo page) {
@@ -188,19 +148,6 @@ public class UserInfoPagerFragment extends Fragment {
     viewPager.setAdapter(null);
   }
 
-  @Override
-  public void onDetach() {
-    super.onDetach();
-    for (StatusRequestWorker ts : timelineSubscriberMap.values()) {
-      ts.close();
-    }
-    timelineSubscriberMap.clear();
-    for (UserRequestWorker us : userSubscriberMap.values()) {
-      us.close();
-    }
-    userSubscriberMap.clear();
-  }
-
   public ViewPager getViewPager() {
     return viewPager;
   }
@@ -245,56 +192,6 @@ public class UserInfoPagerFragment extends Fragment {
     return getCurrentFragment().getSelectedTweetId();
   }
 
-  void createFavorite() {
-    final UserPageInfo currentPage = getCurrentPage();
-    if (!currentPage.isStatus()) {
-      return;
-    }
-    final long statusId = getCurrentFragment().getSelectedTweetId();
-    if (statusId < 0) {
-      return;
-    }
-    final StatusRequestWorker<SortedCache<Status>> statusRequestWorker
-        = timelineSubscriberMap.get(currentPage);
-    if (statusRequestWorker != null) {
-      statusRequestWorker.createFavorite(statusId);
-    }
-  }
-
-  void retweetStatus() {
-    final UserPageInfo currentPage = getCurrentPage();
-    if (!currentPage.isStatus()) {
-      return;
-    }
-    final long statusId = getCurrentFragment().getSelectedTweetId();
-    if (statusId < 0) {
-      return;
-    }
-    final StatusRequestWorker<SortedCache<Status>> statusRequestWorker
-        = timelineSubscriberMap.get(currentPage);
-    if (statusRequestWorker != null) {
-      statusRequestWorker.retweetStatus(statusId);
-    }
-  }
-
-  void createFavAndRetweet() {
-    final UserPageInfo currentPage = getCurrentPage();
-    if (!currentPage.isStatus()) {
-      return;
-    }
-    final long statusId = getCurrentFragment().getSelectedTweetId();
-    if (statusId < 0) {
-      return;
-    }
-    final StatusRequestWorker<SortedCache<Status>> statusRequestWorker = timelineSubscriberMap.get(currentPage);
-    if (statusRequestWorker != null) {
-      Observable.concatDelayError(Arrays.asList(
-          statusRequestWorker.observeCreateFavorite(statusId),
-          statusRequestWorker.observeRetweetStatus(statusId))
-      ).subscribe(RequestWorkerBase.nopSubscriber());
-    }
-  }
-
   @NonNull
   UserPageInfo getCurrentPage() {
     final int currentItem = viewPager.getCurrentItem();
@@ -333,7 +230,6 @@ public class UserInfoPagerFragment extends Fragment {
       this.storeType = type;
     }
 
-    @SuppressWarnings("unchecked")
     TimelineFragment<?> setup(long id) {
       if (storeType.isForStatus()) {
         return StatusListFragment.getInstance(storeType, id);

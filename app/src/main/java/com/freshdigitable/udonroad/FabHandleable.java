@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad;
 
 import android.support.annotation.IdRes;
 
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+
 /**
  * FabHandleable is a interface to be implemented by Activity which FAB manages.
  *
@@ -29,4 +31,8 @@ public interface FabHandleable {
   void hideFab();
 
   void setCheckedFabMenuItem(@IdRes int itemId, boolean checked);
+
+  void addOnItemSelectedListener(OnIffabItemSelectedListener listener);
+
+  void removeOnItemSelectedListener(OnIffabItemSelectedListener listener);
 }
