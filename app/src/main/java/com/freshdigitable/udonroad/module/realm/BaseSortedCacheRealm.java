@@ -63,8 +63,10 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
       return;
     }
     Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
-    updateSubject.onComplete();
     realm.close();
+    if (realm.isClosed()) {
+      updateSubject.onComplete();
+    }
   }
 
   @Override
