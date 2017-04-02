@@ -241,6 +241,7 @@ public class MainActivity extends AppCompatActivity
       iffabItemSelectedListeners.clear();
       binding.ffab.clear();
       binding.navDrawer.setNavigationItemSelectedListener(null);
+      configRequestWorker.shrink();
       configRequestWorker.close();
       appSettings.close();
       userFeedback.unsubscribe();

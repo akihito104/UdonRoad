@@ -201,4 +201,15 @@ public class ConfigStoreRealm implements ConfigStore {
         .findAll()
         .deleteAllFromRealm());
   }
+
+  @Override
+  public void shrink() {
+    configStore.executeTransaction(r -> r.where(StatusReactionRealm.class)
+        .beginGroup()
+        .equalTo("retweeted", false)
+        .equalTo("favorited", false)
+        .endGroup()
+        .findAll()
+        .deleteAllFromRealm());
+  }
 }

@@ -33,4 +33,6 @@ public interface ConfigStore extends TypedCache<StatusReaction> {
   void addIgnoringUser(User user);
 
   void removeIgnoringUser(User user);
+
+  void shrink();
 }
