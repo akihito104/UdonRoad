@@ -112,6 +112,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
   @Override
   public void setTwitterAPIConfig(final TwitterAPIConfiguration twitterAPIConfig) {
     realm.executeTransaction(_realm -> {
+      _realm.where(TwitterAPIConfigurationRealm.class)
+          .findAll()
+          .deleteAllFromRealm();
       final TwitterAPIConfigurationRealm twitterAPIConfiguration
           = new TwitterAPIConfigurationRealm(twitterAPIConfig);
       _realm.insertOrUpdate(twitterAPIConfiguration);
