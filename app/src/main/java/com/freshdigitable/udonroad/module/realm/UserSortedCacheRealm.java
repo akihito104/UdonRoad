@@ -20,6 +20,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
+import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +42,8 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   private TypedCache<User> userCache;
   private RealmResults<ListedUserIDs> ordered;
 
-  public UserSortedCacheRealm(TypedCache<User> userCacheRealm) {
+  public UserSortedCacheRealm(UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
+    super(factory);
     this.userCache = userCacheRealm;
   }
 
@@ -109,7 +112,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     realm.beginTransaction();
     final List<ListedUserIDs> inserted = realm.copyToRealmOrUpdate(inserts);
     realm.commitTransaction();
-    if (inserted.isEmpty() || !insertEvent.hasObservers()) {
+    if (inserted.isEmpty() || !updateSubject.hasObservers()) {
       return;
     }
     updateCursorList(entities);
@@ -117,7 +120,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
       @Override
       public void onChange(RealmResults<ListedUserIDs> element) {
         for (ListedUserIDs ids: inserted) {
-          insertEvent.onNext(ids.order);
+          updateSubject.onNext(EventType.INSERT, ids.order);
         }
         element.removeChangeListener(this);
       }

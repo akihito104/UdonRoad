@@ -56,14 +56,17 @@ public class UserStreamUtil {
   private final PublishSubject<UserFeedbackEvent> feedback;
   private long userId;
   private final AppSettingStore appSettings;
+  private final SortedCache<Status> sortedStatusCache;
 
   @Inject
   public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
+                        @NonNull SortedCache<Status> sortedStatusCache,
                         @NonNull AppSettingStore appSettings,
                         @NonNull PublishSubject<UserFeedbackEvent> feedback) {
     this.streamApi = streamApi;
     this.feedback = feedback;
     this.appSettings = appSettings;
+    this.sortedStatusCache = sortedStatusCache;
   }
 
   private boolean isConnectedUserStream = false;
@@ -72,14 +75,14 @@ public class UserStreamUtil {
   private PublishSubject<Long> deletionPublishSubject;
   private Subscription onDeletionSubscription;
 
-  public void connect(final SortedCache<Status> timelineStore) {
+  public void connect(String storeName) {
     if (onStatusSubscription == null || onStatusSubscription.isUnsubscribed()) {
       statusPublishSubject = PublishSubject.create();
       onStatusSubscription = statusPublishSubject
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(timelineStore::upsert, onErrorAction);
+          .subscribe(sortedStatusCache::upsert, onErrorAction);
     }
     if (onDeletionSubscription == null || onDeletionSubscription.isUnsubscribed()) {
       deletionPublishSubject = PublishSubject.create();
@@ -93,9 +96,10 @@ public class UserStreamUtil {
               return Observable.from(deletionIds);
             }
           })
-          .subscribe(timelineStore::delete, onErrorAction);
+          .subscribe(sortedStatusCache::delete, onErrorAction);
     }
     if (!isConnectedUserStream) {
+      sortedStatusCache.open(storeName);
       appSettings.open();
       streamApi.setOAuthAccessToken(appSettings.getCurrentUserAccessToken());
       streamApi.connectUserStream(statusListener);
@@ -107,6 +111,7 @@ public class UserStreamUtil {
   public void disconnect() {
     if (isConnectedUserStream) {
       appSettings.close();
+      sortedStatusCache.close();
       streamApi.disconnectStreamListener();
       isConnectedUserStream = false;
     }

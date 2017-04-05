@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.content.SharedPreferences;
 
+import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
@@ -47,7 +48,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
   public AppSettingStoreRealm(TypedCache<User> userCacheRealm, SharedPreferences prefs) {
     this.cache = userCacheRealm;
     config = new RealmConfiguration.Builder()
-        .name("appSettings")
+        .name(StoreType.APP_SETTINGS.storeName)
         .deleteRealmIfMigrationNeeded()
         .build();
     this.prefs = prefs;
@@ -81,6 +82,11 @@ public class AppSettingStoreRealm implements AppSettingStore {
   }
 
   @Override
+  public void drop() {
+    Realm.deleteRealm(config);
+  }
+
+  @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
     realm.executeTransaction(_realm -> {
       final UserRealm userRealm = new UserRealm(authenticatedUser);
@@ -106,6 +112,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
   @Override
   public void setTwitterAPIConfig(final TwitterAPIConfiguration twitterAPIConfig) {
     realm.executeTransaction(_realm -> {
+      _realm.delete(TwitterAPIConfigurationRealm.class);
       final TwitterAPIConfigurationRealm twitterAPIConfiguration
           = new TwitterAPIConfigurationRealm(twitterAPIConfig);
       _realm.insertOrUpdate(twitterAPIConfiguration);

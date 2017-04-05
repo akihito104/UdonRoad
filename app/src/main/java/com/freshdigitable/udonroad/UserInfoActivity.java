@@ -42,7 +42,11 @@ import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -173,6 +177,12 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    iffabItemSelectedListeners.clear();
+  }
+
+  @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     final int itemId = item.getItemId();
     if (itemId == R.id.action_cancel) {
@@ -276,21 +286,16 @@ public class UserInfoActivity extends AppCompatActivity
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
-      if (itemId == R.id.iffabMenu_main_fav) {
-        viewPager.createFavorite();
-      } else if (itemId == R.id.iffabMenu_main_rt) {
-        viewPager.retweetStatus();
-      } else if (itemId == R.id.iffabMenu_main_favRt) {
-        viewPager.createFavAndRetweet();
-      } else if (itemId == R.id.iffabMenu_main_reply) {
-        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+      final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+      if (itemId == R.id.iffabMenu_main_reply) {
         showTwitterInputView(TYPE_REPLY, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_quote) {
-        final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
         showTwitterInputView(TYPE_QUOTE, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_detail) {
-        final long statusId = viewPager.getCurrentSelectedStatusId();
-        showStatusDetail(statusId);
+        showStatusDetail(selectedTweetId);
+      }
+      for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
+        l.onItemSelected(item);
       }
     });
   }
@@ -330,5 +335,17 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
     binding.ffab.getMenu().findItem(itemId).setChecked(checked);
+  }
+
+  private List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
+
+  @Override
+  public void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {
+    iffabItemSelectedListeners.add(listener);
+  }
+
+  @Override
+  public void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
+    iffabItemSelectedListeners.remove(listener);
   }
 }

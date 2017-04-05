@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.subscriber;
 
-import android.support.annotation.IdRes;
-
+import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 
 /**
- * FabHandleable is a interface to be implemented by Activity which FAB manages.
- *
- * Created by akihit on 2016/09/07.
+ * Created by akihit on 2017/03/31.
  */
-public interface FabHandleable {
-  void showFab();
 
-  void hideFab();
+public interface ListRequestWorker<T> {
+  void open(StoreType type, String suffix);
 
-  void setCheckedFabMenuItem(@IdRes int itemId, boolean checked);
+  void close();
 
-  void addOnItemSelectedListener(OnIffabItemSelectedListener listener);
+  void drop();
 
-  void removeOnItemSelectedListener(OnIffabItemSelectedListener listener);
+  SortedCache<T> getCache();
+
+  ListFetchStrategy getFetchStrategy(long id);
+
+  OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId);
 }

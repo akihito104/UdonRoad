@@ -26,11 +26,7 @@ import rx.Observable;
 public interface SortedCache<T> extends BaseOperation<T> {
   void open(String storeName);
 
-  Observable<Integer> observeInsertEvent();
-
-  Observable<Integer> observeUpdateEvent();
-
-  Observable<Integer> observeDeleteEvent();
+  Observable<UpdateEvent> observeUpdateEvent();
 
   T get(int position);
 
@@ -39,4 +35,6 @@ public interface SortedCache<T> extends BaseOperation<T> {
   long getLastPageCursor();
 
   void clearPool();
+
+  void drop(String storeName);
 }

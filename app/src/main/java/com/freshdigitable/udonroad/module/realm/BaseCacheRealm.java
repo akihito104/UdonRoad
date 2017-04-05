@@ -82,6 +82,13 @@ abstract class BaseCacheRealm implements BaseCache {
     cache.close();
   }
 
+  @Override
+  public void drop() {
+    if (config != null) {
+      Realm.deleteRealm(config);
+    }
+  }
+
   static <T extends RealmModel> T findById(Realm realm, long id, Class<T> clz) {
     return realm.where(clz)
         .equalTo("id", id)

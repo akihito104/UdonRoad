@@ -189,4 +189,8 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   private Action1<User> removeIgnoringUserAction() {
     return user -> cache.removeIgnoringUser(user);
   }
+
+  public void shrink() {
+    cache.shrink();
+  }
 }

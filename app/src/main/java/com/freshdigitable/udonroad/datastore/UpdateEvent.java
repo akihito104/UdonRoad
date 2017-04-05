@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,20 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import java.util.Collection;
-
-import twitter4j.User;
-
 /**
- * ConfigStore defines scheme to store user configurations.
- * <p>
- * Created by akihit on 2016/07/30.
+ * Created by akihit on 2017/03/28.
  */
-public interface ConfigStore extends TypedCache<StatusReaction> {
-  void replaceIgnoringUsers(Collection<Long> iDs);
 
-  boolean isIgnoredUser(long userId);
+public class UpdateEvent {
+  public final EventType type;
+  public final int index;
 
-  void addIgnoringUser(User user);
+  public UpdateEvent(EventType type, int index) {
+    this.type = type;
+    this.index = index;
+  }
 
-  void removeIgnoringUser(User user);
-
-  void shrink();
+  public enum EventType {
+    INSERT, CHANGE, DELETE
+  }
 }

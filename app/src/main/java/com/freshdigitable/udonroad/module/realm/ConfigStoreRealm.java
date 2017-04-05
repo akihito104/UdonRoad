@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 
@@ -31,6 +32,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
+import io.realm.Sort;
 import rx.Observable;
 import twitter4j.User;
 
@@ -51,7 +53,7 @@ public class ConfigStoreRealm implements ConfigStore {
 
   public ConfigStoreRealm() {
     config = new RealmConfiguration.Builder()
-        .name("config")
+        .name(StoreType.CONFIG.storeName)
         .deleteRealmIfMigrationNeeded()
         .build();
   }
@@ -69,6 +71,11 @@ public class ConfigStoreRealm implements ConfigStore {
   @Override
   public void clear() {
     configStore.executeTransaction(realm -> realm.deleteAll());
+  }
+
+  @Override
+  public void drop() {
+    Realm.deleteRealm(config);
   }
 
   @Override
@@ -194,5 +201,25 @@ public class ConfigStoreRealm implements ConfigStore {
         .equalTo(KEY_ID, id)
         .findAll()
         .deleteAllFromRealm());
+  }
+
+  @Override
+  public void shrink() {
+    configStore.executeTransaction(r -> {
+      r.where(StatusReactionRealm.class)
+          .beginGroup()
+          .equalTo("retweeted", false)
+          .equalTo("favorited", false)
+          .endGroup()
+          .findAll()
+          .deleteAllFromRealm();
+      final StatusReactionRealm deadline = r.where(StatusReactionRealm.class)
+          .findAllSorted("id", Sort.DESCENDING)
+          .get(1000);
+      r.where(StatusReactionRealm.class)
+          .lessThan("id", deadline.getId())
+          .findAll()
+          .deleteAllFromRealm();
+    });
   }
 }

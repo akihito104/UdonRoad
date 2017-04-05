@@ -40,31 +40,32 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.TimelineFragment.OnFetchTweets;
+import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
-import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
-import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
+import static com.freshdigitable.udonroad.StoreType.CONVERSATION;
+import static com.freshdigitable.udonroad.StoreType.HOME;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
@@ -75,7 +76,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, OnFetchTweets, FabHandleable {
+    implements TweetSendable, OnUserIconClickedListener, FabHandleable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -84,9 +85,8 @@ public class MainActivity extends AppCompatActivity
 
   @Inject
   TwitterApi twitterApi;
-  private SortedCache<Status> homeTimeline;
   @Inject
-  StatusRequestWorker<SortedCache<Status>> statusRequestWorker;
+  SortedCache<Status> homeTimeline;
   @Inject
   UserStreamUtil userStream;
   @Inject
@@ -117,6 +117,30 @@ public class MainActivity extends AppCompatActivity
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+    setupHomeTimeline();
+    setupTweetInputView();
+    setupNavigationDrawer();
+  }
+
+  private void setupHomeTimeline() {
+    homeTimeline.open(HOME.storeName);
+    homeTimeline.clearPool();
+    homeTimeline.close();
+
+    tlFragment = StatusListFragment.getInstance(HOME);
+
+    configRequestWorker.open();
+    configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
+        .replace(R.id.main_timeline_container, tlFragment)
+        .commit());
+  }
+
+  private Subscription subscription;
+
+  private void setupNavigationDrawer() {
+    attachToolbar(binding.mainToolbar);
+    subscription = configRequestWorker.getAuthenticatedUser()
+        .subscribe(this::setupNavigationDrawerHeader);
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
       int itemId = item.getItemId();
       if (itemId == R.id.menu_home) {
@@ -134,33 +158,6 @@ public class MainActivity extends AppCompatActivity
       }
       return false;
     });
-
-    binding.ffab.hide();
-    setupHomeTimeline();
-    setupTweetInputView();
-    setupNavigationDrawer();
-  }
-
-  private void setupHomeTimeline() {
-    statusRequestWorker.open("home");
-    homeTimeline = statusRequestWorker.getCache();
-    homeTimeline.clearPool();
-
-    tlFragment = new TimelineFragment<>();
-    tlFragment.setSortedCache(homeTimeline);
-
-    configRequestWorker.open();
-    configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_timeline_container, tlFragment)
-        .commit());
-  }
-
-  private Subscription subscription;
-
-  private void setupNavigationDrawer() {
-    attachToolbar(binding.mainToolbar);
-    subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(this::setupNavigationDrawer);
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -183,7 +180,7 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.syncState();
   }
 
-  private void setupNavigationDrawer(@Nullable User user) {
+  private void setupNavigationDrawerHeader(@Nullable User user) {
     if (user == null) {
       return;
     }
@@ -212,7 +209,7 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
-    userStream.connect(homeTimeline);
+    userStream.connect(StoreType.HOME.storeName);
 
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
@@ -241,10 +238,11 @@ public class MainActivity extends AppCompatActivity
     super.onDestroy();
     if (binding != null) {
       userStream.disconnect();
+      iffabItemSelectedListeners.clear();
       binding.ffab.clear();
       binding.navDrawer.setNavigationItemSelectedListener(null);
+      configRequestWorker.shrink();
       configRequestWorker.close();
-      statusRequestWorker.close();
       appSettings.close();
       userFeedback.unsubscribe();
     }
@@ -334,27 +332,16 @@ public class MainActivity extends AppCompatActivity
     binding.ffab.transToFAB();
   }
 
-  @Inject
-  StatusRequestWorker<SortedCache<Status>> conversationRequestWorker;
-
   private void showConversation(long statusId) {
-    if (conversationRequestWorker.isOpened()) {
-      conversationRequestWorker.close();
-    }
-    final String name = "conv_" + Long.toString(statusId);
-    conversationRequestWorker.open(name);
-
-    final TimelineFragment<Status> conversationFragment = new TimelineFragment<>();
-    conversationFragment.setSortedCache(conversationRequestWorker.getCache());
+    final TimelineFragment<Status> conversationFragment
+        = StatusListFragment.getInstance(CONVERSATION, statusId);
+    final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
     replaceTimelineContainer(name, conversationFragment);
-    conversationRequestWorker.fetchConversations(statusId);
     binding.ffab.hide();
     switchFFABMenuTo(R.id.iffabMenu_main_detail);
   }
 
   private void hideConversation() {
-    conversationRequestWorker.getCache().clear();
-    conversationRequestWorker.close();
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
     binding.ffab.show();
   }
@@ -410,38 +397,11 @@ public class MainActivity extends AppCompatActivity
     return updateStatusObservable.doOnNext(status -> cancelWritingSelected());
   }
 
-  @Override
-  public void fetchTweet() {
-    statusRequestWorker.fetchHomeTimeline();
-  }
-
-  @Override
-  public void fetchTweet(Paging paging) {
-    statusRequestWorker.fetchHomeTimeline(paging);
-  }
-
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
       final long selectedTweetId = tlFragment.getSelectedTweetId();
-      if (itemId == R.id.iffabMenu_main_fav) {
-        if (!item.isChecked()) {
-          statusRequestWorker.createFavorite(selectedTweetId);
-        } else {
-          statusRequestWorker.destroyFavorite(selectedTweetId);
-        }
-      } else if (itemId == R.id.iffabMenu_main_rt) {
-        if (!item.isChecked()) {
-          statusRequestWorker.retweetStatus(selectedTweetId);
-        } else {
-          statusRequestWorker.destroyRetweet(selectedTweetId);
-        }
-      } else if (itemId == R.id.iffabMenu_main_favRt) {
-        Observable.concatDelayError(Arrays.asList(
-            statusRequestWorker.observeCreateFavorite(selectedTweetId),
-            statusRequestWorker.observeRetweetStatus(selectedTweetId))
-        ).subscribe(RequestWorkerBase.nopSubscriber());
-      } else if (itemId == R.id.iffabMenu_main_detail) {
+      if (itemId == R.id.iffabMenu_main_detail) {
         showStatusDetail(selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_reply) {
         sendStatusSelected(TYPE_REPLY, selectedTweetId);
@@ -449,6 +409,9 @@ public class MainActivity extends AppCompatActivity
         sendStatusSelected(TYPE_QUOTE, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_conv) {
         showConversation(selectedTweetId);
+      }
+      for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
+        l.onItemSelected(item);
       }
     });
   }
@@ -476,6 +439,18 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
     binding.ffab.getMenu().findItem(itemId).setChecked(checked);
+  }
+
+  private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
+
+  @Override
+  public void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {
+    iffabItemSelectedListeners.add(listener);
+  }
+
+  @Override
+  public void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
+    iffabItemSelectedListeners.remove(listener);
   }
 
   @Override

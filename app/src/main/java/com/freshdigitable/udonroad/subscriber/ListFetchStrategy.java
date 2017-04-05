@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad.subscriber;
 
-import java.util.Collection;
-
-import twitter4j.User;
+import twitter4j.Paging;
 
 /**
- * ConfigStore defines scheme to store user configurations.
- * <p>
- * Created by akihit on 2016/07/30.
+ * Created by akihit on 2017/03/30.
  */
-public interface ConfigStore extends TypedCache<StatusReaction> {
-  void replaceIgnoringUsers(Collection<Long> iDs);
 
-  boolean isIgnoredUser(long userId);
+public interface ListFetchStrategy {
+  void fetch();
 
-  void addIgnoringUser(User user);
-
-  void removeIgnoringUser(User user);
-
-  void shrink();
+  void fetch(Paging paging);
 }

@@ -22,9 +22,23 @@ package com.freshdigitable.udonroad.datastore;
  * Created by akihit on 2016/09/14.
  */
 public interface BaseCache {
+  /**
+   * opens data store resource. Depended data stores are also opened.
+   */
   void open();
 
+  /**
+   * deletes all stored entities. This operation should be called when the data store is opened.
+   */
   void clear();
 
+  /**
+   * closes data store resources. Depended data stores are also closed.
+   */
   void close();
+
+  /**
+   * removes the data store resource. This operation should be called when the data store is closed.
+   */
+  void drop();
 }
