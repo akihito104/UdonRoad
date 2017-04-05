@@ -17,4 +17,4 @@ powered by http://twitter4j.org
 
 3. build app
 
-  `./build.gradle installDebug`
+  `./gradlew installDebug`
