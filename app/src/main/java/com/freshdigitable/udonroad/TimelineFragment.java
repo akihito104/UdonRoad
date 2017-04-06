@@ -225,6 +225,7 @@ public abstract class TimelineFragment<T> extends Fragment {
       tlLayoutManager.scrollToPositionWithOffset(firstVisibleItemPosOnStop, firstVisibleItemTopOnStop);
       firstVisibleItemPosOnStop = -1;
       tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
+      firstItemObserver = null;
     }
     binding.timeline.addOnScrollListener(onScrollListener);
 
@@ -281,6 +282,7 @@ public abstract class TimelineFragment<T> extends Fragment {
       final RecyclerView.ViewHolder vh = binding.timeline.findViewHolderForAdapterPosition(firstVisibleItemPosOnStop);
       if (vh != null) {
         firstVisibleItemTopOnStop = vh.itemView.getTop();
+        firstItemObserver = getFirstItemObserver();
         tlAdapter.registerAdapterDataObserver(firstItemObserver);
       }
     }
@@ -288,34 +290,39 @@ public abstract class TimelineFragment<T> extends Fragment {
     tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
   }
 
-  private final AdapterDataObserver firstItemObserver = new AdapterDataObserver() {
-    @Override
-    public void onItemRangeInserted(int positionStart, int itemCount) {
-      if (positionStart <= firstVisibleItemPosOnStop) {
-        Log.d(TAG, "onItemRangeInserted: inserted above");
-        firstVisibleItemPosOnStop += itemCount;
-      }
-    }
+  private AdapterDataObserver firstItemObserver;
 
-    @Override
-    public void onItemRangeRemoved(int positionStart, int itemCount) {
-      if (positionStart <= firstVisibleItemPosOnStop) {
-        Log.d(TAG, "onItemRangeRemoved: removed above");
-        firstVisibleItemPosOnStop -= itemCount;
-        if (firstVisibleItemPosOnStop < 0) {
-          firstVisibleItemPosOnStop = 0;
-          firstVisibleItemTopOnStop = 0;
+  private AdapterDataObserver getFirstItemObserver() {
+    return new AdapterDataObserver() {
+      @Override
+      public void onItemRangeInserted(int positionStart, int itemCount) {
+        if (positionStart <= firstVisibleItemPosOnStop) {
+          Log.d(TAG, "onItemRangeInserted: inserted above");
+          firstVisibleItemPosOnStop += itemCount;
         }
       }
-    }
-  };
+
+      @Override
+      public void onItemRangeRemoved(int positionStart, int itemCount) {
+        if (positionStart <= firstVisibleItemPosOnStop) {
+          Log.d(TAG, "onItemRangeRemoved: removed above");
+          firstVisibleItemPosOnStop -= itemCount;
+          if (firstVisibleItemPosOnStop < 0) {
+            firstVisibleItemPosOnStop = 0;
+            firstVisibleItemTopOnStop = 0;
+          }
+        }
+      }
+    };
+  }
 
   @Override
   public void onDetach() {
     Log.d(TAG, "onDetach: ");
     super.onDetach();
-    if (firstVisibleItemPosOnStop >= 0) {
+    if (firstItemObserver != null) {
       tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
+      firstItemObserver = null;
     }
     binding.timeline.setItemAnimator(null);
     timelineAnimator = null;

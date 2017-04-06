@@ -32,6 +32,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
 import twitter4j.User;
@@ -213,8 +214,13 @@ public class ConfigStoreRealm implements ConfigStore {
           .endGroup()
           .findAll()
           .deleteAllFromRealm();
-      final StatusReactionRealm deadline = r.where(StatusReactionRealm.class)
-          .findAllSorted("id", Sort.DESCENDING)
+      final RealmResults<StatusReactionRealm> all = r.where(StatusReactionRealm.class)
+          .findAll();
+      if (all.size() <= 1000) {
+        return;
+      }
+      final StatusReactionRealm deadline = all
+          .sort("id", Sort.DESCENDING)
           .get(1000);
       r.where(StatusReactionRealm.class)
           .lessThan("id", deadline.getId())
