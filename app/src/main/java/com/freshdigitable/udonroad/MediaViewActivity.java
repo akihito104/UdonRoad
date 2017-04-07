@@ -381,9 +381,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       if (Context.AUDIO_SERVICE.equals(name)) {
         return getApplicationContext().getSystemService(name);
       }
-      if (Context.CAPTIONING_SERVICE.equals(name)) {
-        return getApplicationContext().getSystemService(name);
-      }
       return super.getSystemService(name);
     }
   }
