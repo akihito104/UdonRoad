@@ -53,6 +53,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   private ProgressBar progressBar;
   private Subscription subscribe;
   private TextView progressText;
+  private String timeElapseFormat;
 
   @Nullable
   @Override
@@ -69,6 +70,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     videoView = (VideoView) view.findViewById(R.id.media_video);
     progressBar = (ProgressBar) view.findViewById(R.id.media_progressBar);
     progressText = (TextView) view.findViewById(R.id.media_progressText);
+    timeElapseFormat = getString(R.string.media_remain_time);
   }
 
   private boolean isCompleted = false;
@@ -96,10 +98,12 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
 
     videoView.setOnPreparedListener(mediaPlayer -> {
       progressBar.setMax(mediaPlayer.getDuration());
-      videoView.start();
+//      videoView.start();
+      mediaPlayer.start();
     });
     videoView.setOnCompletionListener(mediaPlayer -> {
-      videoView.stopPlayback();
+//      videoView.stopPlayback();
+      mediaPlayer.stop();
       isCompleted = true;
     });
     videoView.setVideoURI(Uri.parse(url));
@@ -118,8 +122,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
           final int remain = videoView.getDuration() - currentPosition;
           final long minutes = MILLISECONDS.toMinutes(remain);
           final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
-          progressText.setText(
-              String.format(getString(R.string.media_remain_time), minutes, seconds));
+          progressText.setText(String.format(timeElapseFormat, minutes, seconds));
         }, throwable -> Log.e(TAG, "call: ", throwable));
   }
 
@@ -149,14 +152,13 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onStop() {
     super.onStop();
-    videoView.stopPlayback();
     videoView.setOnPreparedListener(null);
     videoView.setOnCompletionListener(null);
-    videoView.setVideoURI(null);
     rootView.setOnClickListener(null);
     rootView.setOnTouchListener(null);
     if (subscribe != null && !subscribe.isUnsubscribed()) {
       subscribe.unsubscribe();
     }
+    videoView.stopPlayback();
   }
 }
