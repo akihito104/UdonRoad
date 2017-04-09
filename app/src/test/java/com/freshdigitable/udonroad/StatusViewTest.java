@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 import java.util.Date;
@@ -53,7 +53,7 @@ public class StatusViewTest {
   private static final int normalColor = ContextCompat.getColor(RuntimeEnvironment.application,
       R.color.twitter_action_normal);
 
-  @RunWith(RobolectricGradleTestRunner.class)
+  @RunWith(RobolectricTestRunner.class)
   public static abstract class Base {
 
     StatusView sut;
