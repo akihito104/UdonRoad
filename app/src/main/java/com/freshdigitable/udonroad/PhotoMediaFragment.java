@@ -47,8 +47,8 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onStart() {
     super.onStart();
-    imageView.setOnClickListener(super.pageClickListener);
-    imageView.setOnTouchListener(super.touchListener);
+    imageView.setOnClickListener(super.getOnClickListener());
+    imageView.setOnTouchListener(touchListener);
     loadingTag = "media:" + mediaEntity.getId();
     Picasso.with(getContext())
         .load(mediaEntity.getMediaURLHttps() + ":medium")

@@ -49,7 +49,6 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @SuppressWarnings("unused")
   private static final String TAG = VideoMediaFragment.class.getSimpleName();
   private VideoView videoView;
-  private View rootView;
   private ProgressBar progressBar;
   private Subscription subscribe;
   private TextView progressText;
@@ -60,8 +59,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
-    rootView = inflater.inflate(R.layout.view_video, container, false);
-    return rootView;
+    return inflater.inflate(R.layout.view_video, container, false);
   }
 
   @Override
@@ -73,8 +71,6 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     timeElapseFormat = getString(R.string.media_remain_time);
   }
 
-  private boolean isCompleted = false;
-
   @Override
   public void onStart() {
     super.onStart();
@@ -82,29 +78,27 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     if (url == null) {
       return;
     }
-
-    rootView.setOnClickListener(view -> {
-      if (pageClickListener != null) {
-        pageClickListener.onClick(view);
-      }
-      if (isCompleted) {
-        final VideoView video = (VideoView) view.findViewById(R.id.media_video);
-        video.seekTo(0);
-        video.resume();
-        isCompleted = false;
-      }
-    });
-    rootView.setOnTouchListener(super.touchListener);
+    final View.OnClickListener pageClickListener = getOnClickListener();
+    final View rootView = getView();
+    if (rootView != null) {
+      rootView.setOnClickListener(view -> {
+        if (pageClickListener != null) {
+          pageClickListener.onClick(view);
+        }
+        if (!videoView.isPlaying()) {
+          videoView.seekTo(0);
+          videoView.resume();
+        }
+      });
+      rootView.setOnTouchListener(touchListener);
+    }
 
     videoView.setOnPreparedListener(mediaPlayer -> {
       progressBar.setMax(mediaPlayer.getDuration());
-//      videoView.start();
-      mediaPlayer.start();
+      videoView.start();
     });
     videoView.setOnCompletionListener(mediaPlayer -> {
-//      videoView.stopPlayback();
-      mediaPlayer.stop();
-      isCompleted = true;
+      videoView.stopPlayback();
     });
     videoView.setVideoURI(Uri.parse(url));
 
@@ -154,8 +148,11 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onStop();
     videoView.setOnPreparedListener(null);
     videoView.setOnCompletionListener(null);
-    rootView.setOnClickListener(null);
-    rootView.setOnTouchListener(null);
+    final View rootView = getView();
+    if (rootView != null) {
+      rootView.setOnClickListener(null);
+      rootView.setOnTouchListener(null);
+    }
     if (subscribe != null && !subscribe.isUnsubscribed()) {
       subscribe.unsubscribe();
     }

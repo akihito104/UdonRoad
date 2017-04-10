@@ -233,17 +233,15 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     userActionSubscriber.close();
   }
 
-  private final Runnable hideSystemUITask = () -> {
-    Log.d(TAG, "handler.postDelayed: ");
-    hideSystemUI();
-  };
-
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     Log.d(TAG, "onWindowFocusChanged: " + Boolean.toString(hasFocus));
     super.onWindowFocusChanged(hasFocus);
     if (hasFocus) {
-      handler.postDelayed(hideSystemUITask, 1000);
+      handler.postDelayed(() -> {
+        Log.d(TAG, "handler.postDelayed: ");
+        hideSystemUI();
+      }, 1000);
     }
   }
 
@@ -292,8 +290,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       return fragment;
     }
 
-    protected MediaEntity mediaEntity;
-    protected View.OnClickListener pageClickListener;
+    MediaEntity mediaEntity;
     @Inject
     MediaCache mediaCache;
 
@@ -309,10 +306,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
                              @Nullable Bundle savedInstanceState) {
       if (container != null) {
         container.setBackgroundColor(Color.BLACK);
-      }
-      final FragmentActivity activity = getActivity();
-      if (activity instanceof View.OnClickListener) {
-        pageClickListener = (View.OnClickListener) activity;
       }
       return super.onCreateView(inflater, container, savedInstanceState);
     }
@@ -331,9 +324,17 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       mediaCache.close();
     }
 
-    protected final View.OnTouchListener touchListener = new View.OnTouchListener() {
-      final double LOWER_THRESHOLD = (90 - 10) * Math.PI / 180;
-      final double UPPER_THRESHOLD = (90 + 10) * Math.PI / 180;
+    View.OnClickListener getOnClickListener() {
+      final FragmentActivity activity = getActivity();
+      if (activity instanceof View.OnClickListener) {
+        return (View.OnClickListener) activity;
+      }
+      return null;
+    }
+
+    static final View.OnTouchListener touchListener = new View.OnTouchListener() {
+      private static final double LOWER_THRESHOLD = (90 - 10) * Math.PI / 180;
+      private static final double UPPER_THRESHOLD = (90 + 10) * Math.PI / 180;
       private MotionEvent old;
 
       @Override
@@ -391,12 +392,12 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       if (itemId == R.id.iffabMenu_media_fav) {
         userActionSubscriber.createFavorite(statusId);
       } else if (itemId == R.id.iffabMenu_media_rt) {
-          userActionSubscriber.retweetStatus(statusId);
+        userActionSubscriber.retweetStatus(statusId);
       } else if (itemId == R.id.iffabMenu_media_favRt) {
-          Observable.concatDelayError(Arrays.asList(
-              userActionSubscriber.observeCreateFavorite(statusId),
-              userActionSubscriber.observeRetweetStatus(statusId))
-          ).subscribe(RequestWorkerBase.nopSubscriber());
+        Observable.concatDelayError(Arrays.asList(
+            userActionSubscriber.observeCreateFavorite(statusId),
+            userActionSubscriber.observeRetweetStatus(statusId))
+        ).subscribe(RequestWorkerBase.nopSubscriber());
       }
     });
   }
