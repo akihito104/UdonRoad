@@ -23,7 +23,6 @@ import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -35,7 +34,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -50,9 +48,10 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -74,11 +73,9 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   private static final String CREATE_START = "start";
 
   private ActivityMediaViewBinding binding;
-  private Handler handler;
   @Inject
   StatusRequestWorker<TypedCache<Status>> userActionSubscriber;
-  @Inject
-  UserFeedbackSubscriber userFeedback;
+  private MediaPagerAdapter mediaPagerAdapter;
 
   public static Intent create(@NonNull Context context, @NonNull Status status) {
     return create(context, status, 0);
@@ -113,8 +110,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         getResources().getDimensionPixelOffset(R.dimen.action_bar_elevation));
     setSupportActionBar(binding.mediaToolbar);
     showSystemUI();
-
-    handler = new Handler();
 
     final ActionBar actionBar = getSupportActionBar();
     final IndicatableFFAB mediaIffab = binding.mediaIffab;
@@ -196,7 +191,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   protected void onStart() {
     super.onStart();
     userActionSubscriber.open();
-    userFeedback.setToastOption(Gravity.CENTER, 0, 0);
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
@@ -208,8 +202,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     }
     final MediaEntity[] bindingMediaEntities = getBindingStatus(status).getMediaEntities();
     final int startPage = intent.getIntExtra(CREATE_START, 0);
-    binding.mediaPager.setAdapter(
-        new MediaPagerAdapter(getSupportFragmentManager(), bindingMediaEntities));
+    mediaPagerAdapter = new MediaPagerAdapter(getSupportFragmentManager(), bindingMediaEntities);
+    binding.mediaPager.setAdapter(mediaPagerAdapter);
     final int pages = bindingMediaEntities.length;
     binding.mediaPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
       @Override
@@ -225,24 +219,14 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   @Override
   protected void onStop() {
     super.onStop();
-    handler.removeCallbacksAndMessages(null);
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(null);
     binding.mediaPager.clearOnPageChangeListeners();
     binding.mediaPager.setAdapter(null);
-    binding.mediaIffab.setOnIffabItemSelectedListener(null);
+    binding.mediaPager.removeAllViews();
+    mediaPagerAdapter.clear();
+    mediaPagerAdapter = null;
+    binding.mediaIffab.clear();
     userActionSubscriber.close();
-  }
-
-  @Override
-  public void onWindowFocusChanged(boolean hasFocus) {
-    Log.d(TAG, "onWindowFocusChanged: " + Boolean.toString(hasFocus));
-    super.onWindowFocusChanged(hasFocus);
-    if (hasFocus) {
-      handler.postDelayed(() -> {
-        Log.d(TAG, "handler.postDelayed: ");
-        hideSystemUI();
-      }, 1000);
-    }
   }
 
   @Override
@@ -256,21 +240,29 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   private static class MediaPagerAdapter extends FragmentPagerAdapter {
-    private MediaEntity[] mediaEntities;
+    private final List<MediaFragment> pages;
 
     MediaPagerAdapter(FragmentManager fm, MediaEntity[] mediaEntities) {
       super(fm);
-      this.mediaEntities = mediaEntities;
+      pages = new ArrayList<>(mediaEntities.length);
+      for (MediaEntity me : mediaEntities) {
+        pages.add(MediaFragment.create(me));
+      }
     }
 
     @Override
     public Fragment getItem(int position) {
-      return MediaFragment.create(mediaEntities[position]);
+      return pages.get(position);
     }
 
     @Override
     public int getCount() {
-      return mediaEntities.length;
+      return pages.size();
+    }
+
+    void clear() {
+      pages.clear();
+      setPrimaryItem(null, -1, null); // XXX
     }
   }
 
@@ -332,39 +324,41 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
       return null;
     }
 
-    static final View.OnTouchListener touchListener = new View.OnTouchListener() {
-      private static final double LOWER_THRESHOLD = (90 - 10) * Math.PI / 180;
-      private static final double UPPER_THRESHOLD = (90 + 10) * Math.PI / 180;
-      private MotionEvent old;
+    View.OnTouchListener getTouchListener() {
+      return new View.OnTouchListener() {
+        private static final double LOWER_THRESHOLD = (90 - 10) * Math.PI / 180;
+        private static final double UPPER_THRESHOLD = (90 + 10) * Math.PI / 180;
+        private MotionEvent old;
 
-      @Override
-      public boolean onTouch(View view, MotionEvent now) {
-        final int action = now.getAction();
-        if (action == MotionEvent.ACTION_DOWN) {
-          old = MotionEvent.obtain(now);
+        @Override
+        public boolean onTouch(View view, MotionEvent now) {
+          final int action = now.getAction();
+          if (action == MotionEvent.ACTION_DOWN) {
+            old = MotionEvent.obtain(now);
+            return false;
+          }
+          if (action == MotionEvent.ACTION_UP) {
+            try {
+              final float deltaX = now.getX() - old.getX();
+              final float deltaY = now.getY() - old.getY();
+              final double powDist = deltaX * deltaX + deltaY * deltaY;
+              if (powDist < 100) {  // maybe click
+//              Log.d(TAG, "onTouch: click: " + powDist);
+                return false;
+              }
+              final double rad = Math.atan2(deltaY, deltaX);
+              final double absRad = Math.abs(rad);
+              if (absRad > LOWER_THRESHOLD || absRad < UPPER_THRESHOLD) { // maybe swipe to longitude
+                return true;
+              }
+            } finally {
+              old.recycle();
+            }
+          }
           return false;
         }
-        if (action == MotionEvent.ACTION_UP) {
-          try {
-            final float deltaX = now.getX() - old.getX();
-            final float deltaY = now.getY() - old.getY();
-            final double powDist = deltaX * deltaX + deltaY * deltaY;
-            if (powDist < 100) {  // maybe click
-//              Log.d(TAG, "onTouch: click: " + powDist);
-              return false;
-            }
-            final double rad = Math.atan2(deltaY, deltaX);
-            final double absRad = Math.abs(rad);
-            if (absRad > LOWER_THRESHOLD || absRad < UPPER_THRESHOLD) { // maybe swipe to longitude
-              return true;
-            }
-          } finally {
-            old.recycle();
-          }
-        }
-        return false;
-      }
-    };
+      };
+    }
   }
 
   @Override
@@ -379,7 +373,9 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
     @Override
     public Object getSystemService(String name) {
-      if (Context.AUDIO_SERVICE.equals(name)) {
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N
+          && Context.AUDIO_SERVICE.equals(name)) {
+        Log.d(TAG, "getSystemService: ");
         return getApplicationContext().getSystemService(name);
       }
       return super.getSystemService(name);
