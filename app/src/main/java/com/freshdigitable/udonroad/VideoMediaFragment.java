@@ -49,10 +49,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @SuppressWarnings("unused")
   private static final String TAG = VideoMediaFragment.class.getSimpleName();
   private VideoView videoView;
-  private ProgressBar progressBar;
   private Subscription subscribe;
-  private TextView progressText;
-  private String timeElapseFormat;
 
   @Nullable
   @Override
@@ -66,9 +63,6 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     videoView = (VideoView) view.findViewById(R.id.media_video);
-    progressBar = (ProgressBar) view.findViewById(R.id.media_progressBar);
-    progressText = (TextView) view.findViewById(R.id.media_progressText);
-    timeElapseFormat = getString(R.string.media_remain_time);
   }
 
   @Override
@@ -78,46 +72,48 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     if (url == null) {
       return;
     }
-    final View.OnClickListener pageClickListener = getOnClickListener();
     final View rootView = getView();
-    if (rootView != null) {
-      rootView.setOnClickListener(view -> {
-        if (pageClickListener != null) {
-          pageClickListener.onClick(view);
-        }
-        if (!videoView.isPlaying()) {
-          videoView.seekTo(0);
-          videoView.resume();
-        }
-      });
-      rootView.setOnTouchListener(touchListener);
+    if (rootView == null) {
+      return;
     }
+    final VideoView vv = this.videoView;
+    final View.OnClickListener pageClickListener = getOnClickListener();
+    rootView.setOnClickListener(view -> {
+      if (pageClickListener != null) {
+        pageClickListener.onClick(view);
+      }
+      if (!vv.isPlaying()) {
+        vv.seekTo(0);
+        vv.resume();
+      }
+    });
+    rootView.setOnTouchListener(super.getTouchListener());
 
+    final ProgressBar progressBar = (ProgressBar) rootView.findViewById(R.id.media_progressBar);
     videoView.setOnPreparedListener(mediaPlayer -> {
       progressBar.setMax(mediaPlayer.getDuration());
-      videoView.start();
+      vv.start();
     });
-    videoView.setOnCompletionListener(mediaPlayer -> {
-      videoView.stopPlayback();
-    });
-    videoView.setVideoURI(Uri.parse(url));
-
+    final TextView progressText = (TextView) rootView.findViewById(R.id.media_progressText);
+    final String timeElapseFormat = getString(R.string.media_remain_time);
     subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
         .onBackpressureLatest()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(aLong -> {
-          if (!videoView.isPlaying()) {
+          if (!vv.isPlaying()) {
             return;
           }
 
-          final int currentPosition = videoView.getCurrentPosition();
+          final int currentPosition = vv.getCurrentPosition();
           progressBar.setProgress(currentPosition);
 
-          final int remain = videoView.getDuration() - currentPosition;
+          final int remain = vv.getDuration() - currentPosition;
           final long minutes = MILLISECONDS.toMinutes(remain);
           final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
           progressText.setText(String.format(timeElapseFormat, minutes, seconds));
         }, throwable -> Log.e(TAG, "call: ", throwable));
+
+    videoView.setVideoURI(Uri.parse(url));
   }
 
   private String selectVideo() {
@@ -144,10 +140,15 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   }
 
   @Override
+  public void onPause() {
+    super.onPause();
+    videoView.stopPlayback();
+  }
+
+  @Override
   public void onStop() {
     super.onStop();
     videoView.setOnPreparedListener(null);
-    videoView.setOnCompletionListener(null);
     final View rootView = getView();
     if (rootView != null) {
       rootView.setOnClickListener(null);
@@ -156,6 +157,5 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     if (subscribe != null && !subscribe.isUnsubscribed()) {
       subscribe.unsubscribe();
     }
-    videoView.stopPlayback();
   }
 }
