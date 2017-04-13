@@ -68,10 +68,6 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onStart() {
     super.onStart();
-    final String url = selectVideo();
-    if (url == null) {
-      return;
-    }
     final View rootView = getView();
     if (rootView == null) {
       return;
@@ -112,7 +108,15 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
           final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
           progressText.setText(String.format(timeElapseFormat, minutes, seconds));
         }, throwable -> Log.e(TAG, "call: ", throwable));
+  }
 
+  @Override
+  public void onResume() {
+    super.onResume();
+    final String url = selectVideo();
+    if (url == null) {
+      return;
+    }
     videoView.setVideoURI(Uri.parse(url));
   }
 
