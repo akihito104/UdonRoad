@@ -373,9 +373,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
     @Override
     public Object getSystemService(String name) {
-      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
           && Context.AUDIO_SERVICE.equals(name)) {
-        Log.d(TAG, "getSystemService: ");
         return getApplicationContext().getSystemService(name);
       }
       return super.getSystemService(name);
