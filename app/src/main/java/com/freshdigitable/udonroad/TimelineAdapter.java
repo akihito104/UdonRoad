@@ -23,6 +23,9 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.media.MediaViewActivity;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
+import com.freshdigitable.udonroad.media.ThumbnailView;
 
 import java.lang.ref.WeakReference;
 
@@ -119,9 +122,9 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     if (mediaEntities.length < 1) {
       return;
     }
-    final MediaContainer mediaContainer = statusView.getMediaContainer();
+    final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     final long statusId = status.getId();
-    mediaContainer.setOnMediaClickListener((view, index) -> {
+    thumbnailContainer.setOnMediaClickListener((view, index) -> {
       itemViewClickListener.onItemViewClicked(statusView, statusId, view);
       MediaViewActivity.start(view.getContext(), status, index);
     });
@@ -141,9 +144,9 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   }
 
   private void unloadMediaView(StatusViewBase v) {
-    final MediaContainer mediaContainer = v.getMediaContainer();
-    for (int i = 0; i < mediaContainer.getThumbCount(); i++) {
-      mediaContainer.getChildAt(i).setOnClickListener(null);
+    final ThumbnailContainer thumbnailContainer = v.getThumbnailContainer();
+    for (int i = 0; i < thumbnailContainer.getThumbCount(); i++) {
+      thumbnailContainer.getChildAt(i).setOnClickListener(null);
     }
   }
 
@@ -176,7 +179,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
     v.setOnClickListener(null);
     v.getQuotedStatusView().setOnClickListener(null);
     v.getIcon().setOnClickListener(null);
-    v.getMediaContainer().setOnMediaClickListener(null);
+    v.getThumbnailContainer().setOnMediaClickListener(null);
     v.reset();
     holder.onRecycled();
   }
@@ -227,7 +230,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<TimelineAdapter.Vie
   private final OnItemViewClickListener itemViewClickListener = (itemView, entityId, clickedItem) -> {
     if (isStatusViewSelected()
         && entityId == selectedEntityHolder.entityId) {
-      if (clickedItem instanceof MediaImageView) {
+      if (clickedItem instanceof ThumbnailView) {
         return;
       }
       clearSelectedEntity();

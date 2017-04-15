@@ -141,7 +141,7 @@
         tools:text="via clientname"
         />
 
-    <com.freshdigitable.udonroad.MediaContainer
+    <com.freshdigitable.udonroad.media.ThumbnailContainer
         android:id="@+id/tl_image_group"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/tweet_user_icon"

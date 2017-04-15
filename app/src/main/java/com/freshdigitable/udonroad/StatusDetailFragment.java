@@ -40,6 +40,7 @@ import android.widget.Toast;
 import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
@@ -119,7 +120,7 @@ public class StatusDetailFragment extends Fragment {
         view -> userIconClickedListener.onUserIconClicked(view, user));
     statusView.getUserName().setOnClickListener(
         view -> userIconClickedListener.onUserIconClicked(icon, user));
-    statusView.getMediaContainer().setOnMediaClickListener(
+    statusView.getThumbnailContainer().setOnMediaClickListener(
         (view, index) -> MediaViewActivity.start(view.getContext(), status, index));
 
     binding.statusView.bindStatus(status);
@@ -208,7 +209,7 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.getRtUser().setOnClickListener(null);
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
-    binding.statusView.getMediaContainer().setOnMediaClickListener(null);
+    binding.statusView.getThumbnailContainer().setOnMediaClickListener(null);
     binding.sdTwitterCard.setOnClickListener(null);
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
