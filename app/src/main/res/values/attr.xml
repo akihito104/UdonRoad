@@ -16,7 +16,7 @@
   -->
 
 <resources>
-    <declare-styleable name="MediaContainer">
+    <declare-styleable name="ThumbnailContainer">
         <attr name="thumbCount" format="integer" />
     </declare-styleable>
 </resources>

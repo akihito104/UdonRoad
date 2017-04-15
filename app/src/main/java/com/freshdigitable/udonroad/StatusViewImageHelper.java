@@ -23,6 +23,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
+import com.freshdigitable.udonroad.media.ThumbnailView;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
@@ -134,21 +136,21 @@ public class StatusViewImageHelper {
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {
     final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
-    final MediaContainer mediaContainer = statusView.getMediaContainer();
-    mediaContainer.bindMediaEntities(mediaEntities);
-    final int mediaCount = mediaContainer.getThumbCount();
+    final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
+    thumbnailContainer.bindMediaEntities(mediaEntities);
+    final int mediaCount = thumbnailContainer.getThumbCount();
     final long statusId = status.getId();
     for (int i = 0; i < mediaCount; i++) {
-      final MediaImageView mediaView = (MediaImageView) mediaContainer.getChildAt(i);
+      final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
       final String type = mediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
-      final RequestCreator rc = getRequest(mediaContainer.getContext(),
+      final RequestCreator rc = getRequest(thumbnailContainer.getContext(),
           mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
-      if (mediaContainer.getHeight() == 0 || mediaContainer.getThumbWidth() == 0) {
+      if (thumbnailContainer.getHeight() == 0 || thumbnailContainer.getThumbWidth() == 0) {
         rc.fit();
       } else {
-        rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
+        rc.resize(thumbnailContainer.getThumbWidth(), thumbnailContainer.getHeight());
       }
       rc.centerCrop()
           .into(mediaView);
@@ -156,10 +158,10 @@ public class StatusViewImageHelper {
   }
 
   private static void unloadMediaView(StatusViewBase statusView) {
-    final MediaContainer mediaContainer = statusView.getMediaContainer();
-    final int thumbCount = mediaContainer.getThumbCount();
+    final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
+    final int thumbCount = thumbnailContainer.getThumbCount();
     for (int i=0; i<thumbCount;i++) {
-      final MediaImageView media = (MediaImageView) mediaContainer.getChildAt(i);
+      final ThumbnailView media = (ThumbnailView) thumbnailContainer.getChildAt(i);
       unloadImage(media);
     }
   }

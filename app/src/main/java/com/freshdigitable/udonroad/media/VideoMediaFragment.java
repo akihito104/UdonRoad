@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.media;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +26,8 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.VideoView;
+
+import com.freshdigitable.udonroad.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
