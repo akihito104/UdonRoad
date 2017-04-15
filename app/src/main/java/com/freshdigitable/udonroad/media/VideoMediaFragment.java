@@ -58,7 +58,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
-    return inflater.inflate(R.layout.view_video, container, false);
+    return inflater.inflate(R.layout.fragment_video_media, container, false);
   }
 
   @Override

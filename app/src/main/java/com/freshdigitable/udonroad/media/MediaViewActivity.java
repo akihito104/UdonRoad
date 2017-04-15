@@ -275,7 +275,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         fragment = new PhotoMediaFragment();
       } else {
         // video and animated_gif are distributed as a mp4
-        fragment = new VideoMediaFragment();
+        fragment = new SurfaceMediaView();
       }
       final Bundle args = new Bundle();
       args.putLong("media_id", mediaEntity.getId());

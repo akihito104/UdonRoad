@@ -31,7 +31,8 @@ import com.squareup.picasso.Picasso;
  * Created by akihit on 2016/07/17.
  */
 public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
-  public static final String TAG = PhotoMediaFragment.class.getSimpleName();
+  @SuppressWarnings("unused")
+  private static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
   private String loadingTag;
 
