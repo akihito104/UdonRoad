@@ -17,8 +17,6 @@
 package com.freshdigitable.udonroad.module;
 
 import com.freshdigitable.udonroad.MainActivity;
-import com.freshdigitable.udonroad.MediaViewActivity;
-import com.freshdigitable.udonroad.MediaViewActivity.MediaFragment;
 import com.freshdigitable.udonroad.OAuthActivity;
 import com.freshdigitable.udonroad.ReplyActivity;
 import com.freshdigitable.udonroad.StatusDetailFragment;
@@ -28,6 +26,8 @@ import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.UserInfoFragment;
 import com.freshdigitable.udonroad.UserInfoPagerFragment;
 import com.freshdigitable.udonroad.UserStreamUtil;
+import com.freshdigitable.udonroad.media.MediaViewActivity;
+import com.freshdigitable.udonroad.media.MediaViewActivity.MediaFragment;
 
 import javax.inject.Singleton;
 

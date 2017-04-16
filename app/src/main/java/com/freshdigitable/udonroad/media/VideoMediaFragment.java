@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.media;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +26,8 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.VideoView;
+
+import com.freshdigitable.udonroad.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,78 +51,75 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @SuppressWarnings("unused")
   private static final String TAG = VideoMediaFragment.class.getSimpleName();
   private VideoView videoView;
-  private View rootView;
-  private ProgressBar progressBar;
   private Subscription subscribe;
-  private TextView progressText;
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
-    rootView = inflater.inflate(R.layout.view_video, container, false);
-    return rootView;
+    return inflater.inflate(R.layout.fragment_video_media, container, false);
   }
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     videoView = (VideoView) view.findViewById(R.id.media_video);
-    progressBar = (ProgressBar) view.findViewById(R.id.media_progressBar);
-    progressText = (TextView) view.findViewById(R.id.media_progressText);
   }
-
-  private boolean isCompleted = false;
 
   @Override
   public void onStart() {
     super.onStart();
-    final String url = selectVideo();
-    if (url == null) {
+    final View rootView = getView();
+    if (rootView == null) {
       return;
     }
-
+    final VideoView vv = this.videoView;
+    final View.OnClickListener pageClickListener = getOnClickListener();
     rootView.setOnClickListener(view -> {
       if (pageClickListener != null) {
         pageClickListener.onClick(view);
       }
-      if (isCompleted) {
-        final VideoView video = (VideoView) view.findViewById(R.id.media_video);
-        video.seekTo(0);
-        video.resume();
-        isCompleted = false;
+      if (!vv.isPlaying()) {
+        vv.seekTo(0);
+        vv.resume();
       }
     });
-    rootView.setOnTouchListener(super.touchListener);
+    rootView.setOnTouchListener(super.getTouchListener());
 
+    final ProgressBar progressBar = (ProgressBar) rootView.findViewById(R.id.media_progressBar);
     videoView.setOnPreparedListener(mediaPlayer -> {
       progressBar.setMax(mediaPlayer.getDuration());
-      videoView.start();
+      vv.start();
     });
-    videoView.setOnCompletionListener(mediaPlayer -> {
-      videoView.stopPlayback();
-      isCompleted = true;
-    });
-    videoView.setVideoURI(Uri.parse(url));
-
+    final TextView progressText = (TextView) rootView.findViewById(R.id.media_progressText);
+    final String timeElapseFormat = getString(R.string.media_remain_time);
     subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
         .onBackpressureLatest()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(aLong -> {
-          if (!videoView.isPlaying()) {
+          if (!vv.isPlaying()) {
             return;
           }
 
-          final int currentPosition = videoView.getCurrentPosition();
+          final int currentPosition = vv.getCurrentPosition();
           progressBar.setProgress(currentPosition);
 
-          final int remain = videoView.getDuration() - currentPosition;
+          final int remain = vv.getDuration() - currentPosition;
           final long minutes = MILLISECONDS.toMinutes(remain);
           final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
-          progressText.setText(
-              String.format(getString(R.string.media_remain_time), minutes, seconds));
+          progressText.setText(String.format(timeElapseFormat, minutes, seconds));
         }, throwable -> Log.e(TAG, "call: ", throwable));
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    final String url = selectVideo();
+    if (url == null) {
+      return;
+    }
+    videoView.setVideoURI(Uri.parse(url));
   }
 
   private String selectVideo() {
@@ -147,14 +146,20 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   }
 
   @Override
+  public void onPause() {
+    super.onPause();
+    videoView.stopPlayback();
+  }
+
+  @Override
   public void onStop() {
     super.onStop();
-    videoView.stopPlayback();
     videoView.setOnPreparedListener(null);
-    videoView.setOnCompletionListener(null);
-    videoView.setVideoURI(null);
-    rootView.setOnClickListener(null);
-    rootView.setOnTouchListener(null);
+    final View rootView = getView();
+    if (rootView != null) {
+      rootView.setOnClickListener(null);
+      rootView.setOnTouchListener(null);
+    }
     if (subscribe != null && !subscribe.isUnsubscribed()) {
       subscribe.unsubscribe();
     }

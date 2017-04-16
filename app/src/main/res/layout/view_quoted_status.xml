@@ -121,7 +121,7 @@
         tools:text="via clientName"
         />
 
-    <com.freshdigitable.udonroad.MediaContainer
+    <com.freshdigitable.udonroad.media.ThumbnailContainer
         android:id="@+id/q_image_group"
         android:layout_width="match_parent"
         android:layout_height="@dimen/tweet_user_icon"

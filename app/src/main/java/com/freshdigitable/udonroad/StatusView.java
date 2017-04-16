@@ -23,6 +23,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
+
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
@@ -56,7 +58,7 @@ public class StatusView extends FullStatusView {
     rtCount = (IconAttachedTextView) v.findViewById(R.id.tl_rtcount);
     favCount = (IconAttachedTextView) v.findViewById(R.id.tl_favcount);
     rtUser = (RetweetUserView) v.findViewById(R.id.tl_rt_user);
-    mediaContainer = (MediaContainer) v.findViewById(R.id.tl_image_group);
+    thumbnailContainer = (ThumbnailContainer) v.findViewById(R.id.tl_image_group);
     quotedStatus = (QuotedStatusView) v.findViewById(R.id.tl_quoted);
   }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.media;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -31,7 +31,8 @@ import com.squareup.picasso.Picasso;
  * Created by akihit on 2016/07/17.
  */
 public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
-  public static final String TAG = PhotoMediaFragment.class.getSimpleName();
+  @SuppressWarnings("unused")
+  private static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
   private String loadingTag;
 
@@ -47,8 +48,8 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onStart() {
     super.onStart();
-    imageView.setOnClickListener(super.pageClickListener);
-    imageView.setOnTouchListener(super.touchListener);
+    imageView.setOnClickListener(super.getOnClickListener());
+    imageView.setOnTouchListener(super.getTouchListener());
     loadingTag = "media:" + mediaEntity.getId();
     Picasso.with(getContext())
         .load(mediaEntity.getMediaURLHttps() + ":medium")

@@ -28,6 +28,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
+
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -51,7 +53,7 @@ public abstract class StatusViewBase extends RelativeLayout {
   protected TextView clientName;
   protected IconAttachedTextView rtCount;
   protected IconAttachedTextView favCount;
-  protected MediaContainer mediaContainer;
+  protected ThumbnailContainer thumbnailContainer;
   protected final int grid;
   protected static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
   protected final int selectedColor;
@@ -201,7 +203,7 @@ public abstract class StatusViewBase extends RelativeLayout {
 
   protected void bindMediaEntities(Status status) {
     final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
-    mediaContainer.bindMediaEntities(mediaEntities);
+    thumbnailContainer.bindMediaEntities(mediaEntities);
   }
 
   protected void setTextColor(int color) {
@@ -226,8 +228,8 @@ public abstract class StatusViewBase extends RelativeLayout {
     setOnClickListener(null);
     setUserIconClickListener(null);
 
-    mediaContainer.reset();
-    mediaContainer.setOnMediaClickListener(null);
+    thumbnailContainer.reset();
+    thumbnailContainer.setOnMediaClickListener(null);
   }
 
   public void setUserIconClickListener(OnClickListener userIconClickListener) {
@@ -252,8 +254,8 @@ public abstract class StatusViewBase extends RelativeLayout {
     return text;
   }
 
-  public MediaContainer getMediaContainer() {
-    return mediaContainer;
+  public ThumbnailContainer getThumbnailContainer() {
+    return thumbnailContainer;
   }
 
   public abstract void setSelectedColor();

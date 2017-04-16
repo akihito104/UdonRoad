@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.media;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -24,24 +24,26 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
+import com.freshdigitable.udonroad.R;
+
 /**
  * MediaImageView shows uploaded media such as photo and video thumbnail.
  *
  * Created by akihit on 2016/07/10.
  */
-public class MediaImageView extends AppCompatImageView {
-  public static final String TAG = MediaImageView.class.getSimpleName();
+public class ThumbnailView extends AppCompatImageView {
+  public static final String TAG = ThumbnailView.class.getSimpleName();
   private static Bitmap playIcon;
 
-  public MediaImageView(Context context) {
+  public ThumbnailView(Context context) {
     this(context, null);
   }
 
-  public MediaImageView(Context context, AttributeSet attrs) {
+  public ThumbnailView(Context context, AttributeSet attrs) {
     this(context, attrs, 0);
   }
 
-  public MediaImageView(Context context, AttributeSet attrs, int defStyleAttr) {
+  public ThumbnailView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     setContentDescription(getResources().getString(R.string.tweet_media_descs));
     setVisibility(GONE);

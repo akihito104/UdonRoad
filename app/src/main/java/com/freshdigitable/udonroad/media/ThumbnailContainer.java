@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.media;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -23,6 +23,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.freshdigitable.udonroad.R;
+
 import twitter4j.MediaEntity;
 
 /**
@@ -30,7 +32,7 @@ import twitter4j.MediaEntity;
  *
  * Created by akihit on 2016/07/10.
  */
-public class MediaContainer extends LinearLayout {
+public class ThumbnailContainer extends LinearLayout {
 
   private final int grid;
   private final int maxThumbCount;
@@ -38,22 +40,22 @@ public class MediaContainer extends LinearLayout {
   private int thumbWidth;
   private int thumbCount;
 
-  public MediaContainer(Context context) {
+  public ThumbnailContainer(Context context) {
     this(context, null);
   }
 
-  public MediaContainer(Context context, AttributeSet attrs) {
+  public ThumbnailContainer(Context context, AttributeSet attrs) {
     this(context, attrs, 0);
   }
 
-  public MediaContainer(Context context, AttributeSet attrs, int defStyleAttr) {
+  public ThumbnailContainer(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
 
     final TypedArray a = context.obtainStyledAttributes(
-        attrs, R.styleable.MediaContainer, defStyleAttr, 0);
+        attrs, R.styleable.ThumbnailContainer, defStyleAttr, 0);
     try {
-      maxThumbCount = a.getInt(R.styleable.MediaContainer_thumbCount, 0);
+      maxThumbCount = a.getInt(R.styleable.ThumbnailContainer_thumbCount, 0);
     } finally {
       a.recycle();
     }
@@ -99,12 +101,12 @@ public class MediaContainer extends LinearLayout {
       return;
     }
     for (int i = 0; i < count - size; i++) {
-      final MediaImageView mediaImageView = new MediaImageView(getContext());
+      final ThumbnailView thumbnailView = new ThumbnailView(getContext());
       final LayoutParams lp = new LayoutParams(0, LayoutParams.MATCH_PARENT, 1);
       if (size + i >= 1) {
         lp.leftMargin = grid;
       }
-      addView(mediaImageView, -1, lp);
+      addView(thumbnailView, -1, lp);
     }
   }
 
@@ -125,7 +127,7 @@ public class MediaContainer extends LinearLayout {
     this.mediaClickListener = mediaClickListener;
   }
 
-  interface OnMediaClickListener {
+  public interface OnMediaClickListener {
     void onMediaClicked(View view, int index);
   }
 }
