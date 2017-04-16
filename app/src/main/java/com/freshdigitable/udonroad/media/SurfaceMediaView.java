@@ -31,6 +31,7 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.databinding.FragmentSurfaceMediaBinding;
 import com.freshdigitable.udonroad.media.MediaViewActivity.MediaFragment;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +42,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import twitter4j.MediaEntity;
 
+import static android.R.attr.duration;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -51,7 +53,8 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 public class SurfaceMediaView extends MediaFragment {
   private static final String TAG = SurfaceMediaView.class.getSimpleName();
   private FragmentSurfaceMediaBinding binding;
-  private MediaPlayer mediaPlayer;
+  private final MediaPlayer mediaPlayer = new MediaPlayer();
+  private Subscription subscribe;
 
   @Nullable
   @Override
@@ -64,53 +67,23 @@ public class SurfaceMediaView extends MediaFragment {
   }
 
   @Override
-  public void onStart() {
-    super.onStart();
-    final View rootView = getView();
-    if (rootView == null) {
-      return;
-    }
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
     final View.OnClickListener pageClickListener = getOnClickListener();
-    rootView.setOnClickListener(view -> {
+    view.setOnClickListener(v -> {
       if (pageClickListener != null) {
-        pageClickListener.onClick(view);
+        pageClickListener.onClick(v);
       }
-      if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
+      if (!mediaPlayer.isPlaying()) {
         mediaPlayer.seekTo(0);
         mediaPlayer.start();
       }
     });
-    rootView.setOnTouchListener(super.getTouchListener());
-
-    final Uri mediaUri = Uri.parse(selectVideo());
-    final String timeElapseFormat = getString(R.string.media_remain_time);
+    view.setOnTouchListener(super.getTouchListener());
     binding.mediaVideo.getHolder().addCallback(new SurfaceHolder.Callback() {
-      private Subscription subscribe;
-
       @Override
       public void surfaceCreated(SurfaceHolder holder) {
-        mediaPlayer = MediaPlayer.create(getContext(), mediaUri, holder);
-        mediaPlayer.setOnPreparedListener(mp -> {
-          final int duration = mp.getDuration();
-          binding.mediaProgressBar.setMax(duration);
-          mp.start();
-          subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
-              .onBackpressureLatest()
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(aLong -> {
-                if (!mp.isPlaying()) {
-                  return;
-                }
-
-                final int currentPosition = mp.getCurrentPosition();
-                binding.mediaProgressBar.setProgress(currentPosition);
-
-                final int remain = duration - currentPosition;
-                final long minutes = MILLISECONDS.toMinutes(remain);
-                final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
-                binding.mediaProgressText.setText(String.format(timeElapseFormat, minutes, seconds));
-              }, throwable -> Log.e(TAG, "call: ", throwable));
-        });
+        mediaPlayer.setDisplay(holder);
       }
 
       @Override
@@ -119,17 +92,69 @@ public class SurfaceMediaView extends MediaFragment {
 
       @Override
       public void surfaceDestroyed(SurfaceHolder holder) {
-        if (subscribe != null && !subscribe.isUnsubscribed()) {
-          subscribe.unsubscribe();
-        }
-        if (mediaPlayer != null) {
-          mediaPlayer.setDisplay(null);
-          mediaPlayer.stop();
-          mediaPlayer.release();
-        }
         holder.removeCallback(this);
       }
     });
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    try {
+      setupMediaPlayer();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return;
+    }
+    setupProgressBar();
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    mediaPlayer.prepareAsync();
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    if (subscribe != null && !subscribe.isUnsubscribed()) {
+      subscribe.unsubscribe();
+    }
+    mediaPlayer.setDisplay(null);
+    mediaPlayer.stop();
+    mediaPlayer.release();
+  }
+
+  private void setupMediaPlayer() throws IOException {
+    final Uri mediaUri = Uri.parse(selectVideo());
+    mediaPlayer.setDataSource(getContext(), mediaUri);
+
+    mediaPlayer.setOnPreparedListener(mp -> {
+      final int duration = mp.getDuration();
+      binding.mediaProgressBar.setMax(duration);
+      mp.start();
+    });
+  }
+
+  private void setupProgressBar() {
+    final String timeElapseFormat = getString(R.string.media_remain_time);
+    subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
+        .onBackpressureLatest()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(aLong -> {
+          if (!mediaPlayer.isPlaying()) {
+            return;
+          }
+
+          final int currentPosition = mediaPlayer.getCurrentPosition();
+          binding.mediaProgressBar.setProgress(currentPosition);
+
+          final int remain = duration - currentPosition;
+          final long minutes = MILLISECONDS.toMinutes(remain);
+          final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
+          binding.mediaProgressText.setText(String.format(timeElapseFormat, minutes, seconds));
+        }, throwable -> Log.e(TAG, "call: ", throwable));
   }
 
   private String selectVideo() {
