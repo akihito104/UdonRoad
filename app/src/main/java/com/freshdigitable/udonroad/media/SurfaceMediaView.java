@@ -42,7 +42,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import twitter4j.MediaEntity;
 
-import static android.R.attr.duration;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -124,6 +123,18 @@ public class SurfaceMediaView extends MediaFragment {
     mediaPlayer.setDisplay(null);
     mediaPlayer.stop();
     mediaPlayer.release();
+    mediaPlayer.setOnPreparedListener(null);
+    mediaPlayer.setOnVideoSizeChangedListener(null);
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    final View rootView = getView();
+    if (rootView != null) {
+      rootView.setOnClickListener(null);
+      rootView.setOnTouchListener(null);
+    }
   }
 
   private void setupMediaPlayer() throws IOException {
@@ -134,6 +145,20 @@ public class SurfaceMediaView extends MediaFragment {
       final int duration = mp.getDuration();
       binding.mediaProgressBar.setMax(duration);
       mp.start();
+    });
+    mediaPlayer.setOnVideoSizeChangedListener((mp, width, height) -> {
+      final int videoWidth = mp.getVideoWidth();
+      final int videoHeight = mp.getVideoHeight();
+      binding.mediaVideo.getHolder().setFixedSize(videoWidth, videoHeight);
+      final int parentWidth = ((View) binding.mediaVideo.getParent()).getWidth();
+      final int parentHeight = ((View) binding.mediaVideo.getParent()).getHeight();
+      final float factor = videoWidth * parentHeight > videoHeight * parentWidth
+          ? (float) parentWidth / videoWidth
+          : (float) parentHeight / videoHeight;
+      final ViewGroup.LayoutParams layoutParams = binding.mediaVideo.getLayoutParams();
+      layoutParams.width = (int) (factor * videoWidth);
+      layoutParams.height = (int) (factor * videoHeight);
+      binding.mediaVideo.setLayoutParams(layoutParams);
     });
   }
 
@@ -150,7 +175,7 @@ public class SurfaceMediaView extends MediaFragment {
           final int currentPosition = mediaPlayer.getCurrentPosition();
           binding.mediaProgressBar.setProgress(currentPosition);
 
-          final int remain = duration - currentPosition;
+          final int remain = mediaPlayer.getDuration() - currentPosition;
           final long minutes = MILLISECONDS.toMinutes(remain);
           final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
           binding.mediaProgressText.setText(String.format(timeElapseFormat, minutes, seconds));
