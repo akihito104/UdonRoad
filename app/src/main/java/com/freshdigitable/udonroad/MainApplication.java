@@ -17,15 +17,21 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Application;
+import android.content.Intent;
 import android.support.annotation.VisibleForTesting;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.squareup.leakcanary.LeakCanary;
 
+import javax.inject.Inject;
+
 import io.realm.Realm;
+import twitter4j.auth.AccessToken;
 
 /**
  * MainApplication is custom Application class.
@@ -35,6 +41,10 @@ import io.realm.Realm;
 public class MainApplication extends Application {
 
   private AppComponent appComponent;
+  @Inject
+  TwitterApi twitterApi;
+  @Inject
+  AppSettingStore appSettings;
 
   @Override
   public void onCreate() {
@@ -42,6 +52,16 @@ public class MainApplication extends Application {
     appComponent = createAppComponent();
     LeakCanary.install(this);
     Realm.init(getApplicationContext());
+    appComponent.inject(this);
+
+    appSettings.open();
+    final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
+    if (accessToken == null) {
+      startActivity(new Intent(this, OAuthActivity.class));
+      return;
+    }
+    twitterApi.setOAuthAccessToken(accessToken);
+    appSettings.close();
   }
 
   @VisibleForTesting

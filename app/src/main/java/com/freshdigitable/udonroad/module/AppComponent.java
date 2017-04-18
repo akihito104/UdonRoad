@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.module;
 
 import com.freshdigitable.udonroad.MainActivity;
+import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.OAuthActivity;
 import com.freshdigitable.udonroad.ReplyActivity;
 import com.freshdigitable.udonroad.StatusDetailFragment;
@@ -66,4 +67,6 @@ public interface AppComponent {
   void inject(TimelineFragment.StatusListFragment timelineFragment);
 
   void inject(TimelineFragment.UserListFragment timelineFragment);
+
+  void inject(MainApplication mainApplication);
 }
