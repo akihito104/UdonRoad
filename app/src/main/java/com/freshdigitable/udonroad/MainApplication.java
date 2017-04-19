@@ -16,8 +16,10 @@
 
 package com.freshdigitable.udonroad;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -53,15 +55,7 @@ public class MainApplication extends Application {
     LeakCanary.install(this);
     Realm.init(getApplicationContext());
     appComponent.inject(this);
-
-    appSettings.open();
-    final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
-    if (accessToken == null) {
-      startActivity(new Intent(this, OAuthActivity.class));
-      return;
-    }
-    twitterApi.setOAuthAccessToken(accessToken);
-    appSettings.close();
+    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
   }
 
   @VisibleForTesting
@@ -74,5 +68,63 @@ public class MainApplication extends Application {
 
   public AppComponent getAppComponent() {
     return appComponent;
+  }
+
+  private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
+    private boolean isTokenSetup = false;
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+      if (!isTokenSetup) {
+        isTokenSetup = setupAccessToken(activity);
+      }
+    }
+
+    private static boolean setupAccessToken(Activity activity) {
+      if (activity instanceof OAuthActivity) {
+        return false;
+      }
+      final MainApplication application = (MainApplication) activity.getApplication();
+      application.appSettings.open();
+      final AccessToken accessToken = application.appSettings.getCurrentUserAccessToken();
+      application.appSettings.close();
+      if (accessToken == null) {
+        activity.startActivity(new Intent(activity.getApplicationContext(), OAuthActivity.class));
+        activity.finish();
+        return false;
+      }
+      application.twitterApi.setOAuthAccessToken(accessToken);
+      return true;
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+
+    }
   }
 }

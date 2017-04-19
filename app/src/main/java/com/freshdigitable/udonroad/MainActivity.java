@@ -80,8 +80,6 @@ public class MainActivity extends AppCompatActivity
   private TimelineFragment<Status> tlFragment;
   private TweetInputFragment tweetInputFragment;
 
-//  @Inject
-//  TwitterApi twitterApi;
   @Inject
   SortedCache<Status> homeTimeline;
   @Inject
@@ -90,23 +88,11 @@ public class MainActivity extends AppCompatActivity
   ConfigRequestWorker configRequestWorker;
   @Inject
   UserFeedbackSubscriber userFeedback;
-//  @Inject
-//  AppSettingStore appSettings;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     InjectionUtil.getComponent(this).inject(this);
-//    appSettings.open();
-//    final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
-//    if (accessToken == null) {
-//      startActivity(new Intent(this, OAuthActivity.class));
-//      finish();
-//      return;
-//    }
-//    twitterApi.setOAuthAccessToken(accessToken);
-
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
@@ -240,7 +226,6 @@ public class MainActivity extends AppCompatActivity
       binding.navDrawer.setNavigationItemSelectedListener(null);
       configRequestWorker.shrink();
       configRequestWorker.close();
-//      appSettings.close();
       userFeedback.unsubscribe();
     }
   }
