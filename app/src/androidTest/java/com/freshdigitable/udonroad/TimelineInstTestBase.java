@@ -188,8 +188,10 @@ public abstract class TimelineInstTestBase {
     if (activity != null) {
       activity.finish();
       Thread.sleep(800);
-      StorageUtil.checkAllRealmInstanceCleared();
+      appSettings.open();
       appSettings.clear();
+      appSettings.close();
+      StorageUtil.checkAllRealmInstanceCleared();
     }
   }
 

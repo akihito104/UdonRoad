@@ -44,7 +44,7 @@ public class OAuthActivityInstTest {
   }
 
   @Test
-  public void launchOAuthActivity () {
+  public void launchMainActivityWithNoAccessToken_then_OAuthActivityIsLaunched () {
     rule.launchActivity(new Intent());
     onView(withId(R.id.button_oauth)).check(matches(isDisplayed()));
   }

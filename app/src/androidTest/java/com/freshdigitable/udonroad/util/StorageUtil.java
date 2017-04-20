@@ -2,10 +2,13 @@ package com.freshdigitable.udonroad.util;
 
 import android.support.test.espresso.core.deps.guava.io.PatternFilenameFilter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -44,15 +47,46 @@ public class StorageUtil {
   }
 
   public static void checkAllRealmInstanceCleared() {  // XXX
+    final ArrayList<InstanceCount> realms = new ArrayList<>();
     for (String l : listStorage()) {
-      checkRealmInstanceCount(l, 0);
+      final InstanceCount ic = checkRealmInstanceCount(l);
+      realms.add(ic);
+    }
+    final String countResult = parseCountResult(realms);
+    for (InstanceCount r : realms) {
+      assertThat(countResult, r.localCount, is(0));
+      assertThat(countResult, r.globalCount, is(0));
     }
   }
 
-  private static void checkRealmInstanceCount(String name, int count) {  // XXX
+  private static String parseCountResult(List<InstanceCount> instanceCounts) {
+    final StringBuilder stringBuilder = new StringBuilder();
+    for (InstanceCount ic : instanceCounts) {
+      stringBuilder.append(ic.toString()).append("\n");
+    }
+    return stringBuilder.toString();
+  }
+
+  private static InstanceCount checkRealmInstanceCount(String name) {  // XXX
     final RealmConfiguration conf = new RealmConfiguration.Builder().name(name).build();
-    assertThat("local instance count: " + name, Realm.getLocalInstanceCount(conf), is(count));
-    assertThat("global instance count: " + name, Realm.getGlobalInstanceCount(conf), is(count));
+    return new InstanceCount(name, Realm.getLocalInstanceCount(conf), Realm.getGlobalInstanceCount(conf));
+  }
+
+  private static class InstanceCount {
+    private final String name;
+    private final int localCount;
+    private final int globalCount;
+
+    InstanceCount(String name, int localCount, int globalCount) {
+      this.name = name;
+      this.localCount = localCount;
+      this.globalCount = globalCount;
+    }
+
+    @Override
+    public String toString() {
+      return "name: " + name + ", local: " + localCount + ", global: " + globalCount;
+    }
   }
 
   private StorageUtil() {}
