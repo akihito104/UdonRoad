@@ -83,8 +83,6 @@ public class MainActivity extends AppCompatActivity
   @Inject
   SortedCache<Status> homeTimeline;
   @Inject
-  UserStreamUtil userStream;
-  @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject
   UserFeedbackSubscriber userFeedback;
@@ -192,8 +190,6 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
-    userStream.connect(StoreType.HOME.storeName);
-
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
     final ActionBar supportActionBar = getSupportActionBar();
@@ -220,7 +216,6 @@ public class MainActivity extends AppCompatActivity
   protected void onDestroy() {
     super.onDestroy();
     if (binding != null) {
-      userStream.disconnect();
       iffabItemSelectedListeners.clear();
       binding.ffab.clear();
       binding.navDrawer.setNavigationItemSelectedListener(null);

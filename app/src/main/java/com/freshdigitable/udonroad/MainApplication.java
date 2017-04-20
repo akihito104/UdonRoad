@@ -47,6 +47,8 @@ public class MainApplication extends Application {
   TwitterApi twitterApi;
   @Inject
   AppSettingStore appSettings;
+  @Inject
+  UserStreamUtil userStreamUtil;
 
   @Override
   public void onCreate() {
@@ -107,12 +109,14 @@ public class MainApplication extends Application {
 
     private static boolean setupAccessToken(Activity activity) {
       return !(activity instanceof OAuthActivity)
-          && MainApplication.init(((MainApplication) activity.getApplication()));
+          && MainApplication.init(getApplication(activity));
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-
+      if (activity instanceof MainActivity) {
+        getApplication(activity).userStreamUtil.connect(StoreType.HOME.storeName);
+      }
     }
 
     @Override
@@ -137,7 +141,13 @@ public class MainApplication extends Application {
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+      if (activity instanceof MainActivity) {
+        (getApplication(activity)).userStreamUtil.disconnect();
+      }
+    }
 
+    private static MainApplication getApplication(Activity activity) {
+      return (MainApplication) activity.getApplication();
     }
   }
 }
