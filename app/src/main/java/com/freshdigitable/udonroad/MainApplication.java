@@ -41,7 +41,7 @@ import twitter4j.auth.AccessToken;
  * Created by akihit on 2016/06/16.
  */
 public class MainApplication extends Application {
-
+  private static final String TAG = MainApplication.class.getSimpleName();
   private AppComponent appComponent;
   @Inject
   TwitterApi twitterApi;
@@ -55,7 +55,8 @@ public class MainApplication extends Application {
     LeakCanary.install(this);
     Realm.init(getApplicationContext());
     appComponent.inject(this);
-    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
+    final boolean init = init(this);
+    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl(init));
   }
 
   @VisibleForTesting
@@ -70,31 +71,43 @@ public class MainApplication extends Application {
     return appComponent;
   }
 
+  private static boolean init(MainApplication application) {
+    application.appSettings.open();
+    final AccessToken accessToken = application.appSettings.getCurrentUserAccessToken();
+    application.appSettings.close();
+    if (accessToken == null) {
+      return false;
+    }
+    application.twitterApi.setOAuthAccessToken(accessToken);
+    return true;
+  }
+
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
     private boolean isTokenSetup = false;
+
+    ActivityLifecycleCallbacksImpl(boolean isTokenSetup) {
+      this.isTokenSetup = isTokenSetup;
+    }
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
       if (!isTokenSetup) {
+        launchOAuthActivity(activity);
         isTokenSetup = setupAccessToken(activity);
       }
     }
 
-    private static boolean setupAccessToken(Activity activity) {
+    private static void launchOAuthActivity(Activity activity) {
       if (activity instanceof OAuthActivity) {
-        return false;
+        return;
       }
-      final MainApplication application = (MainApplication) activity.getApplication();
-      application.appSettings.open();
-      final AccessToken accessToken = application.appSettings.getCurrentUserAccessToken();
-      application.appSettings.close();
-      if (accessToken == null) {
-        activity.startActivity(new Intent(activity.getApplicationContext(), OAuthActivity.class));
-        activity.finish();
-        return false;
-      }
-      application.twitterApi.setOAuthAccessToken(accessToken);
-      return true;
+      activity.startActivity(new Intent(activity.getApplicationContext(), OAuthActivity.class));
+      activity.finish();
+    }
+
+    private static boolean setupAccessToken(Activity activity) {
+      return !(activity instanceof OAuthActivity)
+          && MainApplication.init(((MainApplication) activity.getApplication()));
     }
 
     @Override
