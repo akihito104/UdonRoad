@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 
@@ -41,7 +40,6 @@ import twitter4j.auth.AccessToken;
  * Created by akihit on 2016/06/16.
  */
 public class MainApplication extends Application {
-  private static final String TAG = MainApplication.class.getSimpleName();
   private AppComponent appComponent;
   @Inject
   TwitterApi twitterApi;
@@ -103,7 +101,7 @@ public class MainApplication extends Application {
       if (activity instanceof OAuthActivity) {
         return;
       }
-      activity.startActivity(new Intent(activity.getApplicationContext(), OAuthActivity.class));
+      OAuthActivity.start(activity);
       activity.finish();
     }
 
