@@ -20,6 +20,8 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
+import android.util.Log;
+import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.module.AppComponent;
@@ -27,7 +29,11 @@ import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.leakcanary.LeakCanary;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -47,6 +53,8 @@ public class MainApplication extends Application {
   AppSettingStore appSettings;
   @Inject
   UserStreamUtil userStreamUtil;
+  @Inject
+  UserFeedbackSubscriber userFeedback;
 
   @Override
   public void onCreate() {
@@ -83,7 +91,9 @@ public class MainApplication extends Application {
   }
 
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
+    private static final String TAG = ActivityLifecycleCallbacksImpl.class.getSimpleName();
     private boolean isTokenSetup = false;
+    private final List<String> activities = new ArrayList<>();
 
     ActivityLifecycleCallbacksImpl(boolean isTokenSetup) {
       this.isTokenSetup = isTokenSetup;
@@ -91,6 +101,8 @@ public class MainApplication extends Application {
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+      activities.add(activity.getClass().getSimpleName());
+      Log.d(TAG, "onActivityCreated: count>" + activities.size());
       if (!isTokenSetup) {
         launchOAuthActivity(activity);
         isTokenSetup = setupAccessToken(activity);
@@ -115,6 +127,10 @@ public class MainApplication extends Application {
       if (activity instanceof MainActivity) {
         getApplication(activity).userStreamUtil.connect(StoreType.HOME.storeName);
       }
+      if (activity instanceof SnackbarCapable) {
+        final View rootView = ((SnackbarCapable) activity).getRootView();
+        getApplication(activity).userFeedback.registerRootView(rootView);
+      }
     }
 
     @Override
@@ -129,7 +145,10 @@ public class MainApplication extends Application {
 
     @Override
     public void onActivityStopped(Activity activity) {
-
+      if (activity instanceof SnackbarCapable) {
+        final View rootView = ((SnackbarCapable) activity).getRootView();
+        getApplication(activity).userFeedback.unregisterRootView(rootView);
+      }
     }
 
     @Override
@@ -139,8 +158,13 @@ public class MainApplication extends Application {
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+      activities.remove(activity.getClass().getSimpleName());
+      Log.d(TAG, "onActivityDestroyed: count>" + activities.size());
       if (activity instanceof MainActivity) {
-        (getApplication(activity)).userStreamUtil.disconnect();
+        getApplication(activity).userStreamUtil.disconnect();
+      }
+      if (activities.size() == 0 && activity instanceof SnackbarCapable) {
+        getApplication(activity).userFeedback.unsubscribe();
       }
     }
 

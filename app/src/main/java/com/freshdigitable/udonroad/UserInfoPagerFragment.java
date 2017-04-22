@@ -31,12 +31,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.inject.Inject;
 
 import twitter4j.User;
 
@@ -102,9 +99,6 @@ public class UserInfoPagerFragment extends Fragment {
     pagerAdapter.putFragment(page, fragment);
   }
 
-  @Inject
-  UserFeedbackSubscriber userFeedback;
-
   @Override
   public void onStart() {
     super.onStart();
@@ -123,7 +117,6 @@ public class UserInfoPagerFragment extends Fragment {
         }
       });
     }
-    userFeedback.registerRootView(viewPager);
   }
 
   private TimelineFragment getCurrentFragment() {
@@ -135,7 +128,6 @@ public class UserInfoPagerFragment extends Fragment {
   public void onStop() {
     super.onStop();
     viewPager.clearOnPageChangeListeners();
-    userFeedback.unregisterRootView(viewPager);
   }
 
   @Override

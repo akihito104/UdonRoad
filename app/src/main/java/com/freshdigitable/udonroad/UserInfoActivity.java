@@ -66,7 +66,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetSendable, FabHandleable {
+    implements TweetSendable, FabHandleable, SnackbarCapable {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -347,5 +347,10 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
     iffabItemSelectedListeners.remove(listener);
+  }
+
+  @Override
+  public View getRootView() {
+    return binding.userInfoTimelineContainer;
   }
 }
