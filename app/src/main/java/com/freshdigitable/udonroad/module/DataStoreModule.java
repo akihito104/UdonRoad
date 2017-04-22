@@ -20,12 +20,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.BaseCache;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
+import com.freshdigitable.udonroad.module.realm.BaseCacheRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
@@ -55,6 +57,12 @@ public class DataStoreModule {
 
   public DataStoreModule(Context context) {
     this.context = context;
+  }
+
+  @Singleton
+  @Provides
+  BaseCache provideBaseCache() {
+    return new BaseCacheRealm();
   }
 
   @Singleton
