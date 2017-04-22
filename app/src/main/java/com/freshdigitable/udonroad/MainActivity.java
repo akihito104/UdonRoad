@@ -44,7 +44,6 @@ import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
@@ -80,8 +79,6 @@ public class MainActivity extends AppCompatActivity
   private TweetInputFragment tweetInputFragment;
 
   @Inject
-  SortedCache<Status> homeTimeline;
-  @Inject
   ConfigRequestWorker configRequestWorker;
 
   @Override
@@ -101,10 +98,6 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupHomeTimeline() {
-    homeTimeline.open(HOME.storeName);
-    homeTimeline.clearPool();
-    homeTimeline.close();
-
     tlFragment = StatusListFragment.getInstance(HOME);
 
     configRequestWorker.open();

@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.BaseCache;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
@@ -55,6 +56,8 @@ public class MainApplication extends Application {
   UserStreamUtil userStreamUtil;
   @Inject
   UserFeedbackSubscriber userFeedback;
+  @Inject
+  BaseCache pool;
 
   @Override
   public void onCreate() {
@@ -134,14 +137,10 @@ public class MainApplication extends Application {
     }
 
     @Override
-    public void onActivityResumed(Activity activity) {
-
-    }
+    public void onActivityResumed(Activity activity) { }
 
     @Override
-    public void onActivityPaused(Activity activity) {
-
-    }
+    public void onActivityPaused(Activity activity) { }
 
     @Override
     public void onActivityStopped(Activity activity) {
@@ -152,9 +151,7 @@ public class MainApplication extends Application {
     }
 
     @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-    }
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }
 
     @Override
     public void onActivityDestroyed(Activity activity) {
@@ -165,6 +162,12 @@ public class MainApplication extends Application {
       }
       if (activities.size() == 0 && activity instanceof SnackbarCapable) {
         getApplication(activity).userFeedback.unsubscribe();
+      }
+      if (activities.size() == 0) {
+        final BaseCache pool = getApplication(activity).pool;
+        pool.open();
+        pool.clear();
+        pool.close();
       }
     }
 
