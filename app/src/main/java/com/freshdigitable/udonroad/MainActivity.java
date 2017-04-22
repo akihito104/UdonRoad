@@ -48,7 +48,6 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, FabHandleable {
+    implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -84,8 +83,6 @@ public class MainActivity extends AppCompatActivity
   SortedCache<Status> homeTimeline;
   @Inject
   ConfigRequestWorker configRequestWorker;
-  @Inject
-  UserFeedbackSubscriber userFeedback;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -197,16 +194,13 @@ public class MainActivity extends AppCompatActivity
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
-
     setupActionMap();
-    userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
   @Override
   protected void onStop() {
     super.onStop();
     binding.ffab.setOnIffabItemSelectedListener(null);
-    userFeedback.unregisterRootView(binding.mainTimelineContainer);
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
@@ -221,7 +215,6 @@ public class MainActivity extends AppCompatActivity
       binding.navDrawer.setNavigationItemSelectedListener(null);
       configRequestWorker.shrink();
       configRequestWorker.close();
-      userFeedback.unsubscribe();
     }
   }
 
@@ -437,5 +430,10 @@ public class MainActivity extends AppCompatActivity
     }
     tlFragment.stopScroll();
     UserInfoActivity.start(this, user, view);
+  }
+
+  @Override
+  public View getRootView() {
+    return binding.mainTimelineContainer;
   }
 }
