@@ -31,13 +31,13 @@ import io.realm.RealmModel;
  *
  * Created by akihit on 2016/09/14.
  */
-abstract class BaseCacheRealm implements BaseCache {
+public class BaseCacheRealm implements BaseCache {
   private static final String TAG = BaseCacheRealm.class.getSimpleName();
   Realm cache;
   private final RealmConfiguration config;
   private BaseCacheRealm baseCacheRealm;
 
-  BaseCacheRealm() {
+  public BaseCacheRealm() {
     this(null);
   }
 

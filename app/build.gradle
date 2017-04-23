@@ -71,6 +71,7 @@ def rxVer = '1.2.5'
 def rxAndroidVer = '1.2.1'
 def daggerVer = "2.10"
 def supportTestVer = "0.6-alpha"
+def espressoVer = "2.2.2"
 def dexmakerVer = '2.2.0'
 def leakcanaryVer= '1.5'
 
@@ -106,7 +107,8 @@ dependencies {
     androidTestCompile "com.android.support:support-annotations:$supportLibVer"
     androidTestCompile "com.android.support.test:runner:$supportTestVer"
     androidTestCompile "com.android.support.test:rules:$supportTestVer"
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestCompile "com.android.support.test.espresso:espresso-core:$espressoVer"
+    androidTestCompile "com.android.support.test.espresso:espresso-intents:$espressoVer"
     androidTestAnnotationProcessor "com.google.dagger:dagger-compiler:$daggerVer"
 
     androidTestCompile "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVer"

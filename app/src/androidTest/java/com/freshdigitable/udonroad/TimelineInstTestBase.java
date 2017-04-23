@@ -17,19 +17,17 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
-import android.support.test.espresso.core.deps.guava.io.PatternFilenameFilter;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.util.StorageUtil;
 import com.freshdigitable.udonroad.util.StreamIdlingResource;
 import com.freshdigitable.udonroad.util.StreamIdlingResource.Operation;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
@@ -46,8 +44,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
@@ -73,7 +69,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -88,17 +83,6 @@ import static org.mockito.Mockito.when;
  * Created by akihit on 2016/07/03.
  */
 public abstract class TimelineInstTestBase {
-  @Inject
-  Twitter twitter;
-  @Inject
-  TwitterStream twitterStream;
-  @Inject
-  TypedCache<User> userCache;
-  @Inject
-  SharedPreferences sprefs;
-  @Inject
-  AppSettingStore appSettings;
-
   protected MockMainApplication app;
   protected ResponseList<Status> responseList;
   private User loginUser;
@@ -113,7 +97,7 @@ public abstract class TimelineInstTestBase {
     app = (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
     getComponent().inject(this);
 
-    initStorage();
+    StorageUtil.initStorage();
     loginUser = UserUtil.createUserA();
     screenNameMatcher = withText("@" + loginUser.getScreenName());
     setupConfig(loginUser);
@@ -153,34 +137,13 @@ public abstract class TimelineInstTestBase {
     Espresso.unregisterIdlingResources(idlingResource);
   }
 
-  private void initStorage() {
-    for (String l : listStorage()) {
-      final RealmConfiguration config = new RealmConfiguration.Builder()
-          .name(l)
-          .deleteRealmIfMigrationNeeded()
-          .build();
-      final int globalInstanceCount = Realm.getGlobalInstanceCount(config);
-      if (globalInstanceCount > 0) {
-        final Realm realm = Realm.getInstance(config);
-        realm.executeTransaction(r -> r.deleteAll());
-        realm.close();
-      } else {
-        final boolean b = Realm.deleteRealm(config);
-        assertTrue(b);
-      }
-    }
-  }
 
-  private static String[] listStorage() {
-    final Realm realm = Realm.getDefaultInstance();
-    final String[] list = realm.getConfiguration().getRealmDirectory()
-        .list(new PatternFilenameFilter("^.*\\.management$"));
-    realm.close();
-    for (int i = 0; i < list.length; i++) {
-      list[i] = list[i].replace(".management", "");
-    }
-    return list;
-  }
+  @Inject
+  Twitter twitter;
+  @Inject
+  TwitterStream twitterStream;
+  @Inject
+  AppSettingStore appSettings;
 
   protected void setupConfig(User loginUser) throws Exception {
     final TwitterAPIConfiguration twitterAPIConfigMock
@@ -225,7 +188,10 @@ public abstract class TimelineInstTestBase {
     if (activity != null) {
       activity.finish();
       Thread.sleep(800);
-      checkAllRealmInstanceCleared();
+      appSettings.open();
+      appSettings.clear();
+      appSettings.close();
+      StorageUtil.checkAllRealmInstanceCleared();
     }
   }
 
@@ -233,18 +199,6 @@ public abstract class TimelineInstTestBase {
 
   protected Intent getIntent() {
     return new Intent();
-  }
-
-  private static void checkAllRealmInstanceCleared() {  // XXX
-    for (String l : listStorage()) {
-      checkRealmInstanceCount(l, 0);
-    }
-  }
-
-  private static void checkRealmInstanceCount(String name, int count) {  // XXX
-    final RealmConfiguration conf = new RealmConfiguration.Builder().name(name).build();
-    assertThat("local instance count: " + name, Realm.getLocalInstanceCount(conf), is(count));
-    assertThat("global instance count: " + name, Realm.getGlobalInstanceCount(conf), is(count));
   }
 
   private StreamIdlingResource streamIdlingResource;

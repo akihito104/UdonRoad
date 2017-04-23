@@ -44,13 +44,9 @@ import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
-import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -62,7 +58,6 @@ import rx.Observable;
 import rx.Subscription;
 import twitter4j.Status;
 import twitter4j.User;
-import twitter4j.auth.AccessToken;
 
 import static com.freshdigitable.udonroad.StoreType.CONVERSATION;
 import static com.freshdigitable.udonroad.StoreType.HOME;
@@ -76,7 +71,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, FabHandleable {
+    implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -84,32 +79,12 @@ public class MainActivity extends AppCompatActivity
   private TweetInputFragment tweetInputFragment;
 
   @Inject
-  TwitterApi twitterApi;
-  @Inject
-  SortedCache<Status> homeTimeline;
-  @Inject
-  UserStreamUtil userStream;
-  @Inject
   ConfigRequestWorker configRequestWorker;
-  @Inject
-  UserFeedbackSubscriber userFeedback;
-  @Inject
-  AppSettingStore appSettings;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     InjectionUtil.getComponent(this).inject(this);
-    appSettings.open();
-    final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
-    if (accessToken == null) {
-      startActivity(new Intent(this, OAuthActivity.class));
-      finish();
-      return;
-    }
-    twitterApi.setOAuthAccessToken(accessToken);
-
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
@@ -123,10 +98,6 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupHomeTimeline() {
-    homeTimeline.open(HOME.storeName);
-    homeTimeline.clearPool();
-    homeTimeline.close();
-
     tlFragment = StatusListFragment.getInstance(HOME);
 
     configRequestWorker.open();
@@ -209,8 +180,6 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
-    userStream.connect(StoreType.HOME.storeName);
-
     binding.mainToolbar.setTitle("Home");
     setSupportActionBar(binding.mainToolbar);
     final ActionBar supportActionBar = getSupportActionBar();
@@ -218,16 +187,13 @@ public class MainActivity extends AppCompatActivity
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
-
     setupActionMap();
-    userFeedback.registerRootView(binding.mainTimelineContainer);
   }
 
   @Override
   protected void onStop() {
     super.onStop();
     binding.ffab.setOnIffabItemSelectedListener(null);
-    userFeedback.unregisterRootView(binding.mainTimelineContainer);
     if (subscription != null && !subscription.isUnsubscribed()) {
       subscription.unsubscribe();
     }
@@ -237,14 +203,11 @@ public class MainActivity extends AppCompatActivity
   protected void onDestroy() {
     super.onDestroy();
     if (binding != null) {
-      userStream.disconnect();
       iffabItemSelectedListeners.clear();
       binding.ffab.clear();
       binding.navDrawer.setNavigationItemSelectedListener(null);
       configRequestWorker.shrink();
       configRequestWorker.close();
-      appSettings.close();
-      userFeedback.unsubscribe();
     }
   }
 
@@ -460,5 +423,10 @@ public class MainActivity extends AppCompatActivity
     }
     tlFragment.stopScroll();
     UserInfoActivity.start(this, user, view);
+  }
+
+  @Override
+  public View getRootView() {
+    return binding.mainTimelineContainer;
   }
 }
