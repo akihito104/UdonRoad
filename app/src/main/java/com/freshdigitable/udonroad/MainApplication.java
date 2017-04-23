@@ -160,14 +160,13 @@ public class MainApplication extends Application {
       if (activity instanceof MainActivity) {
         getApplication(activity).userStreamUtil.disconnect();
       }
-      if (activities.size() == 0 && activity instanceof SnackbarCapable) {
-        getApplication(activity).userFeedback.unsubscribe();
-      }
       if (activities.size() == 0) {
         final BaseCache pool = getApplication(activity).pool;
         pool.open();
         pool.clear();
         pool.close();
+        getApplication(activity).userFeedback.unsubscribe();
+        getApplication(activity).unregisterActivityLifecycleCallbacks(this);
       }
     }
 
