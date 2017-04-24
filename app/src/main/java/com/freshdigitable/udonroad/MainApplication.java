@@ -66,8 +66,10 @@ public class MainApplication extends Application {
     LeakCanary.install(this);
     Realm.init(getApplicationContext());
     appComponent.inject(this);
-    final boolean init = init(this);
-    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl(init));
+    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
+    pool.open();
+    pool.clear();
+    pool.close();
   }
 
   @VisibleForTesting
@@ -98,18 +100,16 @@ public class MainApplication extends Application {
     private boolean isTokenSetup = false;
     private final List<String> activities = new ArrayList<>();
 
-    ActivityLifecycleCallbacksImpl(boolean isTokenSetup) {
-      this.isTokenSetup = isTokenSetup;
-    }
-
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-      activities.add(activity.getClass().getSimpleName());
       Log.d(TAG, "onActivityCreated: count>" + activities.size());
-      if (!isTokenSetup) {
-        launchOAuthActivity(activity);
+      if (activities.size() == 0) {
         isTokenSetup = setupAccessToken(activity);
       }
+      if (!isTokenSetup) {
+        launchOAuthActivity(activity);
+      }
+      activities.add(activity.getClass().getSimpleName());
     }
 
     private static void launchOAuthActivity(Activity activity) {
@@ -161,12 +161,7 @@ public class MainApplication extends Application {
         getApplication(activity).userStreamUtil.disconnect();
       }
       if (activities.size() == 0) {
-        final BaseCache pool = getApplication(activity).pool;
-        pool.open();
-        pool.clear();
-        pool.close();
         getApplication(activity).userFeedback.unsubscribe();
-        getApplication(activity).unregisterActivityLifecycleCallbacks(this);
       }
     }
 

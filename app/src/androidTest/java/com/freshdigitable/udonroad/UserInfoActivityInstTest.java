@@ -26,6 +26,7 @@ import android.support.test.rule.ActivityTestRule;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.util.PerformUtil;
+import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
@@ -415,7 +416,7 @@ public class UserInfoActivityInstTest {
     @Override
     public void setupConfig(User user) throws Exception {
       super.setupConfig(user);
-      getComponent().inject(this);
+      TestInjectionUtil.getComponent().inject(this);
 
       idlingResource = new ConfigSetupIdlingResource();
       Espresso.registerIdlingResources(idlingResource);

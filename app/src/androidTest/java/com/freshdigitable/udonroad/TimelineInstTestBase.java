@@ -30,6 +30,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.util.StorageUtil;
 import com.freshdigitable.udonroad.util.StreamIdlingResource;
 import com.freshdigitable.udonroad.util.StreamIdlingResource.Operation;
+import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -83,19 +84,17 @@ import static org.mockito.Mockito.when;
  * Created by akihit on 2016/07/03.
  */
 public abstract class TimelineInstTestBase {
-  protected MockMainApplication app;
   protected ResponseList<Status> responseList;
   private User loginUser;
   protected Matcher<View> screenNameMatcher;
 
-  protected MockAppComponent getComponent() {
-    return (MockAppComponent) app.getAppComponent();
+  private static MockMainApplication getApp() {
+    return (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
   }
 
   @Before
   public void setup() throws Exception {
-    app = (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
-    getComponent().inject(this);
+    TestInjectionUtil.getComponent().inject(this);
 
     StorageUtil.initStorage();
     loginUser = UserUtil.createUserA();
@@ -174,7 +173,7 @@ public abstract class TimelineInstTestBase {
 
   protected void verifyAfterLaunch() throws Exception {
     verify(twitter, times(1)).getHomeTimeline();
-    final UserStreamListener userStreamListener = app.getUserStreamListener();
+    final UserStreamListener userStreamListener = getApp().getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
@@ -188,9 +187,6 @@ public abstract class TimelineInstTestBase {
     if (activity != null) {
       activity.finish();
       Thread.sleep(800);
-      appSettings.open();
-      appSettings.clear();
-      appSettings.close();
       StorageUtil.checkAllRealmInstanceCleared();
     }
   }
@@ -224,7 +220,7 @@ public abstract class TimelineInstTestBase {
     StreamIdlingResource streamIdlingResource
         = new StreamIdlingResource(recyclerView, Operation.DELETE, target.length);
     registerStreamIdlingResource(streamIdlingResource);
-    TwitterResponseMock.receiveDeletionNotice(app.getUserStreamListener(), target);
+    TwitterResponseMock.receiveDeletionNotice(getApp().getUserStreamListener(), target);
   }
 
   protected void receiveStatuses(final Status... statuses) throws Exception {
@@ -238,7 +234,7 @@ public abstract class TimelineInstTestBase {
           = new StreamIdlingResource(recyclerView, Operation.ADD, statuses.length);
       registerStreamIdlingResource(streamIdlingResource);
     }
-    TwitterResponseMock.receiveStatuses(app.getUserStreamListener(), statuses);
+    TwitterResponseMock.receiveStatuses(getApp().getUserStreamListener(), statuses);
   }
 
   private RecyclerView getRecyclerView() {
