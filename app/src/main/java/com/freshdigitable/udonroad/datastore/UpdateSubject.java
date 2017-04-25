@@ -51,7 +51,11 @@ public class UpdateSubject {
   }
 
   public void onNext(UpdateEvent.EventType type, int index) {
-    onNext(new UpdateEvent(type, index));
+    onNext(type, index, 1);
+  }
+
+  public void onNext(UpdateEvent.EventType type, int index, int length) {
+    onNext(new UpdateEvent(type, index, length));
   }
 
   public void onNext(UpdateEvent updateEvent) {

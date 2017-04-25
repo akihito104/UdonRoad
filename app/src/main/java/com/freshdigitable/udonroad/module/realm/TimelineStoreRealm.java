@@ -56,8 +56,8 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     public void onChange(RealmResults<StatusIDs> elem, OrderedCollectionChangeSet changeSet) {
       setItemCount(elem.size());
       if (updateSubject.hasObservers()) {
-        for (int i : changeSet.getInsertions()) {
-          updateSubject.onNext(EventType.INSERT, i);
+        for (OrderedCollectionChangeSet.Range range : changeSet.getInsertionRanges()) {
+          updateSubject.onNext(EventType.INSERT, range.startIndex, range.length);
         }
       }
       elem.removeChangeListener(this);
@@ -266,9 +266,9 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
       public void onChange(RealmResults<StatusIDs> collection, OrderedCollectionChangeSet changeSet) {
         setItemCount(collection.size());
         if (updateSubject.hasObservers()) {
-          final int[] deletions = changeSet.getDeletions();
+          final OrderedCollectionChangeSet.Range[] deletions = changeSet.getDeletionRanges();
           for (int i = deletions.length - 1; i >= 0; i--) {
-            updateSubject.onNext(EventType.DELETE, deletions[i]);
+            updateSubject.onNext(EventType.DELETE, deletions[i].startIndex, deletions[i].length);
           }
         }
         for (StatusIDs ids : res) {

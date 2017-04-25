@@ -114,9 +114,9 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
       @Override
       public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
         if (updateSubject.hasObservers()) {
-          final int[] insertions = changeSet.getInsertions();
-          for (int i : insertions) {
-            updateSubject.onNext(EventType.INSERT, i);
+          final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
+          for (OrderedCollectionChangeSet.Range i : insertions) {
+            updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);
           }
         }
         element.removeChangeListener(this);
