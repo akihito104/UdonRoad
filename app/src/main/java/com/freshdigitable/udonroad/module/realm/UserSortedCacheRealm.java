@@ -27,7 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.realm.RealmChangeListener;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmResults;
 import rx.Observable;
 import twitter4j.PagableResponseList;
@@ -109,22 +110,20 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
         order++;
       }
     }
-    realm.beginTransaction();
-    final List<ListedUserIDs> inserted = realm.copyToRealmOrUpdate(inserts);
-    realm.commitTransaction();
-    if (inserted.isEmpty() || !updateSubject.hasObservers()) {
-      return;
-    }
-    updateCursorList(entities);
-    ordered.addChangeListener(new RealmChangeListener<RealmResults<ListedUserIDs>>() {
+    ordered.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
       @Override
-      public void onChange(RealmResults<ListedUserIDs> element) {
-        for (ListedUserIDs ids: inserted) {
-          updateSubject.onNext(EventType.INSERT, ids.order);
+      public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
+        if (updateSubject.hasObservers()) {
+          final int[] insertions = changeSet.getInsertions();
+          for (int i : insertions) {
+            updateSubject.onNext(EventType.INSERT, i);
+          }
         }
         element.removeChangeListener(this);
       }
     });
+    realm.executeTransaction(r -> r.insertOrUpdate(inserts));
+    updateCursorList(entities);
   }
 
   private long lastPageCursor = -1;
