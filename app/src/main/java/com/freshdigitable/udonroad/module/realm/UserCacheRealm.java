@@ -112,7 +112,7 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
     }
     return Observable.create(
         (Observable.OnSubscribe<User>) subscriber -> UserRealm.addChangeListener(user, subscriber::onNext))
-        .doOnUnsubscribe(() -> UserRealm.removeChangeListeners(user));
+        .doOnUnsubscribe(() -> UserRealm.removeAllChangeListeners(user));
   }
 
   @Override

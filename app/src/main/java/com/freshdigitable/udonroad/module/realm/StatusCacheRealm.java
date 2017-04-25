@@ -282,7 +282,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
                 return bindings1.getFavoriteCount() == prevFav
                     && bindings1.getRetweetCount() == prevRT;
               }
-            })).doOnUnsubscribe(() -> StatusRealm.removeChangeListeners(bindings));
+            })).doOnUnsubscribe(() -> StatusRealm.removeAllChangeListeners(bindings));
     if (original.getId() == bindings.getId()) {
       return statusObservable;
     }

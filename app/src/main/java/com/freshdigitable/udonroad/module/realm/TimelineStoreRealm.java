@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.realm.RealmChangeListener;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import rx.Observable;
@@ -49,6 +50,19 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   private RealmResults<StatusIDs> timeline;
   private final TypedCache<Status> statusCache;
   private final ConfigStore configStore;
+  private final OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>> addChangeListener
+      = new OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>>() {
+    @Override
+    public void onChange(RealmResults<StatusIDs> elem, OrderedCollectionChangeSet changeSet) {
+      setItemCount(elem.size());
+      if (updateSubject.hasObservers()) {
+        for (int i : changeSet.getInsertions()) {
+          updateSubject.onNext(EventType.INSERT, i);
+        }
+      }
+      elem.removeChangeListener(this);
+    }
+  };
 
   public TimelineStoreRealm(UpdateSubjectFactory factory,
                             TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
@@ -70,9 +84,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
         .where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
     setItemCount(timeline.size());
-    timeline.addChangeListener(elem -> {
-      setItemCount(elem.size());
-    });
+    timeline.addChangeListener(elem -> setItemCount(elem.size()));
   }
 
   @Override
@@ -132,35 +144,9 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     return inserts;
   }
 
-  private void insertStatus(List<StatusIDs> inserts) {
-    realm.beginTransaction();
-    final List<StatusIDs> inserted = realm.copyToRealmOrUpdate(inserts);
-    realm.commitTransaction();
-    if (inserted.isEmpty() || !updateSubject.hasObservers()) {
-      return;
-    }
-    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
-      @Override
-      public void onChange(RealmResults<StatusIDs> element) {
-        setItemCount(element.size());
-        notifyInserted(inserted, element);
-        element.removeChangeListener(this);
-      }
-    });
-  }
-
-  private void notifyInserted(List<StatusIDs> inserted, RealmResults<StatusIDs> results) {
-    if (inserted.isEmpty()) {
-      return;
-    }
-    final List<Integer> index = searchTimeline(inserted, results);
-    if (index.isEmpty()) {
-      return;
-    }
-    Collections.sort(index);
-    for (int i : index) {
-      updateSubject.onNext(EventType.INSERT, i);
-    }
+  private void insertStatus(final List<StatusIDs> inserts) {
+    timeline.addChangeListener(addChangeListener);
+    realm.executeTransaction(r -> r.insertOrUpdate(inserts));
   }
 
   private List<StatusIDs> createUpdateList(List<Status> statuses) {
@@ -275,35 +261,23 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     if (res.isEmpty()) {
       return;
     }
-
-    final List<Integer> deleted = searchTimeline(res);
-
-    realm.beginTransaction();
-    res.deleteAllFromRealm();
-    realm.commitTransaction();
-
-    if (deleted.isEmpty() || !updateSubject.hasObservers()) {
-      return;
-    }
-    timeline.addChangeListener(new RealmChangeListener<RealmResults<StatusIDs>>() {
+    timeline.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>>() {
       @Override
-      public void onChange(RealmResults<StatusIDs> element) {
-        Log.d(TAG, "call: deletedStatus");
-        setItemCount(element.size());
-        for (int d : deleted) {
-          updateSubject.onNext(EventType.DELETE, d);
+      public void onChange(RealmResults<StatusIDs> collection, OrderedCollectionChangeSet changeSet) {
+        setItemCount(collection.size());
+        if (updateSubject.hasObservers()) {
+          final int[] deletions = changeSet.getDeletions();
+          for (int i = deletions.length - 1; i >= 0; i--) {
+            updateSubject.onNext(EventType.DELETE, deletions[i]);
+          }
         }
         for (StatusIDs ids : res) {
           statusCache.delete(ids.getId());
         }
-        element.removeChangeListener(this);
+        collection.removeChangeListener(this);
       }
     });
-  }
-
-  @NonNull
-  private List<Integer> searchTimeline(List<StatusIDs> managedItems) {
-    return searchTimeline(managedItems, timeline);
+    realm.executeTransaction(r -> res.deleteAllFromRealm());
   }
 
   @NonNull
@@ -332,7 +306,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
 
   @Override
   public void close() {
-    timeline.removeChangeListeners();
+    timeline.removeAllChangeListeners();
     super.close();
     statusCache.close();
     configStore.close();

@@ -57,7 +57,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
 
   @Override
   public void close() {
-    ordered.removeChangeListeners();
+    ordered.removeAllChangeListeners();
     super.close();
     userCache.close();
   }
