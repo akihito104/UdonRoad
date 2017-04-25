@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.support.annotation.IntRange;
+
 /**
  * Created by akihit on 2017/03/28.
  */
@@ -23,10 +25,14 @@ package com.freshdigitable.udonroad.datastore;
 public class UpdateEvent {
   public final EventType type;
   public final int index;
+  public final int length;
 
-  public UpdateEvent(EventType type, int index) {
+  public UpdateEvent(EventType type,
+                     @IntRange(from = 0) int index,
+                     @IntRange(from = 0) int length) {
     this.type = type;
     this.index = index;
+    this.length = length;
   }
 
   public enum EventType {

@@ -74,7 +74,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   }
 
   @Test
-  public void receiveStatusesAfterRelaunch_then_latestTweetAppers() throws Exception {
+  public void receiveStatusesAfterRelaunch_then_latestTweetAppears() throws Exception {
     launchHomeAndBackToApp();
     Thread.sleep(200);
 

@@ -193,7 +193,7 @@ public class ConfigStoreRealm implements ConfigStore {
                 return l.isFavorited() == prevFaved
                     && l.isRetweeted() == prevRTed;
               }
-            })).doOnUnsubscribe(() -> RealmObject.removeChangeListeners(statusReaction));
+            })).doOnUnsubscribe(() -> RealmObject.removeAllChangeListeners(statusReaction));
   }
 
   @Override
