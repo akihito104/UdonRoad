@@ -1,5 +1,5 @@
 plugins {
-    id "me.tatarka.retrolambda" version "3.5.0"
+//    id "me.tatarka.retrolambda" version "3.5.0"
     id 'com.github.ben-manes.versions' version '0.13.0'
 }
 apply plugin: 'com.android.application'
@@ -8,7 +8,7 @@ apply plugin: 'com.cookpad.android.licensetools'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
         applicationId "com.freshdigitable.udonroad"
@@ -73,7 +73,7 @@ def daggerVer = "2.10"
 def supportTestVer = "0.6-alpha"
 def espressoVer = "2.2.2"
 def dexmakerVer = '2.2.0'
-def leakcanaryVer= '1.5'
+def leakcanaryVer= '1.5.1'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -85,7 +85,7 @@ dependencies {
     compile "org.twitter4j:twitter4j-stream:$t4jVer"
     compile "org.twitter4j:twitter4j-http2-support:$t4jVer"
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.squareup.okhttp3:okhttp:3.6.0'
+    compile 'com.squareup.okhttp3:okhttp:3.7.0'
 
     compile "io.reactivex:rxandroid:$rxAndroidVer"
     // Because RxAndroid releases are few and far between, it is recommended you also
@@ -95,7 +95,7 @@ dependencies {
     compile "com.google.dagger:dagger:$daggerVer"
     annotationProcessor "com.google.dagger:dagger-compiler:$daggerVer"
 
-    retrolambdaConfig 'net.orfjackal.retrolambda:retrolambda:2.5.1'
+//    retrolambdaConfig 'net.orfjackal.retrolambda:retrolambda:2.5.1'
 
     debugCompile "com.squareup.leakcanary:leakcanary-android:$leakcanaryVer"
     releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$leakcanaryVer"
