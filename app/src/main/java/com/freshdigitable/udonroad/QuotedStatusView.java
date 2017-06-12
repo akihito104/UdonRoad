@@ -19,10 +19,6 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 import twitter4j.Status;
 import twitter4j.URLEntity;
@@ -50,14 +46,14 @@ public class QuotedStatusView extends StatusViewBase {
     setBackgroundResource(R.drawable.s_rounded_frame_default);
 
     final View v = View.inflate(context, R.layout.view_quoted_status, this);
-    createdAt = (TextView) v.findViewById(R.id.q_create_at);
-    icon = (ImageView) v.findViewById(R.id.q_icon);
-    names = (CombinedScreenNameTextView) v.findViewById(R.id.q_names);
-    tweet = (TextView) v.findViewById(R.id.q_tweet);
-    clientName = (TextView) v.findViewById(R.id.q_via);
-    rtCount = (IconAttachedTextView) v.findViewById(R.id.q_rtcount);
-    favCount = (IconAttachedTextView) v.findViewById(R.id.q_favcount);
-    thumbnailContainer = (ThumbnailContainer) v.findViewById(R.id.q_image_group);
+    createdAt = v.findViewById(R.id.q_create_at);
+    icon = v.findViewById(R.id.q_icon);
+    names = v.findViewById(R.id.q_names);
+    tweet = v.findViewById(R.id.q_tweet);
+    clientName = v.findViewById(R.id.q_via);
+    rtCount = v.findViewById(R.id.q_rtcount);
+    favCount = v.findViewById(R.id.q_favcount);
+    thumbnailContainer = v.findViewById(R.id.q_image_group);
   }
 
   @Override

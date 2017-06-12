@@ -20,10 +20,6 @@ import android.content.Context;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 import java.util.Date;
 
@@ -48,16 +44,16 @@ public class StatusDetailView extends FullStatusView {
   public StatusDetailView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     final View v = View.inflate(context, R.layout.view_status_detail, this);
-    createdAt = (TextView) v.findViewById(R.id.d_create_at);
-    icon = (ImageView) v.findViewById(R.id.d_icon);
-    names = (CombinedScreenNameTextView) v.findViewById(R.id.d_names);
+    createdAt = v.findViewById(R.id.d_create_at);
+    icon = v.findViewById(R.id.d_icon);
+    names = v.findViewById(R.id.d_names);
     tweet = (LinkableTextView) v.findViewById(R.id.d_tweet);
-    clientName = (TextView) v.findViewById(R.id.d_via);
-    rtCount = (IconAttachedTextView) v.findViewById(R.id.d_rtcount);
-    favCount = (IconAttachedTextView) v.findViewById(R.id.d_favcount);
-    thumbnailContainer = (ThumbnailContainer) v.findViewById(R.id.d_image_group);
-    rtUser = (RetweetUserView) v.findViewById(R.id.d_rt_user);
-    quotedStatus = (QuotedStatusView) v.findViewById(R.id.d_quoted);
+    clientName = v.findViewById(R.id.d_via);
+    rtCount = v.findViewById(R.id.d_rtcount);
+    favCount = v.findViewById(R.id.d_favcount);
+    thumbnailContainer = v.findViewById(R.id.d_image_group);
+    rtUser = v.findViewById(R.id.d_rt_user);
+    quotedStatus = v.findViewById(R.id.d_quoted);
   }
 
   @Override
