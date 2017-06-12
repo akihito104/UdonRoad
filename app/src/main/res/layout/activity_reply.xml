@@ -42,7 +42,7 @@
             app:layout_behavior="com.freshdigitable.udonroad.TweetSendButtonBehavior"
             app:backgroundTint="@color/selector_send_tweet_button"
             />
-        <com.freshdigitable.udonroad.StatusView
+        <com.freshdigitable.udonroad.listitem.StatusView
             android:id="@+id/reply_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

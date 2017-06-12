@@ -38,13 +38,13 @@ import twitter4j.UserMentionEntity;
  *
  * Created by akihit on 2016/10/08.
  */
-class SpannableStringUtil {
-  static CharSequence create(Status bindingStatus) {
+public class SpannableStringUtil {
+  public static CharSequence create(Status bindingStatus) {
     final List<SpanningInfo> spannableInfo = createSpanningInfo(bindingStatus);
     return createClickableSpan(bindingStatus.getText(), spannableInfo);
   }
 
-  static CharSequence create(final String text, URLEntity[] urlEntities) {
+  public static CharSequence create(final String text, URLEntity[] urlEntities) {
     if (TextUtils.isEmpty(text)) {
       return "";
     }

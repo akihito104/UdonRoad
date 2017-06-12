@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.freshdigitable.udonroad.R;
 
 import twitter4j.Status;
 import twitter4j.URLEntity;

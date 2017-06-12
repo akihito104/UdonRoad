@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -28,6 +28,9 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
+import com.freshdigitable.udonroad.IconAttachedTextView;
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 import java.util.Date;
@@ -262,7 +265,7 @@ public abstract class StatusViewBase extends RelativeLayout {
 
   public abstract void setUnselectedColor();
 
-  interface OnUserIconClickedListener {
+  public interface OnUserIconClickedListener {
     void onUserIconClicked(View view, User user);
   }
 

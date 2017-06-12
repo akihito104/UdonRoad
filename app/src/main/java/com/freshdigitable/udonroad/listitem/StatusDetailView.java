@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.freshdigitable.udonroad.LinkableTextView;
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.SpannableStringUtil;
 
 import java.util.Date;
 

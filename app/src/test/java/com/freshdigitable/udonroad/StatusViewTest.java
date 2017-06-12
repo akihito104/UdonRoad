@@ -26,6 +26,8 @@ import android.text.Html;
 import android.view.View;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.listitem.StatusView;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;

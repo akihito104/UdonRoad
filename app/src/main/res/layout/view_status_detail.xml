@@ -164,7 +164,7 @@
         tools:text="via clientname"
         />
 
-    <com.freshdigitable.udonroad.QuotedStatusView
+    <com.freshdigitable.udonroad.listitem.QuotedStatusView
         android:id="@+id/d_quoted"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

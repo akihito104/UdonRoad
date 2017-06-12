@@ -21,8 +21,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.StatusViewBase;
+import com.freshdigitable.udonroad.listitem.StatusViewBase.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.listitem.FullStatusView;
+import com.freshdigitable.udonroad.listitem.QuotedStatusView;
+import com.freshdigitable.udonroad.listitem.StatusView;
+import com.freshdigitable.udonroad.listitem.StatusViewImageHelper;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;

@@ -21,7 +21,7 @@ import android.support.test.espresso.ViewAssertion;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.freshdigitable.udonroad.StatusView;
+import com.freshdigitable.udonroad.listitem.StatusView;
 
 /**
  * Created by akihit on 2016/07/01.

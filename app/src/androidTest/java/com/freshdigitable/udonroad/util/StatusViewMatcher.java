@@ -24,9 +24,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.QuotedStatusView;
-import com.freshdigitable.udonroad.StatusView;
-import com.freshdigitable.udonroad.StatusViewBase;
+import com.freshdigitable.udonroad.listitem.QuotedStatusView;
+import com.freshdigitable.udonroad.listitem.StatusView;
+import com.freshdigitable.udonroad.listitem.StatusViewBase;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;

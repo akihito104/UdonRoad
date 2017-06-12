@@ -23,6 +23,8 @@ import android.support.test.runner.AndroidJUnit4;
 import android.text.Html;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.listitem.StatusView;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
