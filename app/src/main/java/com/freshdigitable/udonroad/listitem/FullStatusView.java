@@ -32,8 +32,8 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  * Created by akihit on 2016/08/20.
  */
 public abstract class FullStatusView extends StatusViewBase {
-  protected QuotedStatusView quotedStatus;
-  protected RetweetUserView rtUser;
+  QuotedStatusView quotedStatus;
+  RetweetUserView rtUser;
 
   public FullStatusView(Context context) {
     super(context);

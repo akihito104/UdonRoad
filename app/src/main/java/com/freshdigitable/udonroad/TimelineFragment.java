@@ -36,7 +36,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import com.freshdigitable.udonroad.listitem.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;

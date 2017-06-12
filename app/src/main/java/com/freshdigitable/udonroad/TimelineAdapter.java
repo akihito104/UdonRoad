@@ -22,7 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.listitem.StatusViewBase;
-import com.freshdigitable.udonroad.listitem.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.listitem.FullStatusView;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;

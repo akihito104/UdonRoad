@@ -23,7 +23,6 @@ import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.text.Html;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -49,17 +48,17 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  * Created by akihit on 2016/06/28.
  */
 public abstract class StatusViewBase extends RelativeLayout {
-  protected TextView createdAt;
-  protected ImageView icon;
-  protected CombinedScreenNameTextView names;
-  protected TextView tweet;
-  protected TextView clientName;
-  protected IconAttachedTextView rtCount;
-  protected IconAttachedTextView favCount;
-  protected ThumbnailContainer thumbnailContainer;
-  protected final int grid;
-  protected static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
-  protected final int selectedColor;
+  TextView createdAt;
+  ImageView icon;
+  CombinedScreenNameTextView names;
+  TextView tweet;
+  TextView clientName;
+  IconAttachedTextView rtCount;
+  IconAttachedTextView favCount;
+  ThumbnailContainer thumbnailContainer;
+  final int grid;
+  static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
+  final int selectedColor;
 
   public StatusViewBase(Context context) {
     this(context, null);
@@ -119,14 +118,14 @@ public abstract class StatusViewBase extends RelativeLayout {
     clientName.setVisibility(GONE);
   }
 
-  protected Date createdAtDate;
+  Date createdAtDate;
 
-  protected void bindCreatedAt(Date bindingStatus) {
+  void bindCreatedAt(Date bindingStatus) {
     createdAtDate = bindingStatus;
     updateCreatedAt(createdAtDate);
   }
 
-  protected void updateCreatedAt(Date createdAtDate) {
+  void updateCreatedAt(Date createdAtDate) {
     if (createdAtDate == null) {
       return;
     }
@@ -162,16 +161,16 @@ public abstract class StatusViewBase extends RelativeLayout {
     updateCreatedAt(this.createdAtDate);
   }
 
-  protected void bindTweetUserName(User user) {
+  void bindTweetUserName(User user) {
       names.setNames(user);
   }
 
-  protected void bindText(Status status) {
+  void bindText(Status status) {
     final CharSequence text = parseText(status);
     tweet.setText(text);
   }
 
-  protected void bindSource(Status bindingStatus) {
+  void bindSource(Status bindingStatus) {
     final String source = bindingStatus.getSource();
     if (source != null) {
       final String formattedVia = formatString(R.string.tweet_via,
@@ -182,7 +181,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     }
   }
 
-  protected void bindRT(Status bindingStatus) {
+  void bindRT(Status bindingStatus) {
     final int rtCount = bindingStatus.getRetweetCount();
     if (rtCount > 0 || bindingStatus.isRetweeted()) {
       this.rtCount.setVisibility(VISIBLE);
@@ -193,7 +192,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     }
   }
 
-  protected void bindFavorite(Status bindingStatus) {
+  void bindFavorite(Status bindingStatus) {
     final int favCount = bindingStatus.getFavoriteCount();
     if (favCount > 0 || bindingStatus.isFavorited()) {
       this.favCount.setVisibility(VISIBLE);
@@ -204,12 +203,12 @@ public abstract class StatusViewBase extends RelativeLayout {
     }
   }
 
-  protected void bindMediaEntities(Status status) {
+  void bindMediaEntities(Status status) {
     final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
     thumbnailContainer.bindMediaEntities(mediaEntities);
   }
 
-  protected void setTextColor(int color) {
+  void setTextColor(int color) {
     names.setTextColor(color);
     createdAt.setTextColor(color);
     tweet.setTextColor(color);
@@ -239,7 +238,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     icon.setOnClickListener(userIconClickListener);
   }
 
-  protected String formatString(@StringRes int id, Object... items) {
+  String formatString(@StringRes int id, Object... items) {
     final String format = getResources().getString(id);
     return String.format(format, items);
   }
@@ -248,9 +247,9 @@ public abstract class StatusViewBase extends RelativeLayout {
     return icon;
   }
 
-  protected abstract CharSequence parseText(Status status);
+  abstract CharSequence parseText(Status status);
 
-  protected String removeMediaUrl(String text, MediaEntity[] mediaEntities) {
+  String removeMediaUrl(String text, MediaEntity[] mediaEntities) {
     for (MediaEntity me : mediaEntities) {
       text = text.replace(me.getURL(), "");
     }
@@ -264,10 +263,6 @@ public abstract class StatusViewBase extends RelativeLayout {
   public abstract void setSelectedColor();
 
   public abstract void setUnselectedColor();
-
-  public interface OnUserIconClickedListener {
-    void onUserIconClicked(View view, User user);
-  }
 
   public TextView getUserName() {
     return names;
