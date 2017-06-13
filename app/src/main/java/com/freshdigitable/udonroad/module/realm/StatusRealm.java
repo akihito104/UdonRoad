@@ -67,6 +67,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   private long quotedStatusId;
   @Ignore
   private StatusReaction reaction;
+  private long inReplyToStatusId;
 
   public StatusRealm() {
   }
@@ -83,6 +84,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
+    this.inReplyToStatusId = status.getInReplyToStatusId();
     this.reaction = new StatusReactionImpl(status);
     this.user = status.getUser();
     this.userId = user.getId();
@@ -231,6 +233,10 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     }
   }
 
+  public long getInReplyToStatusId() {
+    return inReplyToStatusId;
+  }
+
   private static final String NOT_IMPLEMENT_YET = "not implement yet.";
 
   @Override
@@ -272,10 +278,6 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   }
 
   public boolean isTruncated() {
-    throw new RuntimeException(NOT_IMPLEMENT_YET);
-  }
-
-  public long getInReplyToStatusId() {
     throw new RuntimeException(NOT_IMPLEMENT_YET);
   }
 

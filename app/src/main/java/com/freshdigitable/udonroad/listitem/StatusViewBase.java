@@ -56,6 +56,7 @@ public abstract class StatusViewBase extends RelativeLayout {
   IconAttachedTextView rtCount;
   IconAttachedTextView favCount;
   ThumbnailContainer thumbnailContainer;
+  ImageView hasReplyIcon;
   final int grid;
   static final TimeSpanConverter timeSpanConv = new TimeSpanConverter();
   final int selectedColor;
@@ -97,6 +98,7 @@ public abstract class StatusViewBase extends RelativeLayout {
 
     bindRT(bindingStatus);
     bindFavorite(bindingStatus);
+    bindHasReply(bindingStatus);
 
     bindMediaEntities(status);
   }
@@ -203,6 +205,11 @@ public abstract class StatusViewBase extends RelativeLayout {
     }
   }
 
+  private void bindHasReply(Status bindingStatus) {
+    final long inReplyToStatusId = bindingStatus.getInReplyToStatusId();
+    hasReplyIcon.setVisibility(inReplyToStatusId > 0 ? VISIBLE : GONE);
+  }
+
   void bindMediaEntities(Status status) {
     final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
     thumbnailContainer.bindMediaEntities(mediaEntities);
@@ -219,6 +226,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     setBackgroundColor(Color.TRANSPARENT);
     rtCount.setVisibility(GONE);
     favCount.setVisibility(GONE);
+    hasReplyIcon.setVisibility(GONE);
     setTextColor(Color.GRAY);
 
     rtCount.tintIcon(R.color.twitter_action_normal);

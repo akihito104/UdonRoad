@@ -55,6 +55,7 @@ public class QuotedStatusView extends StatusViewBase {
     clientName = v.findViewById(R.id.q_via);
     rtCount = v.findViewById(R.id.q_rtcount);
     favCount = v.findViewById(R.id.q_favcount);
+    hasReplyIcon = v.findViewById(R.id.q_has_reply);
     thumbnailContainer = v.findViewById(R.id.q_image_group);
   }
 

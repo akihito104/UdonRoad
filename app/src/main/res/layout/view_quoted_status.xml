@@ -105,6 +105,21 @@
         tools:text="Count"
         />
 
+    <ImageView
+        android:id="@+id/q_has_reply"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/grid_margin"
+        android:layout_alignTop="@id/q_via"
+        android:layout_alignBottom="@id/q_via"
+        android:layout_toRightOf="@id/q_favcount"
+        android:tint="@color/twitter_action_normal"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_forum"
+        tools:visibility="visible"
+        android:contentDescription="has reply"
+        />
+
     <TextView
         android:id="@+id/q_via"
         android:layout_width="wrap_content"
@@ -112,7 +127,7 @@
         android:layout_below="@+id/q_image_group"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/q_favcount"
+        android:layout_toRightOf="@+id/q_has_reply"
         android:gravity="end"
         android:textSize="@dimen/tweet_small_fontsize"
         android:textAppearance="?android:attr/textAppearanceSmall"

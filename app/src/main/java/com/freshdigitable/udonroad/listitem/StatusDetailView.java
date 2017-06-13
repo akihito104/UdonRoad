@@ -55,6 +55,7 @@ public class StatusDetailView extends FullStatusView {
     clientName = v.findViewById(R.id.d_via);
     rtCount = v.findViewById(R.id.d_rtcount);
     favCount = v.findViewById(R.id.d_favcount);
+    hasReplyIcon = v.findViewById(R.id.d_has_reply);
     thumbnailContainer = v.findViewById(R.id.d_image_group);
     rtUser = v.findViewById(R.id.d_rt_user);
     quotedStatus = v.findViewById(R.id.d_quoted);
