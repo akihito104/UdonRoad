@@ -62,8 +62,14 @@ public class MainApplication extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
-    appComponent = createAppComponent();
+    if (LeakCanary.isInAnalyzerProcess(this)) {
+      // This process is dedicated to LeakCanary for heap analysis.
+      // You should not init your app in this process.
+      return;
+    }
     LeakCanary.install(this);
+
+    appComponent = createAppComponent();
     Realm.init(getApplicationContext());
     appComponent.inject(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());

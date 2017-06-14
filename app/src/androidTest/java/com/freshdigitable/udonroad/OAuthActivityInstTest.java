@@ -13,8 +13,6 @@ import org.junit.Test;
 
 import javax.inject.Inject;
 
-import twitter4j.Twitter;
-
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -31,8 +29,8 @@ public class OAuthActivityInstTest {
 
   @Inject
   AppSettingStore appSetting;
-  @Inject
-  Twitter twitter;
+//  @Inject
+//  Twitter twitter;
 
   @Before
   public void setup() {
