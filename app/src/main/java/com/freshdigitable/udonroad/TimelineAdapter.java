@@ -108,13 +108,14 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   @Override
   public void onViewRecycled(ItemViewHolder<T> holder) {
     super.onViewRecycled(holder);
-    if (selectedEntityHolder != null && holder.hasSameEntityId(selectedEntityHolder.entityId)) {
+    if (holder.hasSameEntityId(selectedEntityHolder.entityId)) {
       selectedEntityHolder.onViewRecycled();
     }
     holder.recycle();
   }
 
-  private SelectedEntity selectedEntityHolder = null;
+  private static final SelectedEntity EMPTY = new SelectedEntity();
+  private SelectedEntity selectedEntityHolder = EMPTY;
 
   private final OnItemViewClickListener itemViewClickListener = (itemView, entityId, clickedItem) -> {
     if (isStatusViewSelected()
@@ -132,7 +133,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     if (isStatusViewSelected()) {
       selectedEntityHolder.setUnselectedBackground();
     }
-    selectedEntityHolder = null;
+    selectedEntityHolder = EMPTY;
     if (selectedEntityChangeListener != null) {
       selectedEntityChangeListener.onEntityUnselected();
     }
@@ -149,11 +150,11 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   }
 
   public long getSelectedEntityId() {
-    return isStatusViewSelected() ? selectedEntityHolder.entityId : -1;
+    return selectedEntityHolder.entityId;
   }
 
   public boolean isStatusViewSelected() {
-    return selectedEntityHolder != null;
+    return selectedEntityHolder != EMPTY;
   }
 
   @Nullable
@@ -191,6 +192,10 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     private final long entityId;
     private final WeakReference<? extends StatusViewBase> view;
 
+    private SelectedEntity() {
+      this(-1, null);
+    }
+
     private SelectedEntity(long entityId, StatusViewBase view) {
       this.entityId = entityId;
       this.view = view == null
@@ -200,7 +205,9 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     }
 
     private void setSelectedBackground() {
-      final StatusViewBase view = this.view.get();
+      final StatusViewBase view = this.view != null
+          ? this.view.get()
+          : null;
       if (view == null) {
         return;
       }
@@ -208,7 +215,9 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     }
 
     private void setUnselectedBackground() {
-      final StatusViewBase view = this.view.get();
+      final StatusViewBase view = this.view != null
+          ? this.view.get()
+          : null;
       if (view == null) {
         return;
       }
