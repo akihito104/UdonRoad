@@ -18,11 +18,9 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.view.View;
 
-import twitter4j.User;
-
 /**
- * Created by akihit on 2017/06/12.
+ * Created by akihit on 2017/06/14.
  */
-public interface OnUserIconClickedListener {
-  void onUserIconClicked(View view, User user);
+public interface OnItemViewClickListener {
+  void onItemViewClicked(StatusViewBase itemView, long entityId, View clickedItem);
 }
