@@ -35,10 +35,10 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  * Created by akihit on 2017/06/14.
  */
 public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
-  private long entityId;
   private Subscription subscription;
   private OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
+  private long quotedStatusId;
 
   public ItemViewHolder(View itemView) {
     super(itemView);
@@ -46,10 +46,9 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
 
   public void bind(T entity) {
     itemView.setOnClickListener(
-        v -> itemViewClickListener.onItemViewClicked(getView(), entityId, v));
+        v -> itemViewClickListener.onItemViewClicked(this, getItemId(), v));
     if (entity instanceof Status) {
       final Status status = (Status) entity;
-      this.entityId = status.getId();
       getView().bindStatus(status);
       StatusViewImageHelper.load(status, getView());
       setupUserIcon(status, getView());
@@ -57,7 +56,6 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
       setupQuotedStatusView(status, getView().getQuotedStatusView());
     } else if (entity instanceof User) {
       final User user = (User) entity;
-      this.entityId = user.getId();
       getView().bindUser(user);
       StatusViewImageHelper.load(user, getView());
       setupUserIcon(user, getView());
@@ -83,7 +81,11 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
   }
 
   public boolean hasSameEntityId(long other) {
-    return this.entityId == other;
+    return this.getItemId() == other || this.quotedStatusId == other;
+  }
+
+  public boolean hasQuotedEntity() {
+    return this.quotedStatusId > 0;
   }
 
   public void recycle() {
@@ -94,10 +96,10 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
       unloadMediaView(quotedStatusView);
     }
 
-    StatusViewImageHelper.unload(getView(), entityId);
+    StatusViewImageHelper.unload(getView(), getItemId());
     getView().reset();
 
-    this.entityId = -1;
+    quotedStatusId = -1;
     unsubscribe();
     subscription = null;
   }
@@ -124,7 +126,7 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     final long statusId = status.getId();
     thumbnailContainer.setOnMediaClickListener((view, index) -> {
-      itemViewClickListener.onItemViewClicked(statusView, statusId, view);
+      itemViewClickListener.onItemViewClicked(this, statusId, view);
       MediaViewActivity.start(view.getContext(), status, index);
     });
   }
@@ -136,9 +138,9 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
     if (quotedStatus == null) {
       return;
     }
-    final long quotedStatusId = quotedStatus.getId();
+    quotedStatusId = quotedStatus.getId();
     quotedStatusView.setOnClickListener(
-        view -> itemViewClickListener.onItemViewClicked(quotedStatusView, quotedStatusId, view));
+        view -> itemViewClickListener.onItemViewClicked(this, quotedStatusId, view));
     setupMediaView(quotedStatus, quotedStatusView);
   }
 
@@ -157,7 +159,23 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
     this.userIconClickedListener = userIconClickedListener;
   }
 
-  public long getEntityId() {
-    return entityId;
+  public void onSelected(long entityId) {
+    if (getItemId() == entityId) {
+      getView().setSelectedColor();
+    } else if (quotedStatusId == entityId) {
+      getView().getQuotedStatusView().setSelectedColor();
+    }
+  }
+
+  public void onUnselected(long entityId) {
+    if (getItemId() == entityId) {
+      getView().setUnselectedColor();
+    } else if (quotedStatusId == entityId) {
+      getView().getQuotedStatusView().setUnselectedColor();
+    }
+  }
+
+  public long getQuotedEntityId() {
+    return quotedStatusId;
   }
 }

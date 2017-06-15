@@ -490,11 +490,6 @@ public abstract class TimelineFragment<T> extends Fragment {
     }
   }
 
-  @Nullable @SuppressWarnings("unused")
-  public View getSelectedView() {
-    return tlAdapter.getSelectedView();
-  }
-
   @Override
   public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
     if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {

@@ -18,16 +18,13 @@ package com.freshdigitable.udonroad;
 
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
-import com.freshdigitable.udonroad.listitem.StatusViewBase;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 
 import java.lang.ref.WeakReference;
@@ -48,11 +45,18 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
 
   public TimelineAdapter(SortedCache<T> timelineStore) {
     this.timelineStore = timelineStore;
+    setHasStableIds(true);
   }
 
   @Override
   public ItemViewHolder<T> onCreateViewHolder(ViewGroup parent, int viewType) {
     return new ItemViewHolder<>(new StatusView(parent.getContext()));
+  }
+
+  @Override
+  public long getItemId(int position) {
+    final T entity = timelineStore.get(position);
+    return getEntityId(entity);
   }
 
   @Override
@@ -67,15 +71,20 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
       }
     }
 
-    final long entityId = getEntityId(entity);
-    if (entityId == getSelectedEntityId()) {
-      selectedEntityHolder = new SelectedEntity(entityId, (StatusView) holder.itemView);
-    } else if (entity instanceof Status) {
-      final Status status = (Status) entity;
-      final long quotedStatusId = status.getQuotedStatusId();
-      if (quotedStatusId != -1 && quotedStatusId == getSelectedEntityId()) {
-        final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
-        selectedEntityHolder = new SelectedEntity(quotedStatusId, quotedStatusView);
+    bindSelectedItemView(holder);
+  }
+
+  private void bindSelectedItemView(ItemViewHolder<T> holder) {
+    if (!isStatusViewSelected()) {
+      return;
+    }
+    final long selectedEntityId = getSelectedEntityId();
+    if (holder.getItemId() == selectedEntityId) {
+      selectedEntityHolder = new SelectedEntity(holder);
+    } else if (holder.hasQuotedEntity()) {
+      final long quotedEntityId = holder.getQuotedEntityId();
+      if (quotedEntityId == selectedEntityId) {
+        selectedEntityHolder = new SelectedEntity(holder, quotedEntityId);
       }
     }
   }
@@ -92,7 +101,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   @Override
   public void onViewAttachedToWindow(ItemViewHolder<T> holder) {
     super.onViewAttachedToWindow(holder);
-    holder.subscribe(timelineStore.observeById(holder.getEntityId()));
+    holder.subscribe(timelineStore.observeById(holder.getItemId()));
     holder.setItemViewClickListener(itemViewClickListener);
     holder.setUserIconClickedListener(userIconClickedListener);
   }
@@ -117,7 +126,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   private static final SelectedEntity EMPTY = new SelectedEntity();
   private SelectedEntity selectedEntityHolder = EMPTY;
 
-  private final OnItemViewClickListener itemViewClickListener = (itemView, entityId, clickedItem) -> {
+  private final OnItemViewClickListener itemViewClickListener = (vh, entityId, clickedItem) -> {
     if (isStatusViewSelected()
         && entityId == selectedEntityHolder.entityId) {
       if (clickedItem instanceof ThumbnailView) {
@@ -125,7 +134,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
       }
       clearSelectedEntity();
     } else {
-      fixSelectedEntity(entityId, itemView);
+      fixSelectedEntity(entityId, vh);
     }
   };
 
@@ -139,11 +148,11 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     }
   }
 
-  private void fixSelectedEntity(long selectedEntityId, StatusViewBase selectedView) {
+  private void fixSelectedEntity(long selectedEntityId, ItemViewHolder selectedView) {
     if (isStatusViewSelected()) {
       selectedEntityHolder.setUnselectedBackground();
     }
-    selectedEntityHolder = new SelectedEntity(selectedEntityId, selectedView);
+    selectedEntityHolder = new SelectedEntity(selectedView, selectedEntityId);
     if (selectedEntityChangeListener != null) {
       selectedEntityChangeListener.onEntitySelected(selectedEntityId);
     }
@@ -155,11 +164,6 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
 
   public boolean isStatusViewSelected() {
     return selectedEntityHolder != EMPTY;
-  }
-
-  @Nullable
-  public View getSelectedView() {
-    return selectedEntityHolder.view.get();
   }
 
   public interface LastItemBoundListener {
@@ -190,42 +194,48 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
 
   private static class SelectedEntity {
     private final long entityId;
-    private final WeakReference<? extends StatusViewBase> view;
+    private final WeakReference<ItemViewHolder> viewHolder;
 
     private SelectedEntity() {
-      this(-1, null);
+      this(null, -1);
     }
 
-    private SelectedEntity(long entityId, StatusViewBase view) {
+    private SelectedEntity(ItemViewHolder vh) {
+      this(vh, vh.getItemId());
+    }
+
+    private SelectedEntity(ItemViewHolder vh, long entityId) {
       this.entityId = entityId;
-      this.view = view == null
+      this.viewHolder = vh == null
           ? null
-          : new WeakReference<>(view);
+          : new WeakReference<>(vh);
       setSelectedBackground();
     }
 
     private void setSelectedBackground() {
-      final StatusViewBase view = this.view != null
-          ? this.view.get()
-          : null;
-      if (view == null) {
-        return;
+      final ItemViewHolder vh = getViewHolder();
+      if (vh != null) {
+        vh.onSelected(entityId);
       }
-      view.setSelectedColor();
     }
 
     private void setUnselectedBackground() {
-      final StatusViewBase view = this.view != null
-          ? this.view.get()
-          : null;
-      if (view == null) {
-        return;
+      final ItemViewHolder vh = getViewHolder();
+      if (vh != null) {
+        vh.onUnselected(entityId);
       }
-      view.setUnselectedColor();
     }
 
     private void onViewRecycled() {
-      view.clear();
+      final ItemViewHolder viewHolder = getViewHolder();
+      if (viewHolder != null) {
+        this.viewHolder.clear();
+      }
+    }
+
+    @Nullable
+    private ItemViewHolder getViewHolder() {
+      return this.viewHolder != null ? this.viewHolder.get() : null;
     }
   }
 
