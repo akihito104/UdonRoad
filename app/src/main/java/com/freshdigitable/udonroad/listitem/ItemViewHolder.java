@@ -44,18 +44,18 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
     super(itemView);
   }
 
-  public void bind(T entity) {
+  public void bind(T item) {
     itemView.setOnClickListener(
         v -> itemViewClickListener.onItemViewClicked(this, getItemId(), v));
-    if (entity instanceof Status) {
-      final Status status = (Status) entity;
+    if (item instanceof Status) {
+      final Status status = (Status) item;
       getView().bindStatus(status);
       StatusViewImageHelper.load(status, getView());
       setupUserIcon(status, getView());
       setupMediaView(status, getView());
       setupQuotedStatusView(status, getView().getQuotedStatusView());
-    } else if (entity instanceof User) {
-      final User user = (User) entity;
+    } else if (item instanceof User) {
+      final User user = (User) item;
       getView().bindUser(user);
       StatusViewImageHelper.load(user, getView());
       setupUserIcon(user, getView());
@@ -65,11 +65,11 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
   public void subscribe(Observable<T> observable) {
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(entity -> {
-          if (entity instanceof Status) {
-            ((StatusView) itemView).update(((Status) entity));
-          } else if (entity instanceof User) {
-            ((StatusView) itemView).bindUser(((User) entity));
+        .subscribe(item -> {
+          if (item instanceof Status) {
+            ((StatusView) itemView).update(((Status) item));
+          } else if (item instanceof User) {
+            ((StatusView) itemView).bindUser(((User) item));
           }
         });
   }
@@ -80,11 +80,11 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
     }
   }
 
-  public boolean hasSameEntityId(long other) {
+  public boolean hasSameItemId(long other) {
     return this.getItemId() == other || this.quotedStatusId == other;
   }
 
-  public boolean hasQuotedEntity() {
+  public boolean hasQuotedItem() {
     return this.quotedStatusId > 0;
   }
 
@@ -159,23 +159,23 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
     this.userIconClickedListener = userIconClickedListener;
   }
 
-  public void onSelected(long entityId) {
-    if (getItemId() == entityId) {
+  public void onSelected(long itemId) {
+    if (getItemId() == itemId) {
       getView().setSelectedColor();
-    } else if (quotedStatusId == entityId) {
+    } else if (quotedStatusId == itemId) {
       getView().getQuotedStatusView().setSelectedColor();
     }
   }
 
-  public void onUnselected(long entityId) {
-    if (getItemId() == entityId) {
+  public void onUnselected(long itemId) {
+    if (getItemId() == itemId) {
       getView().setUnselectedColor();
-    } else if (quotedStatusId == entityId) {
+    } else if (quotedStatusId == itemId) {
       getView().getQuotedStatusView().setUnselectedColor();
     }
   }
 
-  public long getQuotedEntityId() {
+  public long getQuotedItemId() {
     return quotedStatusId;
   }
 }

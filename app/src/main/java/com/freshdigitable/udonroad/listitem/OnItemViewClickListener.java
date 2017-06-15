@@ -22,5 +22,5 @@ import android.view.View;
  * Created by akihit on 2017/06/14.
  */
 public interface OnItemViewClickListener {
-  void onItemViewClicked(ItemViewHolder viewHolder, long entityId, View clickedItem);
+  void onItemViewClicked(ItemViewHolder viewHolder, long itemId, View clickedView);
 }

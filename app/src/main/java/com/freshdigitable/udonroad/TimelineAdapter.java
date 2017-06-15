@@ -55,14 +55,23 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
 
   @Override
   public long getItemId(int position) {
-    final T entity = timelineStore.get(position);
-    return getEntityId(entity);
+    final T item = timelineStore.get(position);
+    return getItemId(item);
+  }
+
+  private long getItemId(T item) {
+    if (item instanceof Status) {
+      return ((Status) item).getId();
+    } else if (item instanceof User) {
+      return ((User) item).getId();
+    }
+    return -1;
   }
 
   @Override
   public void onBindViewHolder(final ItemViewHolder<T> holder, int position) {
-    final T entity = timelineStore.get(position);
-    holder.bind(entity);
+    final T item = timelineStore.get(position);
+    holder.bind(item);
 
     if (position == getItemCount() - 1) {
       final long nextCursor = timelineStore.getLastPageCursor();
@@ -75,27 +84,18 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   }
 
   private void bindSelectedItemView(ItemViewHolder<T> holder) {
-    if (!isStatusViewSelected()) {
+    if (!isItemSelected()) {
       return;
     }
-    final long selectedEntityId = getSelectedEntityId();
-    if (holder.getItemId() == selectedEntityId) {
-      selectedEntityHolder = new SelectedEntity(holder);
-    } else if (holder.hasQuotedEntity()) {
-      final long quotedEntityId = holder.getQuotedEntityId();
-      if (quotedEntityId == selectedEntityId) {
-        selectedEntityHolder = new SelectedEntity(holder, quotedEntityId);
+    final long selectedItemId = getSelectedItemId();
+    if (holder.getItemId() == selectedItemId) {
+      selectedItemHolder = new SelectedItem(holder);
+    } else if (holder.hasQuotedItem()) {
+      final long quotedItemId = holder.getQuotedItemId();
+      if (quotedItemId == selectedItemId) {
+        selectedItemHolder = new SelectedItem(holder, quotedItemId);
       }
     }
-  }
-
-  private long getEntityId(T entity) {
-    if (entity instanceof Status) {
-      return ((Status) entity).getId();
-    } else if (entity instanceof User) {
-      return ((User) entity).getId();
-    }
-    return -1;
   }
 
   @Override
@@ -117,57 +117,57 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   @Override
   public void onViewRecycled(ItemViewHolder<T> holder) {
     super.onViewRecycled(holder);
-    if (holder.hasSameEntityId(selectedEntityHolder.entityId)) {
-      selectedEntityHolder.onViewRecycled();
+    if (holder.hasSameItemId(selectedItemHolder.id)) {
+      selectedItemHolder.onViewRecycled();
     }
     holder.recycle();
   }
 
-  private static final SelectedEntity EMPTY = new SelectedEntity();
-  private SelectedEntity selectedEntityHolder = EMPTY;
+  private static final SelectedItem EMPTY = new SelectedItem();
+  private SelectedItem selectedItemHolder = EMPTY;
 
-  private final OnItemViewClickListener itemViewClickListener = (vh, entityId, clickedItem) -> {
-    if (isStatusViewSelected()
-        && entityId == selectedEntityHolder.entityId) {
+  private final OnItemViewClickListener itemViewClickListener = (vh, itemId, clickedItem) -> {
+    if (isItemSelected()
+        && itemId == selectedItemHolder.id) {
       if (clickedItem instanceof ThumbnailView) {
         return;
       }
-      clearSelectedEntity();
+      clearSelectedItem();
     } else {
-      fixSelectedEntity(entityId, vh);
+      fixSelectedItem(itemId, vh);
     }
   };
 
-  public void clearSelectedEntity() {
-    if (isStatusViewSelected()) {
-      selectedEntityHolder.setUnselectedBackground();
+  public void clearSelectedItem() {
+    if (isItemSelected()) {
+      selectedItemHolder.setUnselectedBackground();
     }
-    selectedEntityHolder = EMPTY;
-    if (selectedEntityChangeListener != null) {
-      selectedEntityChangeListener.onEntityUnselected();
-    }
-  }
-
-  private void fixSelectedEntity(long selectedEntityId, ItemViewHolder selectedView) {
-    if (isStatusViewSelected()) {
-      selectedEntityHolder.setUnselectedBackground();
-    }
-    selectedEntityHolder = new SelectedEntity(selectedView, selectedEntityId);
-    if (selectedEntityChangeListener != null) {
-      selectedEntityChangeListener.onEntitySelected(selectedEntityId);
+    selectedItemHolder = EMPTY;
+    if (selectedItemChangeListener != null) {
+      selectedItemChangeListener.onItemUnselected();
     }
   }
 
-  public long getSelectedEntityId() {
-    return selectedEntityHolder.entityId;
+  private void fixSelectedItem(long selectedItemId, ItemViewHolder selectedView) {
+    if (isItemSelected()) {
+      selectedItemHolder.setUnselectedBackground();
+    }
+    selectedItemHolder = new SelectedItem(selectedView, selectedItemId);
+    if (selectedItemChangeListener != null) {
+      selectedItemChangeListener.onItemSelected(selectedItemId);
+    }
   }
 
-  public boolean isStatusViewSelected() {
-    return selectedEntityHolder != EMPTY;
+  public long getSelectedItemId() {
+    return selectedItemHolder.id;
+  }
+
+  public boolean isItemSelected() {
+    return selectedItemHolder != EMPTY;
   }
 
   public interface LastItemBoundListener {
-    void onLastItemBound(long entityId);
+    void onLastItemBound(long itemId);
   }
 
   private LastItemBoundListener lastItemBoundListener;
@@ -176,15 +176,15 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     this.lastItemBoundListener = listener;
   }
 
-  private OnSelectedEntityChangeListener selectedEntityChangeListener;
+  private OnSelectedItemChangeListener selectedItemChangeListener;
 
-  public void setOnSelectedEntityChangeListener(OnSelectedEntityChangeListener listener) {
-    this.selectedEntityChangeListener = listener;
+  public void setOnSelectedItemChangeListener(OnSelectedItemChangeListener listener) {
+    this.selectedItemChangeListener = listener;
   }
 
-  interface OnSelectedEntityChangeListener {
-    void onEntitySelected(long entityId);
-    void onEntityUnselected();
+  interface OnSelectedItemChangeListener {
+    void onItemSelected(long itemId);
+    void onItemUnselected();
   }
 
   @Override
@@ -192,20 +192,20 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     return timelineStore.getItemCount();
   }
 
-  private static class SelectedEntity {
-    private final long entityId;
+  private static class SelectedItem {
+    private final long id;
     private final WeakReference<ItemViewHolder> viewHolder;
 
-    private SelectedEntity() {
+    private SelectedItem() {
       this(null, -1);
     }
 
-    private SelectedEntity(ItemViewHolder vh) {
+    private SelectedItem(ItemViewHolder vh) {
       this(vh, vh.getItemId());
     }
 
-    private SelectedEntity(ItemViewHolder vh, long entityId) {
-      this.entityId = entityId;
+    private SelectedItem(ItemViewHolder vh, long id) {
+      this.id = id;
       this.viewHolder = vh == null
           ? null
           : new WeakReference<>(vh);
@@ -215,14 +215,14 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     private void setSelectedBackground() {
       final ItemViewHolder vh = getViewHolder();
       if (vh != null) {
-        vh.onSelected(entityId);
+        vh.onSelected(id);
       }
     }
 
     private void setUnselectedBackground() {
       final ItemViewHolder vh = getViewHolder();
       if (vh != null) {
-        vh.onUnselected(entityId);
+        vh.onUnselected(id);
       }
     }
 
