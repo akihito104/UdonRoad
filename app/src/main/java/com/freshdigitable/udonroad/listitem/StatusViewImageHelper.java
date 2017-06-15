@@ -137,7 +137,8 @@ public class StatusViewImageHelper {
   }
 
   private static void loadMediaView(final Status status, final StatusViewBase statusView) {
-    final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
+    final Status bindingStatus = getBindingStatus(status);
+    final MediaEntity[] mediaEntities = bindingStatus.getMediaEntities();
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     thumbnailContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = thumbnailContainer.getThumbCount();
@@ -147,15 +148,19 @@ public class StatusViewImageHelper {
       final String type = mediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
-      final RequestCreator rc = getRequest(thumbnailContainer.getContext(),
-          mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
-      if (thumbnailContainer.getHeight() == 0 || thumbnailContainer.getThumbWidth() == 0) {
-        rc.fit();
+      if (bindingStatus.isPossiblySensitive()) {
+        mediaView.setImageDrawable(ContextCompat.getDrawable(mediaView.getContext(), R.drawable.ic_whatshot));
       } else {
-        rc.resize(thumbnailContainer.getThumbWidth(), thumbnailContainer.getHeight());
+        final RequestCreator rc = getRequest(thumbnailContainer.getContext(),
+            mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
+        if (thumbnailContainer.getHeight() == 0 || thumbnailContainer.getThumbWidth() == 0) {
+          rc.fit();
+        } else {
+          rc.resize(thumbnailContainer.getThumbWidth(), thumbnailContainer.getHeight());
+        }
+        rc.centerCrop()
+            .into(mediaView);
       }
-      rc.centerCrop()
-          .into(mediaView);
     }
   }
 
