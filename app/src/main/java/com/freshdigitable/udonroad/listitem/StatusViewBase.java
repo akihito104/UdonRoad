@@ -83,6 +83,38 @@ public abstract class StatusViewBase extends RelativeLayout {
   }
 
   @CallSuper
+  public void bind(ListItem item) {
+    if (item == null) {
+      return;
+    }
+    names.setNames(item.getUser());
+    createdAt.setText(item.getCreatedTime(getContext()));
+    tweet.setText(item.getText());
+    thumbnailContainer.bindMediaEntities(item.getMediaCount());
+
+    for (ListItem.Stat s : item.getStats()) {
+      if (s.getType() == R.drawable.ic_retweet) {
+        rtCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
+        rtCount.tintIcon(s.isMarked()
+            ? R.color.twitter_action_retweeted
+            : R.color.twitter_action_normal);
+        rtCount.setText(String.valueOf(s.getCount()));
+      } else if (s.getType() == R.drawable.ic_like) {
+        favCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
+        favCount.tintIcon(s.isMarked()
+            ? R.color.twitter_action_faved
+            : R.color.twitter_action_normal);
+        favCount.setText(String.valueOf(s.getCount()));
+      } else if (s.getType() == R.drawable.ic_forum) {
+        hasReplyIcon.setVisibility(s.isMarked() ? VISIBLE : GONE);
+      }
+    }
+
+    clientName.setText(formatString(R.string.tweet_via, item.getSource()));
+  }
+
+  @Deprecated
+  @CallSuper
   public void bindStatus(final Status status) {
     final Status bindingStatus = getBindingStatus(status);
 
@@ -103,6 +135,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     bindMediaEntities(status);
   }
 
+  @Deprecated
   @CallSuper
   public void update(Status status) {
     final Status bindingStatus = getBindingStatus(status);
@@ -112,6 +145,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     bindTweetUserName(user);
   }
 
+  @Deprecated
   @CallSuper
   public void bindUser(final User user) {
     bindTweetUserName(user);
@@ -236,14 +270,9 @@ public abstract class StatusViewBase extends RelativeLayout {
     icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);
-    setUserIconClickListener(null);
 
     thumbnailContainer.reset();
     thumbnailContainer.setOnMediaClickListener(null);
-  }
-
-  public void setUserIconClickListener(OnClickListener userIconClickListener) {
-    icon.setOnClickListener(userIconClickListener);
   }
 
   String formatString(@StringRes int id, Object... items) {
@@ -255,6 +284,7 @@ public abstract class StatusViewBase extends RelativeLayout {
     return icon;
   }
 
+  @Deprecated
   abstract CharSequence parseText(Status status);
 
   String removeMediaUrl(String text, MediaEntity[] mediaEntities) {

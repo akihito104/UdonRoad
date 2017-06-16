@@ -22,13 +22,16 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
+import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.StatusView;
+import com.freshdigitable.udonroad.listitem.StatusListItem;
+import com.freshdigitable.udonroad.listitem.UserListItem;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 
 import java.lang.ref.WeakReference;
 
+import rx.Observable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -37,7 +40,7 @@ import twitter4j.User;
  *
  * Created by akihit on 15/10/18.
  */
-public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> {
+public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
@@ -49,28 +52,34 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   }
 
   @Override
-  public ItemViewHolder<T> onCreateViewHolder(ViewGroup parent, int viewType) {
-    return new ItemViewHolder<>(new StatusView(parent.getContext()));
+  public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    return new ItemViewHolder(parent, viewType);
   }
 
   @Override
   public long getItemId(int position) {
-    final T item = timelineStore.get(position);
-    return getItemId(item);
+    final ListItem item = wrapListItem(position);
+    return item != null ? item.getId() : -1;
   }
 
-  private long getItemId(T item) {
+  private ListItem wrapListItem(int position) {
+    final T item = timelineStore.get(position);
+    return wrapListItem(item);
+  }
+
+  @Nullable
+  private static <T> ListItem wrapListItem(T item) {
     if (item instanceof Status) {
-      return ((Status) item).getId();
+      return new StatusListItem((Status) item);
     } else if (item instanceof User) {
-      return ((User) item).getId();
+      return new UserListItem((User) item);
     }
-    return -1;
+    return null;
   }
 
   @Override
-  public void onBindViewHolder(final ItemViewHolder<T> holder, int position) {
-    final T item = timelineStore.get(position);
+  public void onBindViewHolder(final ItemViewHolder holder, int position) {
+    final ListItem item = wrapListItem(position);
     holder.bind(item);
 
     if (position == getItemCount() - 1) {
@@ -83,7 +92,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
     bindSelectedItemView(holder);
   }
 
-  private void bindSelectedItemView(ItemViewHolder<T> holder) {
+  private void bindSelectedItemView(ItemViewHolder holder) {
     if (!isItemSelected()) {
       return;
     }
@@ -99,15 +108,18 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   }
 
   @Override
-  public void onViewAttachedToWindow(ItemViewHolder<T> holder) {
+  public void onViewAttachedToWindow(ItemViewHolder holder) {
     super.onViewAttachedToWindow(holder);
-    holder.subscribe(timelineStore.observeById(holder.getItemId()));
+    final Observable<ListItem> observable
+        = timelineStore.observeById(holder.getItemId())
+        .map(TimelineAdapter::wrapListItem);
+    holder.subscribe(observable);
     holder.setItemViewClickListener(itemViewClickListener);
     holder.setUserIconClickedListener(userIconClickedListener);
   }
 
   @Override
-  public void onViewDetachedFromWindow(ItemViewHolder<T> holder) {
+  public void onViewDetachedFromWindow(ItemViewHolder holder) {
     super.onViewDetachedFromWindow(holder);
     holder.setItemViewClickListener(null);
     holder.setUserIconClickedListener(null);
@@ -115,7 +127,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder<T>> 
   }
 
   @Override
-  public void onViewRecycled(ItemViewHolder<T> holder) {
+  public void onViewRecycled(ItemViewHolder holder) {
     super.onViewRecycled(holder);
     if (holder.hasSameItemId(selectedItemHolder.id)) {
       selectedItemHolder.onViewRecycled();

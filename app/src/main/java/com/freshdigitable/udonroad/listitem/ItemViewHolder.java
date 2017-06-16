@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
@@ -25,52 +26,37 @@ import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import twitter4j.MediaEntity;
-import twitter4j.Status;
-import twitter4j.User;
-
-import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
 /**
  * Created by akihit on 2017/06/14.
  */
-public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
+public class ItemViewHolder extends RecyclerView.ViewHolder {
   private Subscription subscription;
   private OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
   private long quotedStatusId;
 
-  public ItemViewHolder(View itemView) {
-    super(itemView);
+  public ItemViewHolder(final ViewGroup parent, final int viewType) {
+    super(new StatusView(parent.getContext()));
   }
 
-  public void bind(T item) {
-    itemView.setOnClickListener(
-        v -> itemViewClickListener.onItemViewClicked(this, getItemId(), v));
-    if (item instanceof Status) {
-      final Status status = (Status) item;
-      getView().bindStatus(status);
-      StatusViewImageHelper.load(status, getView());
-      setupUserIcon(status, getView());
-      setupMediaView(status, getView());
-      setupQuotedStatusView(status, getView().getQuotedStatusView());
-    } else if (item instanceof User) {
-      final User user = (User) item;
-      getView().bindUser(user);
-      StatusViewImageHelper.load(user, getView());
-      setupUserIcon(user, getView());
-    }
+  public void bind(final ListItem item) {
+    final TwitterListItem twitterListItem = (TwitterListItem) item;
+    getView().bind(twitterListItem);
+    itemView.setOnClickListener(v ->
+        itemViewClickListener.onItemViewClicked(this, getItemId(), v));
+    getView().getIcon().setOnClickListener(
+        v -> userIconClickedListener.onUserIconClicked(v, item.getUser()));
+    StatusViewImageHelper.load(twitterListItem, getView());
+    setupMediaView(item, getView());
+    setupQuotedStatusView(twitterListItem, getView().getQuotedStatusView());
   }
 
-  public void subscribe(Observable<T> observable) {
+  public void subscribe(Observable<ListItem> observable) {
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(item -> {
-          if (item instanceof Status) {
-            ((StatusView) itemView).update(((Status) item));
-          } else if (item instanceof User) {
-            ((StatusView) itemView).bindUser(((User) item));
-          }
+          getView().update((TwitterListItem) item);
         });
   }
 
@@ -108,33 +94,20 @@ public class ItemViewHolder<T> extends RecyclerView.ViewHolder {
     return (StatusView) itemView;
   }
 
-  private void setupUserIcon(Status status, StatusView itemView) {
-    final User user = getBindingStatus(status).getUser();
-    setupUserIcon(user, itemView);
-  }
-
-  private void setupUserIcon(final User user, StatusView itemView) {
-    itemView.getIcon().setOnClickListener(
-        v -> userIconClickedListener.onUserIconClicked(v, user));
-  }
-
-  private void setupMediaView(final Status status, final StatusViewBase statusView) {
-    final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
-    if (mediaEntities.length < 1) {
+  private void setupMediaView(final ListItem item, final StatusViewBase statusView) {
+    if (item.getMediaCount() < 1) {
       return;
     }
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
-    final long statusId = status.getId();
+    final long statusId = item.getId();
     thumbnailContainer.setOnMediaClickListener((view, index) -> {
       itemViewClickListener.onItemViewClicked(this, statusId, view);
-      MediaViewActivity.start(view.getContext(), status, index);
+      MediaViewActivity.start(view.getContext(), item, index);
     });
   }
 
-  private void setupQuotedStatusView(Status status, final QuotedStatusView quotedStatusView) {
-    final Status quotedStatus = status.isRetweet()
-        ? status.getRetweetedStatus().getQuotedStatus()
-        : status.getQuotedStatus();
+  private void setupQuotedStatusView(TwitterListItem status, final QuotedStatusView quotedStatusView) {
+    final ListItem quotedStatus = status.getQuotedItem();
     if (quotedStatus == null) {
       return;
     }

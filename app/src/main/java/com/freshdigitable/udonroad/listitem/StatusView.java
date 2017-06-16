@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -36,6 +38,7 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 public class StatusView extends FullStatusView {
   @SuppressWarnings("unused")
   private static final String TAG = StatusView.class.getSimpleName();
+  private TwitterListItem.TimeTextStrategy timeStrategy;
 
   public StatusView(Context context) {
     this(context, null);
@@ -59,6 +62,68 @@ public class StatusView extends FullStatusView {
     rtUser = v.findViewById(R.id.tl_rt_user);
     thumbnailContainer = v.findViewById(R.id.tl_image_group);
     quotedStatus = v.findViewById(R.id.tl_quoted);
+  }
+
+  public void bind(TwitterListItem item) {
+    if (item == null) {
+      return;
+    }
+    if (TextUtils.isEmpty(item.getSource())) {
+      clientName.setVisibility(GONE);
+    }
+    timeStrategy = item.getTimeStrategy();
+    if (timeStrategy == null) {
+      createdAt.setVisibility(GONE);
+    }
+    setTextColor(item.isRetweet()
+        ? ContextCompat.getColor(getContext(), R.color.twitter_action_retweeted)
+        : Color.GRAY);
+
+    rtUser.setVisibility(item.isRetweet() ? VISIBLE : GONE);
+    super.bind(item);
+    final ListItem quotedItem = item.getQuotedItem();
+    if (quotedItem != null) {
+      quotedStatus.setVisibility(VISIBLE);
+      quotedStatus.bind(quotedItem);
+    } else {
+      quotedStatus.setVisibility(GONE);
+    }
+  }
+
+  @Override
+  public void updateTime() {
+    if (timeStrategy == null) {
+      return;
+    }
+    createdAt.setText(timeStrategy.getCreatedTime(getContext()));
+    if (quotedStatus.getVisibility() == VISIBLE) {
+      quotedStatus.updateTime();
+    }
+  }
+
+  public void update(TwitterListItem item) {
+    for (ListItem.Stat s : item.getStats()) {
+      if (s.getType() == R.drawable.ic_retweet) {
+        rtCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
+        rtCount.tintIcon(s.isMarked()
+            ? R.color.twitter_action_retweeted
+            : R.color.twitter_action_normal);
+        rtCount.setText(String.valueOf(s.getCount()));
+      } else if (s.getType() == R.drawable.ic_like) {
+        favCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
+        favCount.tintIcon(s.isMarked()
+            ? R.color.twitter_action_faved
+            : R.color.twitter_action_normal);
+        favCount.setText(String.valueOf(s.getCount()));
+      }
+    }
+    names.setNames(item.getUser());
+  }
+
+  void setTextColor(int color) {
+    names.setTextColor(color);
+    createdAt.setTextColor(color);
+    tweet.setTextColor(color);
   }
 
   @Override

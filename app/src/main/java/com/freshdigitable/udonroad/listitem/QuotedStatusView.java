@@ -34,6 +34,9 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  * Created by akihit on 2016/06/26.
  */
 public class QuotedStatusView extends StatusViewBase {
+
+  private TwitterListItem.TimeTextStrategy timeStrategy;
+
   public QuotedStatusView(Context context) {
     this(context, null);
   }
@@ -57,6 +60,22 @@ public class QuotedStatusView extends StatusViewBase {
     favCount = v.findViewById(R.id.q_favcount);
     hasReplyIcon = v.findViewById(R.id.q_has_reply);
     thumbnailContainer = v.findViewById(R.id.q_image_group);
+  }
+
+  public void bind(TwitterListItem item) {
+    if (item == null) {
+      return;
+    }
+    super.bind(item);
+    timeStrategy = item.getTimeStrategy();
+  }
+
+  @Override
+  public void updateTime() {
+    if (timeStrategy == null) {
+      return;
+    }
+    createdAt.setText(timeStrategy.getCreatedTime(getContext()));
   }
 
   @Override

@@ -41,6 +41,7 @@ import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.listitem.StatusDetailView;
+import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewImageHelper;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -110,7 +111,8 @@ public class StatusDetailFragment extends Fragment {
     }
 
     final StatusDetailView statusView = binding.statusView;
-    StatusViewImageHelper.load(status, statusView);
+    final StatusListItem item = new StatusListItem(status);
+    StatusViewImageHelper.load(item, statusView);
     final User user = getBindingStatus(status).getUser();
 
     final ImageView icon = statusView.getIcon();
@@ -123,7 +125,7 @@ public class StatusDetailFragment extends Fragment {
     statusView.getUserName().setOnClickListener(
         view -> userIconClickedListener.onUserIconClicked(icon, user));
     statusView.getThumbnailContainer().setOnMediaClickListener(
-        (view, index) -> MediaViewActivity.start(view.getContext(), status, index));
+        (view, index) -> MediaViewActivity.start(view.getContext(), item, index));
 
     binding.statusView.bindStatus(status);
     subscription = statusCache.observeById(statusId)
