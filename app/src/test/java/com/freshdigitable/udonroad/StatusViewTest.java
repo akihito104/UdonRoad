@@ -26,6 +26,7 @@ import android.text.Html;
 import android.view.View;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusView;
 
 import org.junit.Before;
@@ -121,7 +122,7 @@ public class StatusViewTest {
       stub(status.getRetweetCount()).toReturn(0);
       stub(status.getFavoriteCount()).toReturn(0);
 
-      sut.bindStatus(status);
+      sut.bind(new StatusListItem(status));
 
       commonAsserts();
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.GONE));
@@ -133,7 +134,7 @@ public class StatusViewTest {
       stub(status.getRetweetCount()).toReturn(1);
       stub(status.getFavoriteCount()).toReturn(0);
 
-      sut.bindStatus(status);
+      sut.bind(new StatusListItem(status));
 
       commonAsserts();
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.VISIBLE));
@@ -146,7 +147,7 @@ public class StatusViewTest {
       stub(status.getRetweetCount()).toReturn(0);
       stub(status.getFavoriteCount()).toReturn(1);
 
-      sut.bindStatus(status);
+      sut.bind(new StatusListItem(status));
 
       commonAsserts();
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.GONE));
@@ -159,7 +160,7 @@ public class StatusViewTest {
       stub(status.getRetweetCount()).toReturn(1);
       stub(status.getFavoriteCount()).toReturn(1);
 
-      sut.bindStatus(status);
+      sut.bind(new StatusListItem(status));
 
       commonAsserts();
       assertThat(getVisibilityFrom(R.id.tl_rtcount), is(View.VISIBLE));
@@ -202,7 +203,7 @@ public class StatusViewTest {
       final Status retweetedStatus = status.getRetweetedStatus();
       stub(retweetedStatus.getFavoriteCount()).toReturn(0);
 
-      sut.bindStatus(status);
+      sut.bind(new StatusListItem(status));
 
       final User retweetedStatusUser = retweetedStatus.getUser();
       assertThat(getStringFrom(R.id.tl_names), is(makeNames(retweetedStatusUser)));

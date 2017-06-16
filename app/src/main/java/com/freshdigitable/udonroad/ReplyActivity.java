@@ -32,6 +32,7 @@ import android.view.Window;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityReplyBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import javax.inject.Inject;
@@ -86,7 +87,7 @@ public class ReplyActivity extends AppCompatActivity {
     final long statusId = getStatusId();
     statusCache.open();
     final Status status = statusCache.find(statusId);
-    binding.replyStatus.bindStatus(status);
+    binding.replyStatus.bind(new StatusListItem(status));
 
     tweetInputFragment = (TweetInputFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
     tweetInputFragment.setTweetSendFab(binding.replySendTweet);

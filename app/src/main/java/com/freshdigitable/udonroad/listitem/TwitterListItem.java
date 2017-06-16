@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 
 import twitter4j.MediaEntity;
+import twitter4j.User;
 
 /**
  * Created by akihit on 2017/06/16.
@@ -27,6 +28,8 @@ import twitter4j.MediaEntity;
 
 interface TwitterListItem extends ListItem {
   boolean isRetweet();
+
+  User getRetweetUser();
 
   @Nullable
   ListItem getQuotedItem();

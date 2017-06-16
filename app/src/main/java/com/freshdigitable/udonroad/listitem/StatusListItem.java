@@ -18,8 +18,10 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.text.Html;
+import android.text.format.DateUtils;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.SpannableStringUtil;
 import com.freshdigitable.udonroad.Utils;
 
 import java.util.Arrays;
@@ -43,16 +45,24 @@ public class StatusListItem implements TwitterListItem {
   private final boolean isRetweet;
   private final long id;
   private final TextType textType;
+  private final User rtUser;
+  private final TimeTextType timeTextType;
 
   public StatusListItem(Status item) {
-    this(item, TextType.DEFAULT);
+    this(item, TextType.DEFAULT, TimeTextType.RELATIVE);
   }
 
   public StatusListItem(Status item, TextType textType) {
+    this(item, textType, TimeTextType.RELATIVE);
+  }
+
+  public StatusListItem(Status item, TextType textType, TimeTextType timeTextType) {
     this.isRetweet = item.isRetweet();
     this.id = item.getId();
     this.bindingStatus = Utils.getBindingStatus(item);
     this.textType = textType;
+    this.rtUser = item.getUser();
+    this.timeTextType = timeTextType;
   }
 
   @Override
@@ -61,14 +71,14 @@ public class StatusListItem implements TwitterListItem {
   }
 
   @Override
-  public String getText() {
+  public CharSequence getText() {
     return textType.getText(bindingStatus);
   }
 
-  enum TextType {
+  public enum TextType {
     DEFAULT {
       @Override
-      String getText(Status bindingStatus) {
+      CharSequence getText(Status bindingStatus) {
         String text = bindingStatus.getText();
         final String quotedStatusIdStr = Long.toString(bindingStatus.getQuotedStatusId());
         final URLEntity[] urlEntities = bindingStatus.getURLEntities();
@@ -84,7 +94,7 @@ public class StatusListItem implements TwitterListItem {
       }
     }, QUOTED {
       @Override
-      String getText(Status status) {
+      CharSequence getText(Status status) {
         String text = status.getText();
         final URLEntity[] urlEntities = status.getURLEntities();
         for (URLEntity u : urlEntities) {
@@ -92,9 +102,14 @@ public class StatusListItem implements TwitterListItem {
         }
         return removeMediaUrl(text, status.getMediaEntities());
       }
+    }, DETAIL {
+      @Override
+      CharSequence getText(Status bindingStatus) {
+        return SpannableStringUtil.create(bindingStatus);
+      }
     };
 
-    abstract String getText(Status bindingStatus);
+    abstract CharSequence getText(Status bindingStatus);
 
     String removeMediaUrl(String text, MediaEntity[] mediaEntities) {
       for (MediaEntity me : mediaEntities) {
@@ -180,33 +195,52 @@ public class StatusListItem implements TwitterListItem {
 
   @Override
   public String getCreatedTime(final Context context) {
-    final Date createdAtDate = bindingStatus.getCreatedAt();
-    final long deltaInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - createdAtDate.getTime());
-    if (deltaInSec <= TimeUnit.SECONDS.toSeconds(1)) {
-      return context.getString(R.string.created_now);
-    }
-    if (deltaInSec < TimeUnit.SECONDS.toSeconds(60)) {
-      return context.getString(R.string.created_seconds_ago, TimeUnit.SECONDS.toSeconds(deltaInSec));
-    }
-    if (deltaInSec <= TimeUnit.MINUTES.toSeconds(1)) {
-      return context.getString(R.string.created_a_minute_ago);
-    }
-    if (deltaInSec < TimeUnit.MINUTES.toSeconds(45)) {
-      return context.getString(R.string.created_minutes_ago, TimeUnit.SECONDS.toMinutes(deltaInSec));
-    }
-    if (deltaInSec < TimeUnit.MINUTES.toSeconds(105)) {
-      return context.getString(R.string.created_a_hour_ago);
-    }
-    if (deltaInSec < TimeUnit.DAYS.toSeconds(1)) {
-      long hours = deltaInSec + TimeUnit.MINUTES.toSeconds(15);
-      return context.getString(R.string.created_hours_ago, TimeUnit.SECONDS.toHours(hours));
-    }
-    return timeSpanConv.toTimeSpanString(createdAtDate);
+    return timeTextType.getStrategy(bindingStatus).getCreatedTime(context);
   }
 
   @Override
   public TimeTextStrategy getTimeStrategy() {
-    return this::getCreatedTime;
+    return timeTextType.getStrategy(bindingStatus);
+  }
+
+  public enum TimeTextType {
+    RELATIVE {
+      @Override
+      public TimeTextStrategy getStrategy(Status bindingStatus) {
+        return context -> {
+          final Date createdAtDate = bindingStatus.getCreatedAt();
+          final long deltaInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - createdAtDate.getTime());
+          if (deltaInSec <= TimeUnit.SECONDS.toSeconds(1)) {
+            return context.getString(R.string.created_now);
+          }
+          if (deltaInSec < TimeUnit.SECONDS.toSeconds(60)) {
+            return context.getString(R.string.created_seconds_ago, TimeUnit.SECONDS.toSeconds(deltaInSec));
+          }
+          if (deltaInSec <= TimeUnit.MINUTES.toSeconds(1)) {
+            return context.getString(R.string.created_a_minute_ago);
+          }
+          if (deltaInSec < TimeUnit.MINUTES.toSeconds(45)) {
+            return context.getString(R.string.created_minutes_ago, TimeUnit.SECONDS.toMinutes(deltaInSec));
+          }
+          if (deltaInSec < TimeUnit.MINUTES.toSeconds(105)) {
+            return context.getString(R.string.created_a_hour_ago);
+          }
+          if (deltaInSec < TimeUnit.DAYS.toSeconds(1)) {
+            long hours = deltaInSec + TimeUnit.MINUTES.toSeconds(15);
+            return context.getString(R.string.created_hours_ago, TimeUnit.SECONDS.toHours(hours));
+          }
+          return timeSpanConv.toTimeSpanString(createdAtDate);
+        };
+      }
+    }, ABSOLUTE {
+      @Override
+      public TimeTextStrategy getStrategy(Status bindingStatus) {
+        return context -> DateUtils.formatDateTime(context, bindingStatus.getCreatedAt().getTime(),
+            DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME);
+      }
+    };
+
+    abstract TimeTextStrategy getStrategy(Status bindingStatus);
   }
 
   @Override
@@ -225,9 +259,15 @@ public class StatusListItem implements TwitterListItem {
   }
 
   @Override
+  public User getRetweetUser() {
+    return rtUser;
+  }
+
+  @Override
   public ListItem getQuotedItem() {
-    return bindingStatus.getQuotedStatusId() > 0
-        ? new StatusListItem(bindingStatus.getQuotedStatus(), TextType.QUOTED) : null;
+    final Status quotedStatus = bindingStatus.getQuotedStatus();
+    return quotedStatus != null
+        ? new StatusListItem(quotedStatus, TextType.QUOTED) : null;
   }
 
   @Override

@@ -94,7 +94,7 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
     return (StatusView) itemView;
   }
 
-  private void setupMediaView(final ListItem item, final StatusViewBase statusView) {
+  private void setupMediaView(final ListItem item, final ItemView statusView) {
     if (item.getMediaCount() < 1) {
       return;
     }
@@ -117,7 +117,7 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
     setupMediaView(quotedStatus, quotedStatusView);
   }
 
-  private void unloadMediaView(StatusViewBase v) {
+  private void unloadMediaView(ItemView v) {
     final ThumbnailContainer thumbnailContainer = v.getThumbnailContainer();
     for (int i = 0; i < thumbnailContainer.getThumbCount(); i++) {
       thumbnailContainer.getChildAt(i).setOnClickListener(null);

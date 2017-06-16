@@ -29,7 +29,7 @@ import twitter4j.User;
 public interface ListItem {
   long getId();
 
-  String getText();
+  CharSequence getText();
 
   String getCreatedTime(Context context);
 

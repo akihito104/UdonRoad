@@ -46,7 +46,7 @@ public class UserListItem implements TwitterListItem {
   }
 
   @Override
-  public String getText() {
+  public CharSequence getText() {
     return item.getDescription();
   }
 
@@ -68,6 +68,11 @@ public class UserListItem implements TwitterListItem {
   @Override
   public boolean isRetweet() {
     return false;
+  }
+
+  @Override
+  public User getRetweetUser() {
+    return null;
   }
 
   @Override

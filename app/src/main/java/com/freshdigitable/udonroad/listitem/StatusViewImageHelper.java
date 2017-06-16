@@ -44,14 +44,14 @@ public class StatusViewImageHelper {
   @SuppressWarnings("unused")
   private static final String TAG = StatusViewImageHelper.class.getSimpleName();
 
-  public static void load(TwitterListItem item, FullStatusView statusView) {
+  public static void load(TwitterListItem item, StatusView statusView) {
     loadUserIcon(item.getUser(), item.getId(), statusView);
     loadRTUserIcon(item, statusView);
     loadMediaView(item, statusView);
     loadQuotedStatusImages(item, statusView.getQuotedStatusView());
   }
 
-  public static void unload(FullStatusView itemView, long entityId) {
+  public static void unload(StatusView itemView, long entityId) {
     Picasso.with(itemView.getContext()).cancelTag(entityId);
     unloadRTUserIcon(itemView);
     unloadUserIcon(itemView);
@@ -59,27 +59,28 @@ public class StatusViewImageHelper {
     unloadQuotedStatusImages(itemView.getQuotedStatusView());
   }
 
-  private static void loadUserIcon(User user, final long tagId, final FullStatusView itemView) {
+  private static void loadUserIcon(User user, final long tagId, final StatusView itemView) {
     getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
         .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
         .into(itemView.getIcon());
   }
 
-  private static void unloadUserIcon(FullStatusView itemView) {
+  private static void unloadUserIcon(StatusView itemView) {
     unloadImage(itemView.getIcon());
   }
 
-  private static void loadRTUserIcon(TwitterListItem item, FullStatusView itemView) {
+  private static void loadRTUserIcon(TwitterListItem item, StatusView itemView) {
     if (!item.isRetweet()) {
       return;
     }
     final Context context = itemView.getContext();
-    final String miniProfileImageURLHttps = item.getUser().getMiniProfileImageURLHttps();
+    final User retweetUser = item.getRetweetUser();
+    final String miniProfileImageURLHttps = retweetUser.getMiniProfileImageURLHttps();
     final long tag = item.getId();
 
     final RetweetUserView rtUser = itemView.getRtUser();
-    final String screenName = item.getUser().getScreenName();
+    final String screenName = retweetUser.getScreenName();
     rtUser.bindUser(ContextCompat.getDrawable(context, R.drawable.ic_person_outline_black), screenName);
     final Target target = new Target() {
       @Override
@@ -116,11 +117,11 @@ public class StatusViewImageHelper {
         });
   }
 
-  private static void unloadRTUserIcon(FullStatusView itemView) {
+  private static void unloadRTUserIcon(StatusView itemView) {
     itemView.getRtUser().setText("");
   }
 
-  private static void loadMediaView(final TwitterListItem item, final StatusViewBase statusView) {
+  private static void loadMediaView(final TwitterListItem item, final ItemView statusView) {
     final MediaEntity[] mediaEntities = item.getMediaEntities();
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     thumbnailContainer.bindMediaEntities(mediaEntities);
@@ -147,7 +148,7 @@ public class StatusViewImageHelper {
     }
   }
 
-  private static void unloadMediaView(StatusViewBase statusView) {
+  private static void unloadMediaView(ItemView statusView) {
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     final int thumbCount = thumbnailContainer.getThumbCount();
     for (int i=0; i<thumbCount;i++) {

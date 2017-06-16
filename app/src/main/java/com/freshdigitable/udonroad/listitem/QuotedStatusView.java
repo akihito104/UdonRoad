@@ -22,18 +22,13 @@ import android.view.View;
 
 import com.freshdigitable.udonroad.R;
 
-import twitter4j.Status;
-import twitter4j.URLEntity;
-
-import static com.freshdigitable.udonroad.Utils.getBindingStatus;
-
 /**
  * QuotedStatusView is for quoted tweet in StatusView and StatusDetailFragment.<br>
  *   QuotedStatusView does not have QuotedStatusView.
  *
  * Created by akihit on 2016/06/26.
  */
-public class QuotedStatusView extends StatusViewBase {
+public class QuotedStatusView extends ItemView {
 
   private TwitterListItem.TimeTextStrategy timeStrategy;
 
@@ -70,7 +65,6 @@ public class QuotedStatusView extends StatusViewBase {
     timeStrategy = item.getTimeStrategy();
   }
 
-  @Override
   public void updateTime() {
     if (timeStrategy == null) {
       return;
@@ -82,16 +76,6 @@ public class QuotedStatusView extends StatusViewBase {
   public void reset() {
     super.reset();
     setBackgroundResource(R.drawable.s_rounded_frame_default);
-  }
-
-  @Override
-  protected CharSequence parseText(Status status) {
-    String text = getBindingStatus(status).getText();
-    final URLEntity[] urlEntities = status.getURLEntities();
-    for (URLEntity u : urlEntities) {
-      text = text.replace(u.getURL(), u.getDisplayURL());
-    }
-    return removeMediaUrl(text, status.getMediaEntities());
   }
 
   @Override

@@ -24,20 +24,18 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.freshdigitable.udonroad.R;
-
-import twitter4j.Status;
-import twitter4j.URLEntity;
-
-import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+import com.freshdigitable.udonroad.RetweetUserView;
 
 /**
  * StatusView shows Status data in RecyclerView.
  *
  * Created by akihit on 2016/01/11.
  */
-public class StatusView extends FullStatusView {
+public class StatusView extends ItemView {
   @SuppressWarnings("unused")
   private static final String TAG = StatusView.class.getSimpleName();
+  QuotedStatusView quotedStatus;
+  RetweetUserView rtUser;
   private TwitterListItem.TimeTextStrategy timeStrategy;
 
   public StatusView(Context context) {
@@ -90,7 +88,6 @@ public class StatusView extends FullStatusView {
     }
   }
 
-  @Override
   public void updateTime() {
     if (timeStrategy == null) {
       return;
@@ -127,20 +124,10 @@ public class StatusView extends FullStatusView {
   }
 
   @Override
-  protected String parseText(Status status) {
-    final Status bindingStatus = getBindingStatus(status);
-    String text = bindingStatus.getText();
-    final String quotedStatusIdStr = Long.toString(bindingStatus.getQuotedStatusId());
-    final URLEntity[] urlEntities = bindingStatus.getURLEntities();
-    for (URLEntity u : urlEntities) {
-      if (bindingStatus.getQuotedStatus() != null
-          && u.getExpandedURL().contains(quotedStatusIdStr)) {
-        text = text.replace(u.getURL(), "");
-      } else {
-        text = text.replace(u.getURL(), u.getDisplayURL());
-      }
-    }
-    return removeMediaUrl(text, bindingStatus.getMediaEntities());
+  public void reset() {
+    super.reset();
+    rtUser.setText("");
+    quotedStatus.reset();
   }
 
   @Override
@@ -159,5 +146,13 @@ public class StatusView extends FullStatusView {
   @Override
   public void setUnselectedColor() {
     setBackgroundColor(Color.TRANSPARENT);
+  }
+
+  public RetweetUserView getRtUser() {
+    return rtUser;
+  }
+
+  public QuotedStatusView getQuotedStatusView() {
+    return quotedStatus;
   }
 }

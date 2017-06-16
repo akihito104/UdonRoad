@@ -17,26 +17,18 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
-import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.View;
 
 import com.freshdigitable.udonroad.LinkableTextView;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.SpannableStringUtil;
-
-import java.util.Date;
-
-import twitter4j.Status;
-
-import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
 /**
  * StatusDetailView is a View to show in StatusDetailFragment.
  *
  * Created by akihit on 2016/08/18.
  */
-public class StatusDetailView extends FullStatusView {
+public class StatusDetailView extends StatusView {
   public StatusDetailView(Context context) {
     this(context, null);
   }
@@ -62,20 +54,8 @@ public class StatusDetailView extends FullStatusView {
   }
 
   @Override
-  protected void bindCreatedAt(Date tweetedDate) {
-    createdAt.setText(DateUtils.formatDateTime(getContext(), tweetedDate.getTime(),
-        DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
-  }
-
-  @Override
   protected int getGrid() {
     return getResources().getDimensionPixelSize(R.dimen.grid_margin_detail);
-  }
-
-  @Override
-  protected CharSequence parseText(Status status) {
-    final Status bindingStatus = getBindingStatus(status);
-    return SpannableStringUtil.create(bindingStatus);
   }
 
   @Override

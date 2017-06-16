@@ -80,6 +80,9 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final ListItem item = wrapListItem(position);
+    if (item == null) {
+      return;
+    }
     holder.bind(item);
 
     if (position == getItemCount() - 1) {

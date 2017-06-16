@@ -26,7 +26,7 @@ import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
-import com.freshdigitable.udonroad.listitem.StatusViewBase;
+import com.freshdigitable.udonroad.listitem.ItemView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -47,7 +47,7 @@ public class StatusViewMatcher {
     return ofStatusViewInternal(viewMatcher, QuotedStatusView.class);
   }
 
-  private static <T extends StatusViewBase> Matcher<View> ofStatusViewInternal(
+  private static <T extends ItemView> Matcher<View> ofStatusViewInternal(
       final Matcher<View> viewMatcher, Class<T> clz) {
     return new BoundedMatcher<View, T>(clz) {
       @Override
