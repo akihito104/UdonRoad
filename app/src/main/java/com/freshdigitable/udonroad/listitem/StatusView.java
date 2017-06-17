@@ -48,18 +48,20 @@ public class StatusView extends ItemView {
 
   public StatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
+    init(context);
+  }
+
+  void init(Context context) {
     final View v = View.inflate(context, R.layout.view_status, this);
     createdAt = v.findViewById(R.id.tl_create_at);
     icon = v.findViewById(R.id.tl_icon);
     names = v.findViewById(R.id.tl_names);
     tweet = v.findViewById(R.id.tl_tweet);
     clientName = v.findViewById(R.id.tl_via);
-    rtCount = v.findViewById(R.id.tl_rtcount);
-    favCount = v.findViewById(R.id.tl_favcount);
-    hasReplyIcon = v.findViewById(R.id.tl_has_reply);
     rtUser = v.findViewById(R.id.tl_rt_user);
     thumbnailContainer = v.findViewById(R.id.tl_image_group);
     quotedStatus = v.findViewById(R.id.tl_quoted);
+    reactionContainer = v.findViewById(R.id.tl_reaction_container);
   }
 
   public void bind(TwitterListItem item) {
@@ -99,21 +101,7 @@ public class StatusView extends ItemView {
   }
 
   public void update(TwitterListItem item) {
-    for (ListItem.Stat s : item.getStats()) {
-      if (s.getType() == R.drawable.ic_retweet) {
-        rtCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-        rtCount.tintIcon(s.isMarked()
-            ? R.color.twitter_action_retweeted
-            : R.color.twitter_action_normal);
-        rtCount.setText(String.valueOf(s.getCount()));
-      } else if (s.getType() == R.drawable.ic_like) {
-        favCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-        favCount.tintIcon(s.isMarked()
-            ? R.color.twitter_action_faved
-            : R.color.twitter_action_normal);
-        favCount.setText(String.valueOf(s.getCount()));
-      }
-    }
+    reactionContainer.update(item.getStats());
     names.setNames(item.getUser());
   }
 

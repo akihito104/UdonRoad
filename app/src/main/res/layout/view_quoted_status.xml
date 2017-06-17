@@ -75,49 +75,18 @@
                 />
         </LinearLayout>
 
-    <com.freshdigitable.udonroad.IconAttachedTextView
-        android:id="@+id/q_rtcount"
+    <com.freshdigitable.udonroad.listitem.TwitterReactionContainer
+        android:id="@+id/q_reaction_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/grid_margin_detail"
-        android:textSize="@dimen/tweet_small_fontsize"
-        android:layout_alignTop="@+id/q_via"
-        android:layout_alignBottom="@+id/q_via"
-        android:visibility="gone"
-        app:icon="@drawable/ic_retweet"
-        tools:visibility="visible"
-        tools:text="Count"
-        />
-
-    <com.freshdigitable.udonroad.IconAttachedTextView
-        android:id="@+id/q_favcount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/grid_margin"
-        android:layout_alignTop="@+id/q_rtcount"
-        android:layout_alignBottom="@+id/q_rtcount"
-        android:layout_toEndOf="@+id/q_rtcount"
-        android:layout_toRightOf="@+id/q_rtcount"
-        android:textSize="@dimen/tweet_small_fontsize"
-        android:visibility="gone"
-        app:icon="@drawable/ic_like"
-        tools:visibility="visible"
-        tools:text="Count"
-        />
-
-    <ImageView
-        android:id="@+id/q_has_reply"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/grid_margin"
+        android:orientation="horizontal"
         android:layout_alignTop="@id/q_via"
         android:layout_alignBottom="@id/q_via"
-        android:layout_toRightOf="@id/q_favcount"
-        android:tint="@color/twitter_action_normal"
-        android:visibility="gone"
-        app:srcCompat="@drawable/ic_forum"
-        tools:visibility="visible"
-        android:contentDescription="has reply"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_toStartOf="@id/q_via"
+        android:layout_toLeftOf="@id/q_via"
+        android:layout_marginRight="@dimen/grid_margin_detail"
         />
 
     <TextView

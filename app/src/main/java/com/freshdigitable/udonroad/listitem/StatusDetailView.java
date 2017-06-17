@@ -39,18 +39,20 @@ public class StatusDetailView extends StatusView {
 
   public StatusDetailView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
+  }
+
+  @Override
+  void init(Context context) {
     final View v = View.inflate(context, R.layout.view_status_detail, this);
     createdAt = v.findViewById(R.id.d_create_at);
     icon = v.findViewById(R.id.d_icon);
     names = v.findViewById(R.id.d_names);
     tweet = (LinkableTextView) v.findViewById(R.id.d_tweet);
     clientName = v.findViewById(R.id.d_via);
-    rtCount = v.findViewById(R.id.d_rtcount);
-    favCount = v.findViewById(R.id.d_favcount);
-    hasReplyIcon = v.findViewById(R.id.d_has_reply);
     thumbnailContainer = v.findViewById(R.id.d_image_group);
     rtUser = v.findViewById(R.id.d_rt_user);
     quotedStatus = v.findViewById(R.id.d_quoted);
+    reactionContainer = v.findViewById(R.id.d_reaction_container);
   }
 
   @Override

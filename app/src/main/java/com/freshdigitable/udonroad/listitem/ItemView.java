@@ -27,7 +27,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.CombinedScreenNameTextView;
-import com.freshdigitable.udonroad.IconAttachedTextView;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
@@ -42,10 +41,8 @@ public abstract class ItemView extends RelativeLayout {
   CombinedScreenNameTextView names;
   TextView tweet;
   TextView clientName;
-  IconAttachedTextView rtCount;
-  IconAttachedTextView favCount;
   ThumbnailContainer thumbnailContainer;
-  ImageView hasReplyIcon;
+  ReactionContainer reactionContainer;
   final int grid;
   final int selectedColor;
 
@@ -78,26 +75,8 @@ public abstract class ItemView extends RelativeLayout {
     names.setNames(item.getUser());
     createdAt.setText(item.getCreatedTime(getContext()));
     tweet.setText(item.getText());
+    reactionContainer.update(item.getStats());
     thumbnailContainer.bindMediaEntities(item.getMediaCount());
-
-    for (ListItem.Stat s : item.getStats()) {
-      if (s.getType() == R.drawable.ic_retweet) {
-        rtCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-        rtCount.tintIcon(s.isMarked()
-            ? R.color.twitter_action_retweeted
-            : R.color.twitter_action_normal);
-        rtCount.setText(String.valueOf(s.getCount()));
-      } else if (s.getType() == R.drawable.ic_like) {
-        favCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-        favCount.tintIcon(s.isMarked()
-            ? R.color.twitter_action_faved
-            : R.color.twitter_action_normal);
-        favCount.setText(String.valueOf(s.getCount()));
-      } else if (s.getType() == R.drawable.ic_forum) {
-        hasReplyIcon.setVisibility(s.isMarked() ? VISIBLE : GONE);
-      }
-    }
-
     clientName.setText(formatString(R.string.tweet_via, item.getSource()));
   }
 

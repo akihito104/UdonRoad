@@ -51,10 +51,8 @@ public class QuotedStatusView extends ItemView {
     names = v.findViewById(R.id.q_names);
     tweet = v.findViewById(R.id.q_tweet);
     clientName = v.findViewById(R.id.q_via);
-    rtCount = v.findViewById(R.id.q_rtcount);
-    favCount = v.findViewById(R.id.q_favcount);
-    hasReplyIcon = v.findViewById(R.id.q_has_reply);
     thumbnailContainer = v.findViewById(R.id.q_image_group);
+    reactionContainer = v.findViewById(R.id.q_reaction_container);
   }
 
   public void bind(TwitterListItem item) {
@@ -70,6 +68,11 @@ public class QuotedStatusView extends ItemView {
       return;
     }
     createdAt.setText(timeStrategy.getCreatedTime(getContext()));
+  }
+
+  public void update(TwitterListItem item) {
+    reactionContainer.update(item.getStats());
+    names.setNames(item.getUser());
   }
 
   @Override
