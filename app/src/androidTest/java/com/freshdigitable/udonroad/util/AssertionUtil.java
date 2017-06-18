@@ -23,8 +23,10 @@ import twitter4j.Status;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.getFavIcon;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.getFavIconOfQuoted;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.getRTIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
@@ -38,35 +40,37 @@ public class AssertionUtil {
 
   public static void checkFavCountAt(int index, int expectedCount) {
     onView(ofStatusViewAt(R.id.timeline, index))
+        .check(selectedDescendantsMatch(getFavIcon(), isDisplayed()));
+    onView(ofStatusViewAt(R.id.timeline, index))
         .check(selectedDescendantsMatch(
-            withId(R.id.tl_favcount),
-            withText(Integer.toString(expectedCount))));
+            getFavIcon(), withText(Integer.toString(expectedCount))));
   }
 
   public static void checkFavCount(Status status, int expectedCount) {
     onView(ofStatusView(withText(status.getText())))
         .check(selectedDescendantsMatch(
-            withId(R.id.tl_favcount),
-            withText(Integer.toString(expectedCount))));
+            getFavIcon(), withText(Integer.toString(expectedCount))));
   }
 
   public static void checkFavCountDoesNotExist(Status status) {
     onView(ofStatusView(withText(status.getText())))
-        .check(selectedDescendantsMatch(
-            withId(R.id.tl_favcount), not(isDisplayed())));
+        .check(selectedDescendantsMatch(getFavIcon(), not(isDisplayed())));
   }
 
   public static void checkFavCountForQuoted(Status quotedStatus, int expectedCount) {
     onView(ofQuotedStatusView(withText(quotedStatus.getText())))
-        .check(selectedDescendantsMatch(withId(R.id.q_favcount),
+        .check(selectedDescendantsMatch(getFavIconOfQuoted(), isDisplayed()));
+    onView(ofQuotedStatusView(withText(quotedStatus.getText())))
+        .check(selectedDescendantsMatch(getFavIconOfQuoted(),
             withText(Integer.toString(expectedCount))));
   }
 
   public static void checkRTCountAt(int index, int expectedCount) {
     onView(ofStatusViewAt(R.id.timeline, index))
+        .check(selectedDescendantsMatch(getRTIcon(), isDisplayed()));
+    onView(ofStatusViewAt(R.id.timeline, index))
         .check(selectedDescendantsMatch(
-            withId(R.id.tl_rtcount),
-            withText(Integer.toString(expectedCount))));
+            getRTIcon(), withText(Integer.toString(expectedCount))));
   }
 
   private AssertionUtil() {}

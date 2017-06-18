@@ -23,6 +23,9 @@ import android.support.test.runner.AndroidJUnit4;
 import android.text.Html;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.listitem.StatusListItem;
+import com.freshdigitable.udonroad.listitem.StatusView;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +61,7 @@ public class StatusViewInstTest {
   @Test
   public void bindStatus_normal_0RT_0fav() throws Exception {
     Status status = createStatus(10);
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     final TextView account = (TextView) sut.findViewById(R.id.tl_names);
     final User user = status.getUser();
     final String format = String.format(account.getResources().getString(
@@ -70,49 +73,49 @@ public class StatusViewInstTest {
   @Test
   public void createAtNow() {
     final Status status = createStatusWithPast(0);
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_now)));
   }
 
   @Test
   public void createAt_59secondsAgo() {
     final Status status = createStatusWithPast(TimeUnit.SECONDS.toMillis(59));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_seconds_ago, 59)));
   }
 
   @Test
   public void createAt_1minuteAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(1));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_a_minute_ago)));
   }
 
   @Test
   public void createAt_44minutesAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(44));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_minutes_ago, 44)));
   }
 
   @Test
   public void createAt_1hourAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(45));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_a_hour_ago)));
   }
 
   @Test
   public void createAt_1hourAgo_with104minutes() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(104));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_a_hour_ago)));
   }
 
   @Test
   public void createAt_2hourAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(105));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_hours_ago, 2)));
   }
 
@@ -120,7 +123,7 @@ public class StatusViewInstTest {
   public void createAt_23hourAgo() {
     final Status status = createStatusWithPast(
         TimeUnit.HOURS.toMillis(23) + TimeUnit.MINUTES.toMillis(44));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_hours_ago, 23)));
   }
 
@@ -128,7 +131,7 @@ public class StatusViewInstTest {
   public void createAt_24hourAgo() {
     final Status status = createStatusWithPast(
         TimeUnit.HOURS.toMillis(23) + TimeUnit.MINUTES.toMillis(59));
-    sut.bindStatus(status);
+    sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_hours_ago, 24)));
   }
 

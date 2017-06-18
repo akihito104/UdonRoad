@@ -34,7 +34,6 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
@@ -67,8 +66,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     receiveStatuses(received);
     onView(ofStatusView(withText(received.getText())))
         .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(ofStatusView(withText(received.getText())))
-        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), not(isDisplayed())));
+    AssertionUtil.checkFavCountDoesNotExist(received);
 
     final Status received29 = createStatus(29000, getLoginUser());
     final Status received27 = createStatus(27000, getLoginUser());
@@ -250,8 +248,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.favo();
     // assert
     onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_favcount), isDisplayed()));
+    AssertionUtil.checkFavCountAt(0, 3);
   }
 
   @Test
@@ -270,8 +267,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.retweet();
     // assert
     onView(withText(R.string.msg_already_rt)).check(matches(isDisplayed()));
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(selectedDescendantsMatch(withId(R.id.tl_rtcount), isDisplayed()));
+    AssertionUtil.checkRTCountAt(0, 3);
   }
 
   @Test

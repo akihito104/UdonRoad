@@ -67,6 +67,8 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   private long quotedStatusId;
   @Ignore
   private StatusReaction reaction;
+  private long inReplyToStatusId;
+  private boolean possiblySensitive;
 
   public StatusRealm() {
   }
@@ -83,7 +85,9 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     this.source = status.getSource();
     this.retweetCount = status.getRetweetCount();
     this.favoriteCount = status.getFavoriteCount();
+    this.inReplyToStatusId = status.getInReplyToStatusId();
     this.reaction = new StatusReactionImpl(status);
+    this.possiblySensitive = status.isPossiblySensitive();
     this.user = status.getUser();
     this.userId = user.getId();
     this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
@@ -231,6 +235,14 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     }
   }
 
+  public long getInReplyToStatusId() {
+    return inReplyToStatusId;
+  }
+
+  public boolean isPossiblySensitive() {
+    return possiblySensitive;
+  }
+
   private static final String NOT_IMPLEMENT_YET = "not implement yet.";
 
   @Override
@@ -255,10 +267,6 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     throw new RuntimeException(NOT_IMPLEMENT_YET);
   }
 
-  public boolean isPossiblySensitive() {
-    throw new RuntimeException(NOT_IMPLEMENT_YET);
-  }
-
   public String getLang() {
     throw new RuntimeException(NOT_IMPLEMENT_YET);
   }
@@ -272,10 +280,6 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   }
 
   public boolean isTruncated() {
-    throw new RuntimeException(NOT_IMPLEMENT_YET);
-  }
-
-  public long getInReplyToStatusId() {
     throw new RuntimeException(NOT_IMPLEMENT_YET);
   }
 

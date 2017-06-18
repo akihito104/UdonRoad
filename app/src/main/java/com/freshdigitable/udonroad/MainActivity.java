@@ -39,7 +39,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
@@ -157,12 +157,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     final CombinedScreenNameTextView account
-        = (CombinedScreenNameTextView) binding.navDrawer.findViewById(R.id.nav_header_account);
+        = binding.navDrawer.findViewById(R.id.nav_header_account);
     if (account != null) {
       account.setNames(user);
     }
     final ImageView icon
-        = (ImageView) binding.navDrawer.findViewById(R.id.nav_header_icon);
+        = binding.navDrawer.findViewById(R.id.nav_header_icon);
     if (icon != null) {
       Picasso.with(getApplicationContext())
           .load(user.getProfileImageURLHttps())

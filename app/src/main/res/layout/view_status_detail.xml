@@ -116,35 +116,19 @@
         tools:text="CreatedTime"
         />
 
-    <com.freshdigitable.udonroad.IconAttachedTextView
-        android:id="@+id/d_rtcount"
+    <com.freshdigitable.udonroad.listitem.TwitterReactionContainer
+        android:id="@+id/d_reaction_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/grid_margin_detail"
-        android:textSize="@dimen/tweet_detail_small_size"
-        android:layout_alignTop="@+id/d_via"
-        android:layout_alignBottom="@+id/d_via"
+        android:orientation="horizontal"
+        android:layout_below="@id/d_create_at"
+        android:layout_alignTop="@id/d_via"
+        android:layout_alignBottom="@id/d_via"
         android:layout_alignParentStart="true"
-        android:visibility="gone"
-        app:icon="@drawable/ic_retweet"
-        tools:visibility="visible"
-        tools:text="Count"
-        />
-
-    <com.freshdigitable.udonroad.IconAttachedTextView
-        android:id="@+id/d_favcount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/grid_margin"
-        android:layout_alignTop="@+id/d_via"
-        android:layout_alignBottom="@+id/d_via"
-        android:layout_toEndOf="@+id/d_rtcount"
-        android:layout_toRightOf="@+id/d_rtcount"
-        android:textSize="@dimen/tweet_detail_small_size"
-        android:visibility="gone"
-        app:icon="@drawable/ic_like"
-        tools:visibility="visible"
-        tools:text="Count"
+        android:layout_alignParentLeft="true"
+        android:layout_toStartOf="@id/d_via"
+        android:layout_toLeftOf="@id/d_via"
+        android:layout_marginRight="@dimen/grid_margin_detail"
         />
 
     <TextView
@@ -155,7 +139,7 @@
         android:layout_below="@+id/d_create_at"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/d_favcount"
+        android:layout_toRightOf="@+id/d_has_reply"
         android:gravity="end"
         android:textSize="@dimen/tweet_small_fontsize"
         android:lines="1"
@@ -164,7 +148,7 @@
         tools:text="via clientname"
         />
 
-    <com.freshdigitable.udonroad.QuotedStatusView
+    <com.freshdigitable.udonroad.listitem.QuotedStatusView
         android:id="@+id/d_quoted"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -36,11 +36,12 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import com.freshdigitable.udonroad.StatusViewBase.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedEntityChangeListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
@@ -230,14 +231,14 @@ public abstract class TimelineFragment<T> extends Fragment {
     binding.timeline.addOnScrollListener(onScrollListener);
 
     if (getActivity() instanceof FabHandleable) {
-      tlAdapter.setOnSelectedEntityChangeListener(new OnSelectedEntityChangeListener() {
+      tlAdapter.setOnSelectedItemChangeListener(new OnSelectedItemChangeListener() {
         @Override
-        public void onEntitySelected(long entityId) {
+        public void onItemSelected(long entityId) {
           showFab();
         }
 
         @Override
-        public void onEntityUnselected() {
+        public void onItemUnselected() {
           hideFab();
         }
       });
@@ -249,7 +250,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     isAddedUntilStopped();
 
     if (isVisible()) {
-      if (tlAdapter.isStatusViewSelected()) {
+      if (tlAdapter.isItemSelected()) {
         showFab();
       } else {
         hideFab();
@@ -258,7 +259,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   }
 
   public long getSelectedTweetId() {
-    return tlAdapter.getSelectedEntityId();
+    return tlAdapter.getSelectedItemId();
   }
 
   private int firstVisibleItemPosOnStop = -1;
@@ -268,7 +269,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   public void onStop() {
     super.onStop();
     tlAdapter.setLastItemBoundListener(null);
-    tlAdapter.setOnSelectedEntityChangeListener(null);
+    tlAdapter.setOnSelectedItemChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.removeOnScrollListener(onScrollListener);
@@ -379,7 +380,7 @@ public abstract class TimelineFragment<T> extends Fragment {
 
   private boolean canScroll() {
     return isVisible()
-        && !tlAdapter.isStatusViewSelected()
+        && !tlAdapter.isItemSelected()
         && !stopScroll
         && !isScrolledByUser
         && !addedUntilStopped;
@@ -406,11 +407,11 @@ public abstract class TimelineFragment<T> extends Fragment {
   }
 
   public void clearSelectedTweet() {
-    tlAdapter.clearSelectedEntity();
+    tlAdapter.clearSelectedItem();
   }
 
   public boolean isTweetSelected() {
-    return tlAdapter.isStatusViewSelected();
+    return tlAdapter.isItemSelected();
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {
@@ -487,11 +488,6 @@ public abstract class TimelineFragment<T> extends Fragment {
       super.onAttach(context);
       InjectionUtil.getComponent(this).inject(this);
     }
-  }
-
-  @Nullable @SuppressWarnings("unused")
-  public View getSelectedView() {
-    return tlAdapter.getSelectedView();
   }
 
   @Override

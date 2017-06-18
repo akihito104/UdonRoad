@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.freshdigitable.udonroad.media.ThumbnailContainer;
-
-import twitter4j.Status;
-import twitter4j.URLEntity;
-
-import static com.freshdigitable.udonroad.Utils.getBindingStatus;
+import com.freshdigitable.udonroad.R;
 
 /**
  * QuotedStatusView is for quoted tweet in StatusView and StatusDetailFragment.<br>
@@ -35,7 +28,10 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  *
  * Created by akihit on 2016/06/26.
  */
-public class QuotedStatusView extends StatusViewBase {
+public class QuotedStatusView extends ItemView {
+
+  private TwitterListItem.TimeTextStrategy timeStrategy;
+
   public QuotedStatusView(Context context) {
     this(context, null);
   }
@@ -50,30 +46,39 @@ public class QuotedStatusView extends StatusViewBase {
     setBackgroundResource(R.drawable.s_rounded_frame_default);
 
     final View v = View.inflate(context, R.layout.view_quoted_status, this);
-    createdAt = (TextView) v.findViewById(R.id.q_create_at);
-    icon = (ImageView) v.findViewById(R.id.q_icon);
-    names = (CombinedScreenNameTextView) v.findViewById(R.id.q_names);
-    tweet = (TextView) v.findViewById(R.id.q_tweet);
-    clientName = (TextView) v.findViewById(R.id.q_via);
-    rtCount = (IconAttachedTextView) v.findViewById(R.id.q_rtcount);
-    favCount = (IconAttachedTextView) v.findViewById(R.id.q_favcount);
-    thumbnailContainer = (ThumbnailContainer) v.findViewById(R.id.q_image_group);
+    createdAt = v.findViewById(R.id.q_create_at);
+    icon = v.findViewById(R.id.q_icon);
+    names = v.findViewById(R.id.q_names);
+    tweet = v.findViewById(R.id.q_tweet);
+    clientName = v.findViewById(R.id.q_via);
+    thumbnailContainer = v.findViewById(R.id.q_image_group);
+    reactionContainer = v.findViewById(R.id.q_reaction_container);
+  }
+
+  public void bind(TwitterListItem item) {
+    if (item == null) {
+      return;
+    }
+    super.bind(item);
+    timeStrategy = item.getTimeStrategy();
+  }
+
+  public void updateTime() {
+    if (timeStrategy == null) {
+      return;
+    }
+    createdAt.setText(timeStrategy.getCreatedTime(getContext()));
+  }
+
+  public void update(TwitterListItem item) {
+    reactionContainer.update(item.getStats());
+    names.setNames(item.getUser());
   }
 
   @Override
   public void reset() {
     super.reset();
     setBackgroundResource(R.drawable.s_rounded_frame_default);
-  }
-
-  @Override
-  protected CharSequence parseText(Status status) {
-    String text = getBindingStatus(status).getText();
-    final URLEntity[] urlEntities = status.getURLEntities();
-    for (URLEntity u : urlEntities) {
-      text = text.replace(u.getURL(), u.getDisplayURL());
-    }
-    return removeMediaUrl(text, status.getMediaEntities());
   }
 
   @Override

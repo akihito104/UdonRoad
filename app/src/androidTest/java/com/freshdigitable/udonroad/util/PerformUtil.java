@@ -27,9 +27,9 @@ import android.support.test.espresso.action.Swipe;
 import android.support.test.espresso.action.Tap;
 import android.view.View;
 
-import com.freshdigitable.udonroad.QuotedStatusView;
+import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.StatusView;
+import com.freshdigitable.udonroad.listitem.StatusView;
 
 import twitter4j.Status;
 

@@ -46,6 +46,7 @@ import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
+import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
@@ -78,25 +79,24 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   StatusRequestWorker<TypedCache<Status>> userActionSubscriber;
   private MediaPagerAdapter mediaPagerAdapter;
 
-  public static Intent create(@NonNull Context context, @NonNull Status status) {
-    return create(context, status, 0);
+  public static Intent create(@NonNull Context context, @NonNull ListItem item) {
+    return create(context, item, 0);
   }
 
-  public static Intent create(@NonNull Context context, @NonNull Status status, int startPage) {
-    final Status bindingStatus = getBindingStatus(status);
-    if (bindingStatus.getMediaEntities().length < startPage + 1) {
+  public static Intent create(@NonNull Context context, @NonNull ListItem item, int startPage) {
+    if (item.getMediaCount() < startPage + 1) {
       throw new IllegalArgumentException(
           "startPage number exceeded ExtendedMediaEntities length: " + startPage);
     }
 
     Intent intent = new Intent(context, MediaViewActivity.class);
-    intent.putExtra(CREATE_STATUS, status.getId());
+    intent.putExtra(CREATE_STATUS, item.getId());
     intent.putExtra(CREATE_START, startPage);
     return intent;
   }
 
-  public static void start(@NonNull Context context, @NonNull Status status, int startPage) {
-    final Intent intent = create(context, status, startPage);
+  public static void start(@NonNull Context context, @NonNull ListItem item, int startPage) {
+    final Intent intent = create(context, item, startPage);
     context.startActivity(intent);
   }
 

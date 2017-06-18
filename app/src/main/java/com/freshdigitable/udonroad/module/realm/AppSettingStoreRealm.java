@@ -88,6 +88,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
+    if (authenticatedUser == null) {
+      return;
+    }
     realm.executeTransaction(_realm -> {
       final UserRealm userRealm = new UserRealm(authenticatedUser);
       _realm.insertOrUpdate(userRealm);
@@ -111,6 +114,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void setTwitterAPIConfig(final TwitterAPIConfiguration twitterAPIConfig) {
+    if (twitterAPIConfig == null) {
+      return;
+    }
     realm.executeTransaction(_realm -> {
       _realm.delete(TwitterAPIConfigurationRealm.class);
       final TwitterAPIConfigurationRealm twitterAPIConfiguration

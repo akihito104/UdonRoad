@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -23,6 +23,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 import com.squareup.picasso.Callback;
@@ -31,10 +33,7 @@ import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
 import twitter4j.MediaEntity;
-import twitter4j.Status;
 import twitter4j.User;
-
-import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
 /**
  * StatusViewImageHelper provides image loader for StatusView.
@@ -45,18 +44,14 @@ public class StatusViewImageHelper {
   @SuppressWarnings("unused")
   private static final String TAG = StatusViewImageHelper.class.getSimpleName();
 
-  public static void load(Status status, FullStatusView itemView) {
-    loadUserIcon(status, itemView);
-    loadRTUserIcon(status, itemView);
-    loadMediaView(status, itemView);
-    loadQuotedStatusImages(status, itemView.getQuotedStatusView());
+  public static void load(TwitterListItem item, StatusView statusView) {
+    loadUserIcon(item.getUser(), item.getId(), statusView);
+    loadRTUserIcon(item, statusView);
+    loadMediaView(item, statusView);
+    loadQuotedStatusImages(item, statusView.getQuotedStatusView());
   }
 
-  public static void load(User user, FullStatusView itemView) {
-    loadUserIcon(user, user.getId(), itemView);
-  }
-
-  public static void unload(FullStatusView itemView, long entityId) {
+  public static void unload(StatusView itemView, long entityId) {
     Picasso.with(itemView.getContext()).cancelTag(entityId);
     unloadRTUserIcon(itemView);
     unloadUserIcon(itemView);
@@ -64,36 +59,28 @@ public class StatusViewImageHelper {
     unloadQuotedStatusImages(itemView.getQuotedStatusView());
   }
 
-  private static void loadUserIcon(Status status, FullStatusView itemView) {
-    final User user = getBindingUser(status);
-    loadUserIcon(user, status.getId(), itemView);
-  }
-
-  private static void loadUserIcon(User user, final long tagId, final FullStatusView itemView) {
+  private static void loadUserIcon(User user, final long tagId, final StatusView itemView) {
     getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
         .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
         .into(itemView.getIcon());
   }
 
-  private static void unloadUserIcon(FullStatusView itemView) {
+  private static void unloadUserIcon(StatusView itemView) {
     unloadImage(itemView.getIcon());
   }
 
-  private static User getBindingUser(Status status) {
-    return getBindingStatus(status).getUser();
-  }
-
-  private static void loadRTUserIcon(Status status, FullStatusView itemView) {
-    if (!status.isRetweet()) {
+  private static void loadRTUserIcon(TwitterListItem item, StatusView itemView) {
+    if (!item.isRetweet()) {
       return;
     }
     final Context context = itemView.getContext();
-    final String miniProfileImageURLHttps = status.getUser().getMiniProfileImageURLHttps();
-    final long tag = status.getId();
+    final User retweetUser = item.getRetweetUser();
+    final String miniProfileImageURLHttps = retweetUser.getMiniProfileImageURLHttps();
+    final long tag = item.getId();
 
     final RetweetUserView rtUser = itemView.getRtUser();
-    final String screenName = status.getUser().getScreenName();
+    final String screenName = retweetUser.getScreenName();
     rtUser.bindUser(ContextCompat.getDrawable(context, R.drawable.ic_person_outline_black), screenName);
     final Target target = new Target() {
       @Override
@@ -130,34 +117,38 @@ public class StatusViewImageHelper {
         });
   }
 
-  private static void unloadRTUserIcon(FullStatusView itemView) {
+  private static void unloadRTUserIcon(StatusView itemView) {
     itemView.getRtUser().setText("");
   }
 
-  private static void loadMediaView(final Status status, final StatusViewBase statusView) {
-    final MediaEntity[] mediaEntities = getBindingStatus(status).getMediaEntities();
+  private static void loadMediaView(final TwitterListItem item, final ItemView statusView) {
+    final MediaEntity[] mediaEntities = item.getMediaEntities();
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     thumbnailContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = thumbnailContainer.getThumbCount();
-    final long statusId = status.getId();
+    final long statusId = item.getId();
     for (int i = 0; i < mediaCount; i++) {
       final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
       final String type = mediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
-      final RequestCreator rc = getRequest(thumbnailContainer.getContext(),
-          mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
-      if (thumbnailContainer.getHeight() == 0 || thumbnailContainer.getThumbWidth() == 0) {
-        rc.fit();
+      if (item.isPossiblySensitive()) {
+        mediaView.setImageDrawable(ContextCompat.getDrawable(mediaView.getContext(), R.drawable.ic_whatshot));
       } else {
-        rc.resize(thumbnailContainer.getThumbWidth(), thumbnailContainer.getHeight());
+        final RequestCreator rc = getRequest(thumbnailContainer.getContext(),
+            mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
+        if (thumbnailContainer.getHeight() == 0 || thumbnailContainer.getThumbWidth() == 0) {
+          rc.fit();
+        } else {
+          rc.resize(thumbnailContainer.getThumbWidth(), thumbnailContainer.getHeight());
+        }
+        rc.centerCrop()
+            .into(mediaView);
       }
-      rc.centerCrop()
-          .into(mediaView);
     }
   }
 
-  private static void unloadMediaView(StatusViewBase statusView) {
+  private static void unloadMediaView(ItemView statusView) {
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     final int thumbCount = thumbnailContainer.getThumbCount();
     for (int i=0; i<thumbCount;i++) {
@@ -166,17 +157,17 @@ public class StatusViewImageHelper {
     }
   }
 
-  private static void loadQuotedStatusImages(Status status, QuotedStatusView quotedStatusView) {
-    final Status quotedStatus = getBindingStatus(status).getQuotedStatus();
+  private static void loadQuotedStatusImages(TwitterListItem item, QuotedStatusView quotedStatusView) {
+    final ListItem quotedStatus = item.getQuotedItem();
     if (quotedStatus == null) {
       return;
     }
     getRequest(quotedStatusView.getContext(), quotedStatus.getUser().getMiniProfileImageURLHttps(),
-        status.getId())
+        item.getId())
         .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
         .into(quotedStatusView.getIcon());
-    loadMediaView(quotedStatus, quotedStatusView);
+    loadMediaView((TwitterListItem) quotedStatus, quotedStatusView);
   }
 
   private static void unloadQuotedStatusImages(QuotedStatusView quotedStatusView) {

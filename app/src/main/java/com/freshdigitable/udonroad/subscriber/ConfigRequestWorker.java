@@ -108,6 +108,7 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
 
   private Observable<TreeSet<Long>> fetchAllIgnoringUsers() {
     return Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
+        .filter(ids -> ids != null)
         .map(IDs::getIDs)
         .collect(TreeSet::new,
             (Action2<TreeSet<Long>, long[]>) (collector, ids) -> {

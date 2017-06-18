@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorRes;
+import android.support.annotation.DrawableRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatTextView;
@@ -48,18 +49,26 @@ public class IconAttachedTextView extends AppCompatTextView {
     try {
       Drawable icon = a.getDrawable(R.styleable.IconAttachedTextView_icon);
       final int iconColor = a.getColor(R.styleable.IconAttachedTextView_tintIcon, NO_ID);
-      if (icon != null) {
-        icon = icon.mutate();
-        final int width
-            = icon.getIntrinsicWidth() * getLineHeight() / icon.getIntrinsicHeight();
-        icon.setBounds(0, 0, width, getLineHeight());
-        if (iconColor != NO_ID) {
-          DrawableCompat.setTint(icon, iconColor);
-        }
-        setCompoundDrawables(icon, null, null, null);
-      }
+      setIcon(icon, iconColor);
     } finally {
       a.recycle();
+    }
+  }
+
+  public void setIcon(@DrawableRes int icon) {
+    setIcon(ContextCompat.getDrawable(getContext(), icon), NO_ID);
+  }
+
+  public void setIcon(Drawable icon, int iconColor) {
+    if (icon != null) {
+      icon = icon.mutate();
+      final int width
+          = icon.getIntrinsicWidth() * getLineHeight() / icon.getIntrinsicHeight();
+      icon.setBounds(0, 0, width, getLineHeight());
+      if (iconColor != NO_ID) {
+        DrawableCompat.setTint(icon, iconColor);
+      }
+      setCompoundDrawables(icon, null, null, null);
     }
   }
 
