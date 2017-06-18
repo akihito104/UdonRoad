@@ -99,6 +99,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_below="@+id/tl_image_group"
         android:layout_alignTop="@id/tl_via"
         android:layout_alignBottom="@id/tl_via"
         android:layout_toRightOf="@+id/tl_icon"

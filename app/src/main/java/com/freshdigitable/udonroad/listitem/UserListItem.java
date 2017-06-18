@@ -18,7 +18,9 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 
-import java.util.Collections;
+import com.freshdigitable.udonroad.R;
+
+import java.util.Arrays;
 import java.util.List;
 
 import twitter4j.MediaEntity;
@@ -52,7 +54,54 @@ public class UserListItem implements TwitterListItem {
 
   @Override
   public List<Stat> getStats() {
-    return Collections.emptyList();
+    return Arrays.asList(UserStats.FOLLOWERS.getStat(item),
+        UserStats.FRIENDS.getStat(item));
+  }
+
+  enum UserStats {
+    FOLLOWERS {
+      @Override
+      Stat getStat(User user) {
+        return new Stat() {
+          @Override
+          public int getType() {
+            return R.drawable.ic_follower;
+          }
+
+          @Override
+          public int getCount() {
+            return user.getFollowersCount();
+          }
+
+          @Override
+          public boolean isMarked() {
+            return false;
+          }
+        };
+      }
+    }, FRIENDS {
+      @Override
+      Stat getStat(User user) {
+        return new Stat() {
+          @Override
+          public int getType() {
+            return R.drawable.ic_following;
+          }
+
+          @Override
+          public int getCount() {
+            return user.getFriendsCount();
+          }
+
+          @Override
+          public boolean isMarked() {
+            return false;
+          }
+        };
+      }
+    };
+
+    abstract Stat getStat(User user);
   }
 
   @Override
@@ -99,5 +148,4 @@ public class UserListItem implements TwitterListItem {
   public int getMediaCount() {
     return 0;
   }
-
 }

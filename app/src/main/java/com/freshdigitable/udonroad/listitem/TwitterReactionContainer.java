@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
-import android.support.annotation.DimenRes;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatImageView;
@@ -98,57 +97,123 @@ public class TwitterReactionContainer extends ReactionContainer {
   }
 
   private View createReactionIcon(Stat s) {
-    final int type = s.getType();
-    if (type == R.drawable.ic_retweet) {
-      final IconAttachedTextView view = new IconAttachedTextView(getContext());
-      view.setLayoutParams(createLayoutParams(getContext()));
-      view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10); // R.dimen.tweet_small_fontsize
-      view.setIcon(R.drawable.ic_retweet);
-      return view;
-    } else if (type == R.drawable.ic_like) {
-      final IconAttachedTextView view = new IconAttachedTextView(getContext());
-      view.setLayoutParams(createLayoutParams(getContext()));
-      view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10); // R.dimen.tweet_small_fontsize
-      view.setIcon(R.drawable.ic_like);
-      return view;
-    } else if (type == R.drawable.ic_forum) {
-      final ImageView view = new AppCompatImageView(getContext());
-      view.setLayoutParams(createLayoutParams(getContext()));
-      view.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_forum));
-      return view;
-    }
-    throw new IllegalStateException();
+    return ReactionIcon.fromType(s.getType()).create(getContext());
   }
 
   private static void updateReaction(View v, Stat s) {
-    final int type = s.getType();
-    if (type == R.drawable.ic_retweet) {
-      final IconAttachedTextView rtCount = (IconAttachedTextView) v;
-      rtCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-      rtCount.tintIcon(s.isMarked()
-          ? R.color.twitter_action_retweeted
-          : R.color.twitter_action_normal);
-      rtCount.setText(String.valueOf(s.getCount()));
-    } else if (type == R.drawable.ic_like) {
-      final IconAttachedTextView favCount = (IconAttachedTextView) v;
-      favCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-      favCount.tintIcon(s.isMarked()
-          ? R.color.twitter_action_faved
-          : R.color.twitter_action_normal);
-      favCount.setText(String.valueOf(s.getCount()));
-    } else if (type == R.drawable.ic_forum) {
-      final ImageView hasReplyIcon = (ImageView) v;
-      hasReplyIcon.setVisibility(s.isMarked() ? VISIBLE : GONE);
+    ReactionIcon.fromType(s.getType()).update(v, s);
+  }
+
+  enum ReactionIcon {
+    RETWEET(R.drawable.ic_retweet) {
+      @Override
+      View create(Context context) {
+        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
+        view.setIcon(R.drawable.ic_retweet);
+        return view;
+      }
+
+      @Override
+      void update(View v, Stat s) {
+        final IconAttachedTextView rtCount = (IconAttachedTextView) v;
+        rtCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
+        rtCount.tintIcon(s.isMarked()
+            ? R.color.twitter_action_retweeted
+            : R.color.twitter_action_normal);
+        rtCount.setText(String.valueOf(s.getCount()));
+      }
+    },
+    FAV(R.drawable.ic_like) {
+      @Override
+      View create(Context context) {
+        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
+        view.setIcon(R.drawable.ic_like);
+        return view;
+      }
+
+      @Override
+      void update(View v, Stat s) {
+        final IconAttachedTextView favCount = (IconAttachedTextView) v;
+        favCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
+        favCount.tintIcon(s.isMarked()
+            ? R.color.twitter_action_faved
+            : R.color.twitter_action_normal);
+        favCount.setText(String.valueOf(s.getCount()));
+      }
+    },
+    IN_REPLY_TO(R.drawable.ic_forum) {
+      @Override
+      View create(Context context) {
+        final ImageView view = new AppCompatImageView(context);
+        view.setLayoutParams(createLayoutParams(context));
+        view.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_forum));
+        return view;
+      }
+
+      @Override
+      void update(View v, Stat s) {
+        v.setVisibility(s.isMarked() ? VISIBLE : GONE);
+      }
+    },
+    FOLLOWING(R.drawable.ic_following) {
+      @Override
+      View create(Context context) {
+        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
+        view.setIcon(R.drawable.ic_following);
+        view.setVisibility(VISIBLE);
+        return view;
+      }
+
+      @Override
+      void update(View v, Stat s) {
+        ((IconAttachedTextView) v).setText(String.valueOf(s.getCount()));
+      }
+    },
+    FOLLOWER(R.drawable.ic_follower) {
+      @Override
+      View create(Context context) {
+        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
+        view.setIcon(R.drawable.ic_follower);
+        view.setVisibility(VISIBLE);
+        return view;
+      }
+
+      @Override
+      void update(View v, Stat s) {
+        ((IconAttachedTextView) v).setText(String.valueOf(s.getCount()));
+      }
+    };
+
+    final int type;
+
+    ReactionIcon(int type) {
+      this.type = type;
     }
-  }
 
-  private static MarginLayoutParams createLayoutParams(Context context) {
-    final MarginLayoutParams lp = new MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
-    lp.rightMargin = getDimensionPixelSize(context, R.dimen.grid_margin);
-    return lp;
-  }
+    abstract View create(Context context);
 
-  private static int getDimensionPixelSize(Context context, @DimenRes int id) {
-    return context.getResources().getDimensionPixelSize(id);
+    abstract void update(View v, Stat s);
+
+    private static IconAttachedTextView createIconAttachedTextView(Context context) {
+      final IconAttachedTextView view = new IconAttachedTextView(context);
+      view.setLayoutParams(createLayoutParams(context));
+      view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);  // R.dimen.tweet_small_fontsize
+      return view;
+    }
+
+    private static MarginLayoutParams createLayoutParams(Context context) {
+      final MarginLayoutParams lp = new MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+      lp.rightMargin = context.getResources().getDimensionPixelSize(R.dimen.grid_margin);
+      return lp;
+    }
+
+    static ReactionIcon fromType(int type) {
+      for (ReactionIcon i : values()) {
+        if (i.type == type) {
+          return i;
+        }
+      }
+      throw new IllegalStateException();
+    }
   }
 }
