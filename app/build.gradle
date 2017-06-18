@@ -59,7 +59,7 @@ android {
     }
 }
 
-def supportLibVer = '26.0.0-alpha1'
+def supportLibVer = '26.0.0-beta2'
 def t4jVer = '4.0.6'
 def rxVer = '1.2.5'
 def rxAndroidVer = '1.2.1'
