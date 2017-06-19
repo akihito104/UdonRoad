@@ -24,8 +24,6 @@ import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -39,10 +37,11 @@ import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -57,48 +56,77 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
   @Rule
   public ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
+  private User userB = UserUtil.builder(2100, "userB").name("user B").build();
+  private User userC = UserUtil.builder(2200, "userC").build();
 
   @Override
   protected int setupTimeline() throws TwitterException {
-    when(twitter.updateStatus(any(StatusUpdate.class))).thenAnswer(new Answer<Status>() {
-      @Override
-      public Status answer(InvocationOnMock invocation) throws Throwable {
-        final StatusUpdate statusUpdate = invocation.getArgument(0);
-        final User user = UserUtil.createUserA();
-        final Status mockResponse = createStatus(21000L, user);
-        when(mockResponse.getText()).thenReturn(statusUpdate.getStatus());
-        final UserMentionEntity umeMock = mock(UserMentionEntity.class);
-        when(umeMock.getId()).thenReturn(statusUpdate.getInReplyToStatusId());
-        when(mockResponse.getUserMentionEntities()).thenReturn(new UserMentionEntity[]{umeMock});
-        return mockResponse;
-      }
+    when(twitter.updateStatus(any(StatusUpdate.class))).thenAnswer(invocation -> {
+      final StatusUpdate statusUpdate = invocation.getArgument(0);
+      final User user = UserUtil.createUserA();
+      final Status mockResponse = createStatus(21000L, user);
+      when(mockResponse.getText()).thenReturn(statusUpdate.getStatus());
+      final UserMentionEntity umeMock = mock(UserMentionEntity.class);
+      when(umeMock.getId()).thenReturn(statusUpdate.getInReplyToStatusId());
+      when(mockResponse.getUserMentionEntities()).thenReturn(new UserMentionEntity[]{umeMock});
+      return mockResponse;
     });
     return setupDefaultTimeline();
   }
 
   @Test
   public void sendValidInReplyTo() throws Exception {
-    sendReply();
+    sendReplyToMe();
   }
 
   @Test
   public void sendValidInReplyToAndOpenOnceMore_then_clearedTheView() throws Exception {
-    sendReply();
+    sendReplyToMe();
 
     PerformUtil.clickWriteOnMenu();
     onView(withId(R.id.tw_replyTo)).check(matches(not(isDisplayed())));
   }
 
-  private void sendReply() throws Exception {
+  @Test
+  public void openTweetInputForReplyOtherUser_then_inputUserScreenName() throws Exception {
+    final Status target = createStatus(30000, userB);
+    receiveStatuses(target);
+
+    PerformUtil.selectItemView(target);
+    PerformUtil.reply();
+
+    onView(withId(R.id.tw_intext))
+        .check(matches(withText("@" + userB.getScreenName() + " ")));
+    PerformUtil.clickCancelWriteOnMenu();
+  }
+
+  @Test
+  public void openTweetInputForReplyOtherUsersRetweet_then_inputUserScreenName() throws Exception {
+    final Status retweeted = createStatus(30000, userB);
+    final Status target = createRtStatus(retweeted, 31000, true);
+    when(target.getUser()).thenReturn(userC);
+    receiveStatuses(target);
+
+    PerformUtil.selectItemView(target);
+    PerformUtil.reply();
+
+    onView(withId(R.id.tw_intext))
+        .check(matches(withText(containsString("@" + userB.getScreenName()))));
+    onView(withId(R.id.tw_intext))
+        .check(matches(withText(containsString("@" + userC.getScreenName()))));
+    onView(withId(R.id.tw_intext))
+        .check(matches(withText(not(containsString("@" + getLoginUser().getScreenName())))));
+    PerformUtil.clickCancelWriteOnMenu();
+  }
+
+  private void sendReplyToMe() throws Exception {
     final Status replied = findByStatusId(20000);
-    final String screenName = getLoginUser().getScreenName();
     PerformUtil.selectItemView(replied);
     PerformUtil.reply();
-    onView(withId(R.id.main_send_tweet)).check(matches(isEnabled()));
     onView(withId(R.id.tw_replyTo)).check(matches(isDisplayed()));
     final String inputText = "reply tweet";
     onView(withId(R.id.tw_intext)).perform(typeText(inputText))
-        .check(matches(withText("@" + screenName + " " + inputText)));
+        .check(matches(withText(inputText)));
     onView(withId(R.id.main_send_tweet)).perform(click());
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onView(withId(R.id.action_write)).check(matches(isDisplayed()));

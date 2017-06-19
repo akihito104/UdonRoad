@@ -231,7 +231,9 @@ public class TweetInputFragment extends Fragment {
       stretchTweetInputView();
       return;
     }
-    replyEntity = ReplyEntity.create(inReplyTo);
+
+    final User currentUser = appSettings.getAuthenticatedUser(appSettings.getCurrentUserId());
+    replyEntity = ReplyEntity.create(inReplyTo, currentUser);
     inputText.addText(replyEntity.createReplyString());
     inputText.setInReplyTo();
     stretchTweetInputView();
@@ -304,15 +306,16 @@ public class TweetInputFragment extends Fragment {
     if (!isStatusUpdateNeeded()) {
       return statusRequestWorker.observeUpdateStatus(sendingText);
     }
-    String s = sendingText;
+    StringBuilder s = new StringBuilder(sendingText);
     for (long q : quoteStatusIds) {
       final Status status = statusRequestWorker.getCache().find(q);
       if (status == null) {
         continue;
       }
-      s += " https://twitter.com/" + status.getUser().getScreenName() + "/status/" + q;
+      s.append(" https://twitter.com/")
+          .append(status.getUser().getScreenName()).append("/status/").append(q);
     }
-    final StatusUpdate statusUpdate = new StatusUpdate(s);
+    final StatusUpdate statusUpdate = new StatusUpdate(s.toString());
     if (replyEntity != null) {
       statusUpdate.setInReplyToStatusId(replyEntity.inReplyToStatusId);
     }
@@ -376,35 +379,32 @@ public class TweetInputFragment extends Fragment {
     long inReplyToStatusId;
     Set<String> screenNames;
 
-    static ReplyEntity create(@NonNull Status status) {
+    static ReplyEntity create(@NonNull Status status, User from) {
       final ReplyEntity res = new ReplyEntity();
       res.inReplyToStatusId = status.getId();
       res.screenNames = new LinkedHashSet<>();
       final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
       for (UserMentionEntity u : userMentionEntities) {
-        res.addScreenName(u.getScreenName());
+        res.screenNames.add(u.getScreenName());
       }
 
       if (status.isRetweet()) {
         final Status retweetedStatus = status.getRetweetedStatus();
-        res.addScreenName(retweetedStatus.getUser().getScreenName());
+        res.screenNames.add(retweetedStatus.getUser().getScreenName());
       }
 
       final User user = status.getUser();
-      res.addScreenName(user.getScreenName());
+      res.screenNames.add(user.getScreenName());
+      res.screenNames.remove(from.getScreenName());
       return res;
     }
 
-    private void addScreenName(String screenName) {
-      screenNames.add(screenName);
-    }
-
     String createReplyString() {
-      String s = "";
+      StringBuilder s = new StringBuilder();
       for (String sn : screenNames) {
-        s += "@" + sn + " ";
+        s.append("@").append(sn).append(" ");
       }
-      return s;
+      return s.toString();
     }
   }
 }
