@@ -74,6 +74,12 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   }
 
   @Override
+  public int getPositionById(long id) {
+    final ListedUserIDs status = ordered.where().equalTo("id", id).findFirst();
+    return ordered.indexOf(status);
+  }
+
+  @Override
   public User get(int position) {
     final ListedUserIDs userIDs = ordered.get(position);
     return userCache.find(userIDs.userId);

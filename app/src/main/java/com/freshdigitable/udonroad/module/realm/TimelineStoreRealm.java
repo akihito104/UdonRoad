@@ -305,6 +305,12 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   @Override
+  public int getPositionById(long id) {
+    final StatusIDs status = timeline.where().equalTo("id", id).findFirst();
+    return timeline.indexOf(status);
+  }
+
+  @Override
   public void close() {
     timeline.removeAllChangeListeners();
     super.close();

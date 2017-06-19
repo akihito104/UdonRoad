@@ -181,6 +181,10 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
     return selectedItemHolder != EMPTY;
   }
 
+  public int getSelectedItemViewPosition() {
+    return timelineStore.getPositionById(selectedItemHolder.containerId);
+  }
+
   public interface LastItemBoundListener {
     void onLastItemBound(long itemId);
   }
@@ -209,6 +213,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
 
   private static class SelectedItem {
     private final long id;
+    private final long containerId;
     private final WeakReference<ItemViewHolder> viewHolder;
 
     private SelectedItem() {
@@ -221,9 +226,10 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
 
     private SelectedItem(ItemViewHolder vh, long id) {
       this.id = id;
-      this.viewHolder = vh == null
-          ? null
-          : new WeakReference<>(vh);
+      this.containerId = vh != null ? vh.getItemId() : -1;
+      this.viewHolder = vh != null
+          ? new WeakReference<>(vh)
+          : null;
       setSelectedBackground();
     }
 

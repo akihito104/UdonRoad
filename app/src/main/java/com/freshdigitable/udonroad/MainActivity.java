@@ -368,8 +368,10 @@ public class MainActivity extends AppCompatActivity
         showStatusDetail(selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_reply) {
         sendStatusSelected(TYPE_REPLY, selectedTweetId);
+        tlFragment.scrollToSelectedItem();
       } else if (itemId == R.id.iffabMenu_main_quote) {
         sendStatusSelected(TYPE_QUOTE, selectedTweetId);
+        tlFragment.scrollToSelectedItem();
       } else if (itemId == R.id.iffabMenu_main_conv) {
         showConversation(selectedTweetId);
       }

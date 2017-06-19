@@ -395,8 +395,13 @@ public abstract class TimelineFragment<T> extends Fragment {
     scrollTo(0);
   }
 
+  public void scrollToSelectedItem() {
+    binding.timeline.setLayoutFrozen(false);
+    tlLayoutManager.scrollToPositionWithOffset(tlAdapter.getSelectedItemViewPosition(), 0);
+  }
+
   private void scrollTo(int position) {
-//    Log.d(TAG, "scrollTo: ");
+//    Log.d(TAG, "scrollTo: " + position);
     final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
     if (firstVisibleItemPosition - position < 4) {
       binding.timeline.smoothScrollToPosition(position);
