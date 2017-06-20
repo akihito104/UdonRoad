@@ -26,6 +26,7 @@ import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentManager.BackStackEntry;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -39,12 +40,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.squareup.picasso.Picasso;
@@ -290,29 +291,29 @@ public class MainActivity extends AppCompatActivity
     binding.ffab.transToToolbar();
   }
 
-  private void hideStatusDetail() {
-    switchFFABMenuTo(R.id.iffabMenu_main_detail);
-    binding.ffab.transToFAB();
-  }
-
   private void showConversation(long statusId) {
+    binding.ffab.transToFAB(View.INVISIBLE);
     final TimelineFragment<Status> conversationFragment
         = StatusListFragment.getInstance(CONVERSATION, statusId);
     final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
     replaceTimelineContainer(name, conversationFragment);
-    binding.ffab.hide();
     switchFFABMenuTo(R.id.iffabMenu_main_detail);
   }
 
-  private void hideConversation() {
-    switchFFABMenuTo(R.id.iffabMenu_main_conv);
-    binding.ffab.show();
-  }
-
   private void replaceTimelineContainer(String name, Fragment fragment) {
-    getSupportFragmentManager().beginTransaction()
+    final FragmentManager fm = getSupportFragmentManager();
+    final Fragment current = fm.findFragmentById(R.id.main_timeline_container);
+    final String tag;
+    if (current == tlFragment) {
+      tag = "main";
+    } else if (current instanceof StatusDetailFragment) {
+      tag = "detail";
+    } else {
+      tag = "conv";
+    }
+    fm.beginTransaction()
         .replace(R.id.main_timeline_container, fragment, name)
-        .addToBackStack(null)
+        .addToBackStack(tag)
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
   }
@@ -328,18 +329,24 @@ public class MainActivity extends AppCompatActivity
       if (clearSelectedCursorIfNeeded((TimelineFragment) fragment)) {
         return true;
       }
-      fm.popBackStack();
-      hideConversation();
-      return true;
-    } else if (fragment instanceof StatusDetailFragment) {
-      fm.popBackStack();
-      if (backStackEntryCount == 1) {
-        tlFragment.startScroll();
-      }
-      hideStatusDetail();
-      return true;
     }
-    throw new IllegalStateException("unknown fragment is added...");
+
+    fm.popBackStack();
+
+    final BackStackEntry backStack = fm.getBackStackEntryAt(backStackEntryCount - 1);
+    final String appearFragmentName = backStack.getName();
+    if ("main".equals(appearFragmentName)) {
+      switchFFABMenuTo(R.id.iffabMenu_main_detail);
+      tlFragment.startScroll();
+      binding.ffab.transToFAB(tlFragment.isTweetSelected() ? View.VISIBLE : View.INVISIBLE);
+    } else if ("detail".equals(appearFragmentName)) {
+      switchFFABMenuTo(R.id.iffabMenu_main_conv);
+      binding.ffab.transToToolbar();
+    } else if ("conv".equals(appearFragmentName)) {
+      switchFFABMenuTo(R.id.iffabMenu_main_detail);
+      binding.ffab.transToFAB();
+    }
+    return true;
   }
 
   private boolean clearSelectedCursorIfNeeded(TimelineFragment tf) {

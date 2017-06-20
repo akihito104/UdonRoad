@@ -281,9 +281,9 @@ class IffabMenuPresenter {
     }
   }
 
-  private void animateToHideToolbar() {
+  private void animateToHideToolbar(int afterVisibility) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      TransformAnimator.transToFab(ffab, bbt);
+      TransformAnimator.transToFab(ffab, bbt, afterVisibility);
     } else {
       bbt.setVisibility(View.INVISIBLE);
       ffab.show();
@@ -299,8 +299,8 @@ class IffabMenuPresenter {
     pendingUpdate = false;
   }
 
-  void transToFAB() {
-    animateToHideToolbar();
+  void transToFAB(int afterVisibility) {
+    animateToHideToolbar(afterVisibility);
     pendingUpdate = true;
     final int menuSize = menu.size();
     for (int i = 0; i < menuSize; i++) {
