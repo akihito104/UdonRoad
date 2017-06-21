@@ -113,7 +113,7 @@ public class UserUtil {
       when(mock.getName()).thenReturn(name);
       when(mock.getId()).thenReturn(id);
       when(mock.isVerified()).thenReturn(isVerified);
-      when(mock.isProtected()).thenReturn(isVerified);
+      when(mock.isProtected()).thenReturn(isProtected);
       return mock;
     }
   }
