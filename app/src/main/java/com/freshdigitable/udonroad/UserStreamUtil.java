@@ -22,10 +22,10 @@ import android.util.Log;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatusImpl;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -34,7 +34,6 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -57,16 +56,20 @@ public class UserStreamUtil {
   private long userId;
   private final AppSettingStore appSettings;
   private final SortedCache<Status> sortedStatusCache;
+  private final TypedCache<Status> pool;
+  private Subscription onReactionSubscription;
 
   @Inject
   public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
                         @NonNull SortedCache<Status> sortedStatusCache,
+                        @NonNull TypedCache<Status> pool,
                         @NonNull AppSettingStore appSettings,
                         @NonNull PublishSubject<UserFeedbackEvent> feedback) {
     this.streamApi = streamApi;
     this.feedback = feedback;
     this.appSettings = appSettings;
     this.sortedStatusCache = sortedStatusCache;
+    this.pool = pool;
   }
 
   private boolean isConnectedUserStream = false;
@@ -74,6 +77,7 @@ public class UserStreamUtil {
   private Subscription onStatusSubscription;
   private PublishSubject<Long> deletionPublishSubject;
   private Subscription onDeletionSubscription;
+  private PublishSubject<Status> reactionPublishSubject;
 
   public void connect(String storeName) {
     if (onStatusSubscription == null || onStatusSubscription.isUnsubscribed()) {
@@ -90,15 +94,20 @@ public class UserStreamUtil {
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
-          .flatMap(new Func1<List<Long>, Observable<Long>>() {
-            @Override
-            public Observable<Long> call(List<Long> deletionIds) {
-              return Observable.from(deletionIds);
-            }
-          })
+          .flatMap(Observable::from)
           .subscribe(sortedStatusCache::delete, onErrorAction);
     }
+    if (reactionPublishSubject == null || onReactionSubscription.isUnsubscribed()) {
+      reactionPublishSubject = PublishSubject.create();
+      onReactionSubscription = reactionPublishSubject
+          .buffer(500, TimeUnit.MILLISECONDS)
+          .onBackpressureBuffer()
+          .observeOn(AndroidSchedulers.mainThread())
+          .flatMap(Observable::from)
+          .subscribe(pool::upsert, onErrorAction);
+    }
     if (!isConnectedUserStream) {
+      pool.open();
       sortedStatusCache.open(storeName);
       appSettings.open();
       streamApi.setOAuthAccessToken(appSettings.getCurrentUserAccessToken());
@@ -110,6 +119,7 @@ public class UserStreamUtil {
 
   public void disconnect() {
     if (isConnectedUserStream) {
+      pool.close();
       appSettings.close();
       sortedStatusCache.close();
       streamApi.disconnectStreamListener();
@@ -128,6 +138,13 @@ public class UserStreamUtil {
     }
     if (onDeletionSubscription != null && !onDeletionSubscription.isUnsubscribed()) {
       onDeletionSubscription.unsubscribe();
+    }
+
+    if (reactionPublishSubject != null) {
+      reactionPublishSubject.onCompleted();
+    }
+    if (onReactionSubscription != null && !onReactionSubscription.isUnsubscribed()) {
+      onReactionSubscription.unsubscribe();
     }
   }
 
@@ -160,11 +177,10 @@ public class UserStreamUtil {
       if (target.getId() == userId) {
         feedback.onNext(
             new UserFeedbackEvent(R.string.msg_faved_by_someone, source.getScreenName()));
-      } else if (source.getId() == userId) {
-        final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(favoritedStatus);
-        getBindingStatus(perspectivalStatus).getStatusReaction().setFavorited(true);
-        statusPublishSubject.onNext(perspectivalStatus);
       }
+      final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(favoritedStatus);
+      getBindingStatus(perspectivalStatus).getStatusReaction().setFavorited(true);
+      reactionPublishSubject.onNext(perspectivalStatus);
     }
 
     @Override
