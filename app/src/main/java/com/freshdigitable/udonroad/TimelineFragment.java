@@ -268,6 +268,10 @@ public abstract class TimelineFragment<T> extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
+    if (getActivity() instanceof FabHandleable) {
+      ((FabHandleable) getActivity()).removeOnItemSelectedListener(iffabItemSelectedListener);
+      iffabItemSelectedListener = null;
+    }
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedItemChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);

@@ -37,8 +37,6 @@ import com.freshdigitable.udonroad.util.UserUtil;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +63,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -104,10 +103,18 @@ public abstract class TimelineInstTestBase {
     final int initResListCount = setupTimeline();
 
     getRule().launchActivity(getIntent());
-    final IdlingResource idlingResource = new IdlingResource() {
+    final IdlingResource idlingResource = getTimelineIdlingResource("launch", initResListCount);
+    Espresso.registerIdlingResources(idlingResource);
+    verifyAfterLaunch();
+    Espresso.unregisterIdlingResources(idlingResource);
+  }
+
+  @NonNull
+  IdlingResource getTimelineIdlingResource(String name, int initResListCount) {
+    return new IdlingResource() {
       @Override
       public String getName() {
-        return "launch";
+        return name;
       }
 
       @Override
@@ -131,9 +138,6 @@ public abstract class TimelineInstTestBase {
         this.callback = callback;
       }
     };
-    Espresso.registerIdlingResources(idlingResource);
-    verifyAfterLaunch();
-    Espresso.unregisterIdlingResources(idlingResource);
   }
 
 
@@ -258,29 +262,23 @@ public abstract class TimelineInstTestBase {
   }
 
   protected void setupCreateFavorite(final int rtCount, final int favCount) throws TwitterException {
-    when(twitter.createFavorite(anyLong())).thenAnswer(new Answer<Status>() {
-      @Override
-      public Status answer(InvocationOnMock invocation) throws Throwable {
-        final Long id = invocation.getArgument(0);
-        final Status status = findByStatusId(id);
-        when(status.getFavoriteCount()).thenReturn(favCount);
-        when(status.getRetweetCount()).thenReturn(rtCount);
-        when(status.isFavorited()).thenReturn(true);
-        return status;
-      }
+    when(twitter.createFavorite(anyLong())).thenAnswer(invocation -> {
+      final Long id = invocation.getArgument(0);
+      final Status status = findByStatusId(id);
+      when(status.getFavoriteCount()).thenReturn(favCount);
+      when(status.getRetweetCount()).thenReturn(rtCount);
+      when(status.isFavorited()).thenReturn(true);
+      return status;
     });
   }
 
   protected void setupRetweetStatus(final long rtStatusId, final int rtCount, final int favCount)
       throws TwitterException {
-    when(twitter.retweetStatus(anyLong())).thenAnswer(new Answer<Status>() {
-      @Override
-      public Status answer(InvocationOnMock invocation) throws Throwable {
-        final Long id = invocation.getArgument(0);
-        final Status rtedStatus = findByStatusId(id);
-        receiveStatuses(true, TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, false));
-        return TwitterResponseMock.createRtStatus(rtedStatus, rtStatusId, rtCount, favCount, true);
-      }
+    when(twitter.retweetStatus(anyLong())).thenAnswer(invocation -> {
+      final Long id = invocation.getArgument(0);
+      final Status rtedStatus = findByStatusId(id);
+      receiveStatuses(true, createRtStatus(rtedStatus, rtStatusId, false));
+      return createRtStatus(rtedStatus, rtStatusId, rtCount, favCount, true);
     });
   }
 
