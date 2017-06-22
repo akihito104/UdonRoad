@@ -27,52 +27,98 @@ import static org.mockito.Mockito.when;
  */
 public class UserUtil {
   public static User createUserA() {
-    final User mock = createDefaultUser();
-    when(mock.getScreenName()).thenReturn("userA");
-    when(mock.getName()).thenReturn("User A");
-    when(mock.getId()).thenReturn(2000L);
-    when(mock.isVerified()).thenReturn(false);
-    when(mock.isProtected()).thenReturn(false);
-    return mock;
+    return builder(2000,"userA")
+        .name("User A").build();
   }
 
   public static User createVerifiedUser() {
-    final User mock = createDefaultUser();
-    when(mock.getScreenName()).thenReturn("verifiedUser");
-    when(mock.getName()).thenReturn("Verified User");
-    when(mock.getId()).thenReturn(3000L);
-    when(mock.isVerified()).thenReturn(true);
-    when(mock.isProtected()).thenReturn(false);
-    return mock;
+    return builder(3000,"verifiedUser")
+        .name("Verified User")
+        .isVerified(true)
+        .isProtected(false).build();
   }
 
   public static User createProtectedUser() {
-    final User mock = createDefaultUser();
-    when(mock.getScreenName()).thenReturn("protectedUser");
-    when(mock.getName()).thenReturn("Protected User");
-    when(mock.getId()).thenReturn(4000L);
-    when(mock.isVerified()).thenReturn(false);
-    when(mock.isProtected()).thenReturn(true);
-    return mock;
+    return builder(4000,"protectedUser")
+        .name("Protected User")
+        .isVerified(false)
+        .isProtected(true).build();
   }
 
   public static User createVerifiedAndProtectedUser() {
-    final User mock = createDefaultUser();
-    when(mock.getScreenName()).thenReturn("gene");
-    when(mock.getName()).thenReturn("Verified and Protected User");
-    when(mock.getId()).thenReturn(5000L);
-    when(mock.isVerified()).thenReturn(true);
-    when(mock.isProtected()).thenReturn(true);
-    return mock;
+    return builder(5000, "gene")
+        .name("Verified and Protected User")
+        .isVerified(true)
+        .isProtected(true).build();
   }
 
-  private static User createDefaultUser() {
-    final User mock = mock(User.class);
-    when(mock.getProfileBackgroundColor()).thenReturn("ffffff");
-    when(mock.getDescription()).thenReturn("user description is here.");
-    when(mock.getDescriptionURLEntities()).thenReturn(new URLEntity[0]);
-    when(mock.getURL()).thenReturn(null);
-    when(mock.getLocation()).thenReturn(null);
-    return mock;
+  public static Builder builder(long id, String screenName) {
+    return new Builder(id, screenName);
+  }
+
+  public static class Builder {
+    private final long id;
+    private final String screenName;
+    String name;
+    boolean isVerified = false;
+    boolean isProtected = false;
+    String profileBackgroundColor = "ffffff";
+    String description = "user description is here.";
+    URLEntity[] urlEntities = new URLEntity[0];
+
+    Builder(long id, String screenName) {
+      this.id = id;
+      this.screenName = screenName;
+      this.name = screenName;
+    }
+
+    public Builder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public Builder isVerified(boolean isVerified) {
+      this.isVerified = isVerified;
+      return this;
+    }
+
+    public Builder isProtected(boolean isProtected) {
+      this.isProtected = isProtected;
+      return this;
+    }
+
+    public Builder profileBackgroundColor(String profileBackgroundColor) {
+      this.profileBackgroundColor = profileBackgroundColor;
+      return this;
+    }
+
+    public Builder description(String description) {
+      this.description = description;
+      return this;
+    }
+
+    public Builder urlEntities(URLEntity[] urlEntities) {
+      this.urlEntities = urlEntities;
+      return this;
+    }
+
+    public User build() {
+      final User mock = mock(User.class);
+      when(mock.getProfileBackgroundColor()).thenReturn(profileBackgroundColor);
+      when(mock.getDescription()).thenReturn(description);
+      when(mock.getDescriptionURLEntities()).thenReturn(urlEntities);
+      when(mock.getURL()).thenReturn(null);
+      when(mock.getLocation()).thenReturn(null);
+      when(mock.getScreenName()).thenReturn(screenName);
+      when(mock.getName()).thenReturn(name);
+      when(mock.getId()).thenReturn(id);
+      when(mock.isVerified()).thenReturn(isVerified);
+      when(mock.isProtected()).thenReturn(isProtected);
+      return mock;
+    }
+  }
+
+  private UserUtil() {
+    throw new AssertionError();
   }
 }

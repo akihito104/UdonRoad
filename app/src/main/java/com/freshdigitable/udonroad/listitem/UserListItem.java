@@ -18,8 +18,6 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 
-import com.freshdigitable.udonroad.R;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,13 +57,13 @@ public class UserListItem implements TwitterListItem {
   }
 
   enum UserStats {
-    FOLLOWERS {
+    FOLLOWERS(TwitterReactionContainer.ReactionIcon.FOLLOWER) {
       @Override
       Stat getStat(User user) {
         return new Stat() {
           @Override
           public int getType() {
-            return R.drawable.ic_follower;
+            return icon.type;
           }
 
           @Override
@@ -79,13 +77,13 @@ public class UserListItem implements TwitterListItem {
           }
         };
       }
-    }, FRIENDS {
+    }, FRIENDS(TwitterReactionContainer.ReactionIcon.FOLLOWING) {
       @Override
       Stat getStat(User user) {
         return new Stat() {
           @Override
           public int getType() {
-            return R.drawable.ic_following;
+            return icon.type;
           }
 
           @Override
@@ -100,6 +98,12 @@ public class UserListItem implements TwitterListItem {
         };
       }
     };
+
+    final TwitterReactionContainer.ReactionIcon icon;
+
+    UserStats(TwitterReactionContainer.ReactionIcon icon) {
+      this.icon = icon;
+    }
 
     abstract Stat getStat(User user);
   }

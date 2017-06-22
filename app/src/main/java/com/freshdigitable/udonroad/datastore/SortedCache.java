@@ -37,4 +37,6 @@ public interface SortedCache<T> extends BaseOperation<T> {
   void clearPool();
 
   void drop(String storeName);
+
+  int getPositionById(long id);
 }

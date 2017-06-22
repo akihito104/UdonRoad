@@ -16,9 +16,6 @@
 
 package com.freshdigitable.udonroad.util;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -39,7 +36,6 @@ import org.hamcrest.Matcher;
 
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.util.TreeIterables.breadthFirstViewTraversal;
-import static android.support.v4.content.ContextCompat.getDrawable;
 
 /**
  * Created by akihit on 2016/07/01.
@@ -106,63 +102,36 @@ public class StatusViewMatcher {
   }
 
   public static Matcher<View> getFavIcon() {
-    return getReactionContainerMatcher(R.id.tl_reaction_container, R.drawable.ic_like);
+    return getReactionContainerMatcher(
+        R.id.tl_reaction_container, R.drawable.ic_like, IconAttachedTextView.class);
   }
 
   public static Matcher<View> getFavIconOfQuoted() {
-    return getReactionContainerMatcher(R.id.q_reaction_container, R.drawable.ic_like);
+    return getReactionContainerMatcher(
+        R.id.q_reaction_container, R.drawable.ic_like, IconAttachedTextView.class);
   }
 
   public static Matcher<View> getRTIcon() {
-    return getReactionContainerMatcher(R.id.tl_reaction_container, R.drawable.ic_retweet);
+    return getReactionContainerMatcher(
+        R.id.tl_reaction_container, R.drawable.ic_retweet, IconAttachedTextView.class);
   }
 
-  private static Matcher<View> getReactionContainerMatcher(@IdRes int containerId,
-                                                           @DrawableRes int expectedId) {
-    final Matcher<View> container = withId(containerId);
-    return new BoundedMatcher<View, IconAttachedTextView>(IconAttachedTextView.class) {
+  public static Matcher<View> getHasReplyIcon() {
+    return getReactionContainerMatcher(
+        R.id.tl_reaction_container, R.drawable.ic_forum, ImageView.class);
+  }
+
+  private static <T extends View> Matcher<View> getReactionContainerMatcher(
+      @IdRes int containerId, @DrawableRes int expectedId, Class<T> clz) {
+    return new BoundedMatcher<View, T>(clz) {
       @Override
-      protected boolean matchesSafely(IconAttachedTextView item) {
-        if (!container.matches(item.getParent())) {
-          return false;
-        }
-        final Drawable expected = getDrawable(item.getContext(), expectedId);
-        for (Drawable d : item.getCompoundDrawables()) {
-          if (checkDrawable(d, expected)) {
-            return true;
-          }
-        }
-        return false;
+      protected boolean matchesSafely(T item) {
+        return withId(containerId).matches(item.getParent())
+            && withId(expectedId).matches(item);
       }
 
       @Override
-      public void describeTo(Description description) {
-      }
+      public void describeTo(Description description) {}
     };
-  }
-
-  private static boolean checkDrawable(Drawable actual, @NonNull Drawable expected) {
-    if (actual == null) {
-      return false;
-    }
-    final Drawable.ConstantState actualConstantState = actual.getConstantState();
-    final Drawable.ConstantState expectedConstantState = expected.getConstantState();
-    if (actualConstantState != null && expectedConstantState != null
-        && actualConstantState.equals(expectedConstantState)) {
-      return true;
-    }
-
-    final int width = actual.getIntrinsicWidth();
-    final int height = actual.getIntrinsicHeight();
-    final Bitmap expectedBitmap = getBitmap(width, height, expected);
-    final Bitmap actualBitmap = getBitmap(width, height, actual);
-    return actualBitmap.sameAs(expectedBitmap);
-  }
-
-  private static Bitmap getBitmap(int width, int height, Drawable target) {
-    final Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-    final Canvas canvas = new Canvas(bitmap);
-    target.draw(canvas);
-    return bitmap;
   }
 }

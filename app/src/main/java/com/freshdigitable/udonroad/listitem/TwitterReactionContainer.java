@@ -108,9 +108,7 @@ public class TwitterReactionContainer extends ReactionContainer {
     RETWEET(R.drawable.ic_retweet) {
       @Override
       View create(Context context) {
-        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
-        view.setIcon(R.drawable.ic_retweet);
-        return view;
+        return createIconAttachedTextView(context);
       }
 
       @Override
@@ -126,9 +124,7 @@ public class TwitterReactionContainer extends ReactionContainer {
     FAV(R.drawable.ic_like) {
       @Override
       View create(Context context) {
-        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
-        view.setIcon(R.drawable.ic_like);
-        return view;
+        return createIconAttachedTextView(context);
       }
 
       @Override
@@ -145,6 +141,7 @@ public class TwitterReactionContainer extends ReactionContainer {
       @Override
       View create(Context context) {
         final ImageView view = new AppCompatImageView(context);
+        view.setId(type);
         view.setLayoutParams(createLayoutParams(context));
         view.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_forum));
         return view;
@@ -158,8 +155,7 @@ public class TwitterReactionContainer extends ReactionContainer {
     FOLLOWING(R.drawable.ic_following) {
       @Override
       View create(Context context) {
-        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
-        view.setIcon(R.drawable.ic_following);
+        final IconAttachedTextView view = createIconAttachedTextView(context);
         view.setVisibility(VISIBLE);
         return view;
       }
@@ -172,8 +168,7 @@ public class TwitterReactionContainer extends ReactionContainer {
     FOLLOWER(R.drawable.ic_follower) {
       @Override
       View create(Context context) {
-        final IconAttachedTextView view = ReactionIcon.createIconAttachedTextView(context);
-        view.setIcon(R.drawable.ic_follower);
+        final IconAttachedTextView view = createIconAttachedTextView(context);
         view.setVisibility(VISIBLE);
         return view;
       }
@@ -194,10 +189,12 @@ public class TwitterReactionContainer extends ReactionContainer {
 
     abstract void update(View v, Stat s);
 
-    private static IconAttachedTextView createIconAttachedTextView(Context context) {
+    IconAttachedTextView createIconAttachedTextView(Context context) {
       final IconAttachedTextView view = new IconAttachedTextView(context);
+      view.setId(type);
       view.setLayoutParams(createLayoutParams(context));
       view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);  // R.dimen.tweet_small_fontsize
+      view.setIcon(type);
       return view;
     }
 

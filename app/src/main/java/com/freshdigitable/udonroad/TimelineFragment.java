@@ -268,6 +268,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
+    removeOnItemSelectedListener();
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedItemChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
@@ -345,9 +346,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       ((FabHandleable) activity).showFab();
-      if (iffabItemSelectedListener != null) {
-        ((FabHandleable) activity).removeOnItemSelectedListener(iffabItemSelectedListener);
-      }
+      removeOnItemSelectedListener();
       iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedTweetId());
       ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);
     }
@@ -357,7 +356,13 @@ public abstract class TimelineFragment<T> extends Fragment {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       ((FabHandleable) activity).hideFab();
-      ((FabHandleable) activity).removeOnItemSelectedListener(iffabItemSelectedListener);
+    }
+    removeOnItemSelectedListener();
+  }
+
+  private void removeOnItemSelectedListener() {
+    if (getActivity() instanceof FabHandleable) {
+      ((FabHandleable) getActivity()).removeOnItemSelectedListener(iffabItemSelectedListener);
       iffabItemSelectedListener = null;
     }
   }
@@ -395,8 +400,13 @@ public abstract class TimelineFragment<T> extends Fragment {
     scrollTo(0);
   }
 
+  public void scrollToSelectedItem() {
+    binding.timeline.setLayoutFrozen(false);
+    tlLayoutManager.scrollToPositionWithOffset(tlAdapter.getSelectedItemViewPosition(), 0);
+  }
+
   private void scrollTo(int position) {
-//    Log.d(TAG, "scrollTo: ");
+//    Log.d(TAG, "scrollTo: " + position);
     final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
     if (firstVisibleItemPosition - position < 4) {
       binding.timeline.smoothScrollToPosition(position);

@@ -68,12 +68,22 @@ public class IndicatableFFAB extends FlickableFAB {
     setOnIffabItemSelectedListener(null);
   }
 
+  private static final int MODE_FAB = 0;
+  private static final int MODE_TOOLBAR = 1;
+  private int mode = MODE_FAB;
+
   public void transToToolbar() {
     presenter.transToToolbar();
+    mode = MODE_TOOLBAR;
   }
 
   public void transToFAB() {
-    presenter.transToFAB();
+    transToFAB(VISIBLE);
+  }
+
+  public void transToFAB(int afterVisibility) {
+    presenter.transToFAB(afterVisibility);
+    mode = MODE_FAB;
   }
 
   public interface OnIffabItemSelectedListener {
@@ -82,16 +92,16 @@ public class IndicatableFFAB extends FlickableFAB {
 
   @Override
   public void show() {
-    if (presenter.isToolbarDroppedDown()) {
-      presenter.showToolbar();
-    } else {
+    if (mode == MODE_FAB) {
       super.show();
+    } else {
+      presenter.showToolbar();
     }
   }
 
   @Override
   public void hide() {
-    if (getVisibility() == VISIBLE) {
+    if (mode == MODE_FAB) {
       super.hide();
     } else {
       presenter.hideToolbar();

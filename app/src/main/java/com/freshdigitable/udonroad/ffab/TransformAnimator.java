@@ -77,7 +77,7 @@ class TransformAnimator {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  static void transToFab(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt) {
+  static void transToFab(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt, final int afterVisibility) {
     final int centerX = (int) (getCenterX(ffab) - bbt.getLeft());
     final int centerY = (int) (getCenterY(ffab) - bbt.getTop());
     final Animator revealAnimator = ViewAnimationUtils.createCircularReveal(bbt,
@@ -87,7 +87,7 @@ class TransformAnimator {
       @Override
       public void onAnimationEnd(Animator animation) {
         bbt.setVisibility(View.INVISIBLE);
-        showFFAB(ffab);
+        showFFAB(ffab, afterVisibility);
       }
     });
     revealAnimator.setDuration(TOOLBAR_MOVE_DURATION);
@@ -96,7 +96,7 @@ class TransformAnimator {
 
   private static final DecelerateInterpolator DECELERATE_INTERPOLATOR = new DecelerateInterpolator();
 
-  private static void showFFAB(@NonNull IndicatableFFAB ffab) {
+  private static void showFFAB(@NonNull IndicatableFFAB ffab, final int afterVisibility) {
     final ViewPropertyAnimator animator = ffab.animate()
         .scaleX(1)
         .scaleY(1)
@@ -107,7 +107,7 @@ class TransformAnimator {
     animator.setListener(new AnimatorListenerAdapter() {
       @Override
       public void onAnimationStart(Animator animation) {
-        ffab.setVisibility(View.VISIBLE);
+        ffab.setVisibility(afterVisibility);
       }
     });
     animator.start();

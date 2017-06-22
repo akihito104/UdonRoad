@@ -92,7 +92,7 @@ public class UserInfoActivityInstTest {
       PerformUtil.selectItemViewAt(0);
       PerformUtil.reply();
       // verify
-      onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+      onView(withId(R.id.tw_intext)).check(matches(withText("")));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
       onView(withId(R.id.action_group_user)).check(doesNotExist());
       onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
@@ -103,7 +103,7 @@ public class UserInfoActivityInstTest {
         throws Exception {
       PerformUtil.selectItemViewAt(0);
       PerformUtil.reply();
-      onView(withId(R.id.tw_intext)).check(matches(withText("@" + getLoginUser().getScreenName() + " ")));
+      onView(withId(R.id.tw_intext)).check(matches(withText("")));
       PerformUtil.clickCancelWriteOnMenu();
       // verify
       onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
