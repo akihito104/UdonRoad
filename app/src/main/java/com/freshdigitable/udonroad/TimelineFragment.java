@@ -268,10 +268,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    if (getActivity() instanceof FabHandleable) {
-      ((FabHandleable) getActivity()).removeOnItemSelectedListener(iffabItemSelectedListener);
-      iffabItemSelectedListener = null;
-    }
+    removeOnItemSelectedListener();
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedItemChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
@@ -349,9 +346,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       ((FabHandleable) activity).showFab();
-      if (iffabItemSelectedListener != null) {
-        ((FabHandleable) activity).removeOnItemSelectedListener(iffabItemSelectedListener);
-      }
+      removeOnItemSelectedListener();
       iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedTweetId());
       ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);
     }
@@ -361,7 +356,13 @@ public abstract class TimelineFragment<T> extends Fragment {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       ((FabHandleable) activity).hideFab();
-      ((FabHandleable) activity).removeOnItemSelectedListener(iffabItemSelectedListener);
+    }
+    removeOnItemSelectedListener();
+  }
+
+  private void removeOnItemSelectedListener() {
+    if (getActivity() instanceof FabHandleable) {
+      ((FabHandleable) getActivity()).removeOnItemSelectedListener(iffabItemSelectedListener);
       iffabItemSelectedListener = null;
     }
   }
