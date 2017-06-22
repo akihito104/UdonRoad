@@ -128,13 +128,13 @@ public class StatusListItem implements TwitterListItem {
   }
 
   enum StatusStats {
-    RETWEET(){
+    RETWEET(TwitterReactionContainer.ReactionIcon.RETWEET){
       @Override
       Stat getStat(Status status) {
         return new Stat() {
           @Override
           public int getType() {
-            return R.drawable.ic_retweet;
+            return icon.type;
           }
 
           @Override
@@ -148,13 +148,13 @@ public class StatusListItem implements TwitterListItem {
           }
         };
       }
-    }, FAV() {
+    }, FAV(TwitterReactionContainer.ReactionIcon.FAV) {
       @Override
       Stat getStat(Status status) {
         return new Stat() {
           @Override
           public int getType() {
-            return R.drawable.ic_like;
+            return icon.type;
           }
 
           @Override
@@ -168,13 +168,13 @@ public class StatusListItem implements TwitterListItem {
           }
         };
       }
-    }, HAS_REPLY() {
+    }, HAS_REPLY(TwitterReactionContainer.ReactionIcon.IN_REPLY_TO) {
       @Override
       Stat getStat(Status status) {
         return new Stat() {
           @Override
           public int getType() {
-            return R.drawable.ic_forum;
+            return icon.type;
           }
 
           @Override
@@ -189,6 +189,12 @@ public class StatusListItem implements TwitterListItem {
         };
       }
     };
+
+    final TwitterReactionContainer.ReactionIcon icon;
+
+    StatusStats(TwitterReactionContainer.ReactionIcon icon) {
+      this.icon = icon;
+    }
 
     abstract Stat getStat(Status status);
   }

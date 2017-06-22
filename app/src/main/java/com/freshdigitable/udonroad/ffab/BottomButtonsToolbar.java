@@ -105,6 +105,7 @@ class BottomButtonsToolbar extends Toolbar {
     iv.setImageDrawable(icon);
     iv.setImageState(item.parseToState(), false);
     final int itemId = item.getItemId();
+    iv.setId(itemId);
     iv.setOnClickListener(v -> menu.dispatchSelectedMenuItem(itemId));
   }
 
