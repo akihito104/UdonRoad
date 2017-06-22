@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import rx.Observable;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
@@ -115,7 +114,8 @@ public class TwitterResponseMock {
     return createResponseList(new ArrayList<>());
   }
 
-  public static ResponseList<Status> createResponseList(final List<Status> list) {
+  public static ResponseList<Status> createResponseList(final List<Status> statuses) {
+    final ArrayList<Status> list = new ArrayList<>(statuses);
     return new ResponseList<Status>() {
       @Override
       public RateLimitStatus getRateLimitStatus() {
@@ -252,12 +252,7 @@ public class TwitterResponseMock {
   public static void receiveDeletionNotice(final UserStreamListener listener,
                                            Status... statuses) throws Exception {
     Observable.just(Arrays.asList(statuses))
-        .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
-          @Override
-          public Iterable<Status> call(List<Status> statuses) {
-            return statuses;
-          }
-        })
+        .flatMapIterable(s -> s)
         .map(TwitterResponseMock::createDeletionNotice)
         .observeOn(Schedulers.io())
         .subscribe(listener::onDeletionNotice);
@@ -266,12 +261,7 @@ public class TwitterResponseMock {
   public static void receiveStatuses(final UserStreamListener listener,
                                      Status... statuses) throws Exception {
     Observable.just(Arrays.asList(statuses))
-        .flatMapIterable(new Func1<List<Status>, Iterable<Status>>() {
-          @Override
-          public Iterable<Status> call(List<Status> statusList) {
-            return statusList;
-          }
-        })
+        .flatMapIterable(s -> s)
         .observeOn(Schedulers.io())
         .subscribe(listener::onStatus);
   }

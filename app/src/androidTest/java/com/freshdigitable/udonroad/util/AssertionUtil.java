@@ -16,7 +16,11 @@
 
 package com.freshdigitable.udonroad.util;
 
+import android.view.View;
+
 import com.freshdigitable.udonroad.R;
+
+import org.hamcrest.Matcher;
 
 import twitter4j.Status;
 
@@ -26,6 +30,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getFavIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getFavIconOfQuoted;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.getHasReplyIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getRTIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
@@ -39,38 +44,44 @@ import static org.hamcrest.Matchers.not;
 public class AssertionUtil {
 
   public static void checkFavCountAt(int index, int expectedCount) {
-    onView(ofStatusViewAt(R.id.timeline, index))
-        .check(selectedDescendantsMatch(getFavIcon(), isDisplayed()));
-    onView(ofStatusViewAt(R.id.timeline, index))
-        .check(selectedDescendantsMatch(
-            getFavIcon(), withText(Integer.toString(expectedCount))));
+    checkFavCount(ofStatusViewAt(R.id.timeline, index), expectedCount);
   }
 
   public static void checkFavCount(Status status, int expectedCount) {
-    onView(ofStatusView(withText(status.getText())))
-        .check(selectedDescendantsMatch(
-            getFavIcon(), withText(Integer.toString(expectedCount))));
+    checkFavCount(ofStatusView(withText(status.getText())), expectedCount);
   }
 
   public static void checkFavCountDoesNotExist(Status status) {
-    onView(ofStatusView(withText(status.getText())))
-        .check(selectedDescendantsMatch(getFavIcon(), not(isDisplayed())));
+    checkFavCount(status, 0);
+  }
+
+  private static void checkFavCount(Matcher<View> root, int expectedCount) {
+    final int visibility = expectedCount > 0 ? View.VISIBLE : View.INVISIBLE;
+    checkReactionIcon(root, getFavIcon(), visibility, expectedCount);
   }
 
   public static void checkFavCountForQuoted(Status quotedStatus, int expectedCount) {
-    onView(ofQuotedStatusView(withText(quotedStatus.getText())))
-        .check(selectedDescendantsMatch(getFavIconOfQuoted(), isDisplayed()));
-    onView(ofQuotedStatusView(withText(quotedStatus.getText())))
-        .check(selectedDescendantsMatch(getFavIconOfQuoted(),
-            withText(Integer.toString(expectedCount))));
+    checkReactionIcon(ofQuotedStatusView(withText(quotedStatus.getText())), getFavIconOfQuoted(),
+        expectedCount > 0 ? View.VISIBLE : View.INVISIBLE, expectedCount);
   }
 
   public static void checkRTCountAt(int index, int expectedCount) {
-    onView(ofStatusViewAt(R.id.timeline, index))
-        .check(selectedDescendantsMatch(getRTIcon(), isDisplayed()));
-    onView(ofStatusViewAt(R.id.timeline, index))
-        .check(selectedDescendantsMatch(
-            getRTIcon(), withText(Integer.toString(expectedCount))));
+    checkReactionIcon(ofStatusViewAt(R.id.timeline, index), getRTIcon(),
+        expectedCount > 0 ? View.VISIBLE : View.INVISIBLE, expectedCount);
+  }
+
+  public static void checkHasReplyTo(Status status) {
+    onView(ofStatusView(withText(status.getText())))
+        .check(selectedDescendantsMatch(getHasReplyIcon(), isDisplayed()));
+  }
+
+  private static void checkReactionIcon(Matcher<View> root, Matcher<View> icon,
+                                        int expectedVisibility, int expectedCount) {
+    final Matcher<View> displayed = expectedVisibility == View.VISIBLE ? isDisplayed() : not(isDisplayed());
+    onView(root).check(selectedDescendantsMatch(icon, displayed));
+    if (expectedVisibility == View.VISIBLE) {
+      onView(root).check(selectedDescendantsMatch(icon, withText(Integer.toString(expectedCount))));
+    }
   }
 
   private AssertionUtil() {}
