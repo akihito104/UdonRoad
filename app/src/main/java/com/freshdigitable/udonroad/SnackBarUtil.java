@@ -21,7 +21,7 @@ import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 
-import rx.functions.Action0;
+import io.reactivex.functions.Action;
 
 /**
  * Created by akihit on 2016/07/14.
@@ -48,11 +48,11 @@ public class SnackBarUtil {
     create(root, text).show();
   }
 
-  public static Action0 action(@NonNull final View root, final CharSequence text) {
+  public static Runnable action(@NonNull final View root, final CharSequence text) {
     return () -> show(root, text);
   }
 
-  public static Action0 action(@NonNull final View root, final @StringRes int text) {
+  public static Action action(@NonNull final View root, final @StringRes int text) {
     return () -> show(root, text);
   }
   private SnackBarUtil() {

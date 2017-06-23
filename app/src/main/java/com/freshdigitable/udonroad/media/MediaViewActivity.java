@@ -57,7 +57,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
+import io.reactivex.Observable;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 

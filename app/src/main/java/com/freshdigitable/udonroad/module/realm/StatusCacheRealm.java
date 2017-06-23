@@ -32,9 +32,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import rx.Observable;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
@@ -92,18 +94,17 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
   }
 
   @Override
-  public Observable<Void> observeUpsert(Collection<Status> statuses) {
+  public Completable observeUpsert(Collection<Status> statuses) {
     if (statuses == null || statuses.isEmpty()) {
-      return Observable.empty();
+      return Completable.complete();
     }
     final Collection<Status> updates = splitUpsertingStatus(statuses);
     userTypedCache.upsert(splitUserMentionEntity(updates));
     final Collection<User> splitUser = splitUpsertingUser(updates);
     final Collection<StatusReaction> splitReaction = splitUpsertingStatusReaction(updates);
-    return Observable.concat(userTypedCache.observeUpsert(splitUser),
+    return Completable.concatArray(userTypedCache.observeUpsert(splitUser),
         configStore.observeUpsert(splitReaction),
-        super.observeUpsert(updates))
-        .last();
+        super.observeUpsert(updates));
   }
 
   @NonNull
@@ -262,7 +263,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     final int favoriteCount = bindings.getFavoriteCount();
     final int retweetCount = bindings.getRetweetCount();
     final Observable<Status> statusObservable = Observable.create(
-        (Observable.OnSubscribe<Status>) subscriber -> StatusRealm.addChangeListener(bindings,
+        (ObservableOnSubscribe<Status>) subscriber -> StatusRealm.addChangeListener(bindings,
             new RealmChangeListener<StatusRealm>() {
               private int prevFav = favoriteCount;
               private int prevRT = retweetCount;
@@ -282,7 +283,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
                 return bindings1.getFavoriteCount() == prevFav
                     && bindings1.getRetweetCount() == prevRT;
               }
-            })).doOnUnsubscribe(() -> StatusRealm.removeAllChangeListeners(bindings));
+            })).doOnDispose(() -> StatusRealm.removeAllChangeListeners(bindings));
     if (original.getId() == bindings.getId()) {
       return statusObservable;
     }

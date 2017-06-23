@@ -23,15 +23,15 @@ import android.view.ViewGroup;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 
 /**
  * Created by akihit on 2017/06/14.
  */
 public class ItemViewHolder extends RecyclerView.ViewHolder {
-  private Subscription subscription;
+  private Disposable subscription;
   private OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
   private long quotedStatusId;
@@ -61,8 +61,8 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   public void unsubscribe() {
-    if (subscription != null && !subscription.isUnsubscribed()) {
-      subscription.unsubscribe();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
     }
   }
 

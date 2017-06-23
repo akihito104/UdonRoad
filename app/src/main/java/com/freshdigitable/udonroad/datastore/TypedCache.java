@@ -18,7 +18,7 @@ package com.freshdigitable.udonroad.datastore;
 
 import java.util.Collection;
 
-import rx.Observable;
+import io.reactivex.Completable;
 
 /**
  * TypedCache defines to access for cache specified type.
@@ -26,5 +26,5 @@ import rx.Observable;
  * Created by akihit on 2016/09/14.
  */
 public interface TypedCache<T> extends BaseOperation<T> {
-  Observable<Void> observeUpsert(Collection<T> entities);
+  Completable observeUpsert(Collection<T> entities);
 }

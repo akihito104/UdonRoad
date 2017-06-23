@@ -26,10 +26,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.processors.PublishProcessor;
 import twitter4j.User;
 
 /**
@@ -44,7 +44,7 @@ public class UserRequestWorker<T extends BaseOperation<User>>
   @Inject
   public UserRequestWorker(@NonNull TwitterApi twitterApi,
                            @NonNull T userStore,
-                           @NonNull PublishSubject<UserFeedbackEvent> feedback) {
+                           @NonNull PublishProcessor<UserFeedbackEvent> feedback) {
     super(twitterApi, userStore, feedback);
   }
 
@@ -53,7 +53,7 @@ public class UserRequestWorker<T extends BaseOperation<User>>
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
         .doOnError(onErrorFeedback(R.string.msg_create_friendship_failed))
-        .doOnCompleted(onCompleteFeedback(R.string.msg_create_friendship_success));
+        .doOnComplete(onCompleteFeedback(R.string.msg_create_friendship_success));
   }
 
   public Observable<User> observeDestroyFriendship(long userId) {
@@ -61,7 +61,7 @@ public class UserRequestWorker<T extends BaseOperation<User>>
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(createUpsertAction())
         .doOnError(onErrorFeedback(R.string.msg_destroy_friendship_failed))
-        .doOnCompleted(onCompleteFeedback(R.string.msg_destroy_friendship_success));
+        .doOnComplete(onCompleteFeedback(R.string.msg_destroy_friendship_success));
   }
 
   public void fetchFollowers(final long userId, final long cursor) {
@@ -79,12 +79,12 @@ public class UserRequestWorker<T extends BaseOperation<User>>
   }
 
   @NonNull
-  private Action1<User> createUpsertAction() {
+  private Consumer<User> createUpsertAction() {
     return user -> cache.upsert(user);
   }
 
   @NonNull
-  private Action1<List<User>> createUpsertListAction() {
+  private Consumer<List<User>> createUpsertListAction() {
     return users -> cache.upsert(users);
   }
 }

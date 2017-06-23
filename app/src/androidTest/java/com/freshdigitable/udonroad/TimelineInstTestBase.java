@@ -163,6 +163,7 @@ public abstract class TimelineInstTestBase {
     when(ignoringUserIDsMock.getIDs()).thenReturn(new long[0]);
     when(ignoringUserIDsMock.getNextCursor()).thenReturn(0L);
     when(ignoringUserIDsMock.getPreviousCursor()).thenReturn(0L);
+    when(ignoringUserIDsMock.hasNext()).thenReturn(false);
     when(twitter.getBlocksIDs()).thenReturn(ignoringUserIDsMock);
     when(twitter.getBlocksIDs(anyLong())).thenReturn(ignoringUserIDsMock);
     when(twitter.getMutesIDs(anyLong())).thenReturn(ignoringUserIDsMock);

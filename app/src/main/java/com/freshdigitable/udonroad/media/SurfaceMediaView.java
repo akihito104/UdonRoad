@@ -36,10 +36,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import twitter4j.MediaEntity;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -53,7 +53,7 @@ public class SurfaceMediaView extends MediaFragment {
   private static final String TAG = SurfaceMediaView.class.getSimpleName();
   private FragmentSurfaceMediaBinding binding;
   private final MediaPlayer mediaPlayer = new MediaPlayer();
-  private Subscription subscribe;
+  private Disposable subscribe;
 
   @Nullable
   @Override
@@ -117,8 +117,8 @@ public class SurfaceMediaView extends MediaFragment {
   @Override
   public void onPause() {
     super.onPause();
-    if (subscribe != null && !subscribe.isUnsubscribed()) {
-      subscribe.unsubscribe();
+    if (subscribe != null && !subscribe.isDisposed()) {
+      subscribe.dispose();
     }
     mediaPlayer.setDisplay(null);
     mediaPlayer.stop();
@@ -164,7 +164,7 @@ public class SurfaceMediaView extends MediaFragment {
 
   private void setupProgressBar() {
     final String timeElapseFormat = getString(R.string.media_remain_time);
-    subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
+    subscribe = Flowable.interval(500, MILLISECONDS, Schedulers.io())
         .onBackpressureLatest()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(aLong -> {

@@ -29,7 +29,7 @@ import java.util.Arrays;
 
 import javax.inject.Inject;
 
-import rx.Observable;
+import io.reactivex.Observable;
 import twitter4j.Paging;
 import twitter4j.Status;
 

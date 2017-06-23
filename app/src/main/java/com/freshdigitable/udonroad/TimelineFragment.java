@@ -48,7 +48,7 @@ import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 
 import javax.inject.Inject;
 
-import rx.Subscription;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
@@ -66,7 +66,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   private FragmentTimelineBinding binding;
   private TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
-  private Subscription updateEventSubscription;
+  private Disposable updateEventSubscription;
   @Inject
   ListRequestWorker<T> requestWorker;
   private TimelineDecoration timelineDecoration;
@@ -145,7 +145,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
 
-    if (updateEventSubscription == null || updateEventSubscription.isUnsubscribed()) {
+    if (updateEventSubscription == null || updateEventSubscription.isDisposed()) {
       updateEventSubscription = requestWorker.getCache().observeUpdateEvent()
           .subscribe(event -> {
             if (event.type == UpdateEvent.EventType.INSERT) {
@@ -334,7 +334,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     binding.timeline.setLayoutManager(null);
     tlLayoutManager = null;
     binding.timeline.setAdapter(null);
-    updateEventSubscription.unsubscribe();
+    updateEventSubscription.dispose();
     requestWorker.close();
     requestWorker.drop();
     tlAdapter = null;

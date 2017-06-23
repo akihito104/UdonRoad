@@ -22,8 +22,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.schedulers.Schedulers;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
@@ -159,17 +160,17 @@ public class TwitterApi {
   }
 
   public Observable<IDs> getAllBlocksIDs() {
-    return Observable.create((Observable.OnSubscribe<IDs>) subscriber -> {
+    return Observable.create((ObservableOnSubscribe<IDs>) subscriber -> {
       try {
-        IDs blocksIDs = null;
-        while (blocksIDs == null || blocksIDs.hasNext()) {
-          final long cursor = blocksIDs == null
-              ? -1
-              : blocksIDs.getNextCursor();
-          blocksIDs = twitter.getBlocksIDs(cursor);
+        IDs blocksIDs = twitter.getBlocksIDs(-1);
+        while (blocksIDs != null && blocksIDs.hasNext()) {
           subscriber.onNext(blocksIDs);
+          if (!blocksIDs.hasNext()) {
+            break;
+          }
+          blocksIDs = twitter.getBlocksIDs(blocksIDs.getNextCursor());
         }
-        subscriber.onCompleted();
+        subscriber.onComplete();
       } catch (TwitterException e) {
         subscriber.onError(e);
       }
@@ -177,17 +178,17 @@ public class TwitterApi {
   }
 
   public Observable<IDs> getAllMutesIDs() {
-    return Observable.create((Observable.OnSubscribe<IDs>) subscriber -> {
+    return Observable.create((ObservableOnSubscribe<IDs>) subscriber -> {
       try {
-        IDs mutesIDs = null;
-        while (mutesIDs == null || mutesIDs.hasNext()) {
-          final long cursor = mutesIDs == null
-              ? -1
-              : mutesIDs.getNextCursor();
-          mutesIDs = twitter.getMutesIDs(cursor);
+        IDs mutesIDs = twitter.getMutesIDs(-1);
+        while (mutesIDs != null && mutesIDs.hasNext()) {
           subscriber.onNext(mutesIDs);
+          if (!mutesIDs.hasNext()) {
+            break;
+          }
+          mutesIDs = twitter.getMutesIDs(mutesIDs.getNextCursor());
         }
-        subscriber.onCompleted();
+        subscriber.onComplete();
       } catch (TwitterException e) {
         subscriber.onError(e);
       }
@@ -195,7 +196,7 @@ public class TwitterApi {
   }
 
   public Observable<Status> fetchConversations(long statusId) {
-    return Observable.create((Observable.OnSubscribe<Status>) subscriber -> {
+    return Observable.create((ObservableOnSubscribe<Status>) subscriber -> {
       try {
         Status status = twitter.showStatus(statusId);
         while (status != null) {
@@ -207,7 +208,7 @@ public class TwitterApi {
             status = null;
           }
         }
-        subscriber.onCompleted();
+        subscriber.onComplete();
       } catch (TwitterException e) {
         subscriber.onError(e);
       }
@@ -226,11 +227,11 @@ public class TwitterApi {
   }
 
   private static <T> Observable<T> observeThrowableFetch(final ThrowableFetch<T> fetch) {
-    return Observable.create((Observable.OnSubscribe<T>) subscriber -> {
+    return Observable.create((ObservableOnSubscribe<T>) subscriber -> {
       try {
         final T ret = fetch.call();
         subscriber.onNext(ret);
-        subscriber.onCompleted();
+        subscriber.onComplete();
       } catch (Exception e) {
         subscriber.onError(e);
       }

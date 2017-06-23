@@ -25,10 +25,11 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
+import io.reactivex.processors.PublishProcessor;
 
 /**
  * RequestWorkerBase is a base class of request worker.
@@ -38,11 +39,11 @@ import rx.subjects.PublishSubject;
 public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   TwitterApi twitterApi;
   T cache;
-  PublishSubject<UserFeedbackEvent> userFeedback;
+  PublishProcessor<UserFeedbackEvent> userFeedback;
 
   RequestWorkerBase(@NonNull TwitterApi twitterApi,
                     @NonNull T cache,
-                    @NonNull PublishSubject<UserFeedbackEvent> userFeedback) {
+                    @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
     this.twitterApi = twitterApi;
     this.cache = cache;
     this.userFeedback = userFeedback;
@@ -74,29 +75,26 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   }
 
   @NonNull
-  Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
+  Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
     return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 
   @NonNull
-  Action0 onCompleteFeedback(@StringRes final int msg) {
+  Action onCompleteFeedback(@StringRes final int msg) {
     return () -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 
   @NonNull
-  public static <T> Subscriber<T> nopSubscriber() {
-    return new Subscriber<T>() {
+  public static <T> Observer<T> nopSubscriber() {
+    return new Observer<T>() {
       @Override
-      public void onCompleted() {
-      }
-
+      public void onSubscribe(Disposable d) {}
       @Override
-      public void onError(Throwable e) {
-      }
-
+      public void onNext(T t) {}
       @Override
-      public void onNext(T o) {
-      }
+      public void onError(Throwable e) {}
+      @Override
+      public void onComplete() {}
     };
   }
 }

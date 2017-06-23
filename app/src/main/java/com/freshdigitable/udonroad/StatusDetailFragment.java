@@ -37,9 +37,9 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusDetailView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem.TextType;
@@ -52,8 +52,8 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -71,8 +71,8 @@ public class StatusDetailFragment extends Fragment {
   private FragmentStatusDetailBinding binding;
   @Inject
   StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
-  private Subscription subscription;
-  private Subscription cardSubscription;
+  private Disposable subscription;
+  private Disposable cardSubscription;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -217,11 +217,11 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getThumbnailContainer().setOnMediaClickListener(null);
     binding.sdTwitterCard.setOnClickListener(null);
-    if (subscription != null && !subscription.isUnsubscribed()) {
-      subscription.unsubscribe();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
     }
-    if (cardSubscription != null && !cardSubscription.isUnsubscribed()) {
-      cardSubscription.unsubscribe();
+    if (cardSubscription != null && !cardSubscription.isDisposed()) {
+      cardSubscription.dispose();
     }
     statusRequestWorker.close();
   }

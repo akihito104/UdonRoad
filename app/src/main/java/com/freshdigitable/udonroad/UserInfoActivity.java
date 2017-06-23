@@ -50,9 +50,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -74,7 +74,7 @@ public class UserInfoActivity extends AppCompatActivity
   TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
-  private Subscription subscription;
+  private Disposable subscription;
   private StatusDetailFragment statusDetailFragment;
 
   @Override
@@ -172,7 +172,7 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
     binding.userInfoTabs.setupWithViewPager(null);
-    subscription.unsubscribe();
+    subscription.dispose();
     userCache.close();
   }
 

@@ -40,10 +40,10 @@ import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
 import twitter4j.RateLimitStatus;
 import twitter4j.Relationship;
 import twitter4j.User;
@@ -56,7 +56,7 @@ import twitter4j.User;
 public class UserInfoFragment extends Fragment {
   private static final String LOADINGTAG_USER_INFO_IMAGES = "UserInfoImages";
   private FragmentUserInfoBinding binding;
-  private Subscription subscription;
+  private Disposable subscription;
 
   @Override
   public void onAttach(Context context) {
@@ -104,8 +104,8 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    if (subscription != null && !subscription.isUnsubscribed()) {
-      subscription.unsubscribe();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
     }
     dismissUserInfo();
     userRequestWorker.close();
@@ -156,19 +156,19 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
       userRequestWorker.observeCreateFriendship(userId)
-          .doOnCompleted(updateFollowing(true))
+          .doOnComplete(updateFollowing(true))
           .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_unfollow) {
       userRequestWorker.observeDestroyFriendship(userId)
-          .doOnCompleted(updateFollowing(false))
+          .doOnComplete(updateFollowing(false))
           .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_block) {
       configRequestWorker.observeCreateBlock(userId)
-          .doOnCompleted(updateBlocking(true))
+          .doOnComplete(updateBlocking(true))
           .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_unblock) {
       configRequestWorker.observeDestroyBlock(userId)
-          .doOnCompleted(updateBlocking(false))
+          .doOnComplete(updateBlocking(false))
           .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_block_retweet) {
       configRequestWorker.observeBlockRetweet(relationship)
@@ -180,11 +180,11 @@ public class UserInfoFragment extends Fragment {
           .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_mute) {
       configRequestWorker.observeCreateMute(userId)
-          .doOnCompleted(updateMuting(true))
+          .doOnComplete(updateMuting(true))
           .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_unmute) {
       configRequestWorker.observeDestroyMute(userId)
-          .doOnCompleted(updateMuting(false))
+          .doOnComplete(updateMuting(false))
           .subscribe(RequestWorkerBase.nopSubscriber());
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
@@ -236,11 +236,11 @@ public class UserInfoFragment extends Fragment {
 
   private void notifyRelationshipChanged() {
     binding.userInfoUserInfoView.bindRelationship(relationship);
-    getActivity().supportInvalidateOptionsMenu();
+    getActivity().invalidateOptionsMenu();
   }
 
   @NonNull
-  private Action0 updateFollowing(final boolean following) {
+  private Action updateFollowing(final boolean following) {
     return () -> {
       relationship.setFollowing(following);
       notifyRelationshipChanged();
@@ -248,7 +248,7 @@ public class UserInfoFragment extends Fragment {
   }
 
   @NonNull
-  private Action0 updateBlocking(final boolean blocking) {
+  private Action updateBlocking(final boolean blocking) {
     return () -> {
       relationship.setBlocking(blocking);
       notifyRelationshipChanged();
@@ -256,14 +256,14 @@ public class UserInfoFragment extends Fragment {
   }
 
   @NonNull
-  private Action0 updateMuting(final boolean muting) {
+  private Action updateMuting(final boolean muting) {
     return () -> {
       relationship.setMuting(muting);
       notifyRelationshipChanged();
     };
   }
 
-  private Action1<Relationship> updateRelationship() {
+  private Consumer<Relationship> updateRelationship() {
     return relationship1 -> setRelationship(new RelationshipImpl(relationship1));
   }
 

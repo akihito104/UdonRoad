@@ -24,8 +24,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
 import io.realm.Realm;
-import rx.Observable;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -110,9 +111,9 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
     if (user == null) {
       return Observable.empty();
     }
-    return Observable.create(
-        (Observable.OnSubscribe<User>) subscriber -> UserRealm.addChangeListener(user, subscriber::onNext))
-        .doOnUnsubscribe(() -> UserRealm.removeAllChangeListeners(user));
+    return Observable.create((ObservableOnSubscribe<User>) subscriber ->
+        UserRealm.addChangeListener(user, subscriber::onNext))
+        .doOnDispose(() -> UserRealm.removeAllChangeListeners(user));
   }
 
   @Override

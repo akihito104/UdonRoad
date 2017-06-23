@@ -30,11 +30,11 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subjects.PublishSubject;
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.processors.PublishProcessor;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -52,19 +52,18 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 public class UserStreamUtil {
   private static final String TAG = UserStreamUtil.class.getSimpleName();
   private final TwitterStreamApi streamApi;
-  private final PublishSubject<UserFeedbackEvent> feedback;
+  private final PublishProcessor<UserFeedbackEvent> feedback;
   private long userId;
   private final AppSettingStore appSettings;
   private final SortedCache<Status> sortedStatusCache;
   private final TypedCache<Status> pool;
-  private Subscription onReactionSubscription;
 
   @Inject
   public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
                         @NonNull SortedCache<Status> sortedStatusCache,
                         @NonNull TypedCache<Status> pool,
                         @NonNull AppSettingStore appSettings,
-                        @NonNull PublishSubject<UserFeedbackEvent> feedback) {
+                        @NonNull PublishProcessor<UserFeedbackEvent> feedback) {
     this.streamApi = streamApi;
     this.feedback = feedback;
     this.appSettings = appSettings;
@@ -73,37 +72,38 @@ public class UserStreamUtil {
   }
 
   private boolean isConnectedUserStream = false;
-  private PublishSubject<Status> statusPublishSubject;
-  private Subscription onStatusSubscription;
-  private PublishSubject<Long> deletionPublishSubject;
-  private Subscription onDeletionSubscription;
-  private PublishSubject<Status> reactionPublishSubject;
+  private PublishProcessor<Status> statusPublishSubject;
+  private Disposable onStatusSubscription;
+  private PublishProcessor<Long> deletionPublishSubject;
+  private Disposable onDeletionSubscription;
+  private PublishProcessor<Status> reactionPublishSubject;
+  private Disposable onReactionSubscription;
 
   public void connect(String storeName) {
-    if (onStatusSubscription == null || onStatusSubscription.isUnsubscribed()) {
-      statusPublishSubject = PublishSubject.create();
+    if (onStatusSubscription == null || onStatusSubscription.isDisposed()) {
+      statusPublishSubject = PublishProcessor.create();
       onStatusSubscription = statusPublishSubject
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(sortedStatusCache::upsert, onErrorAction);
     }
-    if (onDeletionSubscription == null || onDeletionSubscription.isUnsubscribed()) {
-      deletionPublishSubject = PublishSubject.create();
+    if (onDeletionSubscription == null || onDeletionSubscription.isDisposed()) {
+      deletionPublishSubject = PublishProcessor.create();
       onDeletionSubscription = deletionPublishSubject
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
-          .flatMap(Observable::from)
+          .flatMap(Flowable::fromIterable)
           .subscribe(sortedStatusCache::delete, onErrorAction);
     }
-    if (reactionPublishSubject == null || onReactionSubscription.isUnsubscribed()) {
-      reactionPublishSubject = PublishSubject.create();
+    if (reactionPublishSubject == null || onReactionSubscription.isDisposed()) {
+      reactionPublishSubject = PublishProcessor.create();
       onReactionSubscription = reactionPublishSubject
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
-          .flatMap(Observable::from)
+          .flatMap(Flowable::fromIterable)
           .subscribe(pool::upsert, onErrorAction);
     }
     if (!isConnectedUserStream) {
@@ -127,24 +127,24 @@ public class UserStreamUtil {
     }
 
     if (statusPublishSubject != null) {
-      statusPublishSubject.onCompleted();
+      statusPublishSubject.onComplete();
     }
-    if (onStatusSubscription != null && !onStatusSubscription.isUnsubscribed()) {
-      onStatusSubscription.unsubscribe();
+    if (onStatusSubscription != null && !onStatusSubscription.isDisposed()) {
+      onStatusSubscription.dispose();
     }
 
     if (deletionPublishSubject != null) {
-      deletionPublishSubject.onCompleted();
+      deletionPublishSubject.onComplete();
     }
-    if (onDeletionSubscription != null && !onDeletionSubscription.isUnsubscribed()) {
-      onDeletionSubscription.unsubscribe();
+    if (onDeletionSubscription != null && !onDeletionSubscription.isDisposed()) {
+      onDeletionSubscription.dispose();
     }
 
     if (reactionPublishSubject != null) {
-      reactionPublishSubject.onCompleted();
+      reactionPublishSubject.onComplete();
     }
-    if (onReactionSubscription != null && !onReactionSubscription.isUnsubscribed()) {
-      onReactionSubscription.unsubscribe();
+    if (onReactionSubscription != null && !onReactionSubscription.isDisposed()) {
+      onReactionSubscription.dispose();
     }
   }
 
@@ -218,5 +218,5 @@ public class UserStreamUtil {
     }
   };
 
-  private final Action1<Throwable> onErrorAction = throwable -> Log.d(TAG, "error: " + throwable);
+  private final Consumer<Throwable> onErrorAction = throwable -> Log.d(TAG, "error: " + throwable);
 }

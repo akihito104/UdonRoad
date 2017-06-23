@@ -55,8 +55,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscription;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.Observable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity
         .commit());
   }
 
-  private Subscription subscription;
+  private Disposable subscription;
 
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
@@ -195,8 +195,8 @@ public class MainActivity extends AppCompatActivity
   protected void onStop() {
     super.onStop();
     binding.ffab.setOnIffabItemSelectedListener(null);
-    if (subscription != null && !subscription.isUnsubscribed()) {
-      subscription.unsubscribe();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
     }
   }
 

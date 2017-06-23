@@ -16,38 +16,38 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import rx.Observable;
-import rx.subjects.PublishSubject;
+import io.reactivex.Flowable;
+import io.reactivex.processors.PublishProcessor;
 
 /**
  * Created by akihit on 2017/03/28.
  */
 
 public class UpdateSubject {
-  private final PublishSubject<UpdateEvent> eventPublishSubject;
+  private final PublishProcessor<UpdateEvent> eventPublishProcessor;
   private final String name;
 
   UpdateSubject(String name) {
     this.name = name;
-    eventPublishSubject = PublishSubject.create();
+    eventPublishProcessor = PublishProcessor.create();
   }
 
-  public Observable<UpdateEvent> observeUpdateEvent() {
-    return eventPublishSubject.onBackpressureBuffer();
+  public Flowable<UpdateEvent> observeUpdateEvent() {
+    return eventPublishProcessor.onBackpressureBuffer();
   }
 
   public void onComplete() {
-    if (!eventPublishSubject.hasCompleted()) {
-      eventPublishSubject.onCompleted();
+    if (!eventPublishProcessor.hasComplete()) {
+      eventPublishProcessor.onComplete();
     }
   }
 
   public boolean hasCompleted() {
-    return eventPublishSubject.hasCompleted();
+    return eventPublishProcessor.hasComplete();
   }
 
-  public boolean hasObservers() {
-    return eventPublishSubject.hasObservers();
+  public boolean hasSubscribers() {
+    return eventPublishProcessor.hasSubscribers();
   }
 
   public void onNext(UpdateEvent.EventType type, int index) {
@@ -59,6 +59,6 @@ public class UpdateSubject {
   }
 
   public void onNext(UpdateEvent updateEvent) {
-    eventPublishSubject.onNext(updateEvent);
+    eventPublishProcessor.onNext(updateEvent);
   }
 }

@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
@@ -31,7 +32,7 @@ import com.freshdigitable.udonroad.media.ThumbnailView;
 
 import java.lang.ref.WeakReference;
 
-import rx.Observable;
+import io.reactivex.Observable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -67,22 +68,19 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
     return wrapListItem(item);
   }
 
-  @Nullable
+  @NonNull
   private static <T> ListItem wrapListItem(T item) {
     if (item instanceof Status) {
       return new StatusListItem((Status) item);
     } else if (item instanceof User) {
       return new UserListItem((User) item);
     }
-    return null;
+    throw new IllegalStateException();
   }
 
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final ListItem item = wrapListItem(position);
-    if (item == null) {
-      return;
-    }
     holder.bind(item);
 
     if (position == getItemCount() - 1) {

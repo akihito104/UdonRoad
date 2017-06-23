@@ -68,9 +68,9 @@ public class ConversationInstTest extends TimelineInstTestBase {
     Espresso.unregisterIdlingResources(timelineIdlingResource);
     PerformUtil.selectItemView(replied);
     PerformUtil.favo();
+    Espresso.pressBack();
     AssertionUtil.checkFavCount(replied, 1);
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
-    Espresso.pressBack();
     Espresso.pressBack();
 
     Espresso.pressBack();

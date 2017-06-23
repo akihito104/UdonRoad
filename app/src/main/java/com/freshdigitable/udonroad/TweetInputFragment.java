@@ -53,8 +53,8 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscription;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.User;
@@ -77,7 +77,7 @@ public class TweetInputFragment extends Fragment {
   ConfigRequestWorker configRequestWorker;
   @Inject
   AppSettingStore appSettings;
-  private Subscription subscription;
+  private Disposable subscription;
 
   public static TweetInputFragment create() {
     return create(TYPE_NONE);
@@ -262,9 +262,9 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void tearDownTweetInputView() {
-    if (subscription != null && !subscription.isUnsubscribed()) {
+    if (subscription != null && !subscription.isDisposed()) {
       Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
-      subscription.unsubscribe();
+      subscription.dispose();
     }
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
     binding.mainTweetInputView.reset();
@@ -331,7 +331,7 @@ public class TweetInputFragment extends Fragment {
           inputText.clearFocus();
           inputText.disappearing();
           setupMenuVisibility();
-        }).doOnCompleted(() -> {
+        }).doOnComplete(() -> {
           replyEntity = null;
           quoteStatusIds.clear();
         });

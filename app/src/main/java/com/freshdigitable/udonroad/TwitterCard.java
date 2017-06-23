@@ -31,12 +31,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import rx.Observable;
-import rx.schedulers.Schedulers;
 
 /**
  * TwitterCard defines data to create TwitterCardView.
@@ -89,16 +90,16 @@ public class TwitterCard {
   @NonNull
   public static Observable<TwitterCard> observeFetch(final String expandedURL) {
     final Call call = Fetcher.createCall(expandedURL);
-    return Observable.create((Observable.OnSubscribe<TwitterCard>) subscriber -> {
+    return Observable.create((ObservableOnSubscribe<TwitterCard>) subscriber -> {
       try {
         final TwitterCard twitterCard = Fetcher.fetch(call);
         subscriber.onNext(twitterCard);
-        subscriber.onCompleted();
+        subscriber.onComplete();
       } catch (IOException | XmlPullParserException e) {
         subscriber.onError(e);
       }
     }).subscribeOn(Schedulers.io())
-        .doOnUnsubscribe(call::cancel);
+        .doOnDispose(call::cancel);
   }
 
   private static class Fetcher {

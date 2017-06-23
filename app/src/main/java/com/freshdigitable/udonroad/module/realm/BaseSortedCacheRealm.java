@@ -24,9 +24,9 @@ import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
+import io.reactivex.Flowable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import rx.Observable;
 
 /**
  * BaseStoredCacheRealm is a base class implementing SortedCache.<br>
@@ -83,7 +83,7 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   }
 
   @Override
-  public Observable<UpdateEvent> observeUpdateEvent() {
+  public Flowable<UpdateEvent> observeUpdateEvent() {
     return updateSubject.observeUpdateEvent();
   }
 
