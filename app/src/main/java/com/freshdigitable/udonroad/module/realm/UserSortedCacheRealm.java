@@ -52,7 +52,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   public void open(String storeName) {
     super.open(storeName);
     userCache.open();
-    if (ordered != null) {
+    if (ordered == null) {
       ordered = realm.where(ListedUserIDs.class)
           .findAllSorted("order");
     }
