@@ -79,7 +79,7 @@ public class UserInfoPagerFragment extends Fragment {
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    viewPager = (ViewPager) view.findViewById(R.id.user_pager);
+    viewPager = view.findViewById(R.id.user_pager);
   }
 
   private PagerAdapter pagerAdapter;
