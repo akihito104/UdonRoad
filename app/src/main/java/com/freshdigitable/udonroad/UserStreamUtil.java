@@ -103,27 +103,22 @@ public class UserStreamUtil {
           .buffer(500, TimeUnit.MILLISECONDS)
           .onBackpressureBuffer()
           .observeOn(AndroidSchedulers.mainThread())
-          .flatMap(Flowable::fromIterable)
           .subscribe(pool::upsert, onErrorAction);
     }
     if (!isConnectedUserStream) {
       pool.open();
       sortedStatusCache.open(storeName);
       appSettings.open();
+      userId = appSettings.getCurrentUserId();
       streamApi.setOAuthAccessToken(appSettings.getCurrentUserAccessToken());
       streamApi.connectUserStream(statusListener);
-      userId = appSettings.getCurrentUserId();
       isConnectedUserStream = true;
     }
   }
 
   public void disconnect() {
     if (isConnectedUserStream) {
-      pool.close();
-      appSettings.close();
-      sortedStatusCache.close();
       streamApi.disconnectStreamListener();
-      isConnectedUserStream = false;
     }
 
     if (statusPublishSubject != null) {
@@ -145,6 +140,13 @@ public class UserStreamUtil {
     }
     if (onReactionSubscription != null && !onReactionSubscription.isDisposed()) {
       onReactionSubscription.dispose();
+    }
+
+    if (isConnectedUserStream) {
+      appSettings.close();
+      sortedStatusCache.close();
+      pool.close();
+      isConnectedUserStream = false;
     }
   }
 
