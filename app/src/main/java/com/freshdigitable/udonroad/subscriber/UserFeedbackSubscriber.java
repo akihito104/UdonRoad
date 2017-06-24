@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -86,7 +87,7 @@ public class UserFeedbackSubscriber {
               toast.show();
             };
           }
-        });
+        }, e -> Log.e(TAG, "feedback: ", e));
   }
 
   private WeakReference<View> rootView;

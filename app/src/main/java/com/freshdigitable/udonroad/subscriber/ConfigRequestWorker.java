@@ -94,10 +94,11 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   }
 
   public Observable<User> getAuthenticatedUser() {
-    if (!isAuthenticated()) return Observable.empty();
-    return twitterApi.getId()
+    return isAuthenticated()
+        ? twitterApi.getId()
         .observeOn(AndroidSchedulers.mainThread())
-        .map(appSettings::getAuthenticatedUser);
+        .map(appSettings::getAuthenticatedUser)
+        : Observable.empty();
   }
 
   private Observable<TwitterAPIConfiguration> fetchTwitterAPIConfig() {

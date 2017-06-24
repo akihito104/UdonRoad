@@ -38,6 +38,7 @@ import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * TwitterCard defines data to create TwitterCardView.
@@ -120,8 +121,12 @@ public class TwitterCard {
       Response response = null;
       try {
         response = call.execute();
-        final Map<Property, String> metadata = findMetaTagForCard(response.body().charStream());
-        return new TwitterCard(response.request().url().toString(), metadata);
+        final ResponseBody body = response.body();
+        if (body != null) {
+          final Map<Property, String> metadata = findMetaTagForCard(body.charStream());
+          return new TwitterCard(response.request().url().toString(), metadata);
+        }
+        throw new IllegalStateException("twitter card fetch error...");
       } finally {
         if (response != null) {
           Log.d(TAG, "fetch: close response");

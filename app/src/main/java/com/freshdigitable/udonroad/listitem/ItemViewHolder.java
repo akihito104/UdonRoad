@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -55,9 +56,8 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
   public void subscribe(Observable<ListItem> observable) {
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(item -> {
-          getView().update((TwitterListItem) item);
-        });
+        .subscribe(item -> getView().update((TwitterListItem) item),
+            th -> Log.e("ItemViewHolder", "update: ", th));
   }
 
   public void unsubscribe() {

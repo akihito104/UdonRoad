@@ -132,9 +132,11 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.bind(item);
     subscription = statusCache.observeById(statusId)
         .subscribe(s -> {
-          binding.statusView.update(new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE));
-          updateFabMenuItem(s);
-        });
+              final StatusListItem listItem = new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE);
+              binding.statusView.update(listItem);
+              updateFabMenuItem(s);
+            },
+            e -> Log.e(TAG, "onStart: ", e));
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {

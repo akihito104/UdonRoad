@@ -112,7 +112,8 @@ public class MainActivity extends AppCompatActivity
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
     subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(this::setupNavigationDrawerHeader);
+        .subscribe(this::setupNavigationDrawerHeader,
+            e -> Log.e(TAG, "setupNavigationDrawer: ", e));
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
       int itemId = item.getItemId();
       if (itemId == R.id.menu_home) {

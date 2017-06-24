@@ -148,14 +148,15 @@ public abstract class TimelineFragment<T> extends Fragment {
     if (updateEventSubscription == null || updateEventSubscription.isDisposed()) {
       updateEventSubscription = requestWorker.getCache().observeUpdateEvent()
           .subscribe(event -> {
-            if (event.type == UpdateEvent.EventType.INSERT) {
-              tlAdapter.notifyItemRangeInserted(event.index, event.length);
-            } else if (event.type == UpdateEvent.EventType.CHANGE) {
-              tlAdapter.notifyItemRangeChanged(event.index, event.length);
-            } else if (event.type == UpdateEvent.EventType.DELETE) {
-              tlAdapter.notifyItemRangeRemoved(event.index, event.length);
-            }
-          });
+                if (event.type == UpdateEvent.EventType.INSERT) {
+                  tlAdapter.notifyItemRangeInserted(event.index, event.length);
+                } else if (event.type == UpdateEvent.EventType.CHANGE) {
+                  tlAdapter.notifyItemRangeChanged(event.index, event.length);
+                } else if (event.type == UpdateEvent.EventType.DELETE) {
+                  tlAdapter.notifyItemRangeRemoved(event.index, event.length);
+                }
+              },
+              e -> Log.e(TAG, "updateEvent: ", e));
     }
   }
 

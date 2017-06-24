@@ -23,6 +23,7 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -98,7 +99,8 @@ public class UserInfoFragment extends Fragment {
     showUserInfo(user);
     subscription = userCache.observeById(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(this::showUserInfo);
+        .subscribe(this::showUserInfo,
+            e-> Log.e("UserInfoFragment", "userUpdated: ", e));
   }
 
   @Override

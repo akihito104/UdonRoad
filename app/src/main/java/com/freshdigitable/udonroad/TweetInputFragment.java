@@ -255,7 +255,7 @@ public class TweetInputFragment extends Fragment {
               .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
               .tag(LOADINGTAG_TWEET_INPUT_ICON)
               .into(inputText.getIcon());
-        });
+        }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
     inputText.addTextWatcher(textWatcher);
     inputText.setShortUrlLength(
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());

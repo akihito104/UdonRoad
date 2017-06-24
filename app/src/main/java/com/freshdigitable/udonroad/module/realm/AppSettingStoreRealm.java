@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.content.SharedPreferences;
+import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -98,7 +99,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
     cache.upsert(authenticatedUser);
   }
 
-  @Override
+  @Override @Nullable
   public User getAuthenticatedUser(long userId) {
     final UserRealm user = realm.where(UserRealm.class)
         .equalTo("id", userId)

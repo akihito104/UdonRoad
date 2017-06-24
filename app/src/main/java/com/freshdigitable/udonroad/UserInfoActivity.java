@@ -32,6 +32,7 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -158,7 +159,7 @@ public class UserInfoActivity extends AppCompatActivity
               tab.setText(p.createTitle(_user));
             }
           }
-        });
+        }, e -> Log.e(TAG, "userUpdated: ", e));
 
     setSupportActionBar(binding.userInfoToolbar);
     setupActionMap();
