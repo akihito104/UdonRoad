@@ -30,10 +30,10 @@ import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Single;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.auth.AccessToken;
@@ -86,33 +86,20 @@ public class OAuthActivity extends AppCompatActivity {
   private RequestToken requestToken;
 
   private void startAuthorization() {
-    Observable.create((Observable.OnSubscribe<String>) subscriber -> {
+    Single.create((SingleOnSubscribe<String>) subscriber -> {
       try {
         requestToken = twitter.getOAuthRequestToken(callbackUrl);
         String authUrl = requestToken.getAuthorizationURL();
-        subscriber.onNext(authUrl);
-        subscriber.onCompleted();
+        subscriber.onSuccess(authUrl);
       } catch (TwitterException e) {
         subscriber.onError(e);
       }
     })
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Subscriber<String>() {
-          @Override
-          public void onCompleted() {
-          }
-
-          @Override
-          public void onError(Throwable e) {
-            Log.e(TAG, "Authorization error: ", e);
-          }
-
-          @Override
-          public void onNext(String authUrl) {
-            startAuthAction(authUrl);
-          }
-        });
+        .subscribe(
+            this::startAuthAction,
+            e -> Log.e(TAG, "Authorization error: ", e));
   }
 
   private void startAuthAction(String url) {
@@ -140,32 +127,19 @@ public class OAuthActivity extends AppCompatActivity {
   }
 
   private void startAuthentication(final String verifier) {
-    Observable.create((Observable.OnSubscribe<AccessToken>) subscriber -> {
+    Single.create((SingleOnSubscribe<AccessToken>) subscriber -> {
       try {
         AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
-        subscriber.onNext(accessToken);
-        subscriber.onCompleted();
+        subscriber.onSuccess(accessToken);
       } catch (TwitterException e) {
         subscriber.onError(e);
       }
     })
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Subscriber<AccessToken>() {
-          @Override
-          public void onCompleted() {
-          }
-
-          @Override
-          public void onError(Throwable e) {
-            Log.e(TAG, "authentication error: ", e);
-          }
-
-          @Override
-          public void onNext(AccessToken accessToken) {
-            checkOAuth(accessToken);
-          }
-        });
+        .subscribe(
+            this::checkOAuth,
+            e -> Log.e(TAG, "authentication error: ", e));
   }
 
   private void checkOAuth(AccessToken accessToken) {

@@ -28,13 +28,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
-import rx.Observable;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.module.realm.BaseCacheRealm.findById;
@@ -131,9 +133,9 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
-  public Observable<Void> observeUpsert(final Collection<StatusReaction> entities) {
+  public Completable observeUpsert(final Collection<StatusReaction> entities) {
     if (entities == null || entities.isEmpty()) {
-      return Observable.empty();
+      return Completable.complete();
     }
     return TypedCacheBaseRealm.observeUpsertImpl(configStore, upsertTransaction(entities));
   }
@@ -173,8 +175,8 @@ public class ConfigStoreRealm implements ConfigStore {
     if (statusReaction == null) {
       return Observable.empty();
     }
-    return Observable.create(
-        (Observable.OnSubscribe<StatusReaction>) subscriber -> RealmObject.addChangeListener(statusReaction,
+    return Observable.create((ObservableOnSubscribe<StatusReaction>) subscriber ->
+        RealmObject.addChangeListener(statusReaction,
             new RealmChangeListener<StatusReactionRealm>() {
               private boolean prevFaved = statusReaction.isFavorited();
               private boolean prevRTed = statusReaction.isRetweeted();
@@ -193,7 +195,7 @@ public class ConfigStoreRealm implements ConfigStore {
                 return l.isFavorited() == prevFaved
                     && l.isRetweeted() == prevRTed;
               }
-            })).doOnUnsubscribe(() -> RealmObject.removeAllChangeListeners(statusReaction));
+            })).doOnDispose(() -> RealmObject.removeAllChangeListeners(statusReaction));
   }
 
   @Override

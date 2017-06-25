@@ -50,19 +50,15 @@ public class StatusViewInstTest {
 
   @Before
   public void setup() {
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-      @Override
-      public void run() {
-        sut = new StatusView(InstrumentationRegistry.getTargetContext());
-      }
-    });
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+        sut = new StatusView(InstrumentationRegistry.getTargetContext()));
   }
 
   @Test
   public void bindStatus_normal_0RT_0fav() throws Exception {
     Status status = createStatus(10);
     sut.bind(new StatusListItem(status));
-    final TextView account = (TextView) sut.findViewById(R.id.tl_names);
+    final TextView account = sut.findViewById(R.id.tl_names);
     final User user = status.getUser();
     final String format = String.format(account.getResources().getString(
         R.string.tweet_name_screenName),

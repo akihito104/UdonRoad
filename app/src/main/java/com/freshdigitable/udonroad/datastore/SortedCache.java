@@ -16,7 +16,7 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import rx.Observable;
+import io.reactivex.Flowable;
 
 /**
  * SortedCache defines to access storage of sorted data specified type parameter.
@@ -26,7 +26,7 @@ import rx.Observable;
 public interface SortedCache<T> extends BaseOperation<T> {
   void open(String storeName);
 
-  Observable<UpdateEvent> observeUpdateEvent();
+  Flowable<UpdateEvent> observeUpdateEvent();
 
   T get(int position);
 

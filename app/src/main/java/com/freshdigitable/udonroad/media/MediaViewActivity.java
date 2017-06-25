@@ -48,7 +48,6 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.ArrayList;
@@ -57,7 +56,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
+import io.reactivex.Observable;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 
@@ -391,9 +390,9 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         userActionSubscriber.retweetStatus(statusId);
       } else if (itemId == R.id.iffabMenu_media_favRt) {
         Observable.concatDelayError(Arrays.asList(
-            userActionSubscriber.observeCreateFavorite(statusId),
-            userActionSubscriber.observeRetweetStatus(statusId))
-        ).subscribe(RequestWorkerBase.nopSubscriber());
+            userActionSubscriber.observeCreateFavorite(statusId).toObservable(),
+            userActionSubscriber.observeRetweetStatus(statusId).toObservable())
+        ).subscribe(s -> {}, e -> {});
       }
     });
   }

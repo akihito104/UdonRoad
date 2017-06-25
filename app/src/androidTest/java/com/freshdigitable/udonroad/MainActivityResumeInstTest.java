@@ -106,6 +106,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     // exec.
     PerformUtil.selectItemViewAt(0);
     PerformUtil.favo();
+    Espresso.pressBack();
     AssertionUtil.checkFavCountAt(0, 1);
   }
 

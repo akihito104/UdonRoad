@@ -55,8 +55,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscription;
+import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -107,12 +107,13 @@ public class MainActivity extends AppCompatActivity
         .commit());
   }
 
-  private Subscription subscription;
+  private Disposable subscription;
 
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
     subscription = configRequestWorker.getAuthenticatedUser()
-        .subscribe(this::setupNavigationDrawerHeader);
+        .subscribe(this::setupNavigationDrawerHeader,
+            e -> Log.e(TAG, "setupNavigationDrawer: ", e));
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
       int itemId = item.getItemId();
       if (itemId == R.id.menu_home) {
@@ -195,8 +196,8 @@ public class MainActivity extends AppCompatActivity
   protected void onStop() {
     super.onStop();
     binding.ffab.setOnIffabItemSelectedListener(null);
-    if (subscription != null && !subscription.isUnsubscribed()) {
-      subscription.unsubscribe();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
     }
   }
 
@@ -363,8 +364,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnNext(status -> cancelWritingSelected());
+  public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
+    return updateStatusObservable.doOnSuccess(status -> cancelWritingSelected());
   }
 
   private void setupActionMap() {

@@ -27,10 +27,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmResults;
-import rx.Observable;
 import twitter4j.PagableResponseList;
 import twitter4j.User;
 
@@ -52,13 +52,16 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   public void open(String storeName) {
     super.open(storeName);
     userCache.open();
-    ordered = realm.where(ListedUserIDs.class)
-        .findAllSorted("order");
+    if (ordered == null) {
+      ordered = realm.where(ListedUserIDs.class)
+          .findAllSorted("order");
+    }
   }
 
   @Override
   public void close() {
     ordered.removeAllChangeListeners();
+    ordered = null;
     super.close();
     userCache.close();
   }
@@ -119,7 +122,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     ordered.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
       @Override
       public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
-        if (updateSubject.hasObservers()) {
+        if (updateSubject.hasSubscribers()) {
           final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
           for (OrderedCollectionChangeSet.Range i : insertions) {
             updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);

@@ -29,7 +29,7 @@ import java.util.Arrays;
 
 import javax.inject.Inject;
 
-import rx.Observable;
+import io.reactivex.Observable;
 import twitter4j.Paging;
 import twitter4j.Status;
 
@@ -134,9 +134,9 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         }
       } else if (itemId == R.id.iffabMenu_main_favRt) {
         Observable.concatDelayError(Arrays.asList(
-            requestWorker.observeCreateFavorite(selectedId),
-            requestWorker.observeRetweetStatus(selectedId))
-        ).subscribe(RequestWorkerBase.nopSubscriber());
+            requestWorker.observeCreateFavorite(selectedId).toObservable(),
+            requestWorker.observeRetweetStatus(selectedId).toObservable())
+        ).subscribe(s -> {}, e -> {});
       }
     };
   }

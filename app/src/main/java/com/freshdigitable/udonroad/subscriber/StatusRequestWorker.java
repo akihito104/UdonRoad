@@ -33,10 +33,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subjects.PublishSubject;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.processors.PublishProcessor;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -57,7 +57,7 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
   public StatusRequestWorker(@NonNull TwitterApi twitterApi,
                              @NonNull T statusStore,
                              @NonNull ConfigStore configStore,
-                             @NonNull PublishSubject<UserFeedbackEvent> userFeedback) {
+                             @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
     super(twitterApi, statusStore, userFeedback);
     this.configStore = configStore;
   }
@@ -147,10 +147,10 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
             onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
-  public Observable<Status> observeCreateFavorite(final long statusId) {
+  public Single<Status> observeCreateFavorite(final long statusId) {
     return twitterApi.createFavorite(statusId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(createUpsertAction())
+        .doOnSuccess(createUpsertAction(R.string.msg_fav_create_success))
         .doOnError(throwable -> {
           final int msg = findMessageByTwitterExeption(throwable);
           if (msg == R.string.msg_already_fav) {
@@ -160,19 +160,17 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
           final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0
               ? msg : R.string.msg_fav_create_failed);
           userFeedback.onNext(event);
-        })
-        .doOnCompleted(onCompleteFeedback(R.string.msg_fav_create_success));
+        });
   }
 
   public void createFavorite(long statusId) {
-    observeCreateFavorite(statusId)
-        .subscribe(RequestWorkerBase.nopSubscriber());
+    observeCreateFavorite(statusId).subscribe((s, e) -> {});
   }
 
-  public Observable<Status> observeRetweetStatus(final long statusId) {
+  public Single<Status> observeRetweetStatus(final long statusId) {
     return twitterApi.retweetStatus(statusId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(createUpsertAction())
+        .doOnSuccess(createUpsertAction(R.string.msg_rt_create_success))
         .doOnError(throwable -> {
           final int msg = findMessageByTwitterExeption(throwable);
           if (msg == R.string.msg_already_rt) {
@@ -182,57 +180,63 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
           final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0 ?
               msg : R.string.msg_rt_create_failed);
           userFeedback.onNext(event);
-        })
-        .doOnCompleted(onCompleteFeedback(R.string.msg_rt_create_success));
+        });
   }
 
   public void retweetStatus(long statusId) {
-    observeRetweetStatus(statusId)
-        .subscribe(RequestWorkerBase.nopSubscriber());
+    observeRetweetStatus(statusId).subscribe((s, e) -> {});
   }
 
   public void destroyFavorite(long statusId) {
     twitterApi.destroyFavorite(statusId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            status -> cache.insert(status),
-            onErrorFeedback(R.string.msg_fav_delete_failed),
-            onCompleteFeedback(R.string.msg_fav_delete_success));
+        .subscribe(status -> {
+              cache.insert(status);
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_fav_delete_success));
+            },
+            onErrorFeedback(R.string.msg_fav_delete_failed));
   }
 
   public void destroyRetweet(long statusId) {
     twitterApi.destroyStatus(statusId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            status -> cache.insert(status),
-            onErrorFeedback(R.string.msg_rt_delete_failed),
-            onCompleteFeedback(R.string.msg_rt_delete_success));
+        .subscribe(status -> {
+              cache.insert(status);
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_delete_success));
+            },
+            onErrorFeedback(R.string.msg_rt_delete_failed));
   }
 
-  public Observable<Status> observeUpdateStatus(String text) {
+  public Single<Status> observeUpdateStatus(String text) {
     return twitterApi.updateStatus(text)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(createUpsertAction())
-        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed))
-        .doOnCompleted(onCompleteFeedback(R.string.msg_updateStatus_success));
+        .doOnSuccess(createUpsertAction(R.string.msg_updateStatus_success))
+        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed));
   }
 
-  public Observable<Status> observeUpdateStatus(StatusUpdate statusUpdate) {
+  public Single<Status> observeUpdateStatus(StatusUpdate statusUpdate) {
     return twitterApi.updateStatus(statusUpdate)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(createUpsertAction())
-        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed))
-        .doOnCompleted(onCompleteFeedback(R.string.msg_updateStatus_success));
+        .doOnSuccess(createUpsertAction(R.string.msg_updateStatus_success))
+        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed));
   }
 
   @NonNull
-  private Action1<List<Status>> createListUpsertAction() {
+  private Consumer<List<Status>> createListUpsertAction() {
     return statuses -> cache.upsert(statuses);
   }
 
   @NonNull
-  private Action1<Status> createUpsertAction() {
+  private Consumer<Status> createUpsertAction() {
     return statuses -> cache.upsert(statuses);
+  }
+
+  @NonNull
+  private Consumer<Status> createUpsertAction(@StringRes int msg) {
+    return s -> {
+      cache.upsert(s);
+      userFeedback.onNext(new UserFeedbackEvent(msg));
+    };
   }
 
   @StringRes
@@ -252,13 +256,16 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     return 0;
   }
 
-  private void updateStatusWithReaction(long statusId, Action1<StatusReaction> action) {
+  private void updateStatusWithReaction(long statusId, Consumer<StatusReaction> action) {
     final Status status = cache.find(statusId);
     if (status == null) {
       return;
     }
     final StatusReactionImpl reaction = new StatusReactionImpl(Utils.getBindingStatus(status));
-    action.call(reaction);
+    try {
+      action.accept(reaction); // XXX
+    } catch (Exception e) {
+    }
     configStore.insert(reaction);
   }
 

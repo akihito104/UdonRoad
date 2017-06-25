@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -106,6 +107,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
     PerformUtil.favo();
+    Espresso.pressBack();
     AssertionUtil.checkFavCountAt(0, 1);
     // TODO tint color check
   }

@@ -26,8 +26,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
@@ -183,6 +183,7 @@ public class TwitterResponseMock {
         return list.lastIndexOf(object);
       }
 
+      @NonNull
       @Override
       public ListIterator<Status> listIterator() {
         return list.listIterator();

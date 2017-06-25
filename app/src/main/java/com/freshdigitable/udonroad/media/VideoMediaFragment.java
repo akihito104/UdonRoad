@@ -33,10 +33,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import twitter4j.MediaEntity.Variant;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -51,7 +51,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @SuppressWarnings("unused")
   private static final String TAG = VideoMediaFragment.class.getSimpleName();
   private VideoView videoView;
-  private Subscription subscribe;
+  private Disposable subscribe;
 
   @Nullable
   @Override
@@ -64,7 +64,7 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    videoView = (VideoView) view.findViewById(R.id.media_video);
+    videoView = view.findViewById(R.id.media_video);
   }
 
   @Override
@@ -87,14 +87,14 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
     });
     rootView.setOnTouchListener(super.getTouchListener());
 
-    final ProgressBar progressBar = (ProgressBar) rootView.findViewById(R.id.media_progressBar);
+    final ProgressBar progressBar = rootView.findViewById(R.id.media_progressBar);
     videoView.setOnPreparedListener(mediaPlayer -> {
       progressBar.setMax(mediaPlayer.getDuration());
       vv.start();
     });
-    final TextView progressText = (TextView) rootView.findViewById(R.id.media_progressText);
+    final TextView progressText = rootView.findViewById(R.id.media_progressText);
     final String timeElapseFormat = getString(R.string.media_remain_time);
-    subscribe = Observable.interval(500, MILLISECONDS, Schedulers.io())
+    subscribe = Flowable.interval(500, MILLISECONDS, Schedulers.io())
         .onBackpressureLatest()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(aLong -> {
@@ -160,8 +160,8 @@ public class VideoMediaFragment extends MediaViewActivity.MediaFragment {
       rootView.setOnClickListener(null);
       rootView.setOnTouchListener(null);
     }
-    if (subscribe != null && !subscribe.isUnsubscribed()) {
-      subscribe.unsubscribe();
+    if (subscribe != null && !subscribe.isDisposed()) {
+      subscribe.dispose();
     }
   }
 }

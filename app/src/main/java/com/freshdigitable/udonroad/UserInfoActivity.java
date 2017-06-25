@@ -32,6 +32,7 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -50,9 +51,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -74,7 +75,7 @@ public class UserInfoActivity extends AppCompatActivity
   TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
-  private Subscription subscription;
+  private Disposable subscription;
   private StatusDetailFragment statusDetailFragment;
 
   @Override
@@ -158,7 +159,7 @@ public class UserInfoActivity extends AppCompatActivity
               tab.setText(p.createTitle(_user));
             }
           }
-        });
+        }, e -> Log.e(TAG, "userUpdated: ", e));
 
     setSupportActionBar(binding.userInfoToolbar);
     setupActionMap();
@@ -172,7 +173,7 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
     binding.userInfoTabs.setupWithViewPager(null);
-    subscription.unsubscribe();
+    subscription.dispose();
     userCache.close();
   }
 
@@ -279,8 +280,8 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
-  public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnNext(status -> closeTwitterInputView());
+  public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
+    return updateStatusObservable.doOnSuccess(status -> closeTwitterInputView());
   }
 
   private void setupActionMap() {

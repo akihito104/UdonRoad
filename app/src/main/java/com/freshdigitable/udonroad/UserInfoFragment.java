@@ -23,6 +23,7 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,16 +35,14 @@ import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import twitter4j.RateLimitStatus;
 import twitter4j.Relationship;
 import twitter4j.User;
@@ -56,7 +55,7 @@ import twitter4j.User;
 public class UserInfoFragment extends Fragment {
   private static final String LOADINGTAG_USER_INFO_IMAGES = "UserInfoImages";
   private FragmentUserInfoBinding binding;
-  private Subscription subscription;
+  private Disposable subscription;
 
   @Override
   public void onAttach(Context context) {
@@ -91,21 +90,21 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     configRequestWorker.observeFetchRelationship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(updateRelationship())
-        .subscribe(RequestWorkerBase.nopSubscriber());
+        .subscribe(updateRelationship(), e -> {});
     final TypedCache<User> userCache = userRequestWorker.getCache();
     final User user = userCache.find(userId);
     showUserInfo(user);
     subscription = userCache.observeById(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(this::showUserInfo);
+        .subscribe(this::showUserInfo,
+            e-> Log.e("UserInfoFragment", "userUpdated: ", e));
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    if (subscription != null && !subscription.isUnsubscribed()) {
-      subscription.unsubscribe();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
     }
     dismissUserInfo();
     userRequestWorker.close();
@@ -156,36 +155,28 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
       userRequestWorker.observeCreateFriendship(userId)
-          .doOnCompleted(updateFollowing(true))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateFollowing(true), e -> {});
     } else if (itemId == R.id.action_unfollow) {
       userRequestWorker.observeDestroyFriendship(userId)
-          .doOnCompleted(updateFollowing(false))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateFollowing(false), e -> {});
     } else if (itemId == R.id.action_block) {
       configRequestWorker.observeCreateBlock(userId)
-          .doOnCompleted(updateBlocking(true))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateBlocking(true), e -> {});
     } else if (itemId == R.id.action_unblock) {
       configRequestWorker.observeDestroyBlock(userId)
-          .doOnCompleted(updateBlocking(false))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateBlocking(false), e -> {});
     } else if (itemId == R.id.action_block_retweet) {
       configRequestWorker.observeBlockRetweet(relationship)
-          .doOnNext(updateRelationship())
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateRelationship(), e -> {});
     } else if (itemId == R.id.action_unblock_retweet) {
       configRequestWorker.observeUnblockRetweet(relationship)
-          .doOnNext(updateRelationship())
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateRelationship(), e -> {});
     } else if (itemId == R.id.action_mute) {
       configRequestWorker.observeCreateMute(userId)
-          .doOnCompleted(updateMuting(true))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateMuting(true), e -> {});
     } else if (itemId == R.id.action_unmute) {
       configRequestWorker.observeDestroyMute(userId)
-          .doOnCompleted(updateMuting(false))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateMuting(false), e -> {});
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
     }
@@ -236,34 +227,34 @@ public class UserInfoFragment extends Fragment {
 
   private void notifyRelationshipChanged() {
     binding.userInfoUserInfoView.bindRelationship(relationship);
-    getActivity().supportInvalidateOptionsMenu();
+    getActivity().invalidateOptionsMenu();
   }
 
   @NonNull
-  private Action0 updateFollowing(final boolean following) {
-    return () -> {
+  private Consumer<User> updateFollowing(final boolean following) {
+    return u -> {
       relationship.setFollowing(following);
       notifyRelationshipChanged();
     };
   }
 
   @NonNull
-  private Action0 updateBlocking(final boolean blocking) {
-    return () -> {
+  private Consumer<User> updateBlocking(final boolean blocking) {
+    return u -> {
       relationship.setBlocking(blocking);
       notifyRelationshipChanged();
     };
   }
 
   @NonNull
-  private Action0 updateMuting(final boolean muting) {
-    return () -> {
+  private Consumer<User> updateMuting(final boolean muting) {
+    return u -> {
       relationship.setMuting(muting);
       notifyRelationshipChanged();
     };
   }
 
-  private Action1<Relationship> updateRelationship() {
+  private Consumer<Relationship> updateRelationship() {
     return relationship1 -> setRelationship(new RelationshipImpl(relationship1));
   }
 

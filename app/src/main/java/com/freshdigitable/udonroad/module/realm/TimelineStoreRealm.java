@@ -29,11 +29,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
-import rx.Observable;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
@@ -55,7 +55,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
     @Override
     public void onChange(RealmResults<StatusIDs> elem, OrderedCollectionChangeSet changeSet) {
       setItemCount(elem.size());
-      if (updateSubject.hasObservers()) {
+      if (updateSubject.hasSubscribers()) {
         for (OrderedCollectionChangeSet.Range range : changeSet.getInsertionRanges()) {
           updateSubject.onNext(EventType.INSERT, range.startIndex, range.length);
         }
@@ -80,6 +80,9 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   private void defaultTimeline() {
+    if (timeline != null) {
+      return;
+    }
     timeline = realm
         .where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
@@ -117,7 +120,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
 
     final List<StatusIDs> inserts = createInsertList(statuses);
     final List<StatusIDs> updates = createUpdateList(statuses);
-    statusCache.observeUpsert(statuses).subscribe(aVoid -> {
+    statusCache.observeUpsert(statuses).subscribe(() -> {
       if (!inserts.isEmpty()) {
         insertStatus(inserts);
       }
@@ -150,7 +153,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   }
 
   private List<StatusIDs> createUpdateList(List<Status> statuses) {
-    if (!updateSubject.hasObservers()) {
+    if (!updateSubject.hasSubscribers()) {
       return Collections.emptyList();
     }
 
@@ -265,7 +268,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
       @Override
       public void onChange(RealmResults<StatusIDs> collection, OrderedCollectionChangeSet changeSet) {
         setItemCount(collection.size());
-        if (updateSubject.hasObservers()) {
+        if (updateSubject.hasSubscribers()) {
           final OrderedCollectionChangeSet.Range[] deletions = changeSet.getDeletionRanges();
           for (int i = deletions.length - 1; i >= 0; i--) {
             updateSubject.onNext(EventType.DELETE, deletions[i].startIndex, deletions[i].length);
@@ -313,6 +316,7 @@ public class TimelineStoreRealm extends BaseSortedCacheRealm<Status> {
   @Override
   public void close() {
     timeline.removeAllChangeListeners();
+    timeline = null;
     super.close();
     statusCache.close();
     configStore.close();

@@ -31,12 +31,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 
 /**
  * TwitterCard defines data to create TwitterCardView.
@@ -89,16 +91,16 @@ public class TwitterCard {
   @NonNull
   public static Observable<TwitterCard> observeFetch(final String expandedURL) {
     final Call call = Fetcher.createCall(expandedURL);
-    return Observable.create((Observable.OnSubscribe<TwitterCard>) subscriber -> {
+    return Observable.create((ObservableOnSubscribe<TwitterCard>) subscriber -> {
       try {
         final TwitterCard twitterCard = Fetcher.fetch(call);
         subscriber.onNext(twitterCard);
-        subscriber.onCompleted();
+        subscriber.onComplete();
       } catch (IOException | XmlPullParserException e) {
         subscriber.onError(e);
       }
     }).subscribeOn(Schedulers.io())
-        .doOnUnsubscribe(call::cancel);
+        .doOnDispose(call::cancel);
   }
 
   private static class Fetcher {
@@ -119,8 +121,12 @@ public class TwitterCard {
       Response response = null;
       try {
         response = call.execute();
-        final Map<Property, String> metadata = findMetaTagForCard(response.body().charStream());
-        return new TwitterCard(response.request().url().toString(), metadata);
+        final ResponseBody body = response.body();
+        if (body != null) {
+          final Map<Property, String> metadata = findMetaTagForCard(body.charStream());
+          return new TwitterCard(response.request().url().toString(), metadata);
+        }
+        throw new IllegalStateException("twitter card fetch error...");
       } finally {
         if (response != null) {
           Log.d(TAG, "fetch: close response");

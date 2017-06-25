@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -25,12 +26,11 @@ import com.freshdigitable.udonroad.SnackBarUtil;
 
 import java.lang.ref.WeakReference;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subjects.PublishSubject;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.processors.PublishProcessor;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * UserFeedbackSubscriber subscribes request job such as RT and fav.
@@ -40,29 +40,29 @@ import rx.subjects.PublishSubject;
 public class UserFeedbackSubscriber {
   @SuppressWarnings("unused")
   private static final String TAG = UserFeedbackSubscriber.class.getSimpleName();
-  private Subscription feedbackSubscription;
-  private final PublishSubject<UserFeedbackEvent> feedbackSubject;
+  private Disposable feedbackSubscription;
+  private final PublishProcessor<UserFeedbackEvent> feedbackSubject;
   private final Context context;
 
   public UserFeedbackSubscriber(@NonNull Context context,
-                                PublishSubject<UserFeedbackEvent> feedbackSubject) {
+                                PublishProcessor<UserFeedbackEvent> feedbackSubject) {
     this.context = context;
     this.feedbackSubject = feedbackSubject;
     subscribe();
   }
 
   private void subscribe() {
-    if (feedbackSubscription != null && !feedbackSubscription.isUnsubscribed()) {
+    if (feedbackSubscription != null && !feedbackSubscription.isDisposed()) {
       return;
     }
     this.feedbackSubscription = this.feedbackSubject.onBackpressureBuffer()
         .observeOn(Schedulers.newThread())
-        .subscribe(new Action1<UserFeedbackEvent>() {
+        .subscribe(new Consumer<UserFeedbackEvent>() {
           @Override
-          public void call(final UserFeedbackEvent msg) {
-            Subscription schedule = null;
+          public void accept(final UserFeedbackEvent msg) {
+            Disposable schedule = null;
             try {
-              final Action0 feedbackAction = createFeedbackAction(msg);
+              final Runnable feedbackAction = createFeedbackAction(msg);
               schedule = AndroidSchedulers.mainThread().createWorker()
                   .schedule(feedbackAction);
               Thread.sleep(1000);
@@ -70,12 +70,12 @@ public class UserFeedbackSubscriber {
               // nop
             } finally {
               if (schedule != null) {
-                schedule.unsubscribe();
+                schedule.dispose();
               }
             }
           }
 
-          private Action0 createFeedbackAction(final UserFeedbackEvent msg) {
+          private Runnable createFeedbackAction(final UserFeedbackEvent msg) {
             final View view = rootView.get();
             final CharSequence message = msg.createMessage(context);
             if (view != null) {
@@ -87,7 +87,7 @@ public class UserFeedbackSubscriber {
               toast.show();
             };
           }
-        });
+        }, e -> Log.e(TAG, "feedback: ", e));
   }
 
   private WeakReference<View> rootView;
@@ -125,8 +125,8 @@ public class UserFeedbackSubscriber {
   }
 
   public void unsubscribe() {
-    if (feedbackSubscription != null && !feedbackSubscription.isUnsubscribed()) {
-      feedbackSubscription.unsubscribe();
+    if (feedbackSubscription != null && !feedbackSubscription.isDisposed()) {
+      feedbackSubscription.dispose();
     }
     if (rootView != null) {
       rootView.clear();

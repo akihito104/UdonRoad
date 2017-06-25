@@ -109,6 +109,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     setupCreateFavorite(0, 1);
     PerformUtil.selectQuotedItemView(quoted);
     PerformUtil.favo();
+    Espresso.pressBack();
     AssertionUtil.checkFavCountDoesNotExist(target);
     AssertionUtil.checkFavCountForQuoted(quoted, 1);
   }

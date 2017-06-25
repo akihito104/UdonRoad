@@ -73,12 +73,7 @@ public class MediaEntityRealmTest {
     final Realm realm = Realm.getInstance(conf);
     try {
       final MediaEntityRealm sut = new MediaEntityRealm(mediaEntity);
-      realm.executeTransaction(new Realm.Transaction() {
-        @Override
-        public void execute(Realm realm) {
-          realm.insertOrUpdate(sut);
-        }
-      });
+      realm.executeTransaction(r -> r.insertOrUpdate(sut));
       // exec.
       final MediaEntityRealm actual = realm.where(MediaEntityRealm.class)
           .findFirst();
@@ -87,12 +82,7 @@ public class MediaEntityRealmTest {
       assertThatSizesIsSame(actualSize);
     } finally {
       // tear down
-      realm.executeTransaction(new Realm.Transaction() {
-        @Override
-        public void execute(Realm realm) {
-          realm.deleteAll();
-        }
-      });
+      realm.executeTransaction(r -> r.deleteAll());
       realm.close();
       Realm.deleteRealm(conf);
     }

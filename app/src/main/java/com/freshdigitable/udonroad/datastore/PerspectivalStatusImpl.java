@@ -210,8 +210,8 @@ public class PerspectivalStatusImpl implements PerspectivalStatus {
   }
 
   @Override
-  public int compareTo(@NonNull Status status) {
-    return status.compareTo(status);
+  public int compareTo(@NonNull Status other) {
+    return this.status.compareTo(other);
   }
 
   @Override

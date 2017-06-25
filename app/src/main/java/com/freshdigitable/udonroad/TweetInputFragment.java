@@ -40,7 +40,6 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -53,8 +52,8 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.Subscription;
+import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.User;
@@ -77,7 +76,7 @@ public class TweetInputFragment extends Fragment {
   ConfigRequestWorker configRequestWorker;
   @Inject
   AppSettingStore appSettings;
-  private Subscription subscription;
+  private Disposable subscription;
 
   public static TweetInputFragment create() {
     return create(TYPE_NONE);
@@ -255,16 +254,16 @@ public class TweetInputFragment extends Fragment {
               .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
               .tag(LOADINGTAG_TWEET_INPUT_ICON)
               .into(inputText.getIcon());
-        });
+        }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
     inputText.addTextWatcher(textWatcher);
     inputText.setShortUrlLength(
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
   public void tearDownTweetInputView() {
-    if (subscription != null && !subscription.isUnsubscribed()) {
+    if (subscription != null && !subscription.isDisposed()) {
       Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
-      subscription.unsubscribe();
+      subscription.dispose();
     }
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
     binding.mainTweetInputView.reset();
@@ -284,15 +283,12 @@ public class TweetInputFragment extends Fragment {
       return v -> {
         v.setClickable(false);
         ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
-            .doOnTerminate(() -> v.setClickable(true))
-            .subscribe(RequestWorkerBase.nopSubscriber());
+            .subscribe((s, e) -> v.setClickable(true));
       };
     } else {
       return view -> {
         view.setClickable(false);
-        observeUpdateStatus()
-            .doOnTerminate(() -> view.setClickable(true))
-            .subscribe(RequestWorkerBase.nopSubscriber());
+        observeUpdateStatus().subscribe((s, e) -> view.setClickable(true));
       };
     }
   }
@@ -301,7 +297,7 @@ public class TweetInputFragment extends Fragment {
     tweetSendFab.setOnClickListener(null);
   }
 
-  private Observable<Status> createSendObservable() {
+  private Single<Status> createSendObservable() {
     final String sendingText = binding.mainTweetInputView.getText().toString();
     if (!isStatusUpdateNeeded()) {
       return statusRequestWorker.observeUpdateStatus(sendingText);
@@ -322,16 +318,15 @@ public class TweetInputFragment extends Fragment {
     return statusRequestWorker.observeUpdateStatus(statusUpdate);
   }
 
-  private Observable<Status> observeUpdateStatus() {
+  private Single<Status> observeUpdateStatus() {
     final TweetInputView inputText = binding.mainTweetInputView;
     return createSendObservable()
-        .doOnNext(status -> {
+        .doOnSuccess(status -> {
           inputText.getText().clear();
           inputText.reset();
           inputText.clearFocus();
           inputText.disappearing();
           setupMenuVisibility();
-        }).doOnCompleted(() -> {
           replyEntity = null;
           quoteStatusIds.clear();
         });
@@ -362,7 +357,7 @@ public class TweetInputFragment extends Fragment {
   interface TweetSendable {
     void setupInput(@TweetType int type, long statusId);
 
-    Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable);
+    Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable);
   }
 
   public static final int TYPE_DEFAULT = 0;

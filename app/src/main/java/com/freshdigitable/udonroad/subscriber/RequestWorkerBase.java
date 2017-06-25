@@ -25,10 +25,8 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.subjects.PublishSubject;
+import io.reactivex.functions.Consumer;
+import io.reactivex.processors.PublishProcessor;
 
 /**
  * RequestWorkerBase is a base class of request worker.
@@ -38,11 +36,11 @@ import rx.subjects.PublishSubject;
 public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   TwitterApi twitterApi;
   T cache;
-  PublishSubject<UserFeedbackEvent> userFeedback;
+  PublishProcessor<UserFeedbackEvent> userFeedback;
 
   RequestWorkerBase(@NonNull TwitterApi twitterApi,
                     @NonNull T cache,
-                    @NonNull PublishSubject<UserFeedbackEvent> userFeedback) {
+                    @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
     this.twitterApi = twitterApi;
     this.cache = cache;
     this.userFeedback = userFeedback;
@@ -74,29 +72,7 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   }
 
   @NonNull
-  Action1<Throwable> onErrorFeedback(@StringRes final int msg) {
+  Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
     return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
-  }
-
-  @NonNull
-  Action0 onCompleteFeedback(@StringRes final int msg) {
-    return () -> userFeedback.onNext(new UserFeedbackEvent(msg));
-  }
-
-  @NonNull
-  public static <T> Subscriber<T> nopSubscriber() {
-    return new Subscriber<T>() {
-      @Override
-      public void onCompleted() {
-      }
-
-      @Override
-      public void onError(Throwable e) {
-      }
-
-      @Override
-      public void onNext(T o) {
-      }
-    };
   }
 }

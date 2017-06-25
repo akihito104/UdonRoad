@@ -22,8 +22,8 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.Collection;
 
+import io.reactivex.Completable;
 import io.realm.Realm;
-import rx.Observable;
 
 /**
  * TypedCacheBaseRealm is basis class for implemented TypedCache interface.
@@ -42,20 +42,18 @@ abstract class TypedCacheBaseRealm<T> extends BaseCacheRealm implements TypedCac
   }
 
   @Override
-  public Observable<Void> observeUpsert(final Collection<T> entities) {
+  public Completable observeUpsert(final Collection<T> entities) {
     if (entities == null || entities.isEmpty()) {
-      return Observable.empty();
+      return Completable.complete();
     }
     return observeUpsertImpl(cache, upsertTransaction(entities));
   }
 
-  static Observable<Void> observeUpsertImpl(@NonNull final Realm cache,
-                                            @NonNull final Realm.Transaction upsertTransaction) {
-    return Observable.create(subscriber -> cache.executeTransactionAsync(upsertTransaction,
-        () -> {
-          subscriber.onNext(null);
-          subscriber.onCompleted();
-        }, subscriber::onError));
+  static Completable observeUpsertImpl(@NonNull final Realm cache,
+                                       @NonNull final Realm.Transaction upsertTransaction) {
+    return Completable.create(subscriber ->
+        cache.executeTransactionAsync(
+            upsertTransaction, subscriber::onComplete, subscriber::onError));
   }
 
   abstract Realm.Transaction upsertTransaction(Collection<T> entities);
