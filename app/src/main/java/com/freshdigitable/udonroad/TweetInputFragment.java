@@ -283,15 +283,12 @@ public class TweetInputFragment extends Fragment {
       return v -> {
         v.setClickable(false);
         ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
-            .doOnDispose(() -> v.setClickable(true))
-            .subscribe((s, e) -> {});
+            .subscribe((s, e) -> v.setClickable(true));
       };
     } else {
       return view -> {
         view.setClickable(false);
-        observeUpdateStatus()
-            .doOnDispose(() -> view.setClickable(true))
-            .subscribe((s, e) -> {});
+        observeUpdateStatus().subscribe((s, e) -> view.setClickable(true));
       };
     }
   }
