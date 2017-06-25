@@ -55,8 +55,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.Observable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -364,8 +364,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnNext(status -> cancelWritingSelected());
+  public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
+    return updateStatusObservable.doOnSuccess(status -> cancelWritingSelected());
   }
 
   private void setupActionMap() {

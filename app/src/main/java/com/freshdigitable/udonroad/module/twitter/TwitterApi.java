@@ -24,6 +24,8 @@ import javax.inject.Inject;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Single;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.schedulers.Schedulers;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
@@ -56,107 +58,109 @@ public class TwitterApi {
     twitter.setOAuthAccessToken(accessToken);
   }
 
-  public Observable<Long> getId() {
+  public Single<Long> getId() {
     return observeThrowableFetch(twitter::getId);
   }
 
-  public Observable<User> verifyCredentials() {
+  public Single<User> verifyCredentials() {
     return observeThrowableFetch(() -> twitter.showUser(twitter.getId()));
   }
 
-  public Observable<TwitterAPIConfiguration> getTwitterAPIConfiguration() {
+  public Single<TwitterAPIConfiguration> getTwitterAPIConfiguration() {
     return observeThrowableFetch(twitter::getAPIConfiguration);
   }
 
-  public Observable<Status> updateStatus(final String sendingText) {
+  public Single<Status> updateStatus(final String sendingText) {
     return observeThrowableFetch(() -> twitter.updateStatus(sendingText));
   }
 
-  public Observable<Status> updateStatus(final StatusUpdate statusUpdate) {
+  public Single<Status> updateStatus(final StatusUpdate statusUpdate) {
     return observeThrowableFetch(() -> twitter.updateStatus(statusUpdate));
   }
 
-  public Observable<Status> retweetStatus(final long tweetId) {
+  public Single<Status> retweetStatus(final long tweetId) {
     return observeThrowableFetch(() -> twitter.retweetStatus(tweetId));
   }
 
-  public Observable<Status> createFavorite(final long tweetId) {
+  public Single<Status> createFavorite(final long tweetId) {
     return observeThrowableFetch(() -> twitter.createFavorite(tweetId));
   }
 
-  public Observable<List<Status>> getHomeTimeline() {
+  public Single<List<Status>> getHomeTimeline() {
     return observeThrowableFetch(twitter::getHomeTimeline);
   }
 
-  public Observable<List<Status>> getHomeTimeline(final Paging paging) {
+  public Single<List<Status>> getHomeTimeline(final Paging paging) {
     return observeThrowableFetch(() -> twitter.getHomeTimeline(paging));
   }
 
-  public Observable<Status> destroyStatus(final long id) {
+  public Single<Status> destroyStatus(final long id) {
     return observeThrowableFetch(() -> twitter.destroyStatus(id));
   }
 
-  public Observable<Status> destroyFavorite(final long id) {
+  public Single<Status> destroyFavorite(final long id) {
     return observeThrowableFetch(() -> twitter.destroyFavorite(id));
   }
 
-  public Observable<List<Status>> getUserTimeline(final long userId) {
+  public Single<List<Status>> getUserTimeline(final long userId) {
     return observeThrowableFetch(() -> twitter.getUserTimeline(userId));
   }
 
-  public Observable<List<Status>> getUserTimeline(final long userId, final Paging paging) {
+  public Single<List<Status>> getUserTimeline(final long userId, final Paging paging) {
     return observeThrowableFetch(() -> twitter.getUserTimeline(userId, paging));
   }
 
-  public Observable<List<Status>> getFavorites(final long userId) {
+  public Single<List<Status>> getFavorites(final long userId) {
     return observeThrowableFetch(() -> twitter.getFavorites(userId));
   }
 
-  public Observable<List<Status>> getFavorites(final long userId, final Paging paging) {
+  public Single<List<Status>> getFavorites(final long userId, final Paging paging) {
     return observeThrowableFetch(() -> twitter.getFavorites(userId, paging));
   }
 
-  public Observable<User> createFriendship(final long userId) {
+  public Single<User> createFriendship(final long userId) {
     return observeThrowableFetch(() -> twitter.createFriendship(userId));
   }
 
-  public Observable<User> destroyFriendship(final long userId) {
+  public Single<User> destroyFriendship(final long userId) {
     return observeThrowableFetch(() -> twitter.destroyFriendship(userId));
   }
 
-  public Observable<Relationship> updateFriendship(final long userId,
-                                                   final boolean enableDeviceNotification,
-                                                   final boolean enableRetweet) {
-    return observeThrowableFetch(
-        () -> twitter.updateFriendship(userId, enableDeviceNotification, enableRetweet));
+  public Single<Relationship> updateFriendship(final long userId,
+                                               final boolean enableDeviceNotification,
+                                               final boolean enableRetweet) {
+    return observeThrowableFetch(() ->
+        twitter.updateFriendship(userId, enableDeviceNotification, enableRetweet));
   }
 
-  public Observable<User> createBlock(final long userId) {
+  public Single<User> createBlock(final long userId) {
     return observeThrowableFetch(() -> twitter.createBlock(userId));
   }
 
-  public Observable<User> destroyBlock(final long userId) {
+  public Single<User> destroyBlock(final long userId) {
     return observeThrowableFetch(() -> twitter.destroyBlock(userId));
   }
 
-  public Observable<User> reportSpam(final long userId) {
+  public Single<User> reportSpam(final long userId) {
     return observeThrowableFetch(() -> twitter.reportSpam(userId));
   }
 
-  public Observable<User> createMute(final long userId) {
+  public Single<User> createMute(final long userId) {
     return observeThrowableFetch(() -> twitter.createMute(userId));
   }
 
-  public Observable<User> destroyMute(final long userId) {
+  public Single<User> destroyMute(final long userId) {
     return observeThrowableFetch(() -> twitter.destroyMute(userId));
   }
 
-  public Observable<PagableResponseList<User>> getFollowersList(final long userId, final long cursor) {
-    return observeThrowableFetch(() -> twitter.getFollowersList(userId, cursor, 20, true, false));
+  public Single<PagableResponseList<User>> getFollowersList(final long userId, final long cursor) {
+    return observeThrowableFetch(() ->
+        twitter.getFollowersList(userId, cursor, 20, true, false));
   }
 
-  public Observable<PagableResponseList<User>> getFriendsList(final long userId, final long cursor) {
-    return observeThrowableFetch(() -> twitter.getFriendsList(userId, cursor, 20, true, false));
+  public Single<PagableResponseList<User>> getFriendsList(final long userId, final long cursor) {
+    return observeThrowableFetch(() ->
+        twitter.getFriendsList(userId, cursor, 20, true, false));
   }
 
   public Observable<IDs> getAllBlocksIDs() {
@@ -215,7 +219,7 @@ public class TwitterApi {
     }).subscribeOn(Schedulers.io());
   }
 
-  public Observable<Relationship> showFriendship(final long targetId) {
+  public Single<Relationship> showFriendship(final long targetId) {
     return observeThrowableFetch(() -> {
       final long sourceId = twitter.getId();
       return twitter.showFriendship(sourceId, targetId);
@@ -226,12 +230,11 @@ public class TwitterApi {
     T call() throws Exception;
   }
 
-  private static <T> Observable<T> observeThrowableFetch(final ThrowableFetch<T> fetch) {
-    return Observable.create((ObservableOnSubscribe<T>) subscriber -> {
+  private static <T> Single<T> observeThrowableFetch(final ThrowableFetch<T> fetch) {
+    return Single.create((SingleOnSubscribe<T>) subscriber -> {
       try {
         final T ret = fetch.call();
-        subscriber.onNext(ret);
-        subscriber.onComplete();
+        subscriber.onSuccess(ret);
       } catch (Exception e) {
         subscriber.onError(e);
       }

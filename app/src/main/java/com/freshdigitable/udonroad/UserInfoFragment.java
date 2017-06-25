@@ -35,7 +35,6 @@ import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -43,7 +42,6 @@ import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import twitter4j.RateLimitStatus;
 import twitter4j.Relationship;
@@ -92,8 +90,7 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     configRequestWorker.observeFetchRelationship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(updateRelationship())
-        .subscribe(RequestWorkerBase.nopSubscriber());
+        .subscribe(updateRelationship(), e -> {});
     final TypedCache<User> userCache = userRequestWorker.getCache();
     final User user = userCache.find(userId);
     showUserInfo(user);
@@ -158,36 +155,28 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
       userRequestWorker.observeCreateFriendship(userId)
-          .doOnComplete(updateFollowing(true))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateFollowing(true), e -> {});
     } else if (itemId == R.id.action_unfollow) {
       userRequestWorker.observeDestroyFriendship(userId)
-          .doOnComplete(updateFollowing(false))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateFollowing(false), e -> {});
     } else if (itemId == R.id.action_block) {
       configRequestWorker.observeCreateBlock(userId)
-          .doOnComplete(updateBlocking(true))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateBlocking(true), e -> {});
     } else if (itemId == R.id.action_unblock) {
       configRequestWorker.observeDestroyBlock(userId)
-          .doOnComplete(updateBlocking(false))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateBlocking(false), e -> {});
     } else if (itemId == R.id.action_block_retweet) {
       configRequestWorker.observeBlockRetweet(relationship)
-          .doOnNext(updateRelationship())
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateRelationship(), e -> {});
     } else if (itemId == R.id.action_unblock_retweet) {
       configRequestWorker.observeUnblockRetweet(relationship)
-          .doOnNext(updateRelationship())
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateRelationship(), e -> {});
     } else if (itemId == R.id.action_mute) {
       configRequestWorker.observeCreateMute(userId)
-          .doOnComplete(updateMuting(true))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateMuting(true), e -> {});
     } else if (itemId == R.id.action_unmute) {
       configRequestWorker.observeDestroyMute(userId)
-          .doOnComplete(updateMuting(false))
-          .subscribe(RequestWorkerBase.nopSubscriber());
+          .subscribe(updateMuting(false), e -> {});
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
     }
@@ -242,24 +231,24 @@ public class UserInfoFragment extends Fragment {
   }
 
   @NonNull
-  private Action updateFollowing(final boolean following) {
-    return () -> {
+  private Consumer<User> updateFollowing(final boolean following) {
+    return u -> {
       relationship.setFollowing(following);
       notifyRelationshipChanged();
     };
   }
 
   @NonNull
-  private Action updateBlocking(final boolean blocking) {
-    return () -> {
+  private Consumer<User> updateBlocking(final boolean blocking) {
+    return u -> {
       relationship.setBlocking(blocking);
       notifyRelationshipChanged();
     };
   }
 
   @NonNull
-  private Action updateMuting(final boolean muting) {
-    return () -> {
+  private Consumer<User> updateMuting(final boolean muting) {
+    return u -> {
       relationship.setMuting(muting);
       notifyRelationshipChanged();
     };

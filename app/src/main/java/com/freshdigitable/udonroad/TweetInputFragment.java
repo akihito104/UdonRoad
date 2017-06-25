@@ -40,7 +40,6 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.RequestWorkerBase;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -53,7 +52,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -284,15 +283,15 @@ public class TweetInputFragment extends Fragment {
       return v -> {
         v.setClickable(false);
         ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
-            .doOnTerminate(() -> v.setClickable(true))
-            .subscribe(RequestWorkerBase.nopSubscriber());
+            .doOnDispose(() -> v.setClickable(true))
+            .subscribe((s, e) -> {});
       };
     } else {
       return view -> {
         view.setClickable(false);
         observeUpdateStatus()
-            .doOnTerminate(() -> view.setClickable(true))
-            .subscribe(RequestWorkerBase.nopSubscriber());
+            .doOnDispose(() -> view.setClickable(true))
+            .subscribe((s, e) -> {});
       };
     }
   }
@@ -301,7 +300,7 @@ public class TweetInputFragment extends Fragment {
     tweetSendFab.setOnClickListener(null);
   }
 
-  private Observable<Status> createSendObservable() {
+  private Single<Status> createSendObservable() {
     final String sendingText = binding.mainTweetInputView.getText().toString();
     if (!isStatusUpdateNeeded()) {
       return statusRequestWorker.observeUpdateStatus(sendingText);
@@ -322,16 +321,15 @@ public class TweetInputFragment extends Fragment {
     return statusRequestWorker.observeUpdateStatus(statusUpdate);
   }
 
-  private Observable<Status> observeUpdateStatus() {
+  private Single<Status> observeUpdateStatus() {
     final TweetInputView inputText = binding.mainTweetInputView;
     return createSendObservable()
-        .doOnNext(status -> {
+        .doOnSuccess(status -> {
           inputText.getText().clear();
           inputText.reset();
           inputText.clearFocus();
           inputText.disappearing();
           setupMenuVisibility();
-        }).doOnComplete(() -> {
           replyEntity = null;
           quoteStatusIds.clear();
         });
@@ -362,7 +360,7 @@ public class TweetInputFragment extends Fragment {
   interface TweetSendable {
     void setupInput(@TweetType int type, long statusId);
 
-    Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable);
+    Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable);
   }
 
   public static final int TYPE_DEFAULT = 0;

@@ -51,7 +51,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
@@ -280,8 +280,8 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
-  public Observable<Status> observeUpdateStatus(Observable<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnNext(status -> closeTwitterInputView());
+  public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
+    return updateStatusObservable.doOnSuccess(status -> closeTwitterInputView());
   }
 
   private void setupActionMap() {

@@ -25,9 +25,6 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 
@@ -77,24 +74,5 @@ public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   @NonNull
   Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
     return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
-  }
-
-  @NonNull
-  Action onCompleteFeedback(@StringRes final int msg) {
-    return () -> userFeedback.onNext(new UserFeedbackEvent(msg));
-  }
-
-  @NonNull
-  public static <T> Observer<T> nopSubscriber() {
-    return new Observer<T>() {
-      @Override
-      public void onSubscribe(Disposable d) {}
-      @Override
-      public void onNext(T t) {}
-      @Override
-      public void onError(Throwable e) {}
-      @Override
-      public void onComplete() {}
-    };
   }
 }

@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
@@ -75,8 +76,8 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   public void setup(Action completeAction) {
     if (!isAuthenticated()) return;
     Completable.concatArray(
-        Completable.fromObservable(verifyCredentials()),
-        Completable.fromObservable(fetchTwitterAPIConfig()),
+        Completable.fromSingle(verifyCredentials()),
+        Completable.fromSingle(fetchTwitterAPIConfig()),
         Completable.fromSingle(fetchAllIgnoringUsers()))
         .subscribe(completeAction, onErrorAction);
   }
@@ -86,30 +87,29 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
     return token != null;
   }
 
-  private Observable<User> verifyCredentials() {
+  private Single<User> verifyCredentials() {
     return twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(appSettings::addAuthenticatedUser)
+        .doOnSuccess(appSettings::addAuthenticatedUser)
         .doOnError(onErrorAction);
   }
 
-  public Observable<User> getAuthenticatedUser() {
+  public Single<User> getAuthenticatedUser() {
     return isAuthenticated()
-        ? twitterApi.getId()
-        .observeOn(AndroidSchedulers.mainThread())
+        ? twitterApi.getId().observeOn(AndroidSchedulers.mainThread())
         .map(appSettings::getAuthenticatedUser)
-        : Observable.empty();
+        : Single.never();
   }
 
-  private Observable<TwitterAPIConfiguration> fetchTwitterAPIConfig() {
+  private Single<TwitterAPIConfiguration> fetchTwitterAPIConfig() {
     if (!appSettings.isTwitterAPIConfigFetchable()) {
       Log.d(TAG, "fetchTwitterAPIConfig: not fetch");
-      return Observable.empty();
+      return Single.never();
     }
     Log.d(TAG, "fetchTwitterAPIConfig: fetching");
     return twitterApi.getTwitterAPIConfiguration()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(appSettings::setTwitterAPIConfig)
+        .doOnSuccess(appSettings::setTwitterAPIConfig)
         .doOnError(onErrorAction);
   }
 
@@ -118,85 +118,85 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
   private Single<? extends Set<Long>> fetchAllIgnoringUsers() {
     return Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
         .map(IDs::getIDs)
-        .collect(TreeSet::new,
-            (BiConsumer<TreeSet<Long>, long[]>) (collector, ids) -> {
-              for (long l : ids) {
-                collector.add(l);
-              }
-            })
+        .collect(TreeSet::new, (BiConsumer<TreeSet<Long>, long[]>) (collector, ids) -> {
+          for (long l : ids) {
+            collector.add(l);
+          }
+        })
         .observeOn(AndroidSchedulers.mainThread())
         .doOnSuccess(ids -> cache.replaceIgnoringUsers(ids))
         .doOnError(onErrorAction);
   }
 
-  public Observable<Relationship> observeFetchRelationship(long userId) {
+  public Single<Relationship> observeFetchRelationship(long userId) {
     return twitterApi.showFriendship(userId)
         .doOnError(onErrorFeedback(R.string.msg_fetch_relationship_failed));
   }
 
-  public Observable<User> observeCreateBlock(long userId) {
+  public Single<User> observeCreateBlock(long userId) {
     return twitterApi.createBlock(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(addIgnoringUserAction())
-        .doOnError(onErrorFeedback(R.string.msg_create_block_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_create_block_success));
+        .doOnSuccess(addIgnoringUserAction(R.string.msg_create_block_success))
+        .doOnError(onErrorFeedback(R.string.msg_create_block_failed));
   }
 
-  public Observable<User> observeDestroyBlock(long userId) {
+  public Single<User> observeDestroyBlock(long userId) {
     return twitterApi.destroyBlock(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(removeIgnoringUserAction())
-        .doOnError(onErrorFeedback(R.string.msg_create_block_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_create_block_success));
+        .doOnSuccess(removeIgnoringUserAction(R.string.msg_create_block_success))
+        .doOnError(onErrorFeedback(R.string.msg_create_block_failed));
   }
 
   public void reportSpam(long userId) {
     twitterApi.reportSpam(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
-            addIgnoringUserAction(),
-            onErrorFeedback(R.string.msg_report_spam_failed),
-            onCompleteFeedback(R.string.msg_report_spam_success));
+            addIgnoringUserAction(R.string.msg_report_spam_success),
+            onErrorFeedback(R.string.msg_report_spam_failed));
   }
 
-  public Observable<User> observeCreateMute(long userId) {
+  public Single<User> observeCreateMute(long userId) {
     return twitterApi.createMute(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(addIgnoringUserAction())
-        .doOnError(onErrorFeedback(R.string.msg_create_mute_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_create_mute_success));
+        .doOnSuccess(addIgnoringUserAction(R.string.msg_create_mute_success))
+        .doOnError(onErrorFeedback(R.string.msg_create_mute_failed));
   }
 
-  public Observable<User> observeDestroyMute(long userId) {
+  public Single<User> observeDestroyMute(long userId) {
     return twitterApi.destroyMute(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(removeIgnoringUserAction())
-        .doOnError(onErrorFeedback(R.string.msg_destroy_mute_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_destroy_mute_success));
+        .doOnSuccess(removeIgnoringUserAction(R.string.msg_destroy_mute_success))
+        .doOnError(onErrorFeedback(R.string.msg_destroy_mute_failed));
   }
 
-  public Observable<Relationship> observeBlockRetweet(Relationship old) {
+  public Single<Relationship> observeBlockRetweet(Relationship old) {
     return twitterApi.updateFriendship(old.getTargetUserId(),
         old.isSourceNotificationsEnabled(), false)
-        .doOnError(onErrorFeedback(R.string.msg_block_retweet_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_block_retweet_success));
+        .doOnSuccess(r -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_block_retweet_success)))
+        .doOnError(onErrorFeedback(R.string.msg_block_retweet_failed));
   }
 
-  public Observable<Relationship> observeUnblockRetweet(Relationship old) {
+  public Single<Relationship> observeUnblockRetweet(Relationship old) {
     return twitterApi.updateFriendship(old.getTargetUserId(),
         old.isSourceNotificationsEnabled(), true)
-        .doOnError(onErrorFeedback(R.string.msg_unblock_retweet_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_unblock_retweet_success));
+        .doOnSuccess(r -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_unblock_retweet_success)))
+        .doOnError(onErrorFeedback(R.string.msg_unblock_retweet_failed));
   }
 
   @NonNull
-  private Consumer<User> addIgnoringUserAction() {
-    return user -> cache.addIgnoringUser(user);
+  private Consumer<User> addIgnoringUserAction(@StringRes int msg) {
+    return user -> {
+      cache.addIgnoringUser(user);
+      userFeedback.onNext(new UserFeedbackEvent(msg));
+    };
   }
 
   @NonNull
-  private Consumer<User> removeIgnoringUserAction() {
-    return user -> cache.removeIgnoringUser(user);
+  private Consumer<User> removeIgnoringUserAction(@StringRes int msg) {
+    return user -> {
+      cache.removeIgnoringUser(user);
+      userFeedback.onNext(new UserFeedbackEvent(msg));
+    };
   }
 
   public void shrink() {

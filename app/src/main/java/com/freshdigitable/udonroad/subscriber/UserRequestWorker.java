@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.BaseOperation;
@@ -26,7 +27,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
@@ -48,20 +49,18 @@ public class UserRequestWorker<T extends BaseOperation<User>>
     super(twitterApi, userStore, feedback);
   }
 
-  public Observable<User> observeCreateFriendship(long userId) {
+  public Single<User> observeCreateFriendship(long userId) {
     return twitterApi.createFriendship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(createUpsertAction())
-        .doOnError(onErrorFeedback(R.string.msg_create_friendship_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_create_friendship_success));
+        .doOnSuccess(createUpsertAction(R.string.msg_create_friendship_success))
+        .doOnError(onErrorFeedback(R.string.msg_create_friendship_failed));
   }
 
-  public Observable<User> observeDestroyFriendship(long userId) {
+  public Single<User> observeDestroyFriendship(long userId) {
     return twitterApi.destroyFriendship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(createUpsertAction())
-        .doOnError(onErrorFeedback(R.string.msg_destroy_friendship_failed))
-        .doOnComplete(onCompleteFeedback(R.string.msg_destroy_friendship_success));
+        .doOnSuccess(createUpsertAction(R.string.msg_destroy_friendship_success))
+        .doOnError(onErrorFeedback(R.string.msg_destroy_friendship_failed));
   }
 
   public void fetchFollowers(final long userId, final long cursor) {
@@ -79,8 +78,11 @@ public class UserRequestWorker<T extends BaseOperation<User>>
   }
 
   @NonNull
-  private Consumer<User> createUpsertAction() {
-    return user -> cache.upsert(user);
+  private Consumer<User> createUpsertAction(@StringRes int msg) {
+    return user -> {
+      cache.upsert(user);
+      userFeedback.onNext(new UserFeedbackEvent(msg));
+    };
   }
 
   @NonNull
