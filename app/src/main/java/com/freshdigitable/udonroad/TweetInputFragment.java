@@ -37,7 +37,6 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
@@ -71,7 +70,7 @@ public class TweetInputFragment extends Fragment {
   private static final String LOADINGTAG_TWEET_INPUT_ICON = "TweetInputIcon";
   private FragmentTweetInputBinding binding;
   @Inject
-  StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
+  StatusRequestWorker statusRequestWorker;
   @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject

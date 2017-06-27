@@ -23,6 +23,9 @@ import android.util.Log;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
+import com.freshdigitable.udonroad.datastore.StatusReaction;
+import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.Set;
@@ -49,8 +52,11 @@ import twitter4j.auth.AccessToken;
  *
  * Created by akihit on 2016/09/23.
  */
-public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
+public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
   private final String TAG = ConfigRequestWorker.class.getSimpleName();
+  private final TwitterApi twitterApi;
+  private final ConfigStore cache;
+  private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final AppSettingStore appSettings;
 
   @Inject
@@ -58,19 +64,36 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
                              @NonNull ConfigStore configStore,
                              @NonNull AppSettingStore appSettings,
                              @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
-    super(twitterApi, configStore, userFeedback);
+    this.twitterApi = twitterApi;
+    this.cache = configStore;
+    this.userFeedback = userFeedback;
     this.appSettings = appSettings;
   }
 
   public void open() {
-    super.open();
     appSettings.open();
+    cache.open();
   }
 
   @Override
   public void close() {
-    super.close();
+    cache.close();
     appSettings.close();
+  }
+
+  @Override
+  public void drop() {
+    cache.drop();
+  }
+
+  @Override
+  public TypedCache<StatusReaction> getCache() {
+    return cache;
+  }
+
+  @Override
+  public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
+    return item -> {};
   }
 
   public void setup(Action completeAction) {
@@ -124,7 +147,7 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
           }
         })
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(ids -> cache.replaceIgnoringUsers(ids))
+        .doOnSuccess(cache::replaceIgnoringUsers)
         .doOnError(onErrorAction);
   }
 
@@ -201,5 +224,10 @@ public class ConfigRequestWorker extends RequestWorkerBase<ConfigStore> {
 
   public void shrink() {
     cache.shrink();
+  }
+
+  @NonNull
+  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
+    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 }

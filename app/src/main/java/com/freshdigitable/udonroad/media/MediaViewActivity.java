@@ -51,12 +51,10 @@ import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Observable;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 
@@ -75,7 +73,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   private ActivityMediaViewBinding binding;
   @Inject
-  StatusRequestWorker<TypedCache<Status>> userActionSubscriber;
+  StatusRequestWorker userActionSubscriber;
   private MediaPagerAdapter mediaPagerAdapter;
 
   public static Intent create(@NonNull Context context, @NonNull ListItem item) {
@@ -382,19 +380,8 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   }
 
   private void setupActionMap(final long statusId) {
-    binding.mediaIffab.setOnIffabItemSelectedListener(item -> {
-      final int itemId = item.getItemId();
-      if (itemId == R.id.iffabMenu_media_fav) {
-        userActionSubscriber.createFavorite(statusId);
-      } else if (itemId == R.id.iffabMenu_media_rt) {
-        userActionSubscriber.retweetStatus(statusId);
-      } else if (itemId == R.id.iffabMenu_media_favRt) {
-        Observable.concatDelayError(Arrays.asList(
-            userActionSubscriber.observeCreateFavorite(statusId).toObservable(),
-            userActionSubscriber.observeRetweetStatus(statusId).toObservable())
-        ).subscribe(s -> {}, e -> {});
-      }
-    });
+    binding.mediaIffab.setOnIffabItemSelectedListener(
+        userActionSubscriber.getOnIffabItemSelectedListener(statusId));
   }
 
   private boolean isInMultiWindowModeCompat() {

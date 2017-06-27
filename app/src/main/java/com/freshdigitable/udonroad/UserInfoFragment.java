@@ -145,7 +145,7 @@ public class UserInfoFragment extends Fragment {
   }
 
   @Inject
-  UserRequestWorker<TypedCache<User>> userRequestWorker;
+  UserRequestWorker userRequestWorker;
   @Inject
   ConfigRequestWorker configRequestWorker;
 

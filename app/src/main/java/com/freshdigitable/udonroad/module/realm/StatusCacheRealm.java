@@ -90,7 +90,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     upsertUser(updates);
     upsertStatusReaction(updates);
     userTypedCache.upsert(splitUserMentionEntity(updates));
-    cache.executeTransaction(upsertTransaction(statuses));
+    cache.executeTransaction(upsertTransaction(updates));
   }
 
   @Override

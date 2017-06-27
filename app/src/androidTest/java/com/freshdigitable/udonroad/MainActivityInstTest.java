@@ -275,14 +275,14 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {
     // setup
-    setupCreateFavorite(0, 1);
-    setupRetweetStatus(25000, 1, 1);
+    setupCreateFavorite(0, 3);
+    setupRetweetStatus(25000, 1, 3);
     // exec.
     PerformUtil.selectItemViewAt(0);
     PerformUtil.fav_retweet();
     // assert
     PerformUtil.clickHeadingOnMenu();
-    AssertionUtil.checkFavCountAt(0, 1);
+    AssertionUtil.checkFavCountAt(0, 3);
     AssertionUtil.checkRTCountAt(0, 1);
   }
 

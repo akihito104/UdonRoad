@@ -33,6 +33,7 @@ import io.reactivex.processors.PublishProcessor;
  *
  * Created by akihit on 2016/11/03.
  */
+@Deprecated
 public abstract class RequestWorkerBase<T extends BaseOperation<?>> {
   TwitterApi twitterApi;
   T cache;

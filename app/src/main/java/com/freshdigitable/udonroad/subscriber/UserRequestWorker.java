@@ -20,10 +20,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.datastore.BaseOperation;
+import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -39,14 +38,18 @@ import twitter4j.User;
  * <p>
  * Created by akihit on 2016/09/03.
  */
-public class UserRequestWorker<T extends BaseOperation<User>>
-    extends RequestWorkerBase<T> {
+public class UserRequestWorker implements RequestWorker<User> {
+  private final TwitterApi twitterApi;
+  private final TypedCache<User> cache;
+  private final PublishProcessor<UserFeedbackEvent> userFeedback;
 
   @Inject
   public UserRequestWorker(@NonNull TwitterApi twitterApi,
-                           @NonNull T userStore,
+                           @NonNull TypedCache<User> userStore,
                            @NonNull PublishProcessor<UserFeedbackEvent> feedback) {
-    super(twitterApi, userStore, feedback);
+    this.twitterApi = twitterApi;
+    this.cache = userStore;
+    this.userFeedback = feedback;
   }
 
   public Single<User> observeCreateFriendship(long userId) {
@@ -63,18 +66,9 @@ public class UserRequestWorker<T extends BaseOperation<User>>
         .doOnError(onErrorFeedback(R.string.msg_destroy_friendship_failed));
   }
 
-  public void fetchFollowers(final long userId, final long cursor) {
-    twitterApi.getFollowersList(userId, cursor)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createUpsertListAction(),
-            onErrorFeedback(R.string.msg_follower_list_failed));
-  }
-
-  public void fetchFriends(long userId, long cursor) {
-    twitterApi.getFriendsList(userId, cursor)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createUpsertListAction(),
-            onErrorFeedback(R.string.msg_friends_list_failed));
+  @NonNull
+  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
+    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 
   @NonNull
@@ -85,8 +79,28 @@ public class UserRequestWorker<T extends BaseOperation<User>>
     };
   }
 
-  @NonNull
-  private Consumer<List<User>> createUpsertListAction() {
-    return users -> cache.upsert(users);
+  @Override
+  public void open() {
+    cache.open();
+  }
+
+  @Override
+  public void close() {
+    cache.close();
+  }
+
+  @Override
+  public void drop() {
+    cache.drop();
+  }
+
+  @Override
+  public TypedCache<User> getCache() {
+    return cache;
+  }
+
+  @Override
+  public IndicatableFFAB.OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
+    return item -> {};
   }
 }
