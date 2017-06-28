@@ -43,7 +43,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.IDs;
 import twitter4j.Relationship;
-import twitter4j.TwitterAPIConfiguration;
+import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
@@ -100,7 +100,7 @@ public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
     if (!isAuthenticated()) return;
     Completable.concatArray(
         Completable.fromSingle(verifyCredentials()),
-        Completable.fromSingle(fetchTwitterAPIConfig()),
+        fetchTwitterAPIConfig(),
         Completable.fromSingle(fetchAllIgnoringUsers()))
         .subscribe(completeAction, onErrorAction);
   }
@@ -118,22 +118,19 @@ public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
   }
 
   public Single<User> getAuthenticatedUser() {
-    return isAuthenticated()
-        ? twitterApi.getId().observeOn(AndroidSchedulers.mainThread())
-        .map(appSettings::getAuthenticatedUser)
-        : Single.never();
+    return isAuthenticated() ?
+        twitterApi.getId().observeOn(AndroidSchedulers.mainThread())
+            .map(appSettings::getAuthenticatedUser)
+        : Single.error(new TwitterException("not authenticated yet..."));
   }
 
-  private Single<TwitterAPIConfiguration> fetchTwitterAPIConfig() {
-    if (!appSettings.isTwitterAPIConfigFetchable()) {
-      Log.d(TAG, "fetchTwitterAPIConfig: not fetch");
-      return Single.never();
-    }
-    Log.d(TAG, "fetchTwitterAPIConfig: fetching");
-    return twitterApi.getTwitterAPIConfiguration()
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(appSettings::setTwitterAPIConfig)
-        .doOnError(onErrorAction);
+  private Completable fetchTwitterAPIConfig() {
+    return appSettings.isTwitterAPIConfigFetchable() ?
+        Completable.fromSingle(twitterApi.getTwitterAPIConfiguration()
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSuccess(appSettings::setTwitterAPIConfig)
+            .doOnError(onErrorAction))
+        : Completable.complete();
   }
 
   private final Consumer<Throwable> onErrorAction = throwable -> Log.e(TAG, "call: ", throwable);
