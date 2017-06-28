@@ -167,7 +167,7 @@ public class TwitterApi {
     return Observable.create((ObservableOnSubscribe<IDs>) subscriber -> {
       try {
         IDs blocksIDs = twitter.getBlocksIDs(-1);
-        while (blocksIDs != null && blocksIDs.hasNext()) {
+        while (blocksIDs != null) {
           subscriber.onNext(blocksIDs);
           if (!blocksIDs.hasNext()) {
             break;
@@ -185,7 +185,7 @@ public class TwitterApi {
     return Observable.create((ObservableOnSubscribe<IDs>) subscriber -> {
       try {
         IDs mutesIDs = twitter.getMutesIDs(-1);
-        while (mutesIDs != null && mutesIDs.hasNext()) {
+        while (mutesIDs != null) {
           subscriber.onNext(mutesIDs);
           if (!mutesIDs.hasNext()) {
             break;
