@@ -15,22 +15,8 @@
   ~ limitations under the License.
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@id/iffabMenu_main_fav"
-        android:icon="@drawable/ic_like"
-        android:orderInCategory="90"
-        android:title="fav"
-        />
-    <item
-        android:id="@id/iffabMenu_main_rt"
-        android:icon="@drawable/ic_retweet"
-        android:orderInCategory="0"
-        android:title="RT"
-        />
-    <item
-        android:id="@id/iffabMenu_main_favRt"
-        android:orderInCategory="45"
-        android:title="fav/RT"
-        />
-</menu>
+<resources>
+    <item name="iffabMenu_main_fav" type="id"/>
+    <item name="iffabMenu_main_rt" type="id"/>
+    <item name="iffabMenu_main_favRt" type="id"/>
+</resources>
