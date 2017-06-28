@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
@@ -83,31 +84,19 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          twitterApi.getHomeTimeline()
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
-                  createListUpsertAction(),
-                  onErrorFeedback(R.string.msg_tweet_not_download));
+          subscribeWithCommonTask(twitterApi.getHomeTimeline());
         }
 
         @Override
         public void fetch(Paging paging) {
-          twitterApi.getHomeTimeline(paging)
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
-                  createListUpsertAction(),
-                  onErrorFeedback(R.string.msg_tweet_not_download));
+          subscribeWithCommonTask(twitterApi.getHomeTimeline(paging));
         }
       };
     } else if (storeType == StoreType.USER_HOME) {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          twitterApi.getUserTimeline(id)
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
-                  createListUpsertAction(),
-                  onErrorFeedback(R.string.msg_tweet_not_download));
+          subscribeWithCommonTask(twitterApi.getUserTimeline(id));
         }
 
         @Override
@@ -116,35 +105,23 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
             fetch();
             return;
           }
-          twitterApi.getUserTimeline(id, paging)
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
-                  createListUpsertAction(),
-                  onErrorFeedback(R.string.msg_tweet_not_download));
+          subscribeWithCommonTask(twitterApi.getUserTimeline(id, paging));
         }
       };
     } else if (storeType == StoreType.USER_FAV) {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          twitterApi.getFavorites(id)
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
-                  createListUpsertAction(),
-                  onErrorFeedback(R.string.msg_tweet_not_download));
+          subscribeWithCommonTask(twitterApi.getFavorites(id));
         }
 
         @Override
         public void fetch(Paging paging) {
           if (paging == null) {
             fetch();
-            return;
+          } else {
+            subscribeWithCommonTask(twitterApi.getFavorites(id, paging));
           }
-          twitterApi.getFavorites(id, paging)
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
-                  createListUpsertAction(),
-                  onErrorFeedback(R.string.msg_tweet_not_download));
         }
       };
     } else if (storeType == StoreType.CONVERSATION) {
@@ -158,16 +135,16 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         }
 
         @Override
-        public void fetch(Paging paging) {
-        }
+        public void fetch(Paging paging) {}
       };
     }
     throw new IllegalStateException();
   }
 
-  @NonNull
-  private Consumer<List<Status>> createListUpsertAction() {
-    return sortedCache::upsert;
+  private void subscribeWithCommonTask(Single<List<Status>> fetchingTask) {
+    fetchingTask.observeOn(AndroidSchedulers.mainThread())
+        .subscribe(sortedCache::upsert,
+            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   @NonNull
