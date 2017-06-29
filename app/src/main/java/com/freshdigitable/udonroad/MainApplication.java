@@ -24,7 +24,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.BaseCache;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
@@ -56,8 +55,6 @@ public class MainApplication extends Application {
   UserStreamUtil userStreamUtil;
   @Inject
   UserFeedbackSubscriber userFeedback;
-  @Inject
-  BaseCache pool;
 
   @Override
   public void onCreate() {
@@ -73,9 +70,6 @@ public class MainApplication extends Application {
     Realm.init(getApplicationContext());
     appComponent.inject(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
-    pool.open();
-    pool.clear();
-    pool.close();
   }
 
   @VisibleForTesting

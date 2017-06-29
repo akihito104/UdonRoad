@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
@@ -40,18 +39,18 @@ import twitter4j.User;
  * Created by akihit on 2016/09/17.
  */
 public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
-  private TypedCache<User> userCache;
+  private TypedCache<User> pool;
   private RealmResults<ListedUserIDs> ordered;
 
   public UserSortedCacheRealm(UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
     super(factory);
-    this.userCache = userCacheRealm;
+    this.pool = userCacheRealm;
   }
 
   @Override
   public void open(String storeName) {
     super.open(storeName);
-    userCache.open();
+    pool.open();
     if (ordered == null) {
       ordered = realm.where(ListedUserIDs.class)
           .findAllSorted("order");
@@ -63,17 +62,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     ordered.removeAllChangeListeners();
     ordered = null;
     super.close();
-    userCache.close();
-  }
-
-  @Override
-  public void clear() {
-    realm.executeTransaction(_realm -> _realm.deleteAll());
-  }
-
-  @Override
-  public void clearPool() {
-    // nop
+    pool.close();
   }
 
   @Override
@@ -85,7 +74,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   @Override
   public User get(int position) {
     final ListedUserIDs userIDs = ordered.get(position);
-    return userCache.find(userIDs.userId);
+    return pool.find(userIDs.userId);
   }
 
   @Override
@@ -108,7 +97,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     if (entities == null || entities.isEmpty()) {
       return;
     }
-    userCache.upsert(entities);
+    pool.upsert(entities);
     final List<ListedUserIDs> inserts = new ArrayList<>();
     for (User user: entities) {
       final ListedUserIDs userIds = realm.where(ListedUserIDs.class)
@@ -155,16 +144,10 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     upsert(entity);
   }
 
-  @Nullable
-  @Override
-  public User find(long id) {
-    return userCache.find(id);
-  }
-
   @NonNull
   @Override
   public Observable<User> observeById(long id) {
-    return userCache.observeById(id);
+    return pool.observeById(id);
   }
 
   @Override

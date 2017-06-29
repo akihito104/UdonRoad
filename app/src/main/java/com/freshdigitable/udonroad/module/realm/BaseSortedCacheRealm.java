@@ -39,6 +39,7 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   private final UpdateSubjectFactory factory;
   Realm realm;
   UpdateSubject updateSubject;
+  private RealmConfiguration config;
 
   BaseSortedCacheRealm(UpdateSubjectFactory factory) {
     this.factory = factory;
@@ -48,7 +49,7 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   @CallSuper
   public void open(String storeName) {
     updateSubject = factory.getInstance(storeName);
-    final RealmConfiguration config = getRealmConfiguration(storeName);
+    config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
     Log.d(TAG, "openRealm: " + config.getRealmFileName());
   }
@@ -74,26 +75,23 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
   }
 
   @Override
-  public void drop(String storeName) {
-    final RealmConfiguration conf = getRealmConfiguration(storeName);
-    if (Realm.getGlobalInstanceCount(conf) <= 0) {
-      Log.d(TAG, "drop: " + storeName);
-      Realm.deleteRealm(conf);
+  public void drop() {
+    if (config == null) {
+      return;
     }
+    if (Realm.getGlobalInstanceCount(config) <= 0) {
+      Log.d(TAG, "drop: " + config.getRealmFileName());
+      Realm.deleteRealm(config);
+    }
+  }
+
+  @Override
+  public void clear() {
+    realm.executeTransaction(_realm -> _realm.deleteAll());
   }
 
   @Override
   public Flowable<UpdateEvent> observeUpdateEvent() {
     return updateSubject.observeUpdateEvent();
-  }
-
-  @Override
-  public void open() {
-    throw new RuntimeException();
-  }
-
-  @Override
-  public void drop() {
-    throw new RuntimeException();
   }
 }

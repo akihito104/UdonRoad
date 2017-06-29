@@ -45,7 +45,6 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   private final SortedCache<User> sortedCache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private StoreType storeType;
-  private String storeName;
 
   @Inject
   public UserListRequestWorker(@NonNull TwitterApi twitterApi,
@@ -62,7 +61,7 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    storeName = TextUtils.isEmpty(suffix)
+    final String storeName = TextUtils.isEmpty(suffix)
         ? type.storeName : type.prefix() + suffix;
     sortedCache.open(storeName);
   }
@@ -138,6 +137,6 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
 
   @Override
   public void drop() {
-    sortedCache.drop(storeName);
+    sortedCache.drop();
   }
 }

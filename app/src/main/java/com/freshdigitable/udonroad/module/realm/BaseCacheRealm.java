@@ -37,10 +37,6 @@ public class BaseCacheRealm implements BaseCache {
   private final RealmConfiguration config;
   private BaseCacheRealm baseCacheRealm;
 
-  public BaseCacheRealm() {
-    this(null);
-  }
-
   BaseCacheRealm(@Nullable BaseCacheRealm baseCacheRealm) {
     if (baseCacheRealm != null) {
       this.baseCacheRealm = baseCacheRealm;
@@ -84,7 +80,11 @@ public class BaseCacheRealm implements BaseCache {
 
   @Override
   public void drop() {
-    if (config != null) {
+    if (config == null) {
+      return;
+    }
+    if (Realm.getGlobalInstanceCount(config) <= 0) {
+      Log.d(TAG, "drop: " + config.getRealmFileName());
       Realm.deleteRealm(config);
     }
   }

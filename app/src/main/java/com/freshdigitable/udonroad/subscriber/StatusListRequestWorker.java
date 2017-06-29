@@ -48,7 +48,6 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final StatusRequestWorker requestWorker;
   private StoreType storeType;
-  private String storeName;
 
   @Inject
   public StatusListRequestWorker(@NonNull TwitterApi twitterApi,
@@ -67,7 +66,7 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    storeName = TextUtils.isEmpty(suffix)
+    final String storeName = TextUtils.isEmpty(suffix)
         ? type.storeName : type.prefix() + suffix;
     sortedCache.open(storeName);
     requestWorker.open();
@@ -165,6 +164,6 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
 
   @Override
   public void drop() {
-    sortedCache.drop(storeName);
+    sortedCache.drop();
   }
 }
