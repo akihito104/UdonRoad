@@ -31,7 +31,7 @@ import io.realm.RealmModel;
  *
  * Created by akihit on 2016/09/14.
  */
-class PoolRealm implements BaseCache {
+final class PoolRealm implements BaseCache {
   private static final String TAG = PoolRealm.class.getSimpleName();
   private Realm cache;
   private final RealmConfiguration config;
