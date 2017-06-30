@@ -26,6 +26,7 @@ import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -118,7 +119,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
   private int order = 0;
 
   @Override
-  public void upsert(List<User> entities) {
+  public void upsert(Collection<User> entities) {
     if (entities == null || entities.isEmpty()) {
       return;
     }
@@ -156,7 +157,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     return lastPageCursor;
   }
 
-  private void updateCursorList(List<User> users) {
+  private void updateCursorList(Collection<User> users) {
     if (!(users instanceof PagableResponseList)) {
       return;
     }

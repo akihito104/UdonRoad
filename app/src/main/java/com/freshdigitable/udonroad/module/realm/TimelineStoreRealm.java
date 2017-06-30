@@ -29,6 +29,7 @@ import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -132,23 +133,24 @@ public class TimelineStoreRealm implements SortedCache<Status> {
   }
 
   @Override
-  public void upsert(final List<Status> statuses) {
+  public void upsert(final Collection<Status> statuses) {
     if (statuses == null) {
       return;
     }
-    for (int i = statuses.size() - 1; i >= 0; i--) {
-      final Status status = statuses.get(i);
-      if (isIgnorable(status)) {
-        statuses.remove(status);
+    final ArrayList<Status> targets = new ArrayList<>(statuses.size());
+    for (Status s : statuses) {
+      if (isIgnorable(s)) {
+        continue;
       }
+      targets.add(s);
     }
-    if (statuses.isEmpty()) {
+    if (targets.isEmpty()) {
       return;
     }
 
-    final List<StatusIDs> inserts = createInsertList(statuses);
-    final List<StatusIDs> updates = createUpdateList(statuses);
-    pool.observeUpsert(statuses).subscribe(() -> {
+    final List<StatusIDs> inserts = createInsertList(targets);
+    final List<StatusIDs> updates = createUpdateList(targets);
+    pool.observeUpsert(targets).subscribe(() -> {
       if (!inserts.isEmpty()) {
         insertStatus(inserts);
       }
@@ -158,7 +160,7 @@ public class TimelineStoreRealm implements SortedCache<Status> {
     }, throwable -> Log.e(TAG, "upsert: ", throwable));
   }
 
-  private List<StatusIDs> createInsertList(List<Status> statuses) {
+  private List<StatusIDs> createInsertList(Collection<Status> statuses) {
     final List<StatusIDs> inserts = new ArrayList<>();
     for (Status s : statuses) {
       final StatusIDs update = timeline.where()
@@ -175,12 +177,12 @@ public class TimelineStoreRealm implements SortedCache<Status> {
     return inserts;
   }
 
-  private void insertStatus(final List<StatusIDs> inserts) {
+  private void insertStatus(final Collection<StatusIDs> inserts) {
     timeline.addChangeListener(addChangeListener);
     sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
   }
 
-  private List<StatusIDs> createUpdateList(List<Status> statuses) {
+  private List<StatusIDs> createUpdateList(Collection<Status> statuses) {
     if (!updateSubject.hasSubscribers()) {
       return Collections.emptyList();
     }

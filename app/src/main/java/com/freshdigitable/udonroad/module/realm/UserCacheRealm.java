@@ -58,7 +58,7 @@ public class UserCacheRealm implements TypedCache<User> {
   }
 
   @Override
-  public void upsert(final List<User> entities) {
+  public void upsert(final Collection<User> entities) {
     if (entities == null || entities.isEmpty()) {
       return;
     }

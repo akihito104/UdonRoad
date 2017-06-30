@@ -125,7 +125,7 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   @Override
-  public void upsert(final List<StatusReaction> entities) {
+  public void upsert(final Collection<StatusReaction> entities) {
     if (entities == null || entities.isEmpty()) {
       return;
     }

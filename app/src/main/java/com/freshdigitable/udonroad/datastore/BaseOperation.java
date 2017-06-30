@@ -16,7 +16,7 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * BaseOperation defines basic CRUD operation for data store.
@@ -26,7 +26,7 @@ import java.util.List;
 public interface BaseOperation<T> {
   void upsert(T entity);
 
-  void upsert(List<T> entities);
+  void upsert(Collection<T> entities);
 
   void insert(T entity);
 

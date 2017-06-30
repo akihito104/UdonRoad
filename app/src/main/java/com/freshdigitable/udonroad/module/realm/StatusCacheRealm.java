@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import io.reactivex.Completable;
@@ -85,7 +84,7 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   }
 
   @Override
-  public void upsert(List<Status> statuses) {
+  public void upsert(Collection<Status> statuses) {
     if (statuses == null || statuses.isEmpty()) {
       return;
     }
@@ -334,12 +333,12 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
 
   private void upsertUser(Collection<Status> updates) {
     final Collection<User> updateUsers = splitUpsertingUser(updates);
-    userTypedCache.upsert(new ArrayList<>(updateUsers));
+    userTypedCache.upsert(updateUsers);
   }
 
   private void upsertStatusReaction(Collection<Status> updates) {
     final Collection<StatusReaction> statusReactions = splitUpsertingStatusReaction(updates);
-    configStore.upsert(new ArrayList<>(statusReactions));
+    configStore.upsert(statusReactions);
   }
 
   @Override
