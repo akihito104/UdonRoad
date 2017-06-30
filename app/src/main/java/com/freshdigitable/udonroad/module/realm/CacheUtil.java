@@ -18,37 +18,17 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
-import com.freshdigitable.udonroad.datastore.TypedCache;
-
-import java.util.Collection;
-
 import io.reactivex.Completable;
 import io.realm.Realm;
+import io.realm.RealmModel;
 
 /**
- * TypedCacheBaseRealm is basis class for implemented TypedCache interface.
+ * CacheUtil is utility class for the package.
  *
  * Created by akihit on 2016/11/10.
  */
 
-abstract class TypedCacheBaseRealm<T> extends BaseCacheRealm implements TypedCache<T> {
-
-  TypedCacheBaseRealm() {
-    this(null);
-  }
-
-  TypedCacheBaseRealm(BaseCacheRealm baseCacheRealm) {
-    super(baseCacheRealm);
-  }
-
-  @Override
-  public Completable observeUpsert(final Collection<T> entities) {
-    if (entities == null || entities.isEmpty()) {
-      return Completable.complete();
-    }
-    return observeUpsertImpl(cache, upsertTransaction(entities));
-  }
-
+class CacheUtil {
   static Completable observeUpsertImpl(@NonNull final Realm cache,
                                        @NonNull final Realm.Transaction upsertTransaction) {
     return Completable.create(subscriber ->
@@ -56,5 +36,11 @@ abstract class TypedCacheBaseRealm<T> extends BaseCacheRealm implements TypedCac
             upsertTransaction, subscriber::onComplete, subscriber::onError));
   }
 
-  abstract Realm.Transaction upsertTransaction(Collection<T> entities);
+  static <T extends RealmModel> T findById(Realm realm, long id, Class<T> clz) {
+    return realm.where(clz)
+        .equalTo("id", id)
+        .findFirst();
+  }
+
+  CacheUtil() {}
 }

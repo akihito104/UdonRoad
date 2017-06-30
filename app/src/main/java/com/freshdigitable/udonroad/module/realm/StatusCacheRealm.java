@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatus;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,26 +51,28 @@ import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
  *
  * Created by akihit on 2016/07/22.
  */
-public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements MediaCache {
+public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @SuppressWarnings("unused")
   private static final String TAG = StatusCacheRealm.class.getSimpleName();
+  private final PoolRealm pool;
   private final ConfigStore configStore;
   private UserCacheRealm userTypedCache;
 
   public StatusCacheRealm(ConfigStore configStore) {
     this.configStore = configStore;
+    this.pool = new PoolRealm();
   }
 
   @Override
   public void open() {
-    super.open();
-    this.userTypedCache = new UserCacheRealm(this);
+    this.userTypedCache = new UserCacheRealm(pool);
     configStore.open();
+    pool.open();
   }
 
   @Override
   public void close() {
-    super.close();
+    pool.close();
     configStore.close();
   }
 
@@ -90,7 +93,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     upsertUser(updates);
     upsertStatusReaction(updates);
     userTypedCache.upsert(splitUserMentionEntity(updates));
-    cache.executeTransaction(upsertTransaction(updates));
+    pool.executeTransaction(upsertTransaction(updates));
   }
 
   @Override
@@ -104,16 +107,15 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
     final Collection<StatusReaction> splitReaction = splitUpsertingStatusReaction(updates);
     return Completable.concatArray(userTypedCache.observeUpsert(splitUser),
         configStore.observeUpsert(splitReaction),
-        super.observeUpsert(updates));
+        pool.observeUpsertImpl(upsertTransaction(updates)));
   }
 
   @NonNull
-  @Override
-  public Realm.Transaction upsertTransaction(final Collection<Status> updates) {
+  private Realm.Transaction upsertTransaction(final Collection<Status> updates) {
     return realm -> {
       final ArrayList<StatusRealm> inserts = new ArrayList<>(updates.size());
       for (Status s : updates) {
-        final StatusRealm update = findById(realm, s.getId(), StatusRealm.class);
+        final StatusRealm update = CacheUtil.findById(realm, s.getId(), StatusRealm.class);
         if (update == null) {
           inserts.add(new StatusRealm(s));
         } else {
@@ -184,7 +186,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
   @Override
   public void delete(final long statusId) {
-    cache.executeTransactionAsync(realm -> realm.where(StatusRealm.class)
+    pool.executeTransactionAsync(r -> r.where(StatusRealm.class)
         .equalTo(KEY_ID, statusId)
         .findAll()
         .deleteAllFromRealm());
@@ -211,7 +213,7 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
         entities.add(new StatusRealm(s));
       }
     }
-    cache.executeTransaction(realm -> realm.insertOrUpdate(entities));
+    pool.executeTransaction(r -> r.insertOrUpdate(entities));
   }
 
   @Override
@@ -316,12 +318,12 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
 
   @Override
   public MediaEntity getMediaEntity(long mediaId) {
-    return findById(cache, mediaId, MediaEntityRealm.class);
+    return pool.findById(mediaId, MediaEntityRealm.class);
   }
 
   @Nullable
   private StatusRealm getStatusInternal(long id) {
-    final StatusRealm status = findById(cache, id, StatusRealm.class);
+    final StatusRealm status = pool.findById(id, StatusRealm.class);
     if (status == null) {
       return null;
     }
@@ -338,5 +340,15 @@ public class StatusCacheRealm extends TypedCacheBaseRealm<Status> implements Med
   private void upsertStatusReaction(Collection<Status> updates) {
     final Collection<StatusReaction> statusReactions = splitUpsertingStatusReaction(updates);
     configStore.upsert(new ArrayList<>(statusReactions));
+  }
+
+  @Override
+  public void clear() {
+    pool.clear();
+  }
+
+  @Override
+  public void drop() {
+    pool.drop();
   }
 }

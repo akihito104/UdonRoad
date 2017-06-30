@@ -17,46 +17,36 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.CallSuper;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.BaseCache;
 
+import io.reactivex.Completable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 
 /**
- * BaseCacheRealm provides basic operation for `cache` database.
+ * PoolRealm provides basic operation for `cache` database.
  *
  * Created by akihit on 2016/09/14.
  */
-public class BaseCacheRealm implements BaseCache {
-  private static final String TAG = BaseCacheRealm.class.getSimpleName();
-  Realm cache;
+class PoolRealm implements BaseCache {
+  private static final String TAG = PoolRealm.class.getSimpleName();
+  private Realm cache;
   private final RealmConfiguration config;
-  private BaseCacheRealm baseCacheRealm;
 
-  BaseCacheRealm(@Nullable BaseCacheRealm baseCacheRealm) {
-    if (baseCacheRealm != null) {
-      this.baseCacheRealm = baseCacheRealm;
-      cache = baseCacheRealm.cache;
-      config = null;
-    } else {
-      config = new RealmConfiguration.Builder()
-          .name("cache")
-          .deleteRealmIfMigrationNeeded()
-          .build();
-    }
+  PoolRealm() {
+    config = new RealmConfiguration.Builder()
+        .name("cache")
+        .deleteRealmIfMigrationNeeded()
+        .build();
   }
 
   @Override
   @CallSuper
   public void open() {
-    if (baseCacheRealm != null) {
-      return;
-    }
-    Log.d(TAG, "open");
+    Log.d(TAG, "open: " + config.getRealmFileName());
     cache = Realm.getInstance(config);
   }
 
@@ -68,30 +58,34 @@ public class BaseCacheRealm implements BaseCache {
   @Override
   @CallSuper
   public void close() {
-    if (baseCacheRealm != null) {
-      return;
-    }
     if (cache == null || cache.isClosed()) {
       return;
     }
-    Log.d(TAG, "close: " + cache.getConfiguration().getRealmFileName());
+    Log.d(TAG, "close: " + config.getRealmFileName());
     cache.close();
   }
 
   @Override
   public void drop() {
-    if (config == null) {
-      return;
-    }
     if (Realm.getGlobalInstanceCount(config) <= 0) {
       Log.d(TAG, "drop: " + config.getRealmFileName());
       Realm.deleteRealm(config);
     }
   }
 
-  static <T extends RealmModel> T findById(Realm realm, long id, Class<T> clz) {
-    return realm.where(clz)
-        .equalTo("id", id)
-        .findFirst();
+  void executeTransaction(Realm.Transaction transaction) {
+    cache.executeTransaction(transaction);
+  }
+
+  void executeTransactionAsync(Realm.Transaction transaction) {
+    cache.executeTransactionAsync(transaction);
+  }
+
+  <T extends RealmModel> T findById(long id, Class<T> clz) {
+    return CacheUtil.findById(cache, id, clz);
+  }
+
+  Completable observeUpsertImpl(Realm.Transaction transaction) {
+    return CacheUtil.observeUpsertImpl(cache, transaction);
   }
 }

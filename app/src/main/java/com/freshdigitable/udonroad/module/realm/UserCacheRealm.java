@@ -19,11 +19,14 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.datastore.TypedCache;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.realm.Realm;
@@ -35,13 +38,15 @@ import twitter4j.UserMentionEntity;
  *
  * Created by akihit on 2016/09/14.
  */
-public class UserCacheRealm extends TypedCacheBaseRealm<User> {
+public class UserCacheRealm implements TypedCache<User> {
+  private final PoolRealm pool;
+
   public UserCacheRealm() {
-    this(null);
+    this(new PoolRealm());
   }
 
-  UserCacheRealm(BaseCacheRealm baseCacheRealm) {
-    super(baseCacheRealm);
+  UserCacheRealm(PoolRealm pool) {
+    this.pool = pool;
   }
 
   @Override
@@ -57,29 +62,28 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
     if (entities == null || entities.isEmpty()) {
       return;
     }
-    cache.executeTransaction(upsertTransaction(entities));
+    pool.executeTransaction(upsertTransaction(entities));
   }
 
   @NonNull
-  @Override
-  public Realm.Transaction upsertTransaction(final Collection<User> entities) {
-    return realm -> {
+  private Realm.Transaction upsertTransaction(final Collection<User> entities) {
+    return r -> {
       final List<UserRealm> upserts = new ArrayList<>(entities.size());
       for (User u : entities) {
-        final UserRealm user = findById(realm, u.getId(), UserRealm.class);
+        final UserRealm user = CacheUtil.findById(r, u.getId(), UserRealm.class);
         if (user == null) {
           upserts.add(new UserRealm(u));
         } else {
-          user.merge(u, realm);
+          user.merge(u, r);
         }
       }
-      realm.insertOrUpdate(upserts);
+      r.insertOrUpdate(upserts);
     };
   }
 
   @Override
   public void insert(final User entity) {
-    cache.executeTransaction(realm -> realm.insertOrUpdate(new UserRealm(entity)));
+    pool.executeTransaction(r -> r.insertOrUpdate(new UserRealm(entity)));
   }
 
   void upsert(UserMentionEntity[] mentionEntity) {
@@ -94,20 +98,20 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
       }
     }
     if (!upserts.isEmpty()) {
-      cache.executeTransaction(realm -> realm.insertOrUpdate(upserts));
+      pool.executeTransaction(r -> r.insertOrUpdate(upserts));
     }
   }
 
   @Override
   @Nullable
   public User find(long id) {
-    return findById(cache, id, UserRealm.class);
+    return pool.findById(id, UserRealm.class);
   }
 
   @NonNull
   @Override
   public Observable<User> observeById(final long userId) {
-    final UserRealm user = findById(cache, userId, UserRealm.class);
+    final UserRealm user = pool.findById(userId, UserRealm.class);
     if (user == null) {
       return Observable.empty();
     }
@@ -117,7 +121,35 @@ public class UserCacheRealm extends TypedCacheBaseRealm<User> {
   }
 
   @Override
+  public Completable observeUpsert(Collection<User> entities) {
+    if (entities == null || entities.isEmpty()) {
+      return Completable.complete();
+    }
+    return pool.observeUpsertImpl(upsertTransaction(entities));
+  }
+
+  @Override
   public void delete(long id) {
     //todo
+  }
+
+  @Override
+  public void open() {
+    pool.open();
+  }
+
+  @Override
+  public void clear() {
+    pool.clear();
+  }
+
+  @Override
+  public void close() {
+    pool.close();
+  }
+
+  @Override
+  public void drop() {
+    pool.drop();
   }
 }

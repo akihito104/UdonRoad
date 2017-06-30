@@ -39,7 +39,7 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import twitter4j.User;
 
-import static com.freshdigitable.udonroad.module.realm.BaseCacheRealm.findById;
+import static com.freshdigitable.udonroad.module.realm.CacheUtil.findById;
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
 
 /**
@@ -137,7 +137,7 @@ public class ConfigStoreRealm implements ConfigStore {
     if (entities == null || entities.isEmpty()) {
       return Completable.complete();
     }
-    return TypedCacheBaseRealm.observeUpsertImpl(configStore, upsertTransaction(entities));
+    return CacheUtil.observeUpsertImpl(configStore, upsertTransaction(entities));
   }
 
   @NonNull
