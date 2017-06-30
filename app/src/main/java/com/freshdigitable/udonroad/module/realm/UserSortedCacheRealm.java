@@ -18,14 +18,18 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
+import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
@@ -38,37 +42,58 @@ import twitter4j.User;
 
  * Created by akihit on 2016/09/17.
  */
-public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
+public class UserSortedCacheRealm implements SortedCache<User> {
+  private final NamingBaseCacheRealm sortedCache;
   private TypedCache<User> pool;
   private RealmResults<ListedUserIDs> ordered;
+  private final UpdateSubjectFactory factory;
+  private UpdateSubject updateSubject;
 
   public UserSortedCacheRealm(UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
-    super(factory);
+    this.factory = factory;
     this.pool = userCacheRealm;
+    this.sortedCache = new NamingBaseCacheRealm();
   }
 
   @Override
   public void open(String storeName) {
-    super.open(storeName);
-    pool.open();
-    if (ordered == null) {
-      ordered = realm.where(ListedUserIDs.class)
-          .findAllSorted("order");
+    if (sortedCache.isOpened()) {
+      throw new IllegalStateException(storeName + " has already opened...");
     }
+    updateSubject = factory.getInstance(storeName);
+    pool.open();
+    sortedCache.open(storeName);
+    ordered = sortedCache.where(ListedUserIDs.class)
+        .findAllSorted("order");
   }
 
   @Override
   public void close() {
     ordered.removeAllChangeListeners();
-    ordered = null;
-    super.close();
+    sortedCache.close();
     pool.close();
+    updateSubject.onComplete();
+  }
+
+  @Override
+  public void clear() {
+    sortedCache.clear();
+  }
+
+  @Override
+  public void drop() {
+    sortedCache.drop();
   }
 
   @Override
   public int getPositionById(long id) {
     final ListedUserIDs status = ordered.where().equalTo("id", id).findFirst();
     return ordered.indexOf(status);
+  }
+
+  @Override
+  public Flowable<UpdateEvent> observeUpdateEvent() {
+    return updateSubject.observeUpdateEvent();
   }
 
   @Override
@@ -100,7 +125,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     pool.upsert(entities);
     final List<ListedUserIDs> inserts = new ArrayList<>();
     for (User user: entities) {
-      final ListedUserIDs userIds = realm.where(ListedUserIDs.class)
+      final ListedUserIDs userIds = sortedCache.where(ListedUserIDs.class)
           .equalTo("userId", user.getId())
           .findFirst();
       if (userIds == null) {
@@ -120,7 +145,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
         element.removeChangeListener(this);
       }
     });
-    realm.executeTransaction(r -> r.insertOrUpdate(inserts));
+    sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
     updateCursorList(entities);
   }
 

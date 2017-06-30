@@ -19,14 +19,12 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.CallSuper;
 import android.util.Log;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
-import com.freshdigitable.udonroad.datastore.UpdateEvent;
-import com.freshdigitable.udonroad.datastore.UpdateSubject;
-import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
+import com.freshdigitable.udonroad.datastore.NamingBaseCache;
 
-import io.reactivex.Flowable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
+import io.realm.RealmQuery;
 
 /**
  * BaseStoredCacheRealm is a base class implementing SortedCache.<br>
@@ -34,21 +32,14 @@ import io.realm.RealmConfiguration;
  *
  * Created by akihit on 2016/09/21.
  */
-abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
-  private static final String TAG = BaseSortedCacheRealm.class.getSimpleName();
-  private final UpdateSubjectFactory factory;
-  Realm realm;
-  UpdateSubject updateSubject;
+class NamingBaseCacheRealm implements NamingBaseCache {
+  private static final String TAG = NamingBaseCacheRealm.class.getSimpleName();
+  private Realm realm;
   private RealmConfiguration config;
-
-  BaseSortedCacheRealm(UpdateSubjectFactory factory) {
-    this.factory = factory;
-  }
 
   @Override
   @CallSuper
   public void open(String storeName) {
-    updateSubject = factory.getInstance(storeName);
     config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
     Log.d(TAG, "openRealm: " + config.getRealmFileName());
@@ -69,9 +60,6 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
     }
     Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
     realm.close();
-    if (realm.isClosed()) {
-      updateSubject.onComplete();
-    }
   }
 
   @Override
@@ -90,8 +78,15 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
     realm.executeTransaction(_realm -> _realm.deleteAll());
   }
 
-  @Override
-  public Flowable<UpdateEvent> observeUpdateEvent() {
-    return updateSubject.observeUpdateEvent();
+  boolean isOpened() {
+    return realm != null && !realm.isClosed();
+  }
+
+  void executeTransaction(Realm.Transaction transaction) {
+    realm.executeTransaction(transaction);
+  }
+
+  <T extends RealmModel> RealmQuery<T> where(Class<T> clz) {
+    return realm.where(clz);
   }
 }
