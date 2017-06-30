@@ -181,7 +181,7 @@ public class UserStreamUtil {
             new UserFeedbackEvent(R.string.msg_faved_by_someone, source.getScreenName()));
       }
       final PerspectivalStatusImpl perspectivalStatus = new PerspectivalStatusImpl(favoritedStatus);
-      getBindingStatus(perspectivalStatus).getStatusReaction().setFavorited(true);
+      getBindingStatus(perspectivalStatus).getStatusReaction().setFavorited(source.getId() == userId);
       reactionPublishSubject.onNext(perspectivalStatus);
     }
 
