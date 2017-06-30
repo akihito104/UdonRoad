@@ -16,14 +16,23 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.text.TextUtils;
 
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.processors.PublishProcessor;
 import twitter4j.Paging;
 import twitter4j.User;
 
@@ -32,13 +41,18 @@ import twitter4j.User;
  */
 
 public class UserListRequestWorker implements ListRequestWorker<User> {
-  private final UserRequestWorker<SortedCache<User>> requestWorker;
+  private final TwitterApi twitterApi;
+  private final SortedCache<User> sortedCache;
+  private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private StoreType storeType;
-  private String storeName;
 
   @Inject
-  public UserListRequestWorker(UserRequestWorker<SortedCache<User>> requestWorker) {
-    this.requestWorker = requestWorker;
+  public UserListRequestWorker(@NonNull TwitterApi twitterApi,
+                               @NonNull SortedCache<User> statusStore,
+                               @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
+    this.twitterApi = twitterApi;
+    this.sortedCache = statusStore;
+    this.userFeedback = userFeedback;
   }
 
   @Override
@@ -47,14 +61,14 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    storeName = TextUtils.isEmpty(suffix)
+    final String storeName = TextUtils.isEmpty(suffix)
         ? type.storeName : type.prefix() + suffix;
-    requestWorker.open(storeName);
+    sortedCache.open(storeName);
   }
 
   @Override
   public SortedCache<User> getCache() {
-    return requestWorker.getCache();
+    return sortedCache;
   }
 
   @Override
@@ -63,28 +77,52 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          requestWorker.fetchFollowers(userId, -1);
+          fetchFollowers(userId, -1);
         }
 
         @Override
         public void fetch(Paging paging) {
-          requestWorker.fetchFollowers(userId, paging.getMaxId());
+          fetchFollowers(userId, paging.getMaxId());
         }
       };
     } else if (storeType == StoreType.USER_FRIEND) {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          requestWorker.fetchFriends(userId, -1);
+          fetchFriends(userId, -1);
         }
 
         @Override
         public void fetch(Paging paging) {
-          requestWorker.fetchFriends(userId, paging.getMaxId());
+          fetchFriends(userId, paging.getMaxId());
         }
       };
     }
     throw new IllegalStateException();
+  }
+
+  private void fetchFollowers(final long userId, final long cursor) {
+    twitterApi.getFollowersList(userId, cursor)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(createUpsertListAction(),
+            onErrorFeedback(R.string.msg_follower_list_failed));
+  }
+
+  private void fetchFriends(long userId, long cursor) {
+    twitterApi.getFriendsList(userId, cursor)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(createUpsertListAction(),
+            onErrorFeedback(R.string.msg_friends_list_failed));
+  }
+
+  @NonNull
+  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
+    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
+  }
+
+  @NonNull
+  private Consumer<List<User>> createUpsertListAction() {
+    return sortedCache::upsert;
   }
 
   @Override
@@ -94,11 +132,11 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
 
   @Override
   public void close() {
-    requestWorker.close();
+    sortedCache.close();
   }
 
   @Override
   public void drop() {
-    requestWorker.getCache().drop(storeName);
+    sortedCache.drop();
   }
 }

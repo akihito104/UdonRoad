@@ -17,16 +17,20 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
+import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
@@ -39,41 +43,47 @@ import twitter4j.User;
 
  * Created by akihit on 2016/09/17.
  */
-public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
-  private TypedCache<User> userCache;
+public class UserSortedCacheRealm implements SortedCache<User> {
+  private final NamingBaseCacheRealm sortedCache;
+  private TypedCache<User> pool;
   private RealmResults<ListedUserIDs> ordered;
+  private final UpdateSubjectFactory factory;
+  private UpdateSubject updateSubject;
 
   public UserSortedCacheRealm(UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
-    super(factory);
-    this.userCache = userCacheRealm;
+    this.factory = factory;
+    this.pool = userCacheRealm;
+    this.sortedCache = new NamingBaseCacheRealm();
   }
 
   @Override
   public void open(String storeName) {
-    super.open(storeName);
-    userCache.open();
-    if (ordered == null) {
-      ordered = realm.where(ListedUserIDs.class)
-          .findAllSorted("order");
+    if (sortedCache.isOpened()) {
+      throw new IllegalStateException(storeName + " has already opened...");
     }
+    updateSubject = factory.getInstance(storeName);
+    pool.open();
+    sortedCache.open(storeName);
+    ordered = sortedCache.where(ListedUserIDs.class)
+        .findAllSorted("order");
   }
 
   @Override
   public void close() {
     ordered.removeAllChangeListeners();
-    ordered = null;
-    super.close();
-    userCache.close();
+    sortedCache.close();
+    pool.close();
+    updateSubject.onComplete();
   }
 
   @Override
   public void clear() {
-    realm.executeTransaction(_realm -> _realm.deleteAll());
+    sortedCache.clear();
   }
 
   @Override
-  public void clearPool() {
-    // nop
+  public void drop() {
+    sortedCache.drop();
   }
 
   @Override
@@ -83,9 +93,14 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   }
 
   @Override
+  public Flowable<UpdateEvent> observeUpdateEvent() {
+    return updateSubject.observeUpdateEvent();
+  }
+
+  @Override
   public User get(int position) {
     final ListedUserIDs userIDs = ordered.get(position);
-    return userCache.find(userIDs.userId);
+    return pool.find(userIDs.userId);
   }
 
   @Override
@@ -104,14 +119,14 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
   private int order = 0;
 
   @Override
-  public void upsert(List<User> entities) {
+  public void upsert(Collection<User> entities) {
     if (entities == null || entities.isEmpty()) {
       return;
     }
-    userCache.upsert(entities);
+    pool.upsert(entities);
     final List<ListedUserIDs> inserts = new ArrayList<>();
     for (User user: entities) {
-      final ListedUserIDs userIds = realm.where(ListedUserIDs.class)
+      final ListedUserIDs userIds = sortedCache.where(ListedUserIDs.class)
           .equalTo("userId", user.getId())
           .findFirst();
       if (userIds == null) {
@@ -131,7 +146,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
         element.removeChangeListener(this);
       }
     });
-    realm.executeTransaction(r -> r.insertOrUpdate(inserts));
+    sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
     updateCursorList(entities);
   }
 
@@ -142,7 +157,7 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     return lastPageCursor;
   }
 
-  private void updateCursorList(List<User> users) {
+  private void updateCursorList(Collection<User> users) {
     if (!(users instanceof PagableResponseList)) {
       return;
     }
@@ -155,16 +170,10 @@ public class UserSortedCacheRealm extends BaseSortedCacheRealm<User> {
     upsert(entity);
   }
 
-  @Nullable
-  @Override
-  public User find(long id) {
-    return userCache.find(id);
-  }
-
   @NonNull
   @Override
   public Observable<User> observeById(long id) {
-    return userCache.observeById(id);
+    return pool.observeById(id);
   }
 
   @Override

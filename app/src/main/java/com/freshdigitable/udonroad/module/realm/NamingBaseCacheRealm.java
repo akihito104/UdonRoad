@@ -19,14 +19,12 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.CallSuper;
 import android.util.Log;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
-import com.freshdigitable.udonroad.datastore.UpdateEvent;
-import com.freshdigitable.udonroad.datastore.UpdateSubject;
-import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
+import com.freshdigitable.udonroad.datastore.NamingBaseCache;
 
-import io.reactivex.Flowable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
+import io.realm.RealmQuery;
 
 /**
  * BaseStoredCacheRealm is a base class implementing SortedCache.<br>
@@ -34,21 +32,15 @@ import io.realm.RealmConfiguration;
  *
  * Created by akihit on 2016/09/21.
  */
-abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
-  private static final String TAG = BaseSortedCacheRealm.class.getSimpleName();
-  private final UpdateSubjectFactory factory;
-  Realm realm;
-  UpdateSubject updateSubject;
-
-  BaseSortedCacheRealm(UpdateSubjectFactory factory) {
-    this.factory = factory;
-  }
+class NamingBaseCacheRealm implements NamingBaseCache {
+  private static final String TAG = NamingBaseCacheRealm.class.getSimpleName();
+  private Realm realm;
+  private RealmConfiguration config;
 
   @Override
   @CallSuper
   public void open(String storeName) {
-    updateSubject = factory.getInstance(storeName);
-    final RealmConfiguration config = getRealmConfiguration(storeName);
+    config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
     Log.d(TAG, "openRealm: " + config.getRealmFileName());
   }
@@ -68,32 +60,33 @@ abstract class BaseSortedCacheRealm<T> implements SortedCache<T> {
     }
     Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
     realm.close();
-    if (realm.isClosed()) {
-      updateSubject.onComplete();
-    }
-  }
-
-  @Override
-  public void drop(String storeName) {
-    final RealmConfiguration conf = getRealmConfiguration(storeName);
-    if (Realm.getGlobalInstanceCount(conf) <= 0) {
-      Log.d(TAG, "drop: " + storeName);
-      Realm.deleteRealm(conf);
-    }
-  }
-
-  @Override
-  public Flowable<UpdateEvent> observeUpdateEvent() {
-    return updateSubject.observeUpdateEvent();
-  }
-
-  @Override
-  public void open() {
-    throw new RuntimeException();
   }
 
   @Override
   public void drop() {
-    throw new RuntimeException();
+    if (config == null) {
+      return;
+    }
+    if (Realm.getGlobalInstanceCount(config) <= 0) {
+      Log.d(TAG, "drop: " + config.getRealmFileName());
+      Realm.deleteRealm(config);
+    }
+  }
+
+  @Override
+  public void clear() {
+    realm.executeTransaction(_realm -> _realm.deleteAll());
+  }
+
+  boolean isOpened() {
+    return realm != null && !realm.isClosed();
+  }
+
+  void executeTransaction(Realm.Transaction transaction) {
+    realm.executeTransaction(transaction);
+  }
+
+  <T extends RealmModel> RealmQuery<T> where(Class<T> clz) {
+    return realm.where(clz);
   }
 }

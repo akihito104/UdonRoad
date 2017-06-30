@@ -16,16 +16,17 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.support.annotation.NonNull;
+
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 
 /**
  * SortedCache defines to access storage of sorted data specified type parameter.
  *
  * Created by akihit on 2016/09/14.
  */
-public interface SortedCache<T> extends BaseOperation<T> {
-  void open(String storeName);
-
+public interface SortedCache<T> extends BaseOperation<T>, NamingBaseCache {
   Flowable<UpdateEvent> observeUpdateEvent();
 
   T get(int position);
@@ -34,9 +35,8 @@ public interface SortedCache<T> extends BaseOperation<T> {
 
   long getLastPageCursor();
 
-  void clearPool();
-
-  void drop(String storeName);
-
   int getPositionById(long id);
+
+  @NonNull
+  Observable<T> observeById(long id);
 }

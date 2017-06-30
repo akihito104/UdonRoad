@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package com.freshdigitable.udonroad.subscriber;
 
-import java.util.Collection;
+import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 
 /**
- * BaseOperation defines basic CRUD operation for data store.
- * <p>
- * Created by akihit on 2016/09/14.
+ * Created by akihit on 2017/06/26.
  */
-public interface BaseOperation<T> {
-  void upsert(T entity);
 
-  void upsert(Collection<T> entities);
+public interface RequestWorker<T> {
+  void open();
 
-  void insert(T entity);
+  void close();
 
-  void delete(long id);
+  void drop();
+
+  TypedCache<T> getCache();
+
+  OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId);
 }

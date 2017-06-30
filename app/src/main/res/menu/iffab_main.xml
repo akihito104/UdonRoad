@@ -18,21 +18,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/iffabMenu_main_fav"
+        android:id="@id/iffabMenu_main_fav"
         android:icon="@drawable/ic_like"
         android:orderInCategory="90"
         android:title="fav"
         app:toolbarIconColorState="@color/selector_fav_icon"
         />
     <item
-        android:id="@+id/iffabMenu_main_rt"
+        android:id="@id/iffabMenu_main_rt"
         android:icon="@drawable/ic_retweet"
         android:orderInCategory="0"
         android:title="RT"
         app:toolbarIconColorState="@color/selector_rt_icon"
         />
     <item
-        android:id="@+id/iffabMenu_main_favRt"
+        android:id="@id/iffabMenu_main_favRt"
         android:orderInCategory="45"
         android:title="fav/RT"
         />

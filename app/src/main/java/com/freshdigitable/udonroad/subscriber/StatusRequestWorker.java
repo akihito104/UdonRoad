@@ -17,27 +17,27 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
-import com.freshdigitable.udonroad.datastore.BaseOperation;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
+import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
-import java.util.List;
+import java.util.Arrays;
 
 import javax.inject.Inject;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
-import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
@@ -45,20 +45,24 @@ import twitter4j.TwitterException;
 /**
  * StatusRequestWorker creates twitter request for status resources and subscribes its response
  * with user feedback.
- *
+ * <p>
  * Created by akihit on 2016/08/01.
  */
-public class StatusRequestWorker<T extends BaseOperation<Status>>
-    extends RequestWorkerBase<T> {
+public class StatusRequestWorker implements RequestWorker<Status> {
   private static final String TAG = StatusRequestWorker.class.getSimpleName();
+  private final TwitterApi twitterApi;
+  private final TypedCache<Status> cache;
+  private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final ConfigStore configStore;
 
   @Inject
   public StatusRequestWorker(@NonNull TwitterApi twitterApi,
-                             @NonNull T statusStore,
+                             @NonNull TypedCache<Status> statusStore,
                              @NonNull ConfigStore configStore,
                              @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
-    super(twitterApi, statusStore, userFeedback);
+    this.twitterApi = twitterApi;
+    this.cache = statusStore;
+    this.userFeedback = userFeedback;
     this.configStore = configStore;
   }
 
@@ -66,85 +70,57 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
 
   @Override
   public void open() {
-    super.open();
     configStore.open();
-    opened = true;
-  }
-
-  @Override
-  public void open(@NonNull String name) {
-    super.open(name);
-    configStore.open();
+    cache.open();
     opened = true;
   }
 
   @Override
   public void close() {
     if (opened) {
-      super.close();
+      cache.close();
       configStore.close();
       opened = false;
     }
   }
 
+  @Override
+  public void drop() {
+    cache.drop();
+  }
+
+  @Override
+  public TypedCache<Status> getCache() {
+    return cache;
+  }
+
+  @Override
+  public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
+    return item -> {
+      final int itemId = item.getItemId();
+      if (itemId == R.id.iffabMenu_main_fav) {
+        if (!item.isChecked()) {
+          createFavorite(selectedId);
+        } else {
+          destroyFavorite(selectedId);
+        }
+      } else if (itemId == R.id.iffabMenu_main_rt) {
+        if (!item.isChecked()) {
+          retweetStatus(selectedId);
+        } else {
+          destroyRetweet(selectedId);
+        }
+      } else if (itemId == R.id.iffabMenu_main_favRt) {
+        Observable.concatDelayError(Arrays.asList(
+            observeCreateFavorite(selectedId).toObservable(),
+            observeRetweetStatus(selectedId).toObservable())
+        ).subscribe(s -> {}, e -> {});
+      }
+    };
+  }
+
   public boolean isOpened() {
     return opened;
-  }
-
-  public void fetchHomeTimeline() {
-    twitterApi.getHomeTimeline()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createListUpsertAction(),
-            onErrorFeedback(R.string.msg_tweet_not_download));
-  }
-
-  public void fetchHomeTimeline(Paging paging) {
-    twitterApi.getHomeTimeline(paging)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createListUpsertAction(),
-            onErrorFeedback(R.string.msg_tweet_not_download));
-  }
-
-  public void fetchHomeTimeline(long userId) {
-    twitterApi.getUserTimeline(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createListUpsertAction(),
-            onErrorFeedback(R.string.msg_tweet_not_download));
-  }
-
-  public void fetchHomeTimeline(long userId, @Nullable Paging paging) {
-    if (paging == null) {
-      fetchHomeTimeline(userId);
-      return;
-    }
-    twitterApi.getUserTimeline(userId, paging)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createListUpsertAction(),
-            onErrorFeedback(R.string.msg_tweet_not_download));
-  }
-
-  public void fetchFavorites(long userId) {
-    twitterApi.getFavorites(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createListUpsertAction(),
-            onErrorFeedback(R.string.msg_tweet_not_download));
-  }
-
-  public void fetchFavorites(long userId, @Nullable Paging paging) {
-    if (paging == null) {
-      fetchFavorites(userId);
-      return;
-    }
-    twitterApi.getFavorites(userId, paging)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            createListUpsertAction(),
-            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   public Single<Status> observeCreateFavorite(final long statusId) {
@@ -222,13 +198,8 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
   }
 
   @NonNull
-  private Consumer<List<Status>> createListUpsertAction() {
-    return statuses -> cache.upsert(statuses);
-  }
-
-  @NonNull
-  private Consumer<Status> createUpsertAction() {
-    return statuses -> cache.upsert(statuses);
+  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
+    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 
   @NonNull
@@ -267,12 +238,5 @@ public class StatusRequestWorker<T extends BaseOperation<Status>>
     } catch (Exception e) {
     }
     configStore.insert(reaction);
-  }
-
-  public void fetchConversations(long statusId) {
-    twitterApi.fetchConversations(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createUpsertAction(),
-            onErrorFeedback(R.string.msg_tweet_not_download));
   }
 }

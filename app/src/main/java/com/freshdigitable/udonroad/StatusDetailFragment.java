@@ -70,7 +70,7 @@ public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   @Inject
-  StatusRequestWorker<TypedCache<Status>> statusRequestWorker;
+  StatusRequestWorker statusRequestWorker;
   private Disposable subscription;
   private Disposable cardSubscription;
 

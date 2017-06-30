@@ -70,7 +70,10 @@ public class QuotedStatusView extends ItemView {
     createdAt.setText(timeStrategy.getCreatedTime(getContext()));
   }
 
-  public void update(TwitterListItem item) {
+  public void update(ListItem item) {
+    if (item == null) {
+      return;
+    }
     reactionContainer.update(item.getStats());
     names.setNames(item.getUser());
   }

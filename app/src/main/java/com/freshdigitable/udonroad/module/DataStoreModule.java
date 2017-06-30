@@ -20,29 +20,29 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.BaseCache;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
-import com.freshdigitable.udonroad.module.realm.BaseCacheRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
 import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
 import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 import com.freshdigitable.udonroad.subscriber.UserListRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import io.reactivex.processors.PublishProcessor;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -57,12 +57,6 @@ public class DataStoreModule {
 
   public DataStoreModule(Context context) {
     this.context = context;
-  }
-
-  @Singleton
-  @Provides
-  BaseCache provideBaseCache() {
-    return new BaseCacheRealm();
   }
 
   @Singleton
@@ -116,19 +110,22 @@ public class DataStoreModule {
   @Singleton
   @Provides
   AppSettingStore provideAppSettingStore(TypedCache<User> userTypedCache,
-                                                SharedPreferences sharedPreferences) {
+                                         SharedPreferences sharedPreferences) {
     return new AppSettingStoreRealm(userTypedCache, sharedPreferences);
   }
 
   @Provides
-  ListRequestWorker<Status> provideListRequestWorkerStatus(
-      StatusRequestWorker<SortedCache<Status>> worker) {
-    return new StatusListRequestWorker(worker);
+  ListRequestWorker<Status> provideListRequestWorkerStatus(TwitterApi twitterApi,
+                                                           SortedCache<Status> sortedCache,
+                                                           PublishProcessor<UserFeedbackEvent> userFeedback,
+                                                           StatusRequestWorker requestWorker) {
+    return new StatusListRequestWorker(twitterApi, sortedCache, userFeedback, requestWorker);
   }
 
   @Provides
-  ListRequestWorker<User> provideListRequestWorkerUser(
-      UserRequestWorker<SortedCache<User>> worker) {
-    return new UserListRequestWorker(worker);
+  ListRequestWorker<User> provideListRequestWorkerUser(TwitterApi twitterApi,
+                                                       SortedCache<User> sortedCache,
+                                                       PublishProcessor<UserFeedbackEvent> userFeedback) {
+    return new UserListRequestWorker(twitterApi, sortedCache, userFeedback);
   }
 }

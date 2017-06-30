@@ -422,7 +422,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   }
 
   public boolean isTweetSelected() {
-    return tlAdapter.isItemSelected();
+    return tlAdapter != null && tlAdapter.isItemSelected();
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

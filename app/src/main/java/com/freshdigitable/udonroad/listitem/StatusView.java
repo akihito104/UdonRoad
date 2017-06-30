@@ -103,6 +103,7 @@ public class StatusView extends ItemView {
   public void update(TwitterListItem item) {
     reactionContainer.update(item.getStats());
     names.setNames(item.getUser());
+    quotedStatus.update(item.getQuotedItem());
   }
 
   void setTextColor(int color) {
