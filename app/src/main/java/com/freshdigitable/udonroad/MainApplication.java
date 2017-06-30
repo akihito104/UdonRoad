@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
@@ -55,6 +56,8 @@ public class MainApplication extends Application {
   UserStreamUtil userStreamUtil;
   @Inject
   UserFeedbackSubscriber userFeedback;
+  @Inject
+  UpdateSubjectFactory updateSubjectFactory;
 
   @Override
   public void onCreate() {
@@ -162,6 +165,7 @@ public class MainApplication extends Application {
       }
       if (activities.size() == 0) {
         getApplication(activity).userFeedback.unsubscribe();
+        getApplication(activity).updateSubjectFactory.clear();
       }
     }
 
