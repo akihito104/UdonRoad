@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.ConfigStore;
@@ -31,7 +30,6 @@ import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -42,7 +40,6 @@ import io.realm.Sort;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
-import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_QUOTAD_STATUS_ID;
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_RETWEETED_STATUS_ID;
 
 /**
@@ -66,6 +63,9 @@ public class TimelineStoreRealm implements SortedCache<Status> {
       if (updateSubject.hasSubscribers()) {
         for (OrderedCollectionChangeSet.Range range : changeSet.getInsertionRanges()) {
           updateSubject.onNext(EventType.INSERT, range.startIndex, range.length);
+        }
+        for (OrderedCollectionChangeSet.Range range : changeSet.getChangeRanges()) {
+          updateSubject.onNext(EventType.CHANGE, range.startIndex, range.length);
         }
       }
       elem.removeChangeListener(this);
@@ -138,148 +138,27 @@ public class TimelineStoreRealm implements SortedCache<Status> {
       return;
     }
     final ArrayList<Status> targets = new ArrayList<>(statuses.size());
+    final ArrayList<StatusIDs> statusIDs = new ArrayList<>(statuses.size());
     for (Status s : statuses) {
       if (isIgnorable(s)) {
         continue;
       }
       targets.add(s);
+      statusIDs.add(new StatusIDs(s));
     }
     if (targets.isEmpty()) {
       return;
     }
 
-    final List<StatusIDs> inserts = createInsertList(targets);
-    final List<StatusIDs> updates = createUpdateList(targets);
     pool.observeUpsert(targets).subscribe(() -> {
-      if (!inserts.isEmpty()) {
-        insertStatus(inserts);
-      }
-      if (!updates.isEmpty()) {
-        notifyChanged(updates);
-      }
+      timeline.addChangeListener(addChangeListener);
+      sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs));
     }, throwable -> Log.e(TAG, "upsert: ", throwable));
-  }
-
-  private List<StatusIDs> createInsertList(Collection<Status> statuses) {
-    final List<StatusIDs> inserts = new ArrayList<>();
-    for (Status s : statuses) {
-      final StatusIDs update = timeline.where()
-          .beginGroup()
-          .equalTo(KEY_ID, s.getId()).or()
-          .equalTo(KEY_RETWEETED_STATUS_ID, s.getId()).or()
-          .equalTo(KEY_QUOTAD_STATUS_ID, s.getId())
-          .endGroup()
-          .findFirst();
-      if (update == null) {
-        inserts.add(new StatusIDs(s));
-      }
-    }
-    return inserts;
-  }
-
-  private void insertStatus(final Collection<StatusIDs> inserts) {
-    timeline.addChangeListener(addChangeListener);
-    sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
-  }
-
-  private List<StatusIDs> createUpdateList(Collection<Status> statuses) {
-    if (!updateSubject.hasSubscribers()) {
-      return Collections.emptyList();
-    }
-
-    final List<StatusIDs> updates = new ArrayList<>();
-    for (Status s : statuses) {
-      final StatusIDs update = findTimeline(s);
-      if (update != null) {
-        updates.add(update);
-      }
-
-      final RealmResults<StatusIDs> u = findReferringStatus(s.getId());
-      if (!u.isEmpty()) {
-        updates.addAll(u);
-      }
-
-      final long quotedStatusId = s.getQuotedStatusId();
-      if (quotedStatusId > 0) {
-        final Status quotedStatus = s.getQuotedStatus();
-
-        final StatusIDs q = findTimeline(quotedStatus);
-        if (q != null) {
-          updates.add(q);
-        }
-
-        final RealmResults<StatusIDs> updatedQuotedStatus = findReferringStatus(quotedStatusId);
-        if (!updatedQuotedStatus.isEmpty()) {
-          updates.addAll(updatedQuotedStatus);
-        }
-      }
-
-      if (!s.isRetweet()) {
-        continue;
-      }
-      final Status retweetedStatus = s.getRetweetedStatus();
-
-      final StatusIDs rs = findTimeline(retweetedStatus);
-      if (rs != null) {
-        updates.add(rs);
-      }
-      final RealmResults<StatusIDs> rtedUpdate = findReferringStatus(retweetedStatus.getId());
-      if (!rtedUpdate.isEmpty()) {
-        updates.addAll(rtedUpdate);
-      }
-
-      final long rtQuotedStatusId = retweetedStatus.getQuotedStatusId();
-      if (rtQuotedStatusId > 0) {
-        final RealmResults<StatusIDs> rtUpdatedQuotedStatus = findReferringStatus(rtQuotedStatusId);
-        if (!rtUpdatedQuotedStatus.isEmpty()) {
-          updates.addAll(rtUpdatedQuotedStatus);
-        }
-      }
-    }
-    return updates;
-  }
-
-  private void notifyChanged(List<StatusIDs> changed) {
-    if (changed.isEmpty()) {
-      return;
-    }
-    final List<Integer> index = searchTimeline(changed, timeline);
-    if (index.isEmpty()) {
-      return;
-    }
-    for (int i : index) {
-      updateSubject.onNext(EventType.CHANGE, i);
-    }
   }
 
   @Override
   public void insert(Status status) {
-    pool.insert(status);
-    final List<StatusIDs> updates = createUpdateList(Collections.singletonList(status));
-    if (!updates.isEmpty()) {
-      notifyChanged(updates);
-    }
-  }
-
-  @NonNull
-  private RealmResults<StatusIDs> findReferringStatus(long id) {
-    return timeline.where()
-        .beginGroup()
-        .equalTo(KEY_QUOTAD_STATUS_ID, id)
-        .or()
-        .equalTo(KEY_RETWEETED_STATUS_ID, id)
-        .endGroup()
-        .findAll();
-  }
-
-  @Nullable
-  private StatusIDs findTimeline(Status newer) {
-    if (newer == null) {
-      return null;
-    }
-    return timeline.where()
-        .equalTo(KEY_ID, newer.getId())
-        .findFirst();
+    upsert(status);
   }
 
   @Override
@@ -311,19 +190,6 @@ public class TimelineStoreRealm implements SortedCache<Status> {
       }
     });
     sortedCache.executeTransaction(r -> res.deleteAllFromRealm());
-  }
-
-  @NonNull
-  private List<Integer> searchTimeline(List<StatusIDs> managedItems,
-                                       RealmResults<StatusIDs> timeline) {
-    final List<Integer> res = new ArrayList<>(managedItems.size());
-    for (StatusIDs sr : managedItems) {
-      final int index = timeline.indexOf(sr);
-      if (index >= 0) {
-        res.add(index);
-      }
-    }
-    return res;
   }
 
   @Override
