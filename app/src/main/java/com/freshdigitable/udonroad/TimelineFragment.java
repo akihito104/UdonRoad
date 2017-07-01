@@ -327,18 +327,20 @@ public abstract class TimelineFragment<T> extends Fragment {
       tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
       firstItemObserver = null;
     }
-    binding.timeline.setItemAnimator(null);
-    timelineAnimator = null;
-    binding.timeline.removeItemDecoration(timelineDecoration);
-    timelineDecoration = null;
-    tlLayoutManager.removeAllViews();
-    binding.timeline.setLayoutManager(null);
-    tlLayoutManager = null;
-    binding.timeline.setAdapter(null);
-    updateEventSubscription.dispose();
-    requestWorker.close();
-    requestWorker.drop();
-    tlAdapter = null;
+    if (binding != null) {
+      binding.timeline.setItemAnimator(null);
+      timelineAnimator = null;
+      binding.timeline.removeItemDecoration(timelineDecoration);
+      timelineDecoration = null;
+      tlLayoutManager.removeAllViews();
+      binding.timeline.setLayoutManager(null);
+      tlLayoutManager = null;
+      binding.timeline.setAdapter(null);
+      updateEventSubscription.dispose();
+      requestWorker.close();
+      requestWorker.drop();
+      tlAdapter = null;
+    }
   }
 
   private OnIffabItemSelectedListener iffabItemSelectedListener;

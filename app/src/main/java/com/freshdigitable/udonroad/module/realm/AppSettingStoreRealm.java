@@ -42,12 +42,12 @@ import twitter4j.auth.AccessToken;
 
 public class AppSettingStoreRealm implements AppSettingStore {
   private Realm realm;
-  private final TypedCache<User> cache;
+  private final TypedCache<User> pool;
   private final RealmConfiguration config;
   private final SharedPreferences prefs;
 
   public AppSettingStoreRealm(TypedCache<User> userCacheRealm, SharedPreferences prefs) {
-    this.cache = userCacheRealm;
+    this.pool = userCacheRealm;
     config = new RealmConfiguration.Builder()
         .name(StoreType.APP_SETTINGS.storeName)
         .deleteRealmIfMigrationNeeded()
@@ -57,13 +57,11 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void open() {
-    cache.open();
     realm = Realm.getInstance(config);
   }
 
   @Override
   public void close() {
-    cache.close();
     realm.close();
   }
 
@@ -92,25 +90,20 @@ public class AppSettingStoreRealm implements AppSettingStore {
     if (authenticatedUser == null) {
       return;
     }
-    realm.executeTransaction(_realm -> {
+    realm.executeTransaction(r -> {
       final UserRealm userRealm = new UserRealm(authenticatedUser);
-      _realm.insertOrUpdate(userRealm);
+      r.insertOrUpdate(userRealm);
     });
-    cache.upsert(authenticatedUser);
+    pool.open();
+    pool.upsert(authenticatedUser);
+    pool.close();
   }
 
   @Override @Nullable
   public User getAuthenticatedUser(long userId) {
-    final UserRealm user = realm.where(UserRealm.class)
+    return realm.where(UserRealm.class)
         .equalTo("id", userId)
         .findFirst();
-    if (user == null) {
-      return null;
-    }
-    final User cacheUser = cache.find(user.getId());
-    return cacheUser != null
-        ? cacheUser
-        : user;
   }
 
   @Override
@@ -118,11 +111,11 @@ public class AppSettingStoreRealm implements AppSettingStore {
     if (twitterAPIConfig == null) {
       return;
     }
-    realm.executeTransaction(_realm -> {
-      _realm.delete(TwitterAPIConfigurationRealm.class);
+    realm.executeTransaction(r -> {
+      r.delete(TwitterAPIConfigurationRealm.class);
       final TwitterAPIConfigurationRealm twitterAPIConfiguration
           = new TwitterAPIConfigurationRealm(twitterAPIConfig);
-      _realm.insertOrUpdate(twitterAPIConfiguration);
+      r.insertOrUpdate(twitterAPIConfiguration);
     });
     setFetchTwitterAPIConfigTime(System.currentTimeMillis());
   }

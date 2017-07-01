@@ -37,6 +37,7 @@ import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
@@ -160,8 +161,7 @@ public class TweetInputFragment extends Fragment {
     // workaround: for support lib 25.1.0
     binding.mainTweetInputView.setVisibility(GONE);
 
-    statusRequestWorker.open();
-    configRequestWorker.open();
+    statusCache.open();
     appSettings.open();
     final Bundle arguments = getArguments();
     final @TweetType int tweetType = arguments.getInt("tweet_type");
@@ -173,8 +173,7 @@ public class TweetInputFragment extends Fragment {
   public void onStop() {
     super.onStop();
     appSettings.close();
-    configRequestWorker.close();
-    statusRequestWorker.close();
+    statusCache.close();
   }
 
   private FloatingActionButton tweetSendFab;
@@ -222,8 +221,11 @@ public class TweetInputFragment extends Fragment {
 
   private ReplyEntity replyEntity;
 
+  @Inject
+  TypedCache<Status> statusCache;
+
   private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
-    final Status inReplyTo = statusRequestWorker.getCache().find(inReplyToStatusId);
+    final Status inReplyTo = statusCache.find(inReplyToStatusId);
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inReplyTo == null) {
       stretchTweetInputView();
@@ -303,7 +305,7 @@ public class TweetInputFragment extends Fragment {
     }
     StringBuilder s = new StringBuilder(sendingText);
     for (long q : quoteStatusIds) {
-      final Status status = statusRequestWorker.getCache().find(q);
+      final Status status = statusCache.find(q);
       if (status == null) {
         continue;
       }

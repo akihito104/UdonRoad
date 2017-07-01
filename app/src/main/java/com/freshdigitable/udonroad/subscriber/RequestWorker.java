@@ -16,21 +16,12 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
-import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 
 /**
  * Created by akihit on 2017/06/26.
  */
 
-public interface RequestWorker<T> {
-  void open();
-
-  void close();
-
-  void drop();
-
-  TypedCache<T> getCache();
-
+public interface RequestWorker {
   OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId);
 }

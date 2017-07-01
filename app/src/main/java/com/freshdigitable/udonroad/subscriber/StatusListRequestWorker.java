@@ -69,7 +69,6 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
     final String storeName = TextUtils.isEmpty(suffix)
         ? type.storeName : type.prefix() + suffix;
     sortedCache.open(storeName);
-    requestWorker.open();
   }
 
   @Override
@@ -159,7 +158,6 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   @Override
   public void close() {
     sortedCache.close();
-    requestWorker.close();
   }
 
   @Override
