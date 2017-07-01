@@ -21,7 +21,6 @@ import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,12 +41,10 @@ import twitter4j.auth.AccessToken;
 
 public class AppSettingStoreRealm implements AppSettingStore {
   private Realm realm;
-  private final TypedCache<User> pool;
   private final RealmConfiguration config;
   private final SharedPreferences prefs;
 
-  public AppSettingStoreRealm(TypedCache<User> userCacheRealm, SharedPreferences prefs) {
-    this.pool = userCacheRealm;
+  public AppSettingStoreRealm(SharedPreferences prefs) {
     config = new RealmConfiguration.Builder()
         .name(StoreType.APP_SETTINGS.storeName)
         .deleteRealmIfMigrationNeeded()
@@ -94,9 +91,6 @@ public class AppSettingStoreRealm implements AppSettingStore {
       final UserRealm userRealm = new UserRealm(authenticatedUser);
       r.insertOrUpdate(userRealm);
     });
-    pool.open();
-    pool.upsert(authenticatedUser);
-    pool.close();
   }
 
   @Override @Nullable

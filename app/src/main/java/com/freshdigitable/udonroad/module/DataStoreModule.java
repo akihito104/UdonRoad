@@ -109,9 +109,8 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  AppSettingStore provideAppSettingStore(TypedCache<User> userTypedCache,
-                                         SharedPreferences sharedPreferences) {
-    return new AppSettingStoreRealm(userTypedCache, sharedPreferences);
+  AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences) {
+    return new AppSettingStoreRealm(sharedPreferences);
   }
 
   @Provides
