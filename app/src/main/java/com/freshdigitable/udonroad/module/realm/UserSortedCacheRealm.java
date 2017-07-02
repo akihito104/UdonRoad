@@ -24,19 +24,12 @@ import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
 import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
-import com.freshdigitable.udonroad.datastore.WritableSortedCache;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmResults;
-import twitter4j.PagableResponseList;
 import twitter4j.User;
 
 /**
@@ -44,7 +37,7 @@ import twitter4j.User;
 
  * Created by akihit on 2016/09/17.
  */
-public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCache<User> {
+public class UserSortedCacheRealm implements SortedCache<User> {
   private final NamingBaseCacheRealm sortedCache;
   private TypedCache<User> pool;
   private RealmResults<ListedUserIDs> ordered;
@@ -67,6 +60,7 @@ public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCa
     sortedCache.open(storeName);
     ordered = sortedCache.where(ListedUserIDs.class)
         .findAllSorted("order");
+    ordered.addChangeListener(realmChangeListener);
   }
 
   @Override
@@ -110,57 +104,13 @@ public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCa
   }
 
   @Override
-  public void upsert(User entity) {
-    if (entity == null) {
-      return;
-    }
-    upsert(Collections.singletonList(entity));
-  }
-
-  private int order = 0;
-
-  @Override
-  public void upsert(Collection<User> entities) {
-    if (entities == null || entities.isEmpty()) {
-      return;
-    }
-    final List<ListedUserIDs> inserts = new ArrayList<>();
-    for (User user: entities) {
-      final ListedUserIDs userIds = sortedCache.where(ListedUserIDs.class)
-          .equalTo("userId", user.getId())
-          .findFirst();
-      if (userIds == null) {
-        inserts.add(new ListedUserIDs(user, order));
-        order++;
-      }
-    }
-    ordered.addChangeListener(realmChangeListener);
-    pool.observeUpsert(entities).subscribe(
-        () -> {
-          sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
-          updateCursorList(entities);
-        },
-        e -> {});
-  }
-
-  private long lastPageCursor = -1;
-
-  @Override
   public long getLastPageCursor() {
-    return lastPageCursor;
-  }
-
-  private void updateCursorList(Collection<User> users) {
-    if (!(users instanceof PagableResponseList)) {
-      return;
-    }
-    final PagableResponseList page = (PagableResponseList) users;
-    lastPageCursor = page.getNextCursor();
-  }
-
-  @Override
-  public void insert(User entity) {
-    upsert(entity);
+    final PageCursor cursor = sortedCache.where(PageCursor.class)
+        .equalTo("type", PageCursor.TYPE_NEXT)
+        .findFirst();
+    return cursor != null ?
+        cursor.cursor
+        : -1;
   }
 
   @NonNull
@@ -182,9 +132,4 @@ public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCa
       element.removeChangeListener(this);
     }
   };
-
-  @Override
-  public void delete(long id) {
-    //todo
-  }
 }

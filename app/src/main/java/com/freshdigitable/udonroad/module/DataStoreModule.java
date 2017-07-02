@@ -33,6 +33,7 @@ import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
 import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
 import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
 import com.freshdigitable.udonroad.module.realm.WritableTimelineRealm;
+import com.freshdigitable.udonroad.module.realm.WritableUserSortedCacheRealm;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusListRequestWorker;
@@ -130,9 +131,8 @@ public class DataStoreModule {
   }
 
   @Provides
-  WritableSortedCache<User> provideWritableSortedCacheUser(UpdateSubjectFactory factory,
-                                                           TypedCache<User> userCache) {
-    return new UserSortedCacheRealm(factory, userCache);
+  WritableSortedCache<User> provideWritableSortedCacheUser(TypedCache<User> userCache) {
+    return new WritableUserSortedCacheRealm(userCache);
   }
 
   @Provides
