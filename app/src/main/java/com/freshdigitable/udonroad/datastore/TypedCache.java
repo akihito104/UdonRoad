@@ -19,9 +19,8 @@ package com.freshdigitable.udonroad.datastore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import java.util.Collection;
+import com.freshdigitable.udonroad.datastore.WritableCache.ObservableWriteOperation;
 
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 
 /**
@@ -29,12 +28,10 @@ import io.reactivex.Observable;
  *
  * Created by akihit on 2016/09/14.
  */
-public interface TypedCache<T> extends BaseOperation<T>, BaseCache {
+public interface TypedCache<T> extends WritableCache<T>, ObservableWriteOperation<T>, BaseCache {
   @Nullable
   T find(long id);
 
   @NonNull
   Observable<T> observeById(long id);
-
-  Completable observeUpsert(Collection<T> entities);
 }

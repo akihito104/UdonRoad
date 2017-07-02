@@ -18,12 +18,14 @@ package com.freshdigitable.udonroad.datastore;
 
 import java.util.Collection;
 
+import io.reactivex.Completable;
+
 /**
- * BaseOperation defines basic CRUD operation for data store.
+ * WritableCache defines basic CRUD operation for data store.
  * <p>
  * Created by akihit on 2016/09/14.
  */
-public interface BaseOperation<T> {
+public interface WritableCache<T> {
   void upsert(T entity);
 
   void upsert(Collection<T> entities);
@@ -31,4 +33,8 @@ public interface BaseOperation<T> {
   void insert(T entity);
 
   void delete(long id);
+
+  interface ObservableWriteOperation<T> {
+    Completable observeUpsert(Collection<T> entities);
+  }
 }

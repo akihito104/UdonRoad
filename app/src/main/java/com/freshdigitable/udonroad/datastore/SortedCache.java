@@ -26,7 +26,7 @@ import io.reactivex.Observable;
  *
  * Created by akihit on 2016/09/14.
  */
-public interface SortedCache<T> extends BaseOperation<T>, NamingBaseCache {
+public interface SortedCache<T> extends WritableCache<T>, NamingBaseCache {
   Flowable<UpdateEvent> observeUpdateEvent();
 
   T get(int position);

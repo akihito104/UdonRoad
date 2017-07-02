@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
@@ -66,6 +67,10 @@ public class TimelineStoreRealm implements SortedCache<Status> {
         }
         for (OrderedCollectionChangeSet.Range range : changeSet.getChangeRanges()) {
           updateSubject.onNext(EventType.CHANGE, range.startIndex, range.length);
+        }
+        final OrderedCollectionChangeSet.Range[] deletions = changeSet.getDeletionRanges();
+        for (int i = deletions.length - 1; i >= 0; i--) {
+          updateSubject.onNext(EventType.DELETE, deletions[i].startIndex, deletions[i].length);
         }
       }
       elem.removeChangeListener(this);
@@ -173,23 +178,16 @@ public class TimelineStoreRealm implements SortedCache<Status> {
     if (res.isEmpty()) {
       return;
     }
-    timeline.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>>() {
-      @Override
-      public void onChange(RealmResults<StatusIDs> collection, OrderedCollectionChangeSet changeSet) {
-        setItemCount(collection.size());
-        if (updateSubject.hasSubscribers()) {
-          final OrderedCollectionChangeSet.Range[] deletions = changeSet.getDeletionRanges();
-          for (int i = deletions.length - 1; i >= 0; i--) {
-            updateSubject.onNext(EventType.DELETE, deletions[i].startIndex, deletions[i].length);
-          }
-        }
-        for (StatusIDs ids : res) {
-          pool.delete(ids.getId());
-        }
-        collection.removeChangeListener(this);
+
+    timeline.addChangeListener(addChangeListener);
+    Completable.create(e -> {
+      sortedCache.executeTransaction(r -> res.deleteAllFromRealm());
+      e.onComplete();
+    }).subscribe(() -> {
+      for (StatusIDs ids : res) {
+        pool.delete(ids.getId());
       }
-    });
-    sortedCache.executeTransaction(r -> res.deleteAllFromRealm());
+    }, e -> {});
   }
 
   @Override
