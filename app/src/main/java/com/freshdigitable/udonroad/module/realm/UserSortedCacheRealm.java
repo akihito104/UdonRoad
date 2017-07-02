@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
 import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
+import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +44,7 @@ import twitter4j.User;
 
  * Created by akihit on 2016/09/17.
  */
-public class UserSortedCacheRealm implements SortedCache<User> {
+public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCache<User> {
   private final NamingBaseCacheRealm sortedCache;
   private TypedCache<User> pool;
   private RealmResults<ListedUserIDs> ordered;

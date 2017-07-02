@@ -25,12 +25,14 @@ import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
+import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
 import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
 import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
+import com.freshdigitable.udonroad.module.realm.WritableTimelineRealm;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusListRequestWorker;
@@ -85,8 +87,8 @@ public class DataStoreModule {
 
   @Provides
   SortedCache<Status> provideSortedCacheStatus(
-      UpdateSubjectFactory factory, TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
-    return new TimelineStoreRealm(factory, statusCacheRealm, configStore);
+      UpdateSubjectFactory factory, TypedCache<Status> statusCacheRealm) {
+    return new TimelineStoreRealm(factory, statusCacheRealm);
   }
 
   @Provides
@@ -114,16 +116,28 @@ public class DataStoreModule {
   }
 
   @Provides
+  WritableSortedCache<Status> provideWritableSortedCacheStatus(TypedCache<Status> statusCache,
+                                                               ConfigStore configStore) {
+    return new WritableTimelineRealm(statusCache, configStore);
+  }
+
+  @Provides
   ListRequestWorker<Status> provideListRequestWorkerStatus(TwitterApi twitterApi,
-                                                           SortedCache<Status> sortedCache,
+                                                           WritableSortedCache<Status> sortedCache,
                                                            PublishProcessor<UserFeedbackEvent> userFeedback,
                                                            StatusRequestWorker requestWorker) {
     return new StatusListRequestWorker(twitterApi, sortedCache, userFeedback, requestWorker);
   }
 
   @Provides
+  WritableSortedCache<User> provideWritableSortedCacheUser(UpdateSubjectFactory factory,
+                                                           TypedCache<User> userCache) {
+    return new UserSortedCacheRealm(factory, userCache);
+  }
+
+  @Provides
   ListRequestWorker<User> provideListRequestWorkerUser(TwitterApi twitterApi,
-                                                       SortedCache<User> sortedCache,
+                                                       WritableSortedCache<User> sortedCache,
                                                        PublishProcessor<UserFeedbackEvent> userFeedback) {
     return new UserListRequestWorker(twitterApi, sortedCache, userFeedback);
   }

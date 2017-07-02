@@ -36,6 +36,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
@@ -69,6 +70,8 @@ public abstract class TimelineFragment<T> extends Fragment {
   private Disposable updateEventSubscription;
   @Inject
   ListRequestWorker<T> requestWorker;
+  @Inject
+  SortedCache<T> sortedCache;
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
 
@@ -138,7 +141,8 @@ public abstract class TimelineFragment<T> extends Fragment {
     }
     if (tlAdapter == null) {
       requestWorker.open(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
-      tlAdapter = new TimelineAdapter<>(requestWorker.getCache());
+      sortedCache.open(getStoreType().nameWithSuffix(getEntityId() > 0 ? Long.toString(getEntityId()) : null));
+      tlAdapter = new TimelineAdapter<>(sortedCache);
       binding.timeline.setAdapter(tlAdapter);
       fetchTweet(null);
     }
@@ -146,7 +150,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
 
     if (updateEventSubscription == null || updateEventSubscription.isDisposed()) {
-      updateEventSubscription = requestWorker.getCache().observeUpdateEvent()
+      updateEventSubscription = sortedCache.observeUpdateEvent()
           .subscribe(event -> {
                 if (event.type == UpdateEvent.EventType.INSERT) {
                   tlAdapter.notifyItemRangeInserted(event.index, event.length);
@@ -338,7 +342,8 @@ public abstract class TimelineFragment<T> extends Fragment {
       binding.timeline.setAdapter(null);
       updateEventSubscription.dispose();
       requestWorker.close();
-      requestWorker.drop();
+      sortedCache.close();
+      sortedCache.drop();
       tlAdapter = null;
     }
   }

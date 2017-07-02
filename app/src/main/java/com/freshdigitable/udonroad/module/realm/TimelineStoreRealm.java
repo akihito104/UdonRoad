@@ -17,9 +17,7 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
-import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
@@ -27,11 +25,6 @@ import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
 import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-
-import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
@@ -41,7 +34,6 @@ import io.realm.Sort;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
-import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_RETWEETED_STATUS_ID;
 
 /**
  * TimelineStoreRealm implements TimelineStore for Realm.
@@ -49,10 +41,9 @@ import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_RETWEETED
  * Created by akihit on 2016/07/23.
  */
 public class TimelineStoreRealm implements SortedCache<Status> {
-  private static final String TAG = TimelineStoreRealm.class.getSimpleName();
+//  private static final String TAG = TimelineStoreRealm.class.getSimpleName();
   private RealmResults<StatusIDs> timeline;
   private final TypedCache<Status> pool;
-  private final ConfigStore configStore;
   private final UpdateSubjectFactory factory;
   private UpdateSubject updateSubject;
 
@@ -73,16 +64,14 @@ public class TimelineStoreRealm implements SortedCache<Status> {
           updateSubject.onNext(EventType.DELETE, deletions[i].startIndex, deletions[i].length);
         }
       }
-      elem.removeChangeListener(this);
     }
   };
   private final NamingBaseCacheRealm sortedCache;
 
   public TimelineStoreRealm(UpdateSubjectFactory factory,
-                            TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
+                            TypedCache<Status> statusCacheRealm) {
     this.factory = factory;
     this.pool = statusCacheRealm;
-    this.configStore = configStore;
     sortedCache = new NamingBaseCacheRealm();
   }
 
@@ -93,7 +82,6 @@ public class TimelineStoreRealm implements SortedCache<Status> {
     }
     updateSubject = factory.getInstance(storeName);
     pool.open();
-    configStore.open();
     sortedCache.open(storeName);
     defaultTimeline();
   }
@@ -102,7 +90,6 @@ public class TimelineStoreRealm implements SortedCache<Status> {
   public void close() {
     timeline.removeAllChangeListeners();
     sortedCache.close();
-    configStore.close();
     pool.close();
     updateSubject.onComplete();
   }
@@ -122,72 +109,7 @@ public class TimelineStoreRealm implements SortedCache<Status> {
         .findAllSorted(KEY_ID, Sort.DESCENDING);
     setItemCount(timeline.size());
     timeline.addChangeListener(elem -> setItemCount(elem.size()));
-  }
-
-  @Override
-  public void upsert(Status status) {
-    if (status == null || isIgnorable(status)) {
-      return;
-    }
-    upsert(Collections.singletonList(status));
-  }
-
-  private boolean isIgnorable(Status status) {
-    return configStore.isIgnoredUser(status.getUser().getId())
-        || (status.isRetweet() && configStore.isIgnoredUser(status.getRetweetedStatus().getUser().getId()));
-  }
-
-  @Override
-  public void upsert(final Collection<Status> statuses) {
-    if (statuses == null) {
-      return;
-    }
-    final ArrayList<Status> targets = new ArrayList<>(statuses.size());
-    final ArrayList<StatusIDs> statusIDs = new ArrayList<>(statuses.size());
-    for (Status s : statuses) {
-      if (isIgnorable(s)) {
-        continue;
-      }
-      targets.add(s);
-      statusIDs.add(new StatusIDs(s));
-    }
-    if (targets.isEmpty()) {
-      return;
-    }
-
-    pool.observeUpsert(targets).subscribe(() -> {
-      timeline.addChangeListener(addChangeListener);
-      sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs));
-    }, throwable -> Log.e(TAG, "upsert: ", throwable));
-  }
-
-  @Override
-  public void insert(Status status) {
-    upsert(status);
-  }
-
-  @Override
-  public void delete(long statusId) {
-    final RealmResults<StatusIDs> res = sortedCache.where(StatusIDs.class)
-        .beginGroup()
-        .equalTo(KEY_ID, statusId)
-        .or()
-        .equalTo(KEY_RETWEETED_STATUS_ID, statusId)
-        .endGroup()
-        .findAll();
-    if (res.isEmpty()) {
-      return;
-    }
-
     timeline.addChangeListener(addChangeListener);
-    Completable.create(e -> {
-      sortedCache.executeTransaction(r -> res.deleteAllFromRealm());
-      e.onComplete();
-    }).subscribe(() -> {
-      for (StatusIDs ids : res) {
-        pool.delete(ids.getId());
-      }
-    }, e -> {});
   }
 
   @Override

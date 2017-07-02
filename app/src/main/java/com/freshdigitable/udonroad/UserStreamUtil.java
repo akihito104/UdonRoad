@@ -21,8 +21,8 @@ import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatusImpl;
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 
@@ -55,12 +55,12 @@ public class UserStreamUtil {
   private final PublishProcessor<UserFeedbackEvent> feedback;
   private long userId;
   private final AppSettingStore appSettings;
-  private final SortedCache<Status> sortedStatusCache;
+  private final WritableSortedCache<Status> sortedStatusCache;
   private final TypedCache<Status> pool;
 
   @Inject
   public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
-                        @NonNull SortedCache<Status> sortedStatusCache,
+                        @NonNull WritableSortedCache<Status> sortedStatusCache,
                         @NonNull TypedCache<Status> pool,
                         @NonNull AppSettingStore appSettings,
                         @NonNull PublishProcessor<UserFeedbackEvent> feedback) {

@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 
 /**
@@ -30,8 +29,6 @@ public interface ListRequestWorker<T> {
   void close();
 
   void drop();
-
-  SortedCache<T> getCache();
 
   ListFetchStrategy getFetchStrategy(long id);
 

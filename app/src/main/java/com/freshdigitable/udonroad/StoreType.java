@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad;
 
+import android.text.TextUtils;
+
 import java.util.Arrays;
 
 /**
@@ -40,6 +42,12 @@ public enum StoreType {
 
   public String prefix() {
     return storeName + "_";
+  }
+
+  public String nameWithSuffix(String suffix) {
+    return TextUtils.isEmpty(suffix) ?
+        this.storeName
+        : prefix() + suffix;
   }
 
   public boolean isForStatus() {

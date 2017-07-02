@@ -19,11 +19,10 @@ package com.freshdigitable.udonroad.subscriber;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.text.TextUtils;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
@@ -44,14 +43,14 @@ import twitter4j.Status;
 
 public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final TwitterApi twitterApi;
-  private final SortedCache<Status> sortedCache;
+  private final WritableSortedCache<Status> sortedCache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final StatusRequestWorker requestWorker;
   private StoreType storeType;
 
   @Inject
   public StatusListRequestWorker(@NonNull TwitterApi twitterApi,
-                                 @NonNull SortedCache<Status> statusStore,
+                                 @NonNull WritableSortedCache<Status> statusStore,
                                  @NonNull PublishProcessor<UserFeedbackEvent> userFeedback,
                                  @NonNull StatusRequestWorker requestWorker) {
     this.twitterApi = twitterApi;
@@ -66,14 +65,7 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    final String storeName = TextUtils.isEmpty(suffix)
-        ? type.storeName : type.prefix() + suffix;
-    sortedCache.open(storeName);
-  }
-
-  @Override
-  public SortedCache<Status> getCache() {
-    return sortedCache;
+    sortedCache.open(type.nameWithSuffix(suffix));
   }
 
   @Override
