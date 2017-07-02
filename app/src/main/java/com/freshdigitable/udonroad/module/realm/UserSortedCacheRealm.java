@@ -129,7 +129,6 @@ public class UserSortedCacheRealm implements SortedCache<User> {
           updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);
         }
       }
-      element.removeChangeListener(this);
     }
   };
 }

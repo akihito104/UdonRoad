@@ -37,4 +37,9 @@ public class PageCursor implements RealmModel {
     this.type = type;
     this.cursor = cursor;
   }
+
+  @Override
+  public String toString() {
+    return "type: " + type + ", cursor: " + cursor;
+  }
 }

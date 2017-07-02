@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import io.realm.RealmResults;
 import twitter4j.PagableResponseList;
 import twitter4j.User;
 
@@ -60,13 +61,16 @@ public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
     upsert(Collections.singletonList(entity));
   }
 
-  private int order = 0;
-
   @Override
   public void upsert(Collection<User> entities) {
     if (entities == null || entities.isEmpty()) {
       return;
     }
+    final RealmResults<ListedUserIDs> users = sortedCache.where(ListedUserIDs.class)
+        .findAllSorted("order");
+    int order = users.size() > 0 ?
+        users.last().order
+        : 0;
     final List<ListedUserIDs> inserts = new ArrayList<>();
     for (User user: entities) {
       final ListedUserIDs userIds = sortedCache.where(ListedUserIDs.class)
