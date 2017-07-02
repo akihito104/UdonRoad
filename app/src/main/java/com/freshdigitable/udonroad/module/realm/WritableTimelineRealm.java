@@ -71,7 +71,7 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
     upsert(Collections.singletonList(status));
   }
 
-  private boolean isIgnorable(twitter4j.Status status) {
+  private boolean isIgnorable(Status status) {
     return configStore.isIgnoredUser(status.getUser().getId())
         || (status.isRetweet() && configStore.isIgnoredUser(status.getRetweetedStatus().getUser().getId()));
   }
@@ -81,7 +81,7 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
     if (statuses == null) {
       return;
     }
-    final ArrayList<twitter4j.Status> targets = new ArrayList<>(statuses.size());
+    final ArrayList<Status> targets = new ArrayList<>(statuses.size());
     final ArrayList<StatusIDs> statusIDs = new ArrayList<>(statuses.size());
     for (Status s : statuses) {
       if (isIgnorable(s)) {

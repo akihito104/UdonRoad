@@ -124,7 +124,6 @@ public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCa
     if (entities == null || entities.isEmpty()) {
       return;
     }
-    pool.upsert(entities);
     final List<ListedUserIDs> inserts = new ArrayList<>();
     for (User user: entities) {
       final ListedUserIDs userIds = sortedCache.where(ListedUserIDs.class)
@@ -135,20 +134,13 @@ public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCa
         order++;
       }
     }
-    ordered.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
-      @Override
-      public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
-        if (updateSubject.hasSubscribers()) {
-          final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
-          for (OrderedCollectionChangeSet.Range i : insertions) {
-            updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);
-          }
-        }
-        element.removeChangeListener(this);
-      }
-    });
-    sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
-    updateCursorList(entities);
+    ordered.addChangeListener(realmChangeListener);
+    pool.observeUpsert(entities).subscribe(
+        () -> {
+          sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
+          updateCursorList(entities);
+        },
+        e -> {});
   }
 
   private long lastPageCursor = -1;
@@ -176,6 +168,20 @@ public class UserSortedCacheRealm implements SortedCache<User>, WritableSortedCa
   public Observable<User> observeById(long id) {
     return pool.observeById(id);
   }
+
+  private final OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>> realmChangeListener
+      = new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
+    @Override
+    public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
+      if (updateSubject.hasSubscribers()) {
+        final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
+        for (OrderedCollectionChangeSet.Range i : insertions) {
+          updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);
+        }
+      }
+      element.removeChangeListener(this);
+    }
+  };
 
   @Override
   public void delete(long id) {
