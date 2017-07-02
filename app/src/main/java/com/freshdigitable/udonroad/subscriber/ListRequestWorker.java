@@ -24,11 +24,7 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListe
  */
 
 public interface ListRequestWorker<T> {
-  void open(StoreType type, String suffix);
-
-  void close();
-
-  void drop();
+  void setStoreName(StoreType type, String suffix);
 
   ListFetchStrategy getFetchStrategy(long id);
 

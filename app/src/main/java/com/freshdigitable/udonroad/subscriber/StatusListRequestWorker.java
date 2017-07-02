@@ -47,6 +47,7 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final StatusRequestWorker requestWorker;
   private StoreType storeType;
+  private String storeName;
 
   @Inject
   public StatusListRequestWorker(@NonNull TwitterApi twitterApi,
@@ -60,12 +61,12 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   }
 
   @Override
-  public void open(@NonNull StoreType type, @Nullable String suffix) {
+  public void setStoreName(@NonNull StoreType type, @Nullable String suffix) {
     if (!type.isForStatus()) {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    sortedCache.open(type.nameWithSuffix(suffix));
+    this.storeName = type.nameWithSuffix(suffix);
   }
 
   @Override
@@ -118,8 +119,10 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
+          sortedCache.open(storeName);
           twitterApi.fetchConversations(id)
               .observeOn(AndroidSchedulers.mainThread())
+              .doOnTerminate(sortedCache::close)
               .subscribe(sortedCache::upsert,
                   onErrorFeedback(R.string.msg_tweet_not_download));
         }
@@ -133,7 +136,11 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
 
   private void subscribeWithCommonTask(Single<List<Status>> fetchingTask) {
     fetchingTask.observeOn(AndroidSchedulers.mainThread())
-        .subscribe(sortedCache::upsert,
+        .subscribe(entities -> {
+              sortedCache.open(storeName);
+              sortedCache.upsert(entities);
+              sortedCache.close();
+            },
             onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
@@ -145,15 +152,5 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   @Override
   public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
     return requestWorker.getOnIffabItemSelectedListener(selectedId);
-  }
-
-  @Override
-  public void close() {
-    sortedCache.close();
-  }
-
-  @Override
-  public void drop() {
-    sortedCache.drop();
   }
 }

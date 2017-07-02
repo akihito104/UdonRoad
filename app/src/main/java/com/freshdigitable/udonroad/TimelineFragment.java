@@ -140,7 +140,7 @@ public abstract class TimelineFragment<T> extends Fragment {
       binding.timeline.setItemAnimator(timelineAnimator);
     }
     if (tlAdapter == null) {
-      requestWorker.open(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
+      requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
       sortedCache.open(getStoreType().nameWithSuffix(getEntityId() > 0 ? Long.toString(getEntityId()) : null));
       tlAdapter = new TimelineAdapter<>(sortedCache);
       binding.timeline.setAdapter(tlAdapter);
@@ -341,7 +341,6 @@ public abstract class TimelineFragment<T> extends Fragment {
       tlLayoutManager = null;
       binding.timeline.setAdapter(null);
       updateEventSubscription.dispose();
-      requestWorker.close();
       sortedCache.close();
       sortedCache.drop();
       tlAdapter = null;

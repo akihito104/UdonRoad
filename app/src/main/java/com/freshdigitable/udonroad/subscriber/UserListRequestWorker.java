@@ -44,6 +44,7 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   private final WritableSortedCache<User> sortedCache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private StoreType storeType;
+  private String storeName;
 
   @Inject
   public UserListRequestWorker(@NonNull TwitterApi twitterApi,
@@ -55,12 +56,12 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   }
 
   @Override
-  public void open(StoreType type, String suffix) {
+  public void setStoreName(StoreType type, String suffix) {
     if (!type.isForUser()) {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    sortedCache.open(type.nameWithSuffix(suffix));
+    this.storeName = type.nameWithSuffix(suffix);
   }
 
   @Override
@@ -114,21 +115,15 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
 
   @NonNull
   private Consumer<List<User>> createUpsertListAction() {
-    return sortedCache::upsert;
+    return entities -> {
+      sortedCache.open(storeName);
+      sortedCache.upsert(entities);
+      sortedCache.close();
+    };
   }
 
   @Override
   public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
     return item -> { /* nop */ };
-  }
-
-  @Override
-  public void close() {
-    sortedCache.close();
-  }
-
-  @Override
-  public void drop() {
-    sortedCache.drop();
   }
 }
