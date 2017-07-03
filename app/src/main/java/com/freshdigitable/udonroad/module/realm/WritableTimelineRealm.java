@@ -78,8 +78,13 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
 
   @Override
   public void upsert(final Collection<Status> statuses) {
+    observeUpsert(statuses).subscribe();
+  }
+
+  @Override
+  public Completable observeUpsert(Collection<Status> statuses) {
     if (statuses == null) {
-      return;
+      return Completable.complete();
     }
     final ArrayList<Status> targets = new ArrayList<>(statuses.size());
     final ArrayList<StatusIDs> statusIDs = new ArrayList<>(statuses.size());
@@ -91,12 +96,13 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
       statusIDs.add(new StatusIDs(s));
     }
     if (targets.isEmpty()) {
-      return;
+      return Completable.complete();
     }
 
-    pool.observeUpsert(targets).subscribe(() ->
-        sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs)),
-        throwable -> Log.e(TAG, "upsert: ", throwable));
+    return pool.observeUpsert(targets)
+        .doOnComplete(() ->
+            sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs)))
+        .doOnError(throwable -> Log.e(TAG, "upsert: ", throwable));
   }
 
   @Override

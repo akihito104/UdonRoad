@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.realm.RealmResults;
 import twitter4j.PagableResponseList;
 import twitter4j.User;
@@ -63,8 +64,13 @@ public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
 
   @Override
   public void upsert(Collection<User> entities) {
+    observeUpsert(entities).subscribe();
+  }
+
+  @Override
+  public Completable observeUpsert(Collection<User> entities) {
     if (entities == null || entities.isEmpty()) {
-      return;
+      return Completable.complete();
     }
     final RealmResults<ListedUserIDs> users = sortedCache.where(ListedUserIDs.class)
         .findAllSorted("order");
@@ -81,12 +87,12 @@ public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
         order++;
       }
     }
-    pool.observeUpsert(entities).subscribe(
-        () -> {
+    return pool.observeUpsert(entities)
+        .doOnComplete(() -> {
           sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
           updateCursorList(entities);
-        },
-        e -> {});
+        })
+        .doOnError(e -> {});
   }
 
   private void updateCursorList(Collection<User> users) {

@@ -26,6 +26,7 @@ import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -119,11 +120,13 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          sortedCache.open(storeName);
           twitterApi.fetchConversations(id)
               .observeOn(AndroidSchedulers.mainThread())
-              .doOnTerminate(sortedCache::close)
-              .subscribe(sortedCache::upsert,
+              .subscribe(entity -> {
+                    sortedCache.open(storeName);
+                    sortedCache.observeUpsert(Collections.singletonList(entity))
+                        .subscribe(sortedCache::close);
+                  },
                   onErrorFeedback(R.string.msg_tweet_not_download));
         }
 
@@ -138,8 +141,8 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
     fetchingTask.observeOn(AndroidSchedulers.mainThread())
         .subscribe(entities -> {
               sortedCache.open(storeName);
-              sortedCache.upsert(entities);
-              sortedCache.close();
+              sortedCache.observeUpsert(entities)
+                  .subscribe(sortedCache::close);
             },
             onErrorFeedback(R.string.msg_tweet_not_download));
   }

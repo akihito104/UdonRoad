@@ -16,9 +16,13 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-/**
- * Created by akihit on 2017/07/02.
- */
+import java.util.Collection;
 
-public interface WritableSortedCache<T> extends WritableCache<T>, ObservableWriteOperation<T>, NamingBaseCache {
+import io.reactivex.Completable;
+
+/**
+ * Created by akihit on 2017/07/03.
+ */
+public interface ObservableWriteOperation<T> {
+  Completable observeUpsert(Collection<T> entities);
 }

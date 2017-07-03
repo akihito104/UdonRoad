@@ -117,8 +117,8 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   private Consumer<List<User>> createUpsertListAction() {
     return entities -> {
       sortedCache.open(storeName);
-      sortedCache.upsert(entities);
-      sortedCache.close();
+      sortedCache.observeUpsert(entities)
+          .subscribe(sortedCache::close);
     };
   }
 

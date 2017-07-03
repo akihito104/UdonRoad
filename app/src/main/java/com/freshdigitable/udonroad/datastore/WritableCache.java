@@ -18,8 +18,6 @@ package com.freshdigitable.udonroad.datastore;
 
 import java.util.Collection;
 
-import io.reactivex.Completable;
-
 /**
  * WritableCache defines basic CRUD operation for data store.
  * <p>
@@ -33,8 +31,4 @@ public interface WritableCache<T> {
   void insert(T entity);
 
   void delete(long id);
-
-  interface ObservableWriteOperation<T> {
-    Completable observeUpsert(Collection<T> entities);
-  }
 }

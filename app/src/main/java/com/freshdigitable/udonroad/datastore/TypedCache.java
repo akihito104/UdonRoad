@@ -19,8 +19,6 @@ package com.freshdigitable.udonroad.datastore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.freshdigitable.udonroad.datastore.WritableCache.ObservableWriteOperation;
-
 import io.reactivex.Observable;
 
 /**
