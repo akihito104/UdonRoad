@@ -76,6 +76,23 @@ public abstract class TimelineFragment<T> extends Fragment {
   private TimelineAnimator timelineAnimator;
 
   @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    sortedCache.open(getStoreName());
+    updateEventSubscription
+        = sortedCache.observeUpdateEvent().subscribe(event -> {
+          if (event.type == UpdateEvent.EventType.INSERT) {
+            tlAdapter.notifyItemRangeInserted(event.index, event.length);
+          } else if (event.type == UpdateEvent.EventType.CHANGE) {
+            tlAdapter.notifyItemRangeChanged(event.index, event.length);
+          } else if (event.type == UpdateEvent.EventType.DELETE) {
+            tlAdapter.notifyItemRangeRemoved(event.index, event.length);
+          }
+        },
+        e -> Log.e(TAG, "updateEvent: ", e));
+  }
+
+  @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
@@ -141,27 +158,12 @@ public abstract class TimelineFragment<T> extends Fragment {
     }
     if (tlAdapter == null) {
       requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
-      sortedCache.open(getStoreType().nameWithSuffix(getEntityId() > 0 ? Long.toString(getEntityId()) : null));
       tlAdapter = new TimelineAdapter<>(sortedCache);
       binding.timeline.setAdapter(tlAdapter);
       fetchTweet(null);
     }
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
-
-    if (updateEventSubscription == null || updateEventSubscription.isDisposed()) {
-      updateEventSubscription = sortedCache.observeUpdateEvent()
-          .subscribe(event -> {
-                if (event.type == UpdateEvent.EventType.INSERT) {
-                  tlAdapter.notifyItemRangeInserted(event.index, event.length);
-                } else if (event.type == UpdateEvent.EventType.CHANGE) {
-                  tlAdapter.notifyItemRangeChanged(event.index, event.length);
-                } else if (event.type == UpdateEvent.EventType.DELETE) {
-                  tlAdapter.notifyItemRangeRemoved(event.index, event.length);
-                }
-              },
-              e -> Log.e(TAG, "updateEvent: ", e));
-    }
   }
 
   private final AdapterDataObserver itemInsertedObserver
@@ -461,6 +463,10 @@ public abstract class TimelineFragment<T> extends Fragment {
     return args;
   }
 
+  private String getStoreName() {
+    return getStoreType().nameWithSuffix(getEntityId() > 0 ? Long.toString(getEntityId()) : null);
+  }
+
   private StoreType getStoreType() {
     return (StoreType) getArguments().getSerializable(ARGS_STORE_NAME);
   }
@@ -483,8 +489,8 @@ public abstract class TimelineFragment<T> extends Fragment {
 
     @Override
     public void onAttach(Context context) {
-      super.onAttach(context);
       InjectionUtil.getComponent(this).inject(this);
+      super.onAttach(context);
     }
   }
 
@@ -502,8 +508,8 @@ public abstract class TimelineFragment<T> extends Fragment {
 
     @Override
     public void onAttach(Context context) {
-      super.onAttach(context);
       InjectionUtil.getComponent(this).inject(this);
+      super.onAttach(context);
     }
   }
 
