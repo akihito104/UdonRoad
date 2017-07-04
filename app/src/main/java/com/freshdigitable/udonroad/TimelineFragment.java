@@ -342,11 +342,11 @@ public abstract class TimelineFragment<T> extends Fragment {
       binding.timeline.setLayoutManager(null);
       tlLayoutManager = null;
       binding.timeline.setAdapter(null);
-      updateEventSubscription.dispose();
-      sortedCache.close();
-      sortedCache.drop();
       tlAdapter = null;
     }
+    updateEventSubscription.dispose();
+    sortedCache.close();
+    sortedCache.drop();
   }
 
   private OnIffabItemSelectedListener iffabItemSelectedListener;

@@ -60,7 +60,7 @@ public class OAuthActivityInstTest {
   }
 
   @After
-  public void tearDown() {
+  public void tearDown() throws Exception {
     reset(twitter);
     InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
       final Collection<Activity> activities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
@@ -69,7 +69,7 @@ public class OAuthActivityInstTest {
       assertThat(oAuthActivity, is(not(nullValue())));
       oAuthActivity.finish();
     });
-    InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+    Thread.sleep(800);
     StorageUtil.checkAllRealmInstanceCleared();
   }
 
