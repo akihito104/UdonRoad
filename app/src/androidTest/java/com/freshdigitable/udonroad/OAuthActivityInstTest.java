@@ -1,7 +1,11 @@
 package com.freshdigitable.udonroad;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.intent.rule.IntentsTestRule;
+import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.util.StorageUtil;
@@ -12,6 +16,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Collection;
+
 import javax.inject.Inject;
 
 import twitter4j.Twitter;
@@ -20,6 +26,10 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +60,26 @@ public class OAuthActivityInstTest {
   }
 
   @After
-  public void tearDown() {
+  public void tearDown() throws Exception {
     reset(twitter);
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+      final Collection<Activity> activities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
+      assertThat(activities.size(), is(not(0)));
+      final Activity oAuthActivity = findOAuthActivity(activities);
+      assertThat(oAuthActivity, is(not(nullValue())));
+      oAuthActivity.finish();
+    });
+    Thread.sleep(800);
+    StorageUtil.checkAllRealmInstanceCleared();
+  }
+
+  private static Activity findOAuthActivity(Collection<Activity> activities) {
+    for (Activity activity : activities) {
+      if (activity instanceof OAuthActivity) {
+        return activity;
+      }
+    }
+    return null;
   }
 
   @Test

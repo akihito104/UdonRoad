@@ -18,11 +18,10 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.text.TextUtils;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
@@ -42,13 +41,14 @@ import twitter4j.User;
 
 public class UserListRequestWorker implements ListRequestWorker<User> {
   private final TwitterApi twitterApi;
-  private final SortedCache<User> sortedCache;
+  private final WritableSortedCache<User> sortedCache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private StoreType storeType;
+  private String storeName;
 
   @Inject
   public UserListRequestWorker(@NonNull TwitterApi twitterApi,
-                               @NonNull SortedCache<User> statusStore,
+                               @NonNull WritableSortedCache<User> statusStore,
                                @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
     this.twitterApi = twitterApi;
     this.sortedCache = statusStore;
@@ -56,19 +56,12 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   }
 
   @Override
-  public void open(StoreType type, String suffix) {
+  public void setStoreName(StoreType type, String suffix) {
     if (!type.isForUser()) {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    final String storeName = TextUtils.isEmpty(suffix)
-        ? type.storeName : type.prefix() + suffix;
-    sortedCache.open(storeName);
-  }
-
-  @Override
-  public SortedCache<User> getCache() {
-    return sortedCache;
+    this.storeName = type.nameWithSuffix(suffix);
   }
 
   @Override
@@ -122,21 +115,15 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
 
   @NonNull
   private Consumer<List<User>> createUpsertListAction() {
-    return sortedCache::upsert;
+    return entities -> {
+      sortedCache.open(storeName);
+      sortedCache.observeUpsert(entities)
+          .subscribe(sortedCache::close);
+    };
   }
 
   @Override
   public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
     return item -> { /* nop */ };
-  }
-
-  @Override
-  public void close() {
-    sortedCache.close();
-  }
-
-  @Override
-  public void drop() {
-    sortedCache.drop();
   }
 }

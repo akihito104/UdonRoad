@@ -73,7 +73,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   private ActivityMediaViewBinding binding;
   @Inject
-  StatusRequestWorker userActionSubscriber;
+  StatusRequestWorker statusRequestWorker;
   private MediaPagerAdapter mediaPagerAdapter;
 
   public static Intent create(@NonNull Context context, @NonNull ListItem item) {
@@ -185,14 +185,16 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     setTitle(currentItem + " / " + all);
   }
 
+  @Inject
+  TypedCache<Status> statusCache;
+
   @Override
   protected void onStart() {
     super.onStart();
-    userActionSubscriber.open();
+    statusCache.open();
 
     final Intent intent = getIntent();
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
-    final TypedCache<Status> statusCache = userActionSubscriber.getCache();
     final Status status = statusCache.find(statusId);
     if (status == null) {
       Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
@@ -224,7 +226,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     mediaPagerAdapter.clear();
     mediaPagerAdapter = null;
     binding.mediaIffab.clear();
-    userActionSubscriber.close();
+    statusCache.close();
   }
 
   @Override
@@ -381,7 +383,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   private void setupActionMap(final long statusId) {
     binding.mediaIffab.setOnIffabItemSelectedListener(
-        userActionSubscriber.getOnIffabItemSelectedListener(statusId));
+        statusRequestWorker.getOnIffabItemSelectedListener(statusId));
   }
 
   private boolean isInMultiWindowModeCompat() {

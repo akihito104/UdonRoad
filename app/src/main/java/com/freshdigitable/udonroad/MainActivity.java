@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity
   private void setupHomeTimeline() {
     tlFragment = StatusListFragment.getInstance(HOME);
 
-    configRequestWorker.open();
     configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)
         .commit());
@@ -209,7 +208,6 @@ public class MainActivity extends AppCompatActivity
       binding.ffab.clear();
       binding.navDrawer.setNavigationItemSelectedListener(null);
       configRequestWorker.shrink();
-      configRequestWorker.close();
     }
   }
 

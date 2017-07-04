@@ -19,14 +19,14 @@ package com.freshdigitable.udonroad.subscriber;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.text.TextUtils;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -44,14 +44,15 @@ import twitter4j.Status;
 
 public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final TwitterApi twitterApi;
-  private final SortedCache<Status> sortedCache;
+  private final WritableSortedCache<Status> sortedCache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final StatusRequestWorker requestWorker;
   private StoreType storeType;
+  private String storeName;
 
   @Inject
   public StatusListRequestWorker(@NonNull TwitterApi twitterApi,
-                                 @NonNull SortedCache<Status> statusStore,
+                                 @NonNull WritableSortedCache<Status> statusStore,
                                  @NonNull PublishProcessor<UserFeedbackEvent> userFeedback,
                                  @NonNull StatusRequestWorker requestWorker) {
     this.twitterApi = twitterApi;
@@ -61,20 +62,12 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   }
 
   @Override
-  public void open(@NonNull StoreType type, @Nullable String suffix) {
+  public void setStoreName(@NonNull StoreType type, @Nullable String suffix) {
     if (!type.isForStatus()) {
       throw new IllegalArgumentException();
     }
     this.storeType = type;
-    final String storeName = TextUtils.isEmpty(suffix)
-        ? type.storeName : type.prefix() + suffix;
-    sortedCache.open(storeName);
-    requestWorker.open();
-  }
-
-  @Override
-  public SortedCache<Status> getCache() {
-    return sortedCache;
+    this.storeName = type.nameWithSuffix(suffix);
   }
 
   @Override
@@ -129,7 +122,11 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         public void fetch() {
           twitterApi.fetchConversations(id)
               .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(sortedCache::upsert,
+              .subscribe(entity -> {
+                    sortedCache.open(storeName);
+                    sortedCache.observeUpsert(Collections.singletonList(entity))
+                        .subscribe(sortedCache::close);
+                  },
                   onErrorFeedback(R.string.msg_tweet_not_download));
         }
 
@@ -142,7 +139,11 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
 
   private void subscribeWithCommonTask(Single<List<Status>> fetchingTask) {
     fetchingTask.observeOn(AndroidSchedulers.mainThread())
-        .subscribe(sortedCache::upsert,
+        .subscribe(entities -> {
+              sortedCache.open(storeName);
+              sortedCache.observeUpsert(entities)
+                  .subscribe(sortedCache::close);
+            },
             onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
@@ -154,16 +155,5 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   @Override
   public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
     return requestWorker.getOnIffabItemSelectedListener(selectedId);
-  }
-
-  @Override
-  public void close() {
-    sortedCache.close();
-    requestWorker.close();
-  }
-
-  @Override
-  public void drop() {
-    sortedCache.drop();
   }
 }

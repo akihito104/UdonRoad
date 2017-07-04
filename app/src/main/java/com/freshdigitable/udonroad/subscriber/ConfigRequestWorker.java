@@ -23,8 +23,6 @@ import android.util.Log;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
-import com.freshdigitable.udonroad.datastore.StatusReaction;
-import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
@@ -52,7 +50,7 @@ import twitter4j.auth.AccessToken;
  *
  * Created by akihit on 2016/09/23.
  */
-public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
+public class ConfigRequestWorker implements RequestWorker {
   private final String TAG = ConfigRequestWorker.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final ConfigStore cache;
@@ -68,27 +66,6 @@ public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
     this.cache = configStore;
     this.userFeedback = userFeedback;
     this.appSettings = appSettings;
-  }
-
-  public void open() {
-    appSettings.open();
-    cache.open();
-  }
-
-  @Override
-  public void close() {
-    cache.close();
-    appSettings.close();
-  }
-
-  @Override
-  public void drop() {
-    cache.drop();
-  }
-
-  @Override
-  public TypedCache<StatusReaction> getCache() {
-    return cache;
   }
 
   @Override
@@ -113,23 +90,28 @@ public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
   private Single<User> verifyCredentials() {
     return twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(appSettings::addAuthenticatedUser)
+        .doOnSuccess(u -> {
+          appSettings.open();
+          appSettings.addAuthenticatedUser(u);
+          appSettings.close();
+        })
         .doOnError(onErrorAction);
   }
 
   public Single<User> getAuthenticatedUser() {
     return isAuthenticated() ?
-        twitterApi.getId().observeOn(AndroidSchedulers.mainThread())
-            .map(appSettings::getAuthenticatedUser)
+        verifyCredentials()
         : Single.error(new TwitterException("not authenticated yet..."));
   }
 
   private Completable fetchTwitterAPIConfig() {
+    appSettings.open();
     return appSettings.isTwitterAPIConfigFetchable() ?
         Completable.fromSingle(twitterApi.getTwitterAPIConfiguration()
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess(appSettings::setTwitterAPIConfig)
             .doOnError(onErrorAction))
+            .doOnDispose(appSettings::close)
         : Completable.complete();
   }
 
@@ -144,7 +126,11 @@ public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
           }
         })
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(cache::replaceIgnoringUsers)
+        .doOnSuccess(u -> {
+          cache.open();
+          cache.replaceIgnoringUsers(u);
+          cache.close();
+        })
         .doOnError(onErrorAction);
   }
 
@@ -206,7 +192,9 @@ public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
   @NonNull
   private Consumer<User> addIgnoringUserAction(@StringRes int msg) {
     return user -> {
+      cache.open();
       cache.addIgnoringUser(user);
+      cache.close();
       userFeedback.onNext(new UserFeedbackEvent(msg));
     };
   }
@@ -214,13 +202,17 @@ public class ConfigRequestWorker implements RequestWorker<StatusReaction> {
   @NonNull
   private Consumer<User> removeIgnoringUserAction(@StringRes int msg) {
     return user -> {
+      cache.open();
       cache.removeIgnoringUser(user);
+      cache.close();
       userFeedback.onNext(new UserFeedbackEvent(msg));
     };
   }
 
   public void shrink() {
+    cache.open();
     cache.shrink();
+    cache.close();
   }
 
   @NonNull

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,9 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import java.util.Collection;
-
 /**
- * BaseOperation defines basic CRUD operation for data store.
- * <p>
- * Created by akihit on 2016/09/14.
+ * Created by akihit on 2017/07/02.
  */
-public interface BaseOperation<T> {
-  void upsert(T entity);
 
-  void upsert(Collection<T> entities);
-
-  void insert(T entity);
-
-  void delete(long id);
+public interface WritableSortedCache<T> extends WritableCache<T>, ObservableWriteOperation<T>, NamingBaseCache {
 }

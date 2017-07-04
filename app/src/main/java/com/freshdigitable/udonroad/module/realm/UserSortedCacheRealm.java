@@ -25,17 +25,11 @@ import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
 import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmResults;
-import twitter4j.PagableResponseList;
 import twitter4j.User;
 
 /**
@@ -66,6 +60,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     sortedCache.open(storeName);
     ordered = sortedCache.where(ListedUserIDs.class)
         .findAllSorted("order");
+    ordered.addChangeListener(realmChangeListener);
   }
 
   @Override
@@ -109,65 +104,13 @@ public class UserSortedCacheRealm implements SortedCache<User> {
   }
 
   @Override
-  public void upsert(User entity) {
-    if (entity == null) {
-      return;
-    }
-    upsert(Collections.singletonList(entity));
-  }
-
-  private int order = 0;
-
-  @Override
-  public void upsert(Collection<User> entities) {
-    if (entities == null || entities.isEmpty()) {
-      return;
-    }
-    pool.upsert(entities);
-    final List<ListedUserIDs> inserts = new ArrayList<>();
-    for (User user: entities) {
-      final ListedUserIDs userIds = sortedCache.where(ListedUserIDs.class)
-          .equalTo("userId", user.getId())
-          .findFirst();
-      if (userIds == null) {
-        inserts.add(new ListedUserIDs(user, order));
-        order++;
-      }
-    }
-    ordered.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
-      @Override
-      public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
-        if (updateSubject.hasSubscribers()) {
-          final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
-          for (OrderedCollectionChangeSet.Range i : insertions) {
-            updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);
-          }
-        }
-        element.removeChangeListener(this);
-      }
-    });
-    sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
-    updateCursorList(entities);
-  }
-
-  private long lastPageCursor = -1;
-
-  @Override
   public long getLastPageCursor() {
-    return lastPageCursor;
-  }
-
-  private void updateCursorList(Collection<User> users) {
-    if (!(users instanceof PagableResponseList)) {
-      return;
-    }
-    final PagableResponseList page = (PagableResponseList) users;
-    lastPageCursor = page.getNextCursor();
-  }
-
-  @Override
-  public void insert(User entity) {
-    upsert(entity);
+    final PageCursor cursor = sortedCache.where(PageCursor.class)
+        .equalTo("type", PageCursor.TYPE_NEXT)
+        .findFirst();
+    return cursor != null ?
+        cursor.cursor
+        : -1;
   }
 
   @NonNull
@@ -176,8 +119,16 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     return pool.observeById(id);
   }
 
-  @Override
-  public void delete(long id) {
-    //todo
-  }
+  private final OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>> realmChangeListener
+      = new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
+    @Override
+    public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
+      if (updateSubject.hasSubscribers()) {
+        final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
+        for (OrderedCollectionChangeSet.Range i : insertions) {
+          updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);
+        }
+      }
+    }
+  };
 }

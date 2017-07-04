@@ -48,7 +48,7 @@ import twitter4j.TwitterException;
  * <p>
  * Created by akihit on 2016/08/01.
  */
-public class StatusRequestWorker implements RequestWorker<Status> {
+public class StatusRequestWorker implements RequestWorker {
   private static final String TAG = StatusRequestWorker.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final TypedCache<Status> cache;
@@ -64,34 +64,6 @@ public class StatusRequestWorker implements RequestWorker<Status> {
     this.cache = statusStore;
     this.userFeedback = userFeedback;
     this.configStore = configStore;
-  }
-
-  private boolean opened = false;
-
-  @Override
-  public void open() {
-    configStore.open();
-    cache.open();
-    opened = true;
-  }
-
-  @Override
-  public void close() {
-    if (opened) {
-      cache.close();
-      configStore.close();
-      opened = false;
-    }
-  }
-
-  @Override
-  public void drop() {
-    cache.drop();
-  }
-
-  @Override
-  public TypedCache<Status> getCache() {
-    return cache;
   }
 
   @Override
@@ -117,10 +89,6 @@ public class StatusRequestWorker implements RequestWorker<Status> {
         ).subscribe(s -> {}, e -> {});
       }
     };
-  }
-
-  public boolean isOpened() {
-    return opened;
   }
 
   public Single<Status> observeCreateFavorite(final long statusId) {
@@ -166,20 +134,14 @@ public class StatusRequestWorker implements RequestWorker<Status> {
   public void destroyFavorite(long statusId) {
     twitterApi.destroyFavorite(statusId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(status -> {
-              cache.insert(status);
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_fav_delete_success));
-            },
+        .subscribe(createInsertAction(R.string.msg_fav_delete_success),
             onErrorFeedback(R.string.msg_fav_delete_failed));
   }
 
   public void destroyRetweet(long statusId) {
     twitterApi.destroyStatus(statusId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(status -> {
-              cache.insert(status);
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_delete_success));
-            },
+        .subscribe(createInsertAction(R.string.msg_rt_delete_success),
             onErrorFeedback(R.string.msg_rt_delete_failed));
   }
 
@@ -205,7 +167,19 @@ public class StatusRequestWorker implements RequestWorker<Status> {
   @NonNull
   private Consumer<Status> createUpsertAction(@StringRes int msg) {
     return s -> {
+      cache.open();
       cache.upsert(s);
+      cache.close();
+      userFeedback.onNext(new UserFeedbackEvent(msg));
+    };
+  }
+
+  @NonNull
+  private Consumer<Status> createInsertAction(@StringRes int msg) {
+    return s -> {
+      cache.open();
+      cache.insert(s);
+      cache.close();
       userFeedback.onNext(new UserFeedbackEvent(msg));
     };
   }
@@ -228,8 +202,10 @@ public class StatusRequestWorker implements RequestWorker<Status> {
   }
 
   private void updateStatusWithReaction(long statusId, Consumer<StatusReaction> action) {
+    cache.open();
     final Status status = cache.find(statusId);
     if (status == null) {
+      cache.close();
       return;
     }
     final StatusReactionImpl reaction = new StatusReactionImpl(Utils.getBindingStatus(status));
@@ -237,6 +213,9 @@ public class StatusRequestWorker implements RequestWorker<Status> {
       action.accept(reaction); // XXX
     } catch (Exception e) {
     }
+    configStore.open();
     configStore.insert(reaction);
+    configStore.close();
+    cache.close();
   }
 }

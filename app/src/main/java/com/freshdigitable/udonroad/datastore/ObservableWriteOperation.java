@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,13 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.support.annotation.NonNull;
+import java.util.Collection;
 
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
+import io.reactivex.Completable;
 
 /**
- * SortedCache defines to access storage of sorted data specified type parameter.
- *
- * Created by akihit on 2016/09/14.
+ * Created by akihit on 2017/07/03.
  */
-public interface SortedCache<T> extends NamingBaseCache {
-  Flowable<UpdateEvent> observeUpdateEvent();
-
-  T get(int position);
-
-  int getItemCount();
-
-  long getLastPageCursor();
-
-  int getPositionById(long id);
-
-  @NonNull
-  Observable<T> observeById(long id);
+public interface ObservableWriteOperation<T> {
+  Completable observeUpsert(Collection<T> entities);
 }

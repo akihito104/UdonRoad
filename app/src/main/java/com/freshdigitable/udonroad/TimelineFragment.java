@@ -36,6 +36,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
@@ -69,8 +70,27 @@ public abstract class TimelineFragment<T> extends Fragment {
   private Disposable updateEventSubscription;
   @Inject
   ListRequestWorker<T> requestWorker;
+  @Inject
+  SortedCache<T> sortedCache;
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    sortedCache.open(getStoreName());
+    updateEventSubscription
+        = sortedCache.observeUpdateEvent().subscribe(event -> {
+          if (event.type == UpdateEvent.EventType.INSERT) {
+            tlAdapter.notifyItemRangeInserted(event.index, event.length);
+          } else if (event.type == UpdateEvent.EventType.CHANGE) {
+            tlAdapter.notifyItemRangeChanged(event.index, event.length);
+          } else if (event.type == UpdateEvent.EventType.DELETE) {
+            tlAdapter.notifyItemRangeRemoved(event.index, event.length);
+          }
+        },
+        e -> Log.e(TAG, "updateEvent: ", e));
+  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -137,27 +157,13 @@ public abstract class TimelineFragment<T> extends Fragment {
       binding.timeline.setItemAnimator(timelineAnimator);
     }
     if (tlAdapter == null) {
-      requestWorker.open(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
-      tlAdapter = new TimelineAdapter<>(requestWorker.getCache());
+      requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
+      tlAdapter = new TimelineAdapter<>(sortedCache);
       binding.timeline.setAdapter(tlAdapter);
       fetchTweet(null);
     }
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
-
-    if (updateEventSubscription == null || updateEventSubscription.isDisposed()) {
-      updateEventSubscription = requestWorker.getCache().observeUpdateEvent()
-          .subscribe(event -> {
-                if (event.type == UpdateEvent.EventType.INSERT) {
-                  tlAdapter.notifyItemRangeInserted(event.index, event.length);
-                } else if (event.type == UpdateEvent.EventType.CHANGE) {
-                  tlAdapter.notifyItemRangeChanged(event.index, event.length);
-                } else if (event.type == UpdateEvent.EventType.DELETE) {
-                  tlAdapter.notifyItemRangeRemoved(event.index, event.length);
-                }
-              },
-              e -> Log.e(TAG, "updateEvent: ", e));
-    }
   }
 
   private final AdapterDataObserver itemInsertedObserver
@@ -327,18 +333,20 @@ public abstract class TimelineFragment<T> extends Fragment {
       tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
       firstItemObserver = null;
     }
-    binding.timeline.setItemAnimator(null);
-    timelineAnimator = null;
-    binding.timeline.removeItemDecoration(timelineDecoration);
-    timelineDecoration = null;
-    tlLayoutManager.removeAllViews();
-    binding.timeline.setLayoutManager(null);
-    tlLayoutManager = null;
-    binding.timeline.setAdapter(null);
+    if (binding != null) {
+      binding.timeline.setItemAnimator(null);
+      timelineAnimator = null;
+      binding.timeline.removeItemDecoration(timelineDecoration);
+      timelineDecoration = null;
+      tlLayoutManager.removeAllViews();
+      binding.timeline.setLayoutManager(null);
+      tlLayoutManager = null;
+      binding.timeline.setAdapter(null);
+      tlAdapter = null;
+    }
     updateEventSubscription.dispose();
-    requestWorker.close();
-    requestWorker.drop();
-    tlAdapter = null;
+    sortedCache.close();
+    sortedCache.drop();
   }
 
   private OnIffabItemSelectedListener iffabItemSelectedListener;
@@ -455,6 +463,10 @@ public abstract class TimelineFragment<T> extends Fragment {
     return args;
   }
 
+  private String getStoreName() {
+    return getStoreType().nameWithSuffix(getEntityId() > 0 ? Long.toString(getEntityId()) : null);
+  }
+
   private StoreType getStoreType() {
     return (StoreType) getArguments().getSerializable(ARGS_STORE_NAME);
   }
@@ -477,8 +489,8 @@ public abstract class TimelineFragment<T> extends Fragment {
 
     @Override
     public void onAttach(Context context) {
-      super.onAttach(context);
       InjectionUtil.getComponent(this).inject(this);
+      super.onAttach(context);
     }
   }
 
@@ -496,8 +508,8 @@ public abstract class TimelineFragment<T> extends Fragment {
 
     @Override
     public void onAttach(Context context) {
-      super.onAttach(context);
       InjectionUtil.getComponent(this).inject(this);
+      super.onAttach(context);
     }
   }
 

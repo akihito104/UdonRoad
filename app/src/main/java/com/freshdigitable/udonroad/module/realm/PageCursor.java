@@ -14,19 +14,32 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.subscriber;
+package com.freshdigitable.udonroad.module.realm;
 
-import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import io.realm.RealmModel;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 
 /**
- * Created by akihit on 2017/03/31.
+ * Created by akihit on 2017/07/02.
  */
+@RealmClass
+public class PageCursor implements RealmModel {
+  static final int TYPE_NEXT = 1;
+  static final int TYPE_PREV = -1;
+  @PrimaryKey
+  int type;
+  long cursor;
 
-public interface ListRequestWorker<T> {
-  void setStoreName(StoreType type, String suffix);
+  public PageCursor() {}
 
-  ListFetchStrategy getFetchStrategy(long id);
+  PageCursor(int type, long cursor) {
+    this.type = type;
+    this.cursor = cursor;
+  }
 
-  OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId);
+  @Override
+  public String toString() {
+    return "type: " + type + ", cursor: " + cursor;
+  }
 }

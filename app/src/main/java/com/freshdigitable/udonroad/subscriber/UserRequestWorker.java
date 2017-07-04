@@ -38,7 +38,7 @@ import twitter4j.User;
  * <p>
  * Created by akihit on 2016/09/03.
  */
-public class UserRequestWorker implements RequestWorker<User> {
+public class UserRequestWorker implements RequestWorker {
   private final TwitterApi twitterApi;
   private final TypedCache<User> cache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
@@ -74,29 +74,11 @@ public class UserRequestWorker implements RequestWorker<User> {
   @NonNull
   private Consumer<User> createUpsertAction(@StringRes int msg) {
     return user -> {
+      cache.open();
       cache.upsert(user);
+      cache.close();
       userFeedback.onNext(new UserFeedbackEvent(msg));
     };
-  }
-
-  @Override
-  public void open() {
-    cache.open();
-  }
-
-  @Override
-  public void close() {
-    cache.close();
-  }
-
-  @Override
-  public void drop() {
-    cache.drop();
-  }
-
-  @Override
-  public TypedCache<User> getCache() {
-    return cache;
   }
 
   @Override

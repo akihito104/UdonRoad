@@ -16,27 +16,19 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.support.annotation.NonNull;
-
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
+import java.util.Collection;
 
 /**
- * SortedCache defines to access storage of sorted data specified type parameter.
- *
+ * WritableCache defines basic CRUD operation for data store.
+ * <p>
  * Created by akihit on 2016/09/14.
  */
-public interface SortedCache<T> extends NamingBaseCache {
-  Flowable<UpdateEvent> observeUpdateEvent();
+public interface WritableCache<T> {
+  void upsert(T entity);
 
-  T get(int position);
+  void upsert(Collection<T> entities);
 
-  int getItemCount();
+  void insert(T entity);
 
-  long getLastPageCursor();
-
-  int getPositionById(long id);
-
-  @NonNull
-  Observable<T> observeById(long id);
+  void delete(long id);
 }

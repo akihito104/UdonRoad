@@ -81,17 +81,18 @@ public class UserInfoFragment extends Fragment {
     super.onActivityCreated(savedInstanceState);
   }
 
+  @Inject
+  TypedCache<User> userCache;
+
   @Override
   public void onStart() {
     super.onStart();
-    userRequestWorker.open();
-    configRequestWorker.open();
 
     final long userId = getUserId();
     configRequestWorker.observeFetchRelationship(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(updateRelationship(), e -> {});
-    final TypedCache<User> userCache = userRequestWorker.getCache();
+    userCache.open();
     final User user = userCache.find(userId);
     showUserInfo(user);
     subscription = userCache.observeById(userId)
@@ -107,8 +108,7 @@ public class UserInfoFragment extends Fragment {
       subscription.dispose();
     }
     dismissUserInfo();
-    userRequestWorker.close();
-    configRequestWorker.close();
+    userCache.close();
   }
 
   @Override

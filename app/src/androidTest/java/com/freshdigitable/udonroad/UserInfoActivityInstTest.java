@@ -422,7 +422,6 @@ public class UserInfoActivityInstTest {
       Espresso.registerIdlingResources(idlingResource);
 
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-        configRequestWorker.open();
         configRequestWorker.setup(() -> idlingResource.setDoneSetup(true));
       });
     }
@@ -439,7 +438,6 @@ public class UserInfoActivityInstTest {
     @After
     public void tearDown() throws Exception {
       Espresso.unregisterIdlingResources(idlingResource);
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> configRequestWorker.close());
       super.tearDown();
     }
   }

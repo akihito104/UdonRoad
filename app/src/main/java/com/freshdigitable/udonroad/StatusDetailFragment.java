@@ -47,7 +47,6 @@ import com.freshdigitable.udonroad.listitem.StatusListItem.TimeTextType;
 import com.freshdigitable.udonroad.listitem.StatusViewImageHelper;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -70,7 +69,7 @@ public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   @Inject
-  StatusRequestWorker statusRequestWorker;
+  TypedCache<Status> statusCache;
   private Disposable subscription;
   private Disposable cardSubscription;
 
@@ -104,8 +103,7 @@ public class StatusDetailFragment extends Fragment {
     super.onStart();
 
     final long statusId = getStatusId();
-    statusRequestWorker.open();
-    final TypedCache<Status> statusCache = statusRequestWorker.getCache();
+    statusCache.open();
     final Status status = statusCache.find(statusId);
     if (status == null) {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
@@ -193,7 +191,6 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    final TypedCache<Status> statusCache = statusRequestWorker.getCache();
     final Status status = statusCache.find(getStatusId());
     if (status == null) {
       return;
@@ -225,7 +222,7 @@ public class StatusDetailFragment extends Fragment {
     if (cardSubscription != null && !cardSubscription.isDisposed()) {
       cardSubscription.dispose();
     }
-    statusRequestWorker.close();
+    statusCache.close();
   }
 
   @Override
