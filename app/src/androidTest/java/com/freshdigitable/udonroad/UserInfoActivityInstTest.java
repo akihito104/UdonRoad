@@ -404,7 +404,6 @@ public class UserInfoActivityInstTest {
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
         userCache.open();
         userCache.upsert(user);
-        userCache.close();
       });
       return UserInfoActivity.createIntent(
           InstrumentationRegistry.getTargetContext(), user);
@@ -437,6 +436,7 @@ public class UserInfoActivityInstTest {
     @Override
     @After
     public void tearDown() throws Exception {
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(userCache::close);
       Espresso.unregisterIdlingResources(idlingResource);
       super.tearDown();
     }

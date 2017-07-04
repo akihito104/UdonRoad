@@ -32,7 +32,8 @@ public enum StoreType {
   USER_FOLLOWER("user_followers"),
   CONVERSATION("conv"),
   CONFIG("config"),
-  APP_SETTINGS("appSettings");
+  APP_SETTINGS("appSettings"),
+  POOL("cache");
 
   public final String storeName;
 

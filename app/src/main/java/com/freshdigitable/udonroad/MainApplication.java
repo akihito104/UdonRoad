@@ -38,7 +38,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
 import twitter4j.auth.AccessToken;
 
 /**
@@ -70,7 +69,6 @@ public class MainApplication extends Application {
     LeakCanary.install(this);
 
     appComponent = createAppComponent();
-    Realm.init(getApplicationContext());
     appComponent.inject(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
   }
