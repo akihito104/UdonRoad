@@ -70,6 +70,7 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     if (Realm.getGlobalInstanceCount(config) <= 0) {
       Log.d(TAG, "drop: " + config.getRealmFileName());
       Realm.deleteRealm(config);
+      RealmStoreManager.maybeDropPool();
     }
   }
 
