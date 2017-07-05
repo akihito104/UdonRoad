@@ -28,6 +28,9 @@ import android.graphics.drawable.Drawable;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+
 /**
  * RoundedCornerImageView is acceptable custom shape.
  *
@@ -75,8 +78,9 @@ public class RoundedCornerImageView extends AppCompatImageView {
 
   @Override
   protected void onDraw(Canvas canvas) {
-    final int saved = canvas.saveLayer(boundF, copier,
-        Canvas.HAS_ALPHA_LAYER_SAVE_FLAG | Canvas.FULL_COLOR_LAYER_SAVE_FLAG);
+    final int saved = SDK_INT >= LOLLIPOP ?
+        canvas.saveLayer(boundF, copier)
+        : canvas.saveLayer(boundF, copier, Canvas.ALL_SAVE_FLAG);
     maskDrawable.setBounds(bound);
     maskDrawable.draw(canvas);
     canvas.saveLayer(boundF, masker, 0);

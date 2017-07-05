@@ -58,7 +58,7 @@ class TimelineDecoration extends RecyclerView.ItemDecoration {
         continue;
       }
       final float top = manager.getDecoratedTop(child) - params.topMargin
-          + Math.round(ViewCompat.getTranslationY(child));
+          + Math.round(child.getTranslationY());
       final float bottom = top + dividerHeight;
       c.drawRect(left, top, right, bottom, paint);
     }

@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 
 public class VerifiedUserTest extends TimelineInstTestBase {
 
-  private ActivityTestRule<MainActivity> rule
+  private final ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Test

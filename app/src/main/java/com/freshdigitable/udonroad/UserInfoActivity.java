@@ -338,7 +338,7 @@ public class UserInfoActivity extends AppCompatActivity
     binding.ffab.getMenu().findItem(itemId).setChecked(checked);
   }
 
-  private List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
+  private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
 
   @Override
   public void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {

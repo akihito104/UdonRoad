@@ -16,7 +16,7 @@
   -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
        xmlns:tools="http://schemas.android.com/tools"
-       tools:parentTag="FrameLayout"
+       tools:parentTag="android.widget.FrameLayout"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
     >
@@ -31,7 +31,7 @@
         android:id="@+id/indicator_right"
         android:layout_width="@dimen/small_user_icon"
         android:layout_height="@dimen/small_user_icon"
-        android:layout_gravity="center_vertical|right"
+        android:layout_gravity="center_vertical|right|end"
         android:contentDescription="@string/desc_swipe_to_right"
         />
     <ImageView
@@ -45,7 +45,7 @@
         android:id="@+id/indicator_left"
         android:layout_width="@dimen/small_user_icon"
         android:layout_height="@dimen/small_user_icon"
-        android:layout_gravity="center_vertical|left"
+        android:layout_gravity="center_vertical|left|start"
         android:contentDescription="@string/desc_swipe_to_left"
         />
 </merge>

@@ -220,7 +220,7 @@ public abstract class TimelineInstTestBase {
     this.streamIdlingResource = null;
   }
 
-  protected void receiveDeletionNotice(final Status... target) throws Exception {
+  protected void receiveDeletionNotice(final Status... target) {
     final RecyclerView recyclerView = getRecyclerView();
     StreamIdlingResource streamIdlingResource
         = new StreamIdlingResource(recyclerView, Operation.DELETE, target.length);
@@ -232,7 +232,7 @@ public abstract class TimelineInstTestBase {
     receiveStatuses(true, statuses);
   }
 
-  protected void receiveStatuses(boolean isIdlingResourceUsed, final Status... statuses) throws Exception {
+  protected void receiveStatuses(boolean isIdlingResourceUsed, final Status... statuses) {
     if (isIdlingResourceUsed) {
       final RecyclerView recyclerView = getRecyclerView();
       final StreamIdlingResource streamIdlingResource

@@ -25,10 +25,8 @@ import io.reactivex.processors.PublishProcessor;
 
 public class UpdateSubject {
   private final PublishProcessor<UpdateEvent> eventPublishProcessor;
-  private final String name;
 
-  UpdateSubject(String name) {
-    this.name = name;
+  UpdateSubject() {
     eventPublishProcessor = PublishProcessor.create();
   }
 

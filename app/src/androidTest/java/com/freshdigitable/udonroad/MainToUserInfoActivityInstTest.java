@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
 @RunWith(AndroidJUnit4.class)
 public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Rule
-  public ActivityTestRule<MainActivity> rule
+  public final ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Override

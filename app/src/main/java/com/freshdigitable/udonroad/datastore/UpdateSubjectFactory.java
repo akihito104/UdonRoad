@@ -34,7 +34,7 @@ public class UpdateSubjectFactory {
       }
       subjectTable.remove(name);
     }
-    final UpdateSubject updateSubject = new UpdateSubject(name);
+    final UpdateSubject updateSubject = new UpdateSubject();
     subjectTable.put(name, updateSubject);
     return updateSubject;
   }

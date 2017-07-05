@@ -98,7 +98,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
     return responseList.size();
   }
 
-  private ActivityTestRule<MainActivity> rule
+  private final ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Override

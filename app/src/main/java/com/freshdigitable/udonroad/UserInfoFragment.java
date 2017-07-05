@@ -76,11 +76,6 @@ public class UserInfoFragment extends Fragment {
     return binding.getRoot();
   }
 
-  @Override
-  public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    super.onActivityCreated(savedInstanceState);
-  }
-
   @Inject
   TypedCache<User> userCache;
 

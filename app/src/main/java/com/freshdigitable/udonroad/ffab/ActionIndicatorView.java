@@ -21,7 +21,6 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -57,10 +56,10 @@ class ActionIndicatorView extends FrameLayout {
     setVisibility(INVISIBLE);
 
     final View v = View.inflate(context, R.layout.view_action_indicator, this);
-    final ImageView iconUp = (ImageView) v.findViewById(R.id.indicator_up);
-    final ImageView iconRight = (ImageView) v.findViewById(R.id.indicator_right);
-    final ImageView iconDown = (ImageView) v.findViewById(R.id.indicator_down);
-    final ImageView iconLeft = (ImageView) v.findViewById(R.id.indicator_left);
+    final ImageView iconUp = v.findViewById(R.id.indicator_up);
+    final ImageView iconRight = v.findViewById(R.id.indicator_right);
+    final ImageView iconDown = v.findViewById(R.id.indicator_down);
+    final ImageView iconLeft = v.findViewById(R.id.indicator_left);
     icons.put(Direction.UP, iconUp);
     icons.put(Direction.RIGHT, iconRight);
     icons.put(Direction.DOWN, iconDown);
@@ -179,13 +178,13 @@ class ActionIndicatorView extends FrameLayout {
   }
 
   private static void setScale(@NonNull View icon, float scale) {
-    ViewCompat.setScaleX(icon, scale);
-    ViewCompat.setScaleY(icon, scale);
+    icon.setScaleX(scale);
+    icon.setScaleY(scale);
   }
 
   private static void setTranslation(View ic, float dX, float dY) {
-    ViewCompat.setTranslationX(ic, dX);
-    ViewCompat.setTranslationY(ic, dY);
+    ic.setTranslationX(dX);
+    ic.setTranslationY(dY);
   }
 
   private int indicatorIconTint;

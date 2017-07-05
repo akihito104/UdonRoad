@@ -84,35 +84,35 @@ public class StatusViewInstTest {
   public void createAt_1minuteAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(1));
     sut.bind(new StatusListItem(status));
-    assertThat(actualCreatedAt(), is(formattedString(R.string.created_a_minute_ago)));
+    assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_minutes_ago, 1)));
   }
 
   @Test
   public void createAt_44minutesAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(44));
     sut.bind(new StatusListItem(status));
-    assertThat(actualCreatedAt(), is(formattedString(R.string.created_minutes_ago, 44)));
+    assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_minutes_ago, 44)));
   }
 
   @Test
   public void createAt_1hourAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(45));
     sut.bind(new StatusListItem(status));
-    assertThat(actualCreatedAt(), is(formattedString(R.string.created_a_hour_ago)));
+    assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 1)));
   }
 
   @Test
   public void createAt_1hourAgo_with104minutes() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(104));
     sut.bind(new StatusListItem(status));
-    assertThat(actualCreatedAt(), is(formattedString(R.string.created_a_hour_ago)));
+    assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 1)));
   }
 
   @Test
   public void createAt_2hourAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(105));
     sut.bind(new StatusListItem(status));
-    assertThat(actualCreatedAt(), is(formattedString(R.string.created_hours_ago, 2)));
+    assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 2)));
   }
 
   @Test
@@ -120,7 +120,7 @@ public class StatusViewInstTest {
     final Status status = createStatusWithPast(
         TimeUnit.HOURS.toMillis(23) + TimeUnit.MINUTES.toMillis(44));
     sut.bind(new StatusListItem(status));
-    assertThat(actualCreatedAt(), is(formattedString(R.string.created_hours_ago, 23)));
+    assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 23)));
   }
 
   @Test
@@ -128,7 +128,7 @@ public class StatusViewInstTest {
     final Status status = createStatusWithPast(
         TimeUnit.HOURS.toMillis(23) + TimeUnit.MINUTES.toMillis(59));
     sut.bind(new StatusListItem(status));
-    assertThat(actualCreatedAt(), is(formattedString(R.string.created_hours_ago, 24)));
+    assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 24)));
   }
 
   @NonNull
@@ -159,5 +159,9 @@ public class StatusViewInstTest {
   @NonNull
   private String formattedString(@StringRes int res, Object... args) {
     return sut.getContext().getString(res, args);
+  }
+
+  private String formattedPlurals(int resId, int quantity) {
+    return sut.getContext().getResources().getQuantityString(resId, quantity, quantity);
   }
 }

@@ -37,12 +37,12 @@ import twitter4j.User;
 public class TweetInputView extends RelativeLayout {
   @SuppressWarnings("unused")
   private static final String TAG = TweetInputView.class.getSimpleName();
-  private TextInputEditText inputText;
-  private CombinedScreenNameTextView name;
-  private ImageView icon;
-  private TextView counter;
-  private TextView inReplyToMark;
-  private TextView quoteMark;
+  private final TextInputEditText inputText;
+  private final CombinedScreenNameTextView name;
+  private final ImageView icon;
+  private final TextView counter;
+  private final TextView inReplyToMark;
+  private final TextView quoteMark;
 
   public TweetInputView(Context context) {
     this(context, null);
@@ -56,12 +56,12 @@ public class TweetInputView extends RelativeLayout {
     super(context, attrs, defStyleAttr);
 
     final View v = View.inflate(context, R.layout.view_tweet_input, this);
-    inputText = (TextInputEditText) v.findViewById(R.id.tw_intext);
-    name = (CombinedScreenNameTextView) v.findViewById(R.id.tw_name);
-    icon = (ImageView) v.findViewById(R.id.tw_icon);
-    counter = (TextView) v.findViewById(R.id.tw_counter);
-    inReplyToMark = (TextView) v.findViewById(R.id.tw_replyTo);
-    quoteMark = (TextView) v.findViewById(R.id.tw_quote);
+    inputText = v.findViewById(R.id.tw_intext);
+    name = v.findViewById(R.id.tw_name);
+    icon = v.findViewById(R.id.tw_icon);
+    counter = v.findViewById(R.id.tw_counter);
+    inReplyToMark = v.findViewById(R.id.tw_replyTo);
+    quoteMark = v.findViewById(R.id.tw_quote);
   }
 
   public boolean isVisible() {

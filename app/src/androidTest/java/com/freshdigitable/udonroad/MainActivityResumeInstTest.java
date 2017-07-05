@@ -52,7 +52,7 @@ import static org.mockito.Mockito.mock;
 @RunWith(AndroidJUnit4.class)
 public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Rule
-  public ActivityTestRule<MainActivity> rule
+  public final ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Override

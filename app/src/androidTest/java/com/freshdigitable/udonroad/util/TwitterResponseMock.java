@@ -251,7 +251,7 @@ public class TwitterResponseMock {
   }
 
   public static void receiveDeletionNotice(final UserStreamListener listener,
-                                           Status... statuses) throws Exception {
+                                           Status... statuses) {
     Observable.just(Arrays.asList(statuses))
         .flatMapIterable(s -> s)
         .map(TwitterResponseMock::createDeletionNotice)
@@ -260,7 +260,7 @@ public class TwitterResponseMock {
   }
 
   public static void receiveStatuses(final UserStreamListener listener,
-                                     Status... statuses) throws Exception {
+                                     Status... statuses) {
     Observable.just(Arrays.asList(statuses))
         .flatMapIterable(s -> s)
         .observeOn(Schedulers.io())

@@ -33,10 +33,10 @@ public class LicenseActivity extends AppCompatActivity {
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_license);
-    final Toolbar toolbar = (Toolbar) findViewById(R.id.license_toolbar);
+    final Toolbar toolbar = findViewById(R.id.license_toolbar);
     toolbar.setTitle("ライセンス情報");
     setSupportActionBar(toolbar);
-    final WebView webView = (WebView) findViewById(R.id.license_web_view);
+    final WebView webView = findViewById(R.id.license_web_view);
     webView.loadUrl("file:///android_asset/licenses.html");
   }
 }

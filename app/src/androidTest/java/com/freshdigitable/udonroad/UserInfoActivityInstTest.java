@@ -386,7 +386,7 @@ public class UserInfoActivityInstTest {
 
   public abstract static class UserInfoActivityInstTestBase extends TimelineInstTestBase {
     @Rule
-    public ActivityTestRule<UserInfoActivity> rule
+    public final ActivityTestRule<UserInfoActivity> rule
         = new ActivityTestRule<>(UserInfoActivity.class, false, false);
     private ConfigSetupIdlingResource idlingResource;
 
@@ -420,9 +420,8 @@ public class UserInfoActivityInstTest {
       idlingResource = new ConfigSetupIdlingResource();
       Espresso.registerIdlingResources(idlingResource);
 
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-        configRequestWorker.setup(() -> idlingResource.setDoneSetup(true));
-      });
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+          configRequestWorker.setup(() -> idlingResource.setDoneSetup(true)));
     }
 
     @Override
@@ -466,7 +465,7 @@ public class UserInfoActivityInstTest {
       this.callback = callback;
     }
 
-    private AtomicBoolean doneSetup = new AtomicBoolean(false);
+    private final AtomicBoolean doneSetup = new AtomicBoolean(false);
 
     private void setDoneSetup(boolean doneSetup) {
       this.doneSetup.set(doneSetup);

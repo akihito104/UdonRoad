@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.text.Html;
 import android.text.format.DateUtils;
 
@@ -222,18 +223,18 @@ public class StatusListItem implements TwitterListItem {
           if (deltaInSec < TimeUnit.SECONDS.toSeconds(60)) {
             return context.getString(R.string.created_seconds_ago, TimeUnit.SECONDS.toSeconds(deltaInSec));
           }
-          if (deltaInSec <= TimeUnit.MINUTES.toSeconds(1)) {
-            return context.getString(R.string.created_a_minute_ago);
-          }
+          final Resources resources = context.getResources();
           if (deltaInSec < TimeUnit.MINUTES.toSeconds(45)) {
-            return context.getString(R.string.created_minutes_ago, TimeUnit.SECONDS.toMinutes(deltaInSec));
+            final int min = (int) TimeUnit.SECONDS.toMinutes(deltaInSec);
+            return resources.getQuantityString(R.plurals.created_minutes_ago, min, min);
           }
           if (deltaInSec < TimeUnit.MINUTES.toSeconds(105)) {
-            return context.getString(R.string.created_a_hour_ago);
+            return resources.getQuantityString(R.plurals.created_hours_ago, 1, 1);
           }
           if (deltaInSec < TimeUnit.DAYS.toSeconds(1)) {
             long hours = deltaInSec + TimeUnit.MINUTES.toSeconds(15);
-            return context.getString(R.string.created_hours_ago, TimeUnit.SECONDS.toHours(hours));
+            final int h = (int) TimeUnit.SECONDS.toHours(hours);
+            return resources.getQuantityString(R.plurals.created_hours_ago, h, h);
           }
           return timeSpanConv.toTimeSpanString(createdAtDate);
         };
