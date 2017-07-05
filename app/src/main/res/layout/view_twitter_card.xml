@@ -29,6 +29,7 @@
         android:layout_height="@dimen/card_summary_image"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
         android:layout_marginEnd="@dimen/grid_margin"
         android:layout_marginRight="@dimen/grid_margin"
         app:maskerShape="@drawable/s_rounded_mask_twitter_card"

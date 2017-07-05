@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import io.reactivex.Observable;
@@ -226,7 +227,7 @@ public class TwitterCard {
     TWITTER_TITLE, TWITTER_IMAGE, OG_TITLE, OG_IMAGE, TWITTER_APP_URL_GOOGLEPLAY, UNKNOWN;
 
     private String toAttrString() {
-      return name().toLowerCase().replaceAll("_", ":");
+      return name().toLowerCase(Locale.ROOT).replaceAll("_", ":");
     }
 
     static Property findByString(String property) {

@@ -18,8 +18,12 @@
 <resources>
     <string name="created_now">now</string>
     <string name="created_seconds_ago">%1$d seconds ago</string>
-    <string name="created_a_minute_ago">1 minute ago</string>
-    <string name="created_minutes_ago">%1$d minutes ago</string>
-    <string name="created_a_hour_ago">1 hour ago</string>
-    <string name="created_hours_ago">%1$d hours ago</string>
+    <plurals name="created_minutes_ago">
+        <item quantity="one">%1$d minute ago</item>
+        <item quantity="other">%1$d minutes ago</item>
+    </plurals>
+    <plurals name="created_hours_ago">
+        <item quantity="one">%1$d hour ago</item>
+        <item quantity="other">%1$d hours ago</item>
+    </plurals>
 </resources>
