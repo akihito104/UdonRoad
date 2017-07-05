@@ -408,11 +408,7 @@ public class UserRealm extends RealmObject implements User {
       return true;
     }
     final String url = urlEntity.getURL();
-    if (url.equals(this.urlEntity.getURL())
-        || url.equals(this.urlEntity.getExpandedURL())) {
-      return false;
-    } else {
-      return true;
-    }
+    return !(url.equals(this.urlEntity.getURL())
+        || url.equals(this.urlEntity.getExpandedURL()));
   }
 }

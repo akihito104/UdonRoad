@@ -212,7 +212,7 @@ public abstract class TimelineFragment<T> extends Fragment {
     }
   };
 
-  private RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
+  private final RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
     @Override
     public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
       if (newState == RecyclerView.SCROLL_STATE_IDLE) {

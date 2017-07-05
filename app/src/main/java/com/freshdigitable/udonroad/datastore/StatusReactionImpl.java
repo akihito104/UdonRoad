@@ -25,7 +25,7 @@ import twitter4j.Status;
  */
 
 public class StatusReactionImpl implements StatusReaction {
-  private long id;
+  private final long id;
   private Boolean favorited;
   private Boolean retweeted;
 

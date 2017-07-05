@@ -40,7 +40,7 @@ import java.util.List;
  * Created by akihit on 2017/02/19.
  */
 class BottomButtonsToolbar extends Toolbar {
-  private LinearLayout menuContainer;
+  private final LinearLayout menuContainer;
 
   public BottomButtonsToolbar(Context context) {
     this(context, null);

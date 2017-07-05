@@ -42,7 +42,7 @@ import twitter4j.conf.ConfigurationBuilder;
 @Module
 public class TwitterApiModule {
 
-  private Context context;
+  private final Context context;
   private final Configuration config;
 
   public TwitterApiModule(Context context) {

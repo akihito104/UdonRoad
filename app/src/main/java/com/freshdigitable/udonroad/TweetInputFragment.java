@@ -182,7 +182,7 @@ public class TweetInputFragment extends Fragment {
     this.tweetSendFab = fab;
   }
 
-  private TextWatcher textWatcher = new TextWatcher() {
+  private final TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
       tweetSendFab.setEnabled(editable.length() >= 1);
@@ -197,7 +197,7 @@ public class TweetInputFragment extends Fragment {
     }
   };
 
-  private List<Long> quoteStatusIds = new ArrayList<>(4);
+  private final List<Long> quoteStatusIds = new ArrayList<>(4);
 
   public void stretchTweetInputView(@TweetType int type, long statusId) {
     if (type == TYPE_NONE) {

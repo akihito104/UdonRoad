@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
  */
 public class StatusDetailInstTest extends TimelineInstTestBase {
   @Rule
-  public ActivityTestRule<MainActivity> rule
+  public final ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
   private Status target;
   private Status simple;

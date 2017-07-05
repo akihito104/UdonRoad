@@ -43,17 +43,17 @@ import twitter4j.User;
  * Created by akihit on 2016/06/03.
  */
 public class UserInfoView extends RelativeLayout {
-  private ImageView banner;
-  private TextView name;
-  private TextView screenName;
-  private ImageView icon;
-  private TextView description;
-  private TextView url;
-  private TextView location;
-  private View verifiedIcon;
-  private View protectedIcon;
-  private TextView followingStatus;
-  private View mutedStatus;
+  private final ImageView banner;
+  private final TextView name;
+  private final TextView screenName;
+  private final ImageView icon;
+  private final TextView description;
+  private final TextView url;
+  private final TextView location;
+  private final View verifiedIcon;
+  private final View protectedIcon;
+  private final TextView followingStatus;
+  private final View mutedStatus;
 
   public UserInfoView(Context context) {
     this(context, null);
@@ -67,16 +67,16 @@ public class UserInfoView extends RelativeLayout {
     super(context, attrs, defStyleAttr);
 
     final View v = View.inflate(context, R.layout.view_user_info, this);
-    name = (TextView) v.findViewById(R.id.user_name);
-    screenName = (TextView) v.findViewById(R.id.user_screen_name);
-    description = (TextView) v.findViewById(R.id.user_description);
-    banner = (ImageView) v.findViewById(R.id.user_banner);
-    icon = (ImageView) v.findViewById(R.id.user_icon);
-    url = (TextView) v.findViewById(R.id.user_url);
-    location = (TextView) v.findViewById(R.id.user_location);
+    name = v.findViewById(R.id.user_name);
+    screenName = v.findViewById(R.id.user_screen_name);
+    description = v.findViewById(R.id.user_description);
+    banner = v.findViewById(R.id.user_banner);
+    icon = v.findViewById(R.id.user_icon);
+    url = v.findViewById(R.id.user_url);
+    location = v.findViewById(R.id.user_location);
     verifiedIcon = v.findViewById(R.id.user_verified_icon);
     protectedIcon = v.findViewById(R.id.user_protected_icon);
-    followingStatus = (TextView) v.findViewById(R.id.user_following);
+    followingStatus = v.findViewById(R.id.user_following);
     mutedStatus = v.findViewById(R.id.user_muted);
     ViewCompat.setTransitionName(icon, "user_icon");
   }

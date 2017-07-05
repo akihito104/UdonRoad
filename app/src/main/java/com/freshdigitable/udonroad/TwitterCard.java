@@ -193,8 +193,7 @@ public class TwitterCard {
     }
 
     @NonNull
-    private static Property readMetaProperty(XmlPullParser xpp)
-        throws IOException, XmlPullParserException {
+    private static Property readMetaProperty(XmlPullParser xpp) throws XmlPullParserException {
       if (xpp.getEventType() != XmlPullParser.START_TAG) {
         throw new IllegalStateException();
       }

@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 
 public class OAuthActivityInstTest {
   @Rule
-  public IntentsTestRule<MainActivity> rule
+  public final IntentsTestRule<MainActivity> rule
       = new IntentsTestRule<>(MainActivity.class, false, false);
 
   @Inject

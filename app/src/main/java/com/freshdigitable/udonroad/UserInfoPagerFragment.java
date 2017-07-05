@@ -150,7 +150,7 @@ public class UserInfoPagerFragment extends Fragment {
       super(fm);
     }
 
-    private Map<UserPageInfo, TimelineFragment> pages = new HashMap<>();
+    private final Map<UserPageInfo, TimelineFragment> pages = new HashMap<>();
 
     private void putFragment(UserPageInfo page, TimelineFragment<?> fragment) {
       pages.put(page, fragment);

@@ -61,7 +61,7 @@ public class TweetSendButtonBehavior extends CoordinatorLayout.Behavior<Floating
     if (lp.getAnchorId() != dependency.getId()) {
       return false;
     }
-    final TweetInputView v = (TweetInputView) dependency.findViewById(R.id.main_tweet_input_view);
+    final TweetInputView v = dependency.findViewById(R.id.main_tweet_input_view);
     if (v != null && v.isVisible()) {
       child.show();
     } else {

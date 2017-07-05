@@ -30,9 +30,9 @@ import android.widget.TextView;
  */
 public class TwitterCardView extends RelativeLayout {
 
-  private ImageView image;
-  private TextView title;
-  private TextView url;
+  private final ImageView image;
+  private final TextView title;
+  private final TextView url;
 
   public TwitterCardView(Context context) {
     this(context, null);
@@ -45,9 +45,9 @@ public class TwitterCardView extends RelativeLayout {
   public TwitterCardView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     final View v = View.inflate(context, R.layout.view_twitter_card, this);
-    image = (ImageView) v.findViewById(R.id.card_image);
-    title = (TextView) v.findViewById(R.id.card_title);
-    url = (TextView) v.findViewById(R.id.card_url);
+    image = v.findViewById(R.id.card_image);
+    title = v.findViewById(R.id.card_title);
+    url = v.findViewById(R.id.card_url);
     setBackgroundResource(R.drawable.selector_rounded_frame);
     final int padding = getResources().getDimensionPixelSize(R.dimen.frame_border_width);
     setPadding(padding, padding, padding, padding);

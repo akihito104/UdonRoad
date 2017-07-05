@@ -39,7 +39,7 @@ import twitter4j.User;
  */
 public class UserSortedCacheRealm implements SortedCache<User> {
   private final NamingBaseCacheRealm sortedCache;
-  private TypedCache<User> pool;
+  private final TypedCache<User> pool;
   private RealmResults<ListedUserIDs> ordered;
   private final UpdateSubjectFactory factory;
   private UpdateSubject updateSubject;

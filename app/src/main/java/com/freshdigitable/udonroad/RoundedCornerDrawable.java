@@ -28,6 +28,9 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import static android.os.Build.VERSION.*;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+
 /**
  * RoundedCornerDrawable is wrapper class to make the corners of drawable rounded.
  *
@@ -58,8 +61,9 @@ class RoundedCornerDrawable extends Drawable {
 
   @Override
   public void draw(@NonNull Canvas canvas) {
-    final int saved = canvas.saveLayer(boundF, copier,
-        Canvas.HAS_ALPHA_LAYER_SAVE_FLAG | Canvas.FULL_COLOR_LAYER_SAVE_FLAG);
+    final int saved = SDK_INT >= LOLLIPOP ?
+        canvas.saveLayer(boundF, copier)
+        : canvas.saveLayer(boundF, copier, Canvas.ALL_SAVE_FLAG);
     maskDrawable.draw(canvas);
     canvas.saveLayer(boundF, masker, 0);
     drawable.draw(canvas);

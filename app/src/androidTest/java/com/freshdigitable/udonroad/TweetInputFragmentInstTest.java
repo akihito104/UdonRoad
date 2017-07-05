@@ -54,10 +54,10 @@ import static org.mockito.Mockito.when;
  */
 public class TweetInputFragmentInstTest extends TimelineInstTestBase {
   @Rule
-  public ActivityTestRule<MainActivity> rule
+  public final ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
-  private User userB = UserUtil.builder(2100, "userB").name("user B").build();
-  private User userC = UserUtil.builder(2200, "userC").build();
+  private final User userB = UserUtil.builder(2100, "userB").name("user B").build();
+  private final User userC = UserUtil.builder(2200, "userC").build();
 
   @Override
   protected int setupTimeline() throws TwitterException {
