@@ -124,6 +124,11 @@ public class TimelineStoreRealm implements SortedCache<Status> {
   }
 
   @Override
+  public long getId(int position) {
+    return timeline.get(position).getId();
+  }
+
+  @Override
   public Status get(int position) {
     final StatusIDs ids = timeline.get(position);
     return pool.find(ids.getId());
