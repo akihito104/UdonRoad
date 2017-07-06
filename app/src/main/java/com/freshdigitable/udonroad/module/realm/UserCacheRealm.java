@@ -31,7 +31,6 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.realm.Realm;
 import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
 /**
  * UserCacheRealm implements UserCache with Realm.
@@ -66,13 +65,13 @@ public class UserCacheRealm implements TypedCache<User> {
   }
 
   @NonNull
-  private Realm.Transaction upsertTransaction(final Collection<User> entities) {
+  Realm.Transaction upsertTransaction(final Collection<User> entities) {
     return r -> {
       final List<UserRealm> upserts = new ArrayList<>(entities.size());
       for (User u : entities) {
         final UserRealm user = CacheUtil.findById(r, u.getId(), UserRealm.class);
         if (user == null) {
-          upserts.add(new UserRealm(u));
+          upserts.add(u instanceof UserRealm ? ((UserRealm) u) : new UserRealm(u));
         } else {
           user.merge(u, r);
         }
@@ -84,22 +83,6 @@ public class UserCacheRealm implements TypedCache<User> {
   @Override
   public void insert(final User entity) {
     pool.executeTransaction(r -> r.insertOrUpdate(new UserRealm(entity)));
-  }
-
-  void upsert(UserMentionEntity[] mentionEntity) {
-    if (mentionEntity == null || mentionEntity.length < 1) {
-      return;
-    }
-    final List<UserRealm> upserts = new ArrayList<>(mentionEntity.length);
-    for (UserMentionEntity ume : mentionEntity) {
-      final User user = find(ume.getId());
-      if (user == null) {
-        upserts.add(new UserRealm(ume));
-      }
-    }
-    if (!upserts.isEmpty()) {
-      pool.executeTransaction(r -> r.insertOrUpdate(upserts));
-    }
   }
 
   @Override

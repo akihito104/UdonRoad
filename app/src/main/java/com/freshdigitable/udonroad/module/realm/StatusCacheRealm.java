@@ -89,10 +89,13 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       return;
     }
     final Collection<Status> updates = splitUpsertingStatus(statuses);
-    upsertUser(updates);
+    final Realm.Transaction statusTransaction = upsertTransaction(updates);
+    final Realm.Transaction userTransaction = getUserUpsertTransaction(updates);
     upsertStatusReaction(updates);
-    userTypedCache.upsert(splitUserMentionEntity(updates));
-    pool.executeTransaction(upsertTransaction(updates));
+    pool.executeTransaction(r -> {
+      userTransaction.execute(r);
+      statusTransaction.execute(r);
+    });
   }
 
   @Override
@@ -101,12 +104,20 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       return Completable.complete();
     }
     final Collection<Status> updates = splitUpsertingStatus(statuses);
-    userTypedCache.upsert(splitUserMentionEntity(updates));
-    final Collection<User> splitUser = splitUpsertingUser(updates);
+    final Realm.Transaction statusTransaction = upsertTransaction(updates);
+    final Realm.Transaction userTransaction = getUserUpsertTransaction(updates);
     final Collection<StatusReaction> splitReaction = splitUpsertingStatusReaction(updates);
-    return Completable.concatArray(userTypedCache.observeUpsert(splitUser),
-        configStore.observeUpsert(splitReaction),
-        pool.observeUpsertImpl(upsertTransaction(updates)));
+    return Completable.concatArray(configStore.observeUpsert(splitReaction),
+        pool.observeUpsertImpl(r -> {
+          userTransaction.execute(r);
+          statusTransaction.execute(r);
+        }));
+  }
+
+  @NonNull
+  private Realm.Transaction getUserUpsertTransaction(Collection<Status> updates) {
+    final Collection<User> splitUser = splitUpsertingUser(updates);
+    return userTypedCache.upsertTransaction(splitUser);
   }
 
   @NonNull
@@ -154,31 +165,28 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   private Collection<User> splitUpsertingUser(Collection<Status> updates) {
     Map<Long, User> res = new LinkedHashMap<>(updates.size());
     for (Status s : updates) {
+      for (UserMentionEntity userMentionEntity : s.getUserMentionEntities()) {
+        res.put(userMentionEntity.getId(), new UserRealm(userMentionEntity));
+      }
+    }
+    for (Status s : updates) {
       final User user = s.getUser();
       res.put(user.getId(), user);
     }
     return res.values();
   }
 
-  private UserMentionEntity[] splitUserMentionEntity(Collection<Status> updates) {
-    final Map<Long, UserMentionEntity> res = new LinkedHashMap<>();
-    for (Status s : updates) {
-      for (UserMentionEntity ume : s.getUserMentionEntities()) {
-        res.put(ume.getId(), ume);
-      }
-    }
-    final Collection<UserMentionEntity> values = res.values();
-    return values.toArray(new UserMentionEntity[values.size()]);
+  private void upsertStatusReaction(Collection<Status> updates) {
+    final Collection<StatusReaction> statusReactions = splitUpsertingStatusReaction(updates);
+    configStore.upsert(statusReactions);
   }
 
   private Collection<StatusReaction> splitUpsertingStatusReaction(Collection<Status> statuses) {
     Map<Long, StatusReaction> res = new LinkedHashMap<>(statuses.size());
     for (Status s : statuses) {
-      if (s instanceof PerspectivalStatus) {
-        res.put(s.getId(), ((PerspectivalStatus) s).getStatusReaction());
-      } else {
-        res.put(s.getId(), new StatusReactionImpl(s));
-      }
+      res.put(s.getId(), s instanceof PerspectivalStatus ?
+          ((PerspectivalStatus) s).getStatusReaction()
+          : new StatusReactionImpl(s));
     }
     return res.values();
   }
@@ -199,20 +207,21 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @Override
   public void insert(final Status status) {
     final Collection<Status> statuses = splitUpsertingStatus(Collections.singletonList(status));
-    upsertUser(statuses);
     for (StatusReaction sr : splitUpsertingStatusReaction(statuses)) {
       configStore.insert(sr);
     }
 
     final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
     for (Status s: statuses) {
-      if (s instanceof StatusRealm) {
-        entities.add((StatusRealm) s);
-      } else {
-        entities.add(new StatusRealm(s));
-      }
+      entities.add(s instanceof StatusRealm ?
+          ((StatusRealm) s)
+          : new StatusRealm(s));
     }
-    pool.executeTransaction(r -> r.insertOrUpdate(entities));
+    final Realm.Transaction userUpsertTransaction = getUserUpsertTransaction(statuses);
+    pool.executeTransaction(r -> {
+      userUpsertTransaction.execute(r);
+      r.insertOrUpdate(entities);
+    });
   }
 
   @Override
@@ -329,16 +338,6 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
     status.setUser(userTypedCache.find(status.getUserId()));
     status.setStatusReaction(configStore.find(id));
     return status;
-  }
-
-  private void upsertUser(Collection<Status> updates) {
-    final Collection<User> updateUsers = splitUpsertingUser(updates);
-    userTypedCache.upsert(updateUsers);
-  }
-
-  private void upsertStatusReaction(Collection<Status> updates) {
-    final Collection<StatusReaction> statusReactions = splitUpsertingStatusReaction(updates);
-    configStore.upsert(statusReactions);
   }
 
   @Override
