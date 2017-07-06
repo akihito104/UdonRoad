@@ -59,8 +59,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
 
   @Override
   public long getItemId(int position) {
-    final ListItem item = wrapListItem(position);
-    return item.getId();
+    return timelineStore.getId(position);
   }
 
   private ListItem wrapListItem(int position) {

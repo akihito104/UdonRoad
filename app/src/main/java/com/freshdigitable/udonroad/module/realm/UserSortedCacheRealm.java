@@ -93,6 +93,11 @@ public class UserSortedCacheRealm implements SortedCache<User> {
   }
 
   @Override
+  public long getId(int position) {
+    return ordered.get(position).userId;
+  }
+
+  @Override
   public User get(int position) {
     final ListedUserIDs userIDs = ordered.get(position);
     return pool.find(userIDs.userId);

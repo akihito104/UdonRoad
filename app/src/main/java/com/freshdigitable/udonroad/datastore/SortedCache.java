@@ -29,6 +29,8 @@ import io.reactivex.Observable;
 public interface SortedCache<T> extends NamingBaseCache {
   Flowable<UpdateEvent> observeUpdateEvent();
 
+  long getId(int position);
+
   T get(int position);
 
   int getItemCount();
