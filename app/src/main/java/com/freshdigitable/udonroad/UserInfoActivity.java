@@ -303,7 +303,9 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void showFab() {
-    binding.ffab.show();
+    if (viewPager.getCurrentPage().isStatus()) {
+      binding.ffab.show();
+    }
   }
 
   @Override

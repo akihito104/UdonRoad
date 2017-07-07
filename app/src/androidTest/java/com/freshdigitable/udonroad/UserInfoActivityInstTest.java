@@ -75,7 +75,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(Enclosed.class)
 public class UserInfoActivityInstTest {
-  public static class WhenTargetIsFollowed extends UserInfoActivityInstTestBase {
+  public static class WhenTargetIsFollowed extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
       final Relationship relationship = mock(Relationship.class);
@@ -140,7 +140,7 @@ public class UserInfoActivityInstTest {
     }
   }
 
-  public static class WhenTargetIsNotFollowed extends UserInfoActivityInstTestBase {
+  public static class WhenTargetIsNotFollowed extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
       final Relationship relationship = mock(Relationship.class);
@@ -208,7 +208,7 @@ public class UserInfoActivityInstTest {
     }
   }
 
-  public static class WhenTargetIsBlocked extends UserInfoActivityInstTestBase {
+  public static class WhenTargetIsBlocked extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
       final Relationship relationship = mock(Relationship.class);
@@ -247,7 +247,7 @@ public class UserInfoActivityInstTest {
     }
   }
 
-  public static class WhenTargetIsMuted extends UserInfoActivityInstTestBase {
+  public static class WhenTargetIsMuted extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
       final Relationship relationship = mock(Relationship.class);
@@ -286,7 +286,7 @@ public class UserInfoActivityInstTest {
     }
   }
 
-  public static class WhenTargetIsFollowedAndMuted extends UserInfoActivityInstTestBase {
+  public static class WhenTargetIsFollowedAndMuted extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
       final Relationship relationship = mock(Relationship.class);
@@ -311,7 +311,7 @@ public class UserInfoActivityInstTest {
     }
   }
 
-  public static class WhenTargetIsBlockedRetweet extends UserInfoActivityInstTestBase {
+  public static class WhenTargetIsBlockedRetweet extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
       final Relationship relationship = mock(Relationship.class);
@@ -384,7 +384,7 @@ public class UserInfoActivityInstTest {
     }
   }
 
-  public abstract static class UserInfoActivityInstTestBase extends TimelineInstTestBase {
+  public abstract static class Base extends TimelineInstTestBase {
     @Rule
     public final ActivityTestRule<UserInfoActivity> rule
         = new ActivityTestRule<>(UserInfoActivity.class, false, false);

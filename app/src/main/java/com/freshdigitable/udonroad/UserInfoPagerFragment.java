@@ -63,6 +63,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onAttach(Context context) {
+    Log.d(TAG, "onAttach: ");
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
   }
@@ -71,13 +72,17 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   @Override
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.fragment_user_info_pager, container, false);
+    Log.d(TAG, "onCreateView: ");
+    return viewPager == null ?
+        inflater.inflate(R.layout.fragment_user_info_pager, container, false)
+        : viewPager.getRootView();
   }
 
   private ViewPager viewPager;
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    Log.d(TAG, "onViewCreated: ");
     super.onViewCreated(view, savedInstanceState);
     viewPager = view.findViewById(R.id.user_pager);
   }
@@ -86,12 +91,15 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    Log.d(TAG, "onActivityCreated: ");
     super.onActivityCreated(savedInstanceState);
-    pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    for (UserPageInfo page : UserPageInfo.values()) {
-      putToPagerAdapter(page);
+    if (pagerAdapter == null) {
+      pagerAdapter = new PagerAdapter(getChildFragmentManager());
+      for (UserPageInfo page : UserPageInfo.values()) {
+        putToPagerAdapter(page);
+      }
+      viewPager.setAdapter(pagerAdapter);
     }
-    viewPager.setAdapter(pagerAdapter);
   }
 
   private void putToPagerAdapter(@NonNull UserPageInfo page) {
@@ -101,6 +109,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onStart() {
+    Log.d(TAG, "onStart: ");
     super.onStart();
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
@@ -116,10 +125,6 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
           }
         }
       });
-      final UserPageInfo currentPage = getCurrentPage();
-      if (currentPage.isStatus()) {
-        ((FabHandleable) activity).showFab();
-      }
     }
   }
 
@@ -130,13 +135,21 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onStop() {
+    Log.d(TAG, "onStop: ");
     super.onStop();
     viewPager.clearOnPageChangeListeners();
   }
 
   @Override
   public void onDestroyView() {
+    Log.d(TAG, "onDestroyView: ");
     super.onDestroyView();
+  }
+
+  @Override
+  public void onDetach() {
+    Log.d(TAG, "onDetach: ");
+    super.onDetach();
     viewPager.setAdapter(null);
   }
 
