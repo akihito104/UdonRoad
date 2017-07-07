@@ -59,7 +59,7 @@ import twitter4j.User;
  *
  * Created by Akihit.
  */
-public abstract class TimelineFragment<T> extends Fragment {
+public abstract class TimelineFragment<T> extends Fragment implements ItemSelectable {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
@@ -401,7 +401,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   }
 
   public void scrollToTop() {
-    clearSelectedTweet();
+    clearSelectedItem();
     binding.timeline.setLayoutFrozen(false);
     stopScroll = false;
     isScrolledByUser = false;
@@ -425,11 +425,13 @@ public abstract class TimelineFragment<T> extends Fragment {
     }
   }
 
-  public void clearSelectedTweet() {
+  @Override
+  public void clearSelectedItem() {
     tlAdapter.clearSelectedItem();
   }
 
-  public boolean isTweetSelected() {
+  @Override
+  public boolean isItemSelected() {
     return tlAdapter != null && tlAdapter.isItemSelected();
   }
 

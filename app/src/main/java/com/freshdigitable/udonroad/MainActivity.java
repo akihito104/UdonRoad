@@ -24,16 +24,11 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentManager.BackStackEntry;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -60,7 +55,6 @@ import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
 
-import static com.freshdigitable.udonroad.StoreType.CONVERSATION;
 import static com.freshdigitable.udonroad.StoreType.HOME;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
@@ -81,6 +75,7 @@ public class MainActivity extends AppCompatActivity
 
   @Inject
   ConfigRequestWorker configRequestWorker;
+  private TimelineContainerSwitcher timelineContainerSwitcher;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -94,6 +89,7 @@ public class MainActivity extends AppCompatActivity
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setupHomeTimeline();
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.mainTimelineContainer, tlFragment, binding.ffab);
     setupTweetInputView();
     setupNavigationDrawer();
   }
@@ -222,10 +218,10 @@ public class MainActivity extends AppCompatActivity
       cancelWritingSelected();
       return;
     }
-    if (popBackStackTimelineContainer()) {
+    if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
       return;
     }
-    if (clearSelectedCursorIfNeeded(tlFragment)) {
+    if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
       return;
     }
     super.onBackPressed();
@@ -268,7 +264,7 @@ public class MainActivity extends AppCompatActivity
 
   private void cancelWritingSelected() {
     tlFragment.startScroll();
-    if (tlFragment.isTweetSelected() && tlFragment.isVisible()) {
+    if (tlFragment.isItemSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
     binding.mainToolbar.setTitle("Home");
@@ -280,80 +276,6 @@ public class MainActivity extends AppCompatActivity
     getSupportFragmentManager().beginTransaction()
         .add(R.id.main_appbar_container, tweetInputFragment)
         .commit();
-  }
-
-  private void showStatusDetail(long statusId) {
-    tlFragment.stopScroll();
-    StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
-    replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
-    switchFFABMenuTo(R.id.iffabMenu_main_conv);
-    binding.ffab.transToToolbar();
-  }
-
-  private void showConversation(long statusId) {
-    binding.ffab.transToFAB(View.INVISIBLE);
-    final TimelineFragment<Status> conversationFragment
-        = StatusListFragment.getInstance(CONVERSATION, statusId);
-    final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
-    replaceTimelineContainer(name, conversationFragment);
-    switchFFABMenuTo(R.id.iffabMenu_main_detail);
-  }
-
-  private void replaceTimelineContainer(String name, Fragment fragment) {
-    final FragmentManager fm = getSupportFragmentManager();
-    final Fragment current = fm.findFragmentById(R.id.main_timeline_container);
-    final String tag;
-    if (current == tlFragment) {
-      tag = "main";
-    } else if (current instanceof StatusDetailFragment) {
-      tag = "detail";
-    } else {
-      tag = "conv";
-    }
-    fm.beginTransaction()
-        .replace(R.id.main_timeline_container, fragment, name)
-        .addToBackStack(tag)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-        .commit();
-  }
-
-  private boolean popBackStackTimelineContainer() {
-    final FragmentManager fm = getSupportFragmentManager();
-    final int backStackEntryCount = fm.getBackStackEntryCount();
-    if (backStackEntryCount <= 0) {
-      return false;
-    }
-    final Fragment fragment = fm.findFragmentById(R.id.main_timeline_container);
-    if (fragment instanceof TimelineFragment) {
-      if (clearSelectedCursorIfNeeded((TimelineFragment) fragment)) {
-        return true;
-      }
-    }
-
-    fm.popBackStack();
-
-    final BackStackEntry backStack = fm.getBackStackEntryAt(backStackEntryCount - 1);
-    final String appearFragmentName = backStack.getName();
-    if ("main".equals(appearFragmentName)) {
-      switchFFABMenuTo(R.id.iffabMenu_main_detail);
-      tlFragment.startScroll();
-      binding.ffab.transToFAB(tlFragment.isTweetSelected() ? View.VISIBLE : View.INVISIBLE);
-    } else if ("detail".equals(appearFragmentName)) {
-      switchFFABMenuTo(R.id.iffabMenu_main_conv);
-      binding.ffab.transToToolbar();
-    } else if ("conv".equals(appearFragmentName)) {
-      switchFFABMenuTo(R.id.iffabMenu_main_detail);
-      binding.ffab.transToFAB();
-    }
-    return true;
-  }
-
-  private boolean clearSelectedCursorIfNeeded(TimelineFragment tf) {
-    if (tf.isTweetSelected()) {
-      tf.clearSelectedTweet();
-      return true;
-    }
-    return false;
   }
 
   @Override
@@ -371,7 +293,8 @@ public class MainActivity extends AppCompatActivity
       final int itemId = item.getItemId();
       final long selectedTweetId = tlFragment.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_detail) {
-        showStatusDetail(selectedTweetId);
+        timelineContainerSwitcher.showStatusDetail(selectedTweetId);
+        tlFragment.stopScroll();
       } else if (itemId == R.id.iffabMenu_main_reply) {
         sendStatusSelected(TYPE_REPLY, selectedTweetId);
         tlFragment.scrollToSelectedItem();
@@ -379,22 +302,12 @@ public class MainActivity extends AppCompatActivity
         sendStatusSelected(TYPE_QUOTE, selectedTweetId);
         tlFragment.scrollToSelectedItem();
       } else if (itemId == R.id.iffabMenu_main_conv) {
-        showConversation(selectedTweetId);
+        timelineContainerSwitcher.showConversation(selectedTweetId);
       }
       for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
         l.onItemSelected(item);
       }
     });
-  }
-
-  private static final int[] FFAB_MENU_LEFT_SETS
-      = {R.id.iffabMenu_main_conv, R.id.iffabMenu_main_detail};
-
-  private void switchFFABMenuTo(@IdRes int targetItem) {
-    final Menu menu = binding.ffab.getMenu();
-    for (@IdRes int menuItemId : FFAB_MENU_LEFT_SETS) {
-      menu.findItem(menuItemId).setEnabled(menuItemId == targetItem);
-    }
   }
 
   @Override

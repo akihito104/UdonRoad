@@ -45,7 +45,7 @@ import static com.freshdigitable.udonroad.TimelineFragment.UserListFragment;
  *
  * Created by akihit on 2016/06/06.
  */
-public class UserInfoPagerFragment extends Fragment {
+public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
   private static final String ARGS_USER_ID = "userId";
 
@@ -109,13 +109,17 @@ public class UserInfoPagerFragment extends Fragment {
         public void onPageSelected(int position) {
           Log.d(TAG, "onPageSelected: " + position);
           TimelineFragment fragment = pagerAdapter.getItem(position);
-          if (fragment.isTweetSelected()) {
+          if (fragment.isItemSelected()) {
             ((FabHandleable) activity).showFab();
           } else {
             ((FabHandleable) activity).hideFab();
           }
         }
       });
+      final UserPageInfo currentPage = getCurrentPage();
+      if (currentPage.isStatus()) {
+        ((FabHandleable) activity).showFab();
+      }
     }
   }
 
@@ -140,9 +144,15 @@ public class UserInfoPagerFragment extends Fragment {
     return viewPager;
   }
 
-  public void clearSelectedTweet() {
+  @Override
+  public void clearSelectedItem() {
     final TimelineFragment currentFragment = getCurrentFragment();
-    currentFragment.clearSelectedTweet();
+    currentFragment.clearSelectedItem();
+  }
+
+  @Override
+  public boolean isItemSelected() {
+    return getCurrentFragment().isItemSelected();
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {

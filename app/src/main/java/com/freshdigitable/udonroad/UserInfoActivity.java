@@ -29,7 +29,6 @@ import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -76,7 +75,7 @@ public class UserInfoActivity extends AppCompatActivity
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
   private Disposable subscription;
-  private StatusDetailFragment statusDetailFragment;
+  private TimelineContainerSwitcher timelineContainerSwitcher;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +96,7 @@ public class UserInfoActivity extends AppCompatActivity
     getSupportFragmentManager().beginTransaction()
         .add(binding.userInfoTimelineContainer.getId(), viewPager)
         .commit();
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
 
   private void setUpUserInfoView(long userId) {
@@ -259,12 +259,10 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void onBackPressed() {
-    if (statusDetailFragment != null && statusDetailFragment.isVisible()) {
-      closeStatusDetail();
+    if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
       return;
     }
-    if (binding.ffab.getVisibility() == View.VISIBLE) {
-      viewPager.clearSelectedTweet();  // it also hides ffab.
+    if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
       return;
     }
     if (tweetInputFragment != null && tweetInputFragment.isVisible()) {
@@ -293,7 +291,9 @@ public class UserInfoActivity extends AppCompatActivity
       } else if (itemId == R.id.iffabMenu_main_quote) {
         showTwitterInputView(TYPE_QUOTE, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_detail) {
-        showStatusDetail(selectedTweetId);
+        timelineContainerSwitcher.showStatusDetail(selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_conv) {
+        timelineContainerSwitcher.showConversation(selectedTweetId);
       }
       for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
         l.onItemSelected(item);
@@ -301,31 +301,9 @@ public class UserInfoActivity extends AppCompatActivity
     });
   }
 
-  private void showStatusDetail(long statusId) {
-    binding.ffab.hide();
-    statusDetailFragment = StatusDetailFragment.getInstance(statusId);
-    getSupportFragmentManager().beginTransaction()
-        .hide(viewPager)
-        .add(binding.userInfoTimelineContainer.getId(), statusDetailFragment)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-        .commit();
-  }
-
-  private void closeStatusDetail() {
-    getSupportFragmentManager().beginTransaction()
-        .remove(statusDetailFragment)
-        .show(viewPager)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-        .commit();
-    binding.ffab.show();
-  }
-
   @Override
   public void showFab() {
-    final UserPageInfo currentPage = viewPager.getCurrentPage();
-    if (currentPage.isStatus()) {
-      binding.ffab.show();
-    }
+    binding.ffab.show();
   }
 
   @Override
