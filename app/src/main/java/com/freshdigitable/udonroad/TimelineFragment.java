@@ -259,8 +259,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     if (isVisible()) {
       if (tlAdapter.isItemSelected()) {
         showFab();
-      } else {
-        hideFab();
       }
     }
   }

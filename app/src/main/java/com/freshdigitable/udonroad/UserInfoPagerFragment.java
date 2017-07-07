@@ -75,7 +75,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     Log.d(TAG, "onCreateView: ");
     return viewPager == null ?
         inflater.inflate(R.layout.fragment_user_info_pager, container, false)
-        : viewPager.getRootView();
+        : viewPager;
   }
 
   private ViewPager viewPager;
