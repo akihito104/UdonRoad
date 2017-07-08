@@ -24,6 +24,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
@@ -148,26 +149,15 @@ public class UserInfoActivity extends AppCompatActivity
     long userId = parseIntent();
     final User user = userCache.find(userId);
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
-
-    binding.userInfoTabs.setupWithViewPager(viewPager.getViewPager());
-    subscription = userCache.observeById(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(_user -> {
-          for (UserPageInfo p : UserPageInfo.values()) {
-            final TabLayout.Tab tab = binding.userInfoTabs.getTabAt(p.ordinal());
-            if (tab != null) {
-              tab.setText(p.createTitle(_user));
-            }
-          }
-        }, e -> Log.e(TAG, "userUpdated: ", e));
-
     setSupportActionBar(binding.userInfoToolbar);
+    setupTabs(binding.userInfoTabs);
     setupActionMap();
   }
 
   @Override
   protected void onStop() {
     super.onStop();
+    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
@@ -280,6 +270,29 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
     return updateStatusObservable.doOnSuccess(status -> closeTwitterInputView());
+  }
+
+
+  private void setupTabs(@NonNull final TabLayout userInfoTabs) {
+    userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    long userId = parseIntent();
+    subscription = userCache.observeById(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(_user -> {
+          for (UserPageInfo p : UserPageInfo.values()) {
+            final TabLayout.Tab tab = userInfoTabs.getTabAt(p.ordinal());
+            if (tab != null) {
+              tab.setText(p.createTitle(_user));
+            }
+          }
+        }, e -> Log.e(TAG, "userUpdated: ", e));
+    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
+      if (isAppeared) {
+        userInfoTabs.setVisibility(View.VISIBLE);
+      } else {
+        userInfoTabs.setVisibility(View.GONE);
+      }
+    });
   }
 
   private void setupActionMap() {

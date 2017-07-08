@@ -32,6 +32,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isCompletelyDis
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -49,8 +50,10 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
     onView(withText("TWEET\n20")).check(matches(isDisplayed()));
     PerformUtil.selectItemViewAt(0);
     PerformUtil.showDetail();
+    onView(withId(R.id.userInfo_tabs)).check(matches(not(isDisplayed())));
     onView(withId(R.id.action_heading)).check(doesNotExist());
     Espresso.pressBack();
+    onView(withId(R.id.userInfo_tabs)).check(matches(isDisplayed()));
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
   }
 }

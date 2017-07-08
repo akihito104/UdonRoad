@@ -75,6 +75,9 @@ class TimelineContainerSwitcher {
     } else {
       tag = "conv";
     }
+    if (current == mainFragment) {
+      listener.onMainFragmentSwitched(false);
+    }
     fm.beginTransaction()
         .replace(containerId, fragment, name)
         .addToBackStack(tag)
@@ -108,6 +111,7 @@ class TimelineContainerSwitcher {
     final FragmentManager.BackStackEntry backStack = fm.getBackStackEntryAt(backStackEntryCount - 1);
     final String appearFragmentName = backStack.getName();
     if ("main".equals(appearFragmentName)) {
+      listener.onMainFragmentSwitched(true);
       switchFFABMenuTo(R.id.iffabMenu_main_detail);
       ffab.transToFAB(((ItemSelectable) mainFragment).isItemSelected() ? View.VISIBLE : View.INVISIBLE);
     } else if ("detail".equals(appearFragmentName)) {
@@ -132,5 +136,15 @@ class TimelineContainerSwitcher {
 
   private FragmentManager getSupportFragmentManager() {
     return mainFragment.getActivity().getSupportFragmentManager();
+  }
+
+  interface OnMainFragmentSwitchedListener {
+    void onMainFragmentSwitched(boolean isAppeared);
+  }
+
+  private OnMainFragmentSwitchedListener listener;
+
+  void setOnMainFragmentSwitchedListener(OnMainFragmentSwitchedListener listener) {
+    this.listener = listener;
   }
 }
