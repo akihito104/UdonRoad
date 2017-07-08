@@ -16,12 +16,15 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
@@ -142,9 +145,28 @@ class TimelineContainerSwitcher {
     void onMainFragmentSwitched(boolean isAppeared);
   }
 
-  private OnMainFragmentSwitchedListener listener;
+  private static final OnMainFragmentSwitchedListener EMPTY_LISTENER = a -> {};
+  private OnMainFragmentSwitchedListener listener = EMPTY_LISTENER;
 
   void setOnMainFragmentSwitchedListener(OnMainFragmentSwitchedListener listener) {
-    this.listener = listener;
+    this.listener = listener != null ? listener : EMPTY_LISTENER;
+  }
+
+  static Animation makeSwitchingAnimation(Context context, int transit, boolean enter) {
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
+      if (!enter) {
+        return AnimationUtils.makeOutAnimation(context, true);
+      } else {
+        return AnimationUtils.makeInAnimation(context, false);
+      }
+    }
+    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
+      if (enter) {
+        return AnimationUtils.makeInAnimation(context, false);
+      } else {
+        return AnimationUtils.makeOutAnimation(context, true);
+      }
+    }
+    return null;
   }
 }

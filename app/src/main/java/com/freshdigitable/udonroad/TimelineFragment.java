@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.AdapterDataObserver;
@@ -34,14 +33,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
-import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
@@ -515,20 +513,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
-    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
-      if (!enter) {
-        return AnimationUtils.makeOutAnimation(getContext(), true);
-      } else {
-        return AnimationUtils.makeInAnimation(getContext(), false);
-      }
-    }
-    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
-      if (enter) {
-        return AnimationUtils.makeInAnimation(getContext(), false);
-      } else {
-        return AnimationUtils.makeOutAnimation(getContext(), true);
-      }
-    }
-    return super.onCreateAnimation(transit, enter, nextAnim);
+    final Animation animation = TimelineContainerSwitcher.makeSwitchingAnimation(getContext(), transit, enter);
+    return animation != null ? animation
+        : super.onCreateAnimation(transit, enter, nextAnim);
   }
 }

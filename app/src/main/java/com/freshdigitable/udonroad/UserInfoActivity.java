@@ -44,6 +44,7 @@ import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetSendable, FabHandleable, SnackbarCapable {
+    implements TweetSendable, FabHandleable, SnackbarCapable, OnUserIconClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -89,7 +90,7 @@ public class UserInfoActivity extends AppCompatActivity
 
     binding.ffab.hide();
 
-    long userId = parseIntent();
+    long userId = getUserId();
     setUpAppbar();
     setUpUserInfoView(userId);
 
@@ -146,8 +147,7 @@ public class UserInfoActivity extends AppCompatActivity
   protected void onStart() {
     super.onStart();
     userCache.open();
-    long userId = parseIntent();
-    final User user = userCache.find(userId);
+    final User user = userCache.find(getUserId());
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
     setSupportActionBar(binding.userInfoToolbar);
     setupTabs(binding.userInfoTabs);
@@ -199,12 +199,17 @@ public class UserInfoActivity extends AppCompatActivity
 
   public static void start(Activity activity, User user, View userIcon) {
     final Intent intent = createIntent(activity.getApplicationContext(), user.getId());
-    ViewCompat.setTransitionName(userIcon, "user_icon");
+    final String transitionName = getUserIconTransitionName(user.getId());
+    ViewCompat.setTransitionName(userIcon, transitionName);
     ActivityCompat.startActivity(activity, intent,
-        ActivityOptionsCompat.makeSceneTransitionAnimation(activity, userIcon, "user_icon").toBundle());
+        ActivityOptionsCompat.makeSceneTransitionAnimation(activity, userIcon, transitionName).toBundle());
   }
 
-  private long parseIntent() {
+  static String getUserIconTransitionName(long id) {
+    return "user_icon_" + id;
+  }
+
+  private long getUserId() {
     return getIntent().getLongExtra("user", -1L);
   }
 
@@ -275,8 +280,7 @@ public class UserInfoActivity extends AppCompatActivity
 
   private void setupTabs(@NonNull final TabLayout userInfoTabs) {
     userInfoTabs.setupWithViewPager(viewPager.getViewPager());
-    long userId = parseIntent();
-    subscription = userCache.observeById(userId)
+    subscription = userCache.observeById(getUserId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(_user -> {
           for (UserPageInfo p : UserPageInfo.values()) {
@@ -346,5 +350,13 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public View getRootView() {
     return binding.userInfoTimelineContainer;
+  }
+
+  @Override
+  public void onUserIconClicked(View view, User user) {
+    if (user.getId() == getUserId()) {
+      return;
+    }
+    start(this, user, view);
   }
 }

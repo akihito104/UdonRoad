@@ -29,6 +29,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
@@ -260,5 +261,12 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     }
 
     public abstract String createTitle(User user);
+  }
+
+  @Override
+  public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+    final Animation animation = TimelineContainerSwitcher.makeSwitchingAnimation(getContext(), transit, enter);
+    return animation != null ? animation
+        : super.onCreateAnimation(transit, enter, nextAnim);
   }
 }
