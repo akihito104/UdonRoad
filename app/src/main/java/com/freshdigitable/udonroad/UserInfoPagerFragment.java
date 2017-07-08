@@ -68,6 +68,12 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     InjectionUtil.getComponent(this).inject(this);
   }
 
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setHasOptionsMenu(true);
+  }
+
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater,
@@ -138,12 +144,6 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     Log.d(TAG, "onStop: ");
     super.onStop();
     viewPager.clearOnPageChangeListeners();
-  }
-
-  @Override
-  public void onDestroyView() {
-    Log.d(TAG, "onDestroyView: ");
-    super.onDestroyView();
   }
 
   @Override

@@ -26,6 +26,7 @@ import twitter4j.Relationship;
 import twitter4j.TwitterException;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -48,7 +49,7 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
     onView(withText("TWEET\n20")).check(matches(isDisplayed()));
     PerformUtil.selectItemViewAt(0);
     PerformUtil.showDetail();
-    onView(withText("TWEET\n20")).check(matches(isDisplayed()));
+    onView(withId(R.id.action_heading)).check(doesNotExist());
     Espresso.pressBack();
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
   }
