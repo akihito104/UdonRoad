@@ -29,6 +29,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
@@ -45,7 +46,7 @@ import static com.freshdigitable.udonroad.TimelineFragment.UserListFragment;
  *
  * Created by akihit on 2016/06/06.
  */
-public class UserInfoPagerFragment extends Fragment {
+public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
   private static final String ARGS_USER_ID = "userId";
 
@@ -63,35 +64,51 @@ public class UserInfoPagerFragment extends Fragment {
 
   @Override
   public void onAttach(Context context) {
+    Log.d(TAG, "onAttach: ");
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
+  }
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setHasOptionsMenu(true);
   }
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.fragment_user_info_pager, container, false);
+    Log.d(TAG, "onCreateView: ");
+    return viewPager == null ?
+        inflater.inflate(R.layout.fragment_user_info_pager, container, false)
+        : viewPager;
   }
 
   private ViewPager viewPager;
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    Log.d(TAG, "onViewCreated: ");
     super.onViewCreated(view, savedInstanceState);
-    viewPager = view.findViewById(R.id.user_pager);
+    if (viewPager == null) {
+      viewPager = view.findViewById(R.id.user_pager);
+    }
   }
 
   private PagerAdapter pagerAdapter;
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    Log.d(TAG, "onActivityCreated: ");
     super.onActivityCreated(savedInstanceState);
-    pagerAdapter = new PagerAdapter(getChildFragmentManager());
-    for (UserPageInfo page : UserPageInfo.values()) {
-      putToPagerAdapter(page);
+    if (pagerAdapter == null) {
+      pagerAdapter = new PagerAdapter(getChildFragmentManager());
+      for (UserPageInfo page : UserPageInfo.values()) {
+        putToPagerAdapter(page);
+      }
+      viewPager.setAdapter(pagerAdapter);
     }
-    viewPager.setAdapter(pagerAdapter);
   }
 
   private void putToPagerAdapter(@NonNull UserPageInfo page) {
@@ -101,6 +118,7 @@ public class UserInfoPagerFragment extends Fragment {
 
   @Override
   public void onStart() {
+    Log.d(TAG, "onStart: ");
     super.onStart();
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
@@ -109,7 +127,7 @@ public class UserInfoPagerFragment extends Fragment {
         public void onPageSelected(int position) {
           Log.d(TAG, "onPageSelected: " + position);
           TimelineFragment fragment = pagerAdapter.getItem(position);
-          if (fragment.isTweetSelected()) {
+          if (fragment.isItemSelected()) {
             ((FabHandleable) activity).showFab();
           } else {
             ((FabHandleable) activity).hideFab();
@@ -126,13 +144,15 @@ public class UserInfoPagerFragment extends Fragment {
 
   @Override
   public void onStop() {
+    Log.d(TAG, "onStop: ");
     super.onStop();
     viewPager.clearOnPageChangeListeners();
   }
 
   @Override
-  public void onDestroyView() {
-    super.onDestroyView();
+  public void onDetach() {
+    Log.d(TAG, "onDetach: ");
+    super.onDetach();
     viewPager.setAdapter(null);
   }
 
@@ -140,9 +160,15 @@ public class UserInfoPagerFragment extends Fragment {
     return viewPager;
   }
 
-  public void clearSelectedTweet() {
+  @Override
+  public void clearSelectedItem() {
     final TimelineFragment currentFragment = getCurrentFragment();
-    currentFragment.clearSelectedTweet();
+    currentFragment.clearSelectedItem();
+  }
+
+  @Override
+  public boolean isItemSelected() {
+    return getCurrentFragment().isItemSelected();
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {
@@ -237,5 +263,12 @@ public class UserInfoPagerFragment extends Fragment {
     }
 
     public abstract String createTitle(User user);
+  }
+
+  @Override
+  public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+    final Animation animation = TimelineContainerSwitcher.makeSwitchingAnimation(getContext(), transit, enter);
+    return animation != null ? animation
+        : super.onCreateAnimation(transit, enter, nextAnim);
   }
 }

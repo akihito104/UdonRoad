@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.AdapterDataObserver;
@@ -34,14 +33,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
-import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
+import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
@@ -59,7 +57,7 @@ import twitter4j.User;
  *
  * Created by Akihit.
  */
-public abstract class TimelineFragment<T> extends Fragment {
+public abstract class TimelineFragment<T> extends Fragment implements ItemSelectable {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
@@ -117,7 +115,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onCreateView: ");
+    Log.d(TAG, "onCreateView: " + getStoreName());
     if (savedInstanceState != null) {
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
@@ -130,7 +128,7 @@ public abstract class TimelineFragment<T> extends Fragment {
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
-    Log.d(TAG, "onSaveInstanceState: ");
+    Log.d(TAG, "onSaveInstanceState: " + getStoreName());
     super.onSaveInstanceState(outState);
     outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
     outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
@@ -140,7 +138,7 @@ public abstract class TimelineFragment<T> extends Fragment {
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onActivityCreated: ");
+    Log.d(TAG, "onActivityCreated: " + getStoreName());
     super.onActivityCreated(savedInstanceState);
     binding.timeline.setHasFixedSize(true);
     if (timelineDecoration == null) {
@@ -228,6 +226,7 @@ public abstract class TimelineFragment<T> extends Fragment {
 
   @Override
   public void onStart() {
+    Log.d(TAG, "onStart: " + getStoreName());
     super.onStart();
     if (firstVisibleItemPosOnStop >= 0) {
       tlLayoutManager.scrollToPositionWithOffset(firstVisibleItemPosOnStop, firstVisibleItemTopOnStop);
@@ -259,8 +258,6 @@ public abstract class TimelineFragment<T> extends Fragment {
     if (isVisible()) {
       if (tlAdapter.isItemSelected()) {
         showFab();
-      } else {
-        hideFab();
       }
     }
   }
@@ -327,7 +324,7 @@ public abstract class TimelineFragment<T> extends Fragment {
 
   @Override
   public void onDetach() {
-    Log.d(TAG, "onDetach: ");
+    Log.d(TAG, "onDetach: " + getStoreName());
     super.onDetach();
     if (firstItemObserver != null) {
       tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
@@ -401,7 +398,7 @@ public abstract class TimelineFragment<T> extends Fragment {
   }
 
   public void scrollToTop() {
-    clearSelectedTweet();
+    clearSelectedItem();
     binding.timeline.setLayoutFrozen(false);
     stopScroll = false;
     isScrolledByUser = false;
@@ -425,11 +422,13 @@ public abstract class TimelineFragment<T> extends Fragment {
     }
   }
 
-  public void clearSelectedTweet() {
+  @Override
+  public void clearSelectedItem() {
     tlAdapter.clearSelectedItem();
   }
 
-  public boolean isTweetSelected() {
+  @Override
+  public boolean isItemSelected() {
     return tlAdapter != null && tlAdapter.isItemSelected();
   }
 
@@ -515,20 +514,8 @@ public abstract class TimelineFragment<T> extends Fragment {
 
   @Override
   public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
-    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
-      if (!enter) {
-        return AnimationUtils.makeOutAnimation(getContext(), true);
-      } else {
-        return AnimationUtils.makeInAnimation(getContext(), false);
-      }
-    }
-    if (transit == FragmentTransaction.TRANSIT_FRAGMENT_CLOSE) {
-      if (enter) {
-        return AnimationUtils.makeInAnimation(getContext(), false);
-      } else {
-        return AnimationUtils.makeOutAnimation(getContext(), true);
-      }
-    }
-    return super.onCreateAnimation(transit, enter, nextAnim);
+    final Animation animation = TimelineContainerSwitcher.makeSwitchingAnimation(getContext(), transit, enter);
+    return animation != null ? animation
+        : super.onCreateAnimation(transit, enter, nextAnim);
   }
 }

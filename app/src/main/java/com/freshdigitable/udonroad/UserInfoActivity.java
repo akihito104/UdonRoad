@@ -24,12 +24,12 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -44,6 +44,7 @@ import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetSendable, FabHandleable, SnackbarCapable {
+    implements TweetSendable, FabHandleable, SnackbarCapable, OnUserIconClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -76,7 +77,7 @@ public class UserInfoActivity extends AppCompatActivity
   private UserInfoFragment userInfoAppbarFragment;
   private TweetInputFragment tweetInputFragment;
   private Disposable subscription;
-  private StatusDetailFragment statusDetailFragment;
+  private TimelineContainerSwitcher timelineContainerSwitcher;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -87,23 +88,15 @@ public class UserInfoActivity extends AppCompatActivity
     binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
     InjectionUtil.getComponent(this).inject(this);
 
-    binding.ffab.hide();
-
-    long userId = parseIntent();
     setUpAppbar();
-    setUpUserInfoView(userId);
-
+    long userId = getUserId();
     viewPager = UserInfoPagerFragment.create(userId);
-    getSupportFragmentManager().beginTransaction()
-        .add(binding.userInfoTimelineContainer.getId(), viewPager)
-        .commit();
-  }
-
-  private void setUpUserInfoView(long userId) {
     userInfoAppbarFragment = UserInfoFragment.create(userId);
     getSupportFragmentManager().beginTransaction()
+        .replace(R.id.userInfo_timeline_container, viewPager)
         .replace(R.id.userInfo_appbar_container, userInfoAppbarFragment)
         .commit();
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
 
   private void setUpAppbar() {
@@ -145,29 +138,17 @@ public class UserInfoActivity extends AppCompatActivity
   protected void onStart() {
     super.onStart();
     userCache.open();
-    long userId = parseIntent();
-    final User user = userCache.find(userId);
+    final User user = userCache.find(getUserId());
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
-
-    binding.userInfoTabs.setupWithViewPager(viewPager.getViewPager());
-    subscription = userCache.observeById(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(_user -> {
-          for (UserPageInfo p : UserPageInfo.values()) {
-            final TabLayout.Tab tab = binding.userInfoTabs.getTabAt(p.ordinal());
-            if (tab != null) {
-              tab.setText(p.createTitle(_user));
-            }
-          }
-        }, e -> Log.e(TAG, "userUpdated: ", e));
-
     setSupportActionBar(binding.userInfoToolbar);
+    setupTabs(binding.userInfoTabs, user);
     setupActionMap();
   }
 
   @Override
   protected void onStop() {
     super.onStop();
+    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
@@ -208,13 +189,19 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   public static void start(Activity activity, User user, View userIcon) {
+    Log.d(TAG, "start: ");
     final Intent intent = createIntent(activity.getApplicationContext(), user.getId());
-    ViewCompat.setTransitionName(userIcon, "user_icon");
+    final String transitionName = getUserIconTransitionName(user.getId());
+    ViewCompat.setTransitionName(userIcon, transitionName);
     ActivityCompat.startActivity(activity, intent,
-        ActivityOptionsCompat.makeSceneTransitionAnimation(activity, userIcon, "user_icon").toBundle());
+        ActivityOptionsCompat.makeSceneTransitionAnimation(activity, userIcon, transitionName).toBundle());
   }
 
-  private long parseIntent() {
+  static String getUserIconTransitionName(long id) {
+    return "user_icon_" + id;
+  }
+
+  private long getUserId() {
     return getIntent().getLongExtra("user", -1L);
   }
 
@@ -259,12 +246,10 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void onBackPressed() {
-    if (statusDetailFragment != null && statusDetailFragment.isVisible()) {
-      closeStatusDetail();
+    if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
       return;
     }
-    if (binding.ffab.getVisibility() == View.VISIBLE) {
-      viewPager.clearSelectedTweet();  // it also hides ffab.
+    if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
       return;
     }
     if (tweetInputFragment != null && tweetInputFragment.isVisible()) {
@@ -284,6 +269,31 @@ public class UserInfoActivity extends AppCompatActivity
     return updateStatusObservable.doOnSuccess(status -> closeTwitterInputView());
   }
 
+
+  private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
+    userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    updateTabs(userInfoTabs, user);
+    subscription = userCache.observeById(getUserId())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
+    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
+      if (isAppeared) {
+        userInfoTabs.setVisibility(View.VISIBLE);
+      } else {
+        userInfoTabs.setVisibility(View.GONE);
+      }
+    });
+  }
+
+  private void updateTabs(@NonNull TabLayout userInfoTabs, User user) {
+    for (UserPageInfo p : UserPageInfo.values()) {
+      final TabLayout.Tab tab = userInfoTabs.getTabAt(p.ordinal());
+      if (tab != null) {
+        tab.setText(p.createTitle(user));
+      }
+    }
+  }
+
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
@@ -293,7 +303,9 @@ public class UserInfoActivity extends AppCompatActivity
       } else if (itemId == R.id.iffabMenu_main_quote) {
         showTwitterInputView(TYPE_QUOTE, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_detail) {
-        showStatusDetail(selectedTweetId);
+        timelineContainerSwitcher.showStatusDetail(selectedTweetId);
+      } else if (itemId == R.id.iffabMenu_main_conv) {
+        timelineContainerSwitcher.showConversation(selectedTweetId);
       }
       for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
         l.onItemSelected(item);
@@ -301,29 +313,9 @@ public class UserInfoActivity extends AppCompatActivity
     });
   }
 
-  private void showStatusDetail(long statusId) {
-    binding.ffab.hide();
-    statusDetailFragment = StatusDetailFragment.getInstance(statusId);
-    getSupportFragmentManager().beginTransaction()
-        .hide(viewPager)
-        .add(binding.userInfoTimelineContainer.getId(), statusDetailFragment)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-        .commit();
-  }
-
-  private void closeStatusDetail() {
-    getSupportFragmentManager().beginTransaction()
-        .remove(statusDetailFragment)
-        .show(viewPager)
-        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-        .commit();
-    binding.ffab.show();
-  }
-
   @Override
   public void showFab() {
-    final UserPageInfo currentPage = viewPager.getCurrentPage();
-    if (currentPage.isStatus()) {
+    if (viewPager.getCurrentPage().isStatus()) {
       binding.ffab.show();
     }
   }
@@ -353,5 +345,13 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public View getRootView() {
     return binding.userInfoTimelineContainer;
+  }
+
+  @Override
+  public void onUserIconClicked(View view, User user) {
+    if (user.getId() == getUserId()) {
+      return;
+    }
+    start(this, user, view);
   }
 }

@@ -78,7 +78,6 @@ public class UserInfoView extends RelativeLayout {
     protectedIcon = v.findViewById(R.id.user_protected_icon);
     followingStatus = v.findViewById(R.id.user_following);
     mutedStatus = v.findViewById(R.id.user_muted);
-    ViewCompat.setTransitionName(icon, "user_icon");
   }
 
   public void bindData(User user) {
