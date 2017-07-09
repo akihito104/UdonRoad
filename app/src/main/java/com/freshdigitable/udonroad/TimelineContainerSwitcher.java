@@ -52,7 +52,7 @@ class TimelineContainerSwitcher {
   }
 
   void showStatusDetail(long statusId) {
-    StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
+    final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
     replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
     switchFFABMenuTo(R.id.iffabMenu_main_conv);
     ffab.transToToolbar();

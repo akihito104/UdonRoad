@@ -185,11 +185,19 @@ public class MainActivity extends AppCompatActivity
       supportActionBar.setHomeButtonEnabled(true);
     }
     setupActionMap();
+    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
+      if (isAppeared) {
+        tlFragment.startScroll();
+      } else {
+        tlFragment.stopScroll();
+      }
+    });
   }
 
   @Override
   protected void onStop() {
     super.onStop();
+    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
     if (subscription != null && !subscription.isDisposed()) {
       subscription.dispose();
@@ -294,7 +302,6 @@ public class MainActivity extends AppCompatActivity
       final long selectedTweetId = tlFragment.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_detail) {
         timelineContainerSwitcher.showStatusDetail(selectedTweetId);
-        tlFragment.stopScroll();
       } else if (itemId == R.id.iffabMenu_main_reply) {
         sendStatusSelected(TYPE_REPLY, selectedTweetId);
         tlFragment.scrollToSelectedItem();
