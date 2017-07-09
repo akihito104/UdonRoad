@@ -101,6 +101,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/iffab_margin_bottom"
             android:layout_gravity="bottom|center_horizontal"
+            android:visibility="invisible"
+            tools:visibility="visible"
             app:menu="@menu/iffab_main"
             />
     </android.support.design.widget.CoordinatorLayout>

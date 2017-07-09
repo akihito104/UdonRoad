@@ -115,7 +115,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onCreateView: ");
+    Log.d(TAG, "onCreateView: " + getStoreName());
     if (savedInstanceState != null) {
       isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
@@ -128,7 +128,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
-    Log.d(TAG, "onSaveInstanceState: ");
+    Log.d(TAG, "onSaveInstanceState: " + getStoreName());
     super.onSaveInstanceState(outState);
     outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
     outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
@@ -138,7 +138,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onActivityCreated: ");
+    Log.d(TAG, "onActivityCreated: " + getStoreName());
     super.onActivityCreated(savedInstanceState);
     binding.timeline.setHasFixedSize(true);
     if (timelineDecoration == null) {
@@ -226,6 +226,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onStart() {
+    Log.d(TAG, "onStart: " + getStoreName());
     super.onStart();
     if (firstVisibleItemPosOnStop >= 0) {
       tlLayoutManager.scrollToPositionWithOffset(firstVisibleItemPosOnStop, firstVisibleItemTopOnStop);
@@ -323,7 +324,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onDetach() {
-    Log.d(TAG, "onDetach: ");
+    Log.d(TAG, "onDetach: " + getStoreName());
     super.onDetach();
     if (firstItemObserver != null) {
       tlAdapter.unregisterAdapterDataObserver(firstItemObserver);

@@ -88,9 +88,6 @@ public class UserInfoFragment extends Fragment {
     super.onStart();
 
     final long userId = getUserId();
-    configRequestWorker.observeFetchRelationship(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(updateRelationship(), e -> {});
     userCache.open();
     final User user = userCache.find(userId);
     showUserInfo(user);
@@ -98,6 +95,9 @@ public class UserInfoFragment extends Fragment {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(this::showUserInfo,
             e-> Log.e("UserInfoFragment", "userUpdated: ", e));
+    configRequestWorker.observeFetchRelationship(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(updateRelationship(), e -> {});
   }
 
   @Override
@@ -106,8 +106,13 @@ public class UserInfoFragment extends Fragment {
     if (subscription != null && !subscription.isDisposed()) {
       subscription.dispose();
     }
-    dismissUserInfo();
     userCache.close();
+  }
+
+  @Override
+  public void onDetach() {
+    super.onDetach();
+    dismissUserInfo();
   }
 
   @Override
@@ -186,16 +191,37 @@ public class UserInfoFragment extends Fragment {
     if (user == null) {
       return;
     }
+    Log.d("UserInfoFragment", "showUserInfo: ");
+    loadUserIcon(user.getProfileImageURLHttps());
+    loadBanner(user.getProfileBannerMobileURL());
+    binding.userInfoUserInfoView.bindData(user);
+  }
+
+  private String userIconUrl = "";
+  private void loadUserIcon(String url) {
+    if (url == null || userIconUrl.equals(url)) {
+      return;
+    }
+    Log.d("UserInfoFragment", "loadUserIcon: ");
+    this.userIconUrl = url;
     Picasso.with(getContext())
-        .load(user.getProfileImageURLHttps())
+        .load(url)
         .tag(LOADINGTAG_USER_INFO_IMAGES)
         .into(binding.userInfoUserInfoView.getIcon());
+  }
+
+  private String bannerUrl = "";
+  private void loadBanner(String url) {
+    if (url == null || bannerUrl.equals(url)) {
+      return;
+    }
+    Log.d("UserInfoFragment", "loadBanner: ");
+    this.bannerUrl = url;
     Picasso.with(getContext())
-        .load(user.getProfileBannerMobileURL())
+        .load(url)
         .fit()
         .tag(LOADINGTAG_USER_INFO_IMAGES)
         .into(binding.userInfoUserInfoView.getBanner());
-    binding.userInfoUserInfoView.bindData(user);
   }
 
   private void dismissUserInfo() {

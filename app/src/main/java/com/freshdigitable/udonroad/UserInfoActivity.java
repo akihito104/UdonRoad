@@ -88,24 +88,15 @@ public class UserInfoActivity extends AppCompatActivity
     binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
     InjectionUtil.getComponent(this).inject(this);
 
-    binding.ffab.hide();
-
-    long userId = getUserId();
     setUpAppbar();
-    setUpUserInfoView(userId);
-
+    long userId = getUserId();
     viewPager = UserInfoPagerFragment.create(userId);
-    getSupportFragmentManager().beginTransaction()
-        .add(binding.userInfoTimelineContainer.getId(), viewPager)
-        .commit();
-    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
-  }
-
-  private void setUpUserInfoView(long userId) {
     userInfoAppbarFragment = UserInfoFragment.create(userId);
     getSupportFragmentManager().beginTransaction()
+        .replace(R.id.userInfo_timeline_container, viewPager)
         .replace(R.id.userInfo_appbar_container, userInfoAppbarFragment)
         .commit();
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
 
   private void setUpAppbar() {
@@ -150,7 +141,7 @@ public class UserInfoActivity extends AppCompatActivity
     final User user = userCache.find(getUserId());
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
     setSupportActionBar(binding.userInfoToolbar);
-    setupTabs(binding.userInfoTabs);
+    setupTabs(binding.userInfoTabs, user);
     setupActionMap();
   }
 
@@ -198,6 +189,7 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   public static void start(Activity activity, User user, View userIcon) {
+    Log.d(TAG, "start: ");
     final Intent intent = createIntent(activity.getApplicationContext(), user.getId());
     final String transitionName = getUserIconTransitionName(user.getId());
     ViewCompat.setTransitionName(userIcon, transitionName);
@@ -278,18 +270,12 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
 
-  private void setupTabs(@NonNull final TabLayout userInfoTabs) {
+  private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
     userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    updateTabs(userInfoTabs, user);
     subscription = userCache.observeById(getUserId())
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(_user -> {
-          for (UserPageInfo p : UserPageInfo.values()) {
-            final TabLayout.Tab tab = userInfoTabs.getTabAt(p.ordinal());
-            if (tab != null) {
-              tab.setText(p.createTitle(_user));
-            }
-          }
-        }, e -> Log.e(TAG, "userUpdated: ", e));
+        .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
     timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
       if (isAppeared) {
         userInfoTabs.setVisibility(View.VISIBLE);
@@ -297,6 +283,15 @@ public class UserInfoActivity extends AppCompatActivity
         userInfoTabs.setVisibility(View.GONE);
       }
     });
+  }
+
+  private void updateTabs(@NonNull TabLayout userInfoTabs, User user) {
+    for (UserPageInfo p : UserPageInfo.values()) {
+      final TabLayout.Tab tab = userInfoTabs.getTabAt(p.ordinal());
+      if (tab != null) {
+        tab.setText(p.createTitle(user));
+      }
+    }
   }
 
   private void setupActionMap() {

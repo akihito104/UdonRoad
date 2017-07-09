@@ -91,7 +91,9 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onViewCreated: ");
     super.onViewCreated(view, savedInstanceState);
-    viewPager = view.findViewById(R.id.user_pager);
+    if (viewPager == null) {
+      viewPager = view.findViewById(R.id.user_pager);
+    }
   }
 
   private PagerAdapter pagerAdapter;
