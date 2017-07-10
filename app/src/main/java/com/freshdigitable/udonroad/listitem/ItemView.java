@@ -28,7 +28,6 @@ import android.widget.TextView;
 
 import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 /**
  * StatusViewBase defines how to bind Status and StatusView.
@@ -36,12 +35,9 @@ import com.freshdigitable.udonroad.media.ThumbnailContainer;
  * Created by akihit on 2016/06/28.
  */
 public abstract class ItemView extends RelativeLayout {
-  TextView createdAt;
   ImageView icon;
   CombinedScreenNameTextView names;
   TextView tweet;
-  TextView clientName;
-  ThumbnailContainer thumbnailContainer;
   ReactionContainer reactionContainer;
   final int grid;
   final int selectedColor;
@@ -73,11 +69,8 @@ public abstract class ItemView extends RelativeLayout {
       return;
     }
     names.setNames(item.getUser());
-    createdAt.setText(item.getCreatedTime(getContext()));
     tweet.setText(item.getText());
     reactionContainer.update(item.getStats());
-    thumbnailContainer.bindMediaEntities(item.getMediaCount());
-    clientName.setText(formatString(R.string.tweet_via, item.getSource()));
   }
 
   @CallSuper
@@ -88,9 +81,6 @@ public abstract class ItemView extends RelativeLayout {
     icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);
-
-    thumbnailContainer.reset();
-    thumbnailContainer.setOnMediaClickListener(null);
   }
 
   String formatString(@StringRes int id, Object... items) {
@@ -100,10 +90,6 @@ public abstract class ItemView extends RelativeLayout {
 
   public ImageView getIcon() {
     return icon;
-  }
-
-  public ThumbnailContainer getThumbnailContainer() {
-    return thumbnailContainer;
   }
 
   public abstract void setSelectedColor();

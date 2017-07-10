@@ -46,7 +46,7 @@ import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
-import com.freshdigitable.udonroad.listitem.ListItem;
+import com.freshdigitable.udonroad.listitem.TwitterListItem;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
@@ -76,11 +76,11 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
   StatusRequestWorker statusRequestWorker;
   private MediaPagerAdapter mediaPagerAdapter;
 
-  public static Intent create(@NonNull Context context, @NonNull ListItem item) {
+  public static Intent create(@NonNull Context context, @NonNull TwitterListItem item) {
     return create(context, item, 0);
   }
 
-  public static Intent create(@NonNull Context context, @NonNull ListItem item, int startPage) {
+  public static Intent create(@NonNull Context context, @NonNull TwitterListItem item, int startPage) {
     if (item.getMediaCount() < startPage + 1) {
       throw new IllegalArgumentException(
           "startPage number exceeded ExtendedMediaEntities length: " + startPage);
@@ -92,7 +92,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     return intent;
   }
 
-  public static void start(@NonNull Context context, @NonNull ListItem item, int startPage) {
+  public static void start(@NonNull Context context, @NonNull TwitterListItem item, int startPage) {
     final Intent intent = create(context, item, startPage);
     context.startActivity(intent);
   }

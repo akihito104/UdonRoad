@@ -16,38 +16,12 @@
 
 package com.freshdigitable.udonroad.listitem;
 
-import android.content.Context;
-import android.support.annotation.Nullable;
-
-import twitter4j.MediaEntity;
-import twitter4j.User;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 /**
- * Created by akihit on 2017/06/16.
+ * Created by akihit on 2017/07/09.
  */
 
-public interface TwitterListItem extends ListItem {
-  boolean isRetweet();
-
-  String getCreatedTime(Context context);
-
-  String getSource();
-
-  int getMediaCount();
-
-  User getRetweetUser();
-
-  @Nullable
-  TwitterListItem getQuotedItem();
-
-  @Nullable
-  TimeTextStrategy getTimeStrategy();
-
-  MediaEntity[] getMediaEntities();
-
-  boolean isPossiblySensitive();
-
-  interface TimeTextStrategy {
-    String getCreatedTime(Context context);
-  }
+interface ThumbnailCapable {
+  ThumbnailContainer getThumbnailContainer();
 }

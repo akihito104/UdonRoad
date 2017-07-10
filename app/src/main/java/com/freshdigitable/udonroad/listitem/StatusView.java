@@ -18,23 +18,30 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 /**
  * StatusView shows Status data in RecyclerView.
  *
  * Created by akihit on 2016/01/11.
  */
-public class StatusView extends ItemView {
+public class StatusView extends ItemView implements TwitterItemView, ThumbnailCapable {
   @SuppressWarnings("unused")
   private static final String TAG = StatusView.class.getSimpleName();
+  TextView createdAt;
+  TextView clientName;
+  ThumbnailContainer thumbnailContainer;
   QuotedStatusView quotedStatus;
+  View quotedStatusPlaceHolder;
   RetweetUserView rtUser;
   private TwitterListItem.TimeTextStrategy timeStrategy;
 
@@ -60,7 +67,7 @@ public class StatusView extends ItemView {
     clientName = v.findViewById(R.id.tl_via);
     rtUser = v.findViewById(R.id.tl_rt_user);
     thumbnailContainer = v.findViewById(R.id.tl_image_group);
-    quotedStatus = v.findViewById(R.id.tl_quoted);
+    quotedStatusPlaceHolder = v.findViewById(R.id.tl_quoted_placeholder);
     reactionContainer = v.findViewById(R.id.tl_reaction_container);
   }
 
@@ -68,42 +75,59 @@ public class StatusView extends ItemView {
     if (item == null) {
       return;
     }
-    if (TextUtils.isEmpty(item.getSource())) {
-      clientName.setVisibility(GONE);
-    }
     timeStrategy = item.getTimeStrategy();
-    if (timeStrategy == null) {
-      createdAt.setVisibility(GONE);
-    }
     setTextColor(item.isRetweet()
         ? ContextCompat.getColor(getContext(), R.color.twitter_action_retweeted)
         : Color.GRAY);
 
     rtUser.setVisibility(item.isRetweet() ? VISIBLE : GONE);
     super.bind(item);
-    final ListItem quotedItem = item.getQuotedItem();
-    if (quotedItem != null) {
+    createdAt.setText(item.getCreatedTime(getContext()));
+    thumbnailContainer.bindMediaEntities(item.getMediaCount());
+    clientName.setText(formatString(R.string.tweet_via, item.getSource()));
+
+    final TwitterListItem quotedItem = item.getQuotedItem();
+    bindQuotedStatus(quotedItem);
+  }
+
+  private void bindQuotedStatus(TwitterListItem quotedItem) {
+    if (quotedItem == null) {
+      if (quotedStatus == null) {
+        return;
+      }
+      quotedStatus.setVisibility(GONE);
+    } else {
+      if (quotedStatus == null) {
+        quotedStatus = new QuotedStatusView(getContext());
+        final ViewGroup.LayoutParams lp = quotedStatusPlaceHolder.getLayoutParams();
+        final int index = indexOfChild(quotedStatusPlaceHolder);
+        removeView(quotedStatusPlaceHolder);
+        quotedStatusPlaceHolder = null;
+        addView(quotedStatus, index, lp);
+      }
       quotedStatus.setVisibility(VISIBLE);
       quotedStatus.bind(quotedItem);
-    } else {
-      quotedStatus.setVisibility(GONE);
     }
   }
 
+  @Override
   public void updateTime() {
     if (timeStrategy == null) {
       return;
     }
     createdAt.setText(timeStrategy.getCreatedTime(getContext()));
-    if (quotedStatus.getVisibility() == VISIBLE) {
+    if (quotedStatus != null && quotedStatus.getVisibility() == VISIBLE) {
       quotedStatus.updateTime();
     }
   }
 
+  @Override
   public void update(TwitterListItem item) {
     reactionContainer.update(item.getStats());
     names.setNames(item.getUser());
-    quotedStatus.update(item.getQuotedItem());
+    if (quotedStatus != null) {
+      quotedStatus.update(item.getQuotedItem());
+    }
   }
 
   void setTextColor(int color) {
@@ -116,7 +140,11 @@ public class StatusView extends ItemView {
   public void reset() {
     super.reset();
     rtUser.setText("");
-    quotedStatus.reset();
+    if (quotedStatus != null) {
+      quotedStatus.reset();
+    }
+    thumbnailContainer.reset();
+    thumbnailContainer.setOnMediaClickListener(null);
   }
 
   @Override
@@ -141,7 +169,13 @@ public class StatusView extends ItemView {
     return rtUser;
   }
 
+  @Nullable
   public QuotedStatusView getQuotedStatusView() {
     return quotedStatus;
+  }
+
+  @Override
+  public ThumbnailContainer getThumbnailContainer() {
+    return thumbnailContainer;
   }
 }
