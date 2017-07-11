@@ -93,7 +93,6 @@ public class UserInfoActivity extends AppCompatActivity
     viewPager = UserInfoPagerFragment.create(userId);
     userInfoAppbarFragment = UserInfoFragment.create(userId);
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.userInfo_timeline_container, viewPager)
         .replace(R.id.userInfo_appbar_container, userInfoAppbarFragment)
         .commit();
     timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
@@ -171,6 +170,16 @@ public class UserInfoActivity extends AppCompatActivity
       closeTwitterInputView();
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void onEnterAnimationComplete() {
+    super.onEnterAnimationComplete();
+    userInfoAppbarFragment.onEnterAnimationComplete();
+    getSupportFragmentManager().beginTransaction()
+        .replace(R.id.userInfo_timeline_container, viewPager)
+        .commitNow();
+    binding.userInfoTabs.setupWithViewPager(viewPager.getViewPager());
   }
 
   public static Intent createIntent(Context context, User user) {
@@ -271,7 +280,9 @@ public class UserInfoActivity extends AppCompatActivity
 
 
   private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
-    userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    if (viewPager.getViewPager() != null) {
+      userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    }
     updateTabs(userInfoTabs, user);
     subscription = userCache.observeById(getUserId())
         .observeOn(AndroidSchedulers.mainThread())
