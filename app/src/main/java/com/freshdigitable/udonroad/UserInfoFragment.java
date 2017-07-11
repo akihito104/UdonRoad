@@ -83,6 +83,12 @@ public class UserInfoFragment extends Fragment {
   @Inject
   TypedCache<User> userCache;
 
+  void onEnterAnimationComplete() {
+    configRequestWorker.observeFetchRelationship(getUserId())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(updateRelationship(), e -> {});
+  }
+
   @Override
   public void onStart() {
     super.onStart();
@@ -95,9 +101,6 @@ public class UserInfoFragment extends Fragment {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(this::showUserInfo,
             e-> Log.e("UserInfoFragment", "userUpdated: ", e));
-    configRequestWorker.observeFetchRelationship(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(updateRelationship(), e -> {});
   }
 
   @Override

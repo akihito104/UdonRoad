@@ -148,9 +148,9 @@
         app:thumbCount="4"
         />
 
-    <com.freshdigitable.udonroad.listitem.QuotedStatusView
-        android:id="@+id/tl_quoted"
-        android:layout_width="wrap_content"
+    <View
+        android:id="@+id/tl_quoted_placeholder"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/grid_margin"
         android:layout_below="@id/tl_via"

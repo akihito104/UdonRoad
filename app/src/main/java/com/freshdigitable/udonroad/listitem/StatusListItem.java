@@ -271,7 +271,7 @@ public class StatusListItem implements TwitterListItem {
   }
 
   @Override
-  public ListItem getQuotedItem() {
+  public TwitterListItem getQuotedItem() {
     final Status quotedStatus = bindingStatus.getQuotedStatus();
     return quotedStatus != null
         ? new StatusListItem(quotedStatus, TextType.QUOTED) : null;

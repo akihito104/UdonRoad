@@ -129,7 +129,7 @@ public class UserListItem implements TwitterListItem {
   }
 
   @Override
-  public ListItem getQuotedItem() {
+  public TwitterListItem getQuotedItem() {
     return null;
   }
 

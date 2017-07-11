@@ -32,31 +32,47 @@ import io.reactivex.disposables.Disposable;
  * Created by akihit on 2017/06/14.
  */
 public class ItemViewHolder extends RecyclerView.ViewHolder {
+  public static final int TYPE_STATUS = 1;
+  public static final int TYPE_USER = 2;
   private Disposable subscription;
   private OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
-  private long quotedStatusId;
+  private final BindDelegator<? extends ItemView> binder;
 
   public ItemViewHolder(final ViewGroup parent, final int viewType) {
-    super(new StatusView(parent.getContext()));
+    super(create(parent, viewType));
+    binder = createBinder();
+  }
+
+  private BindDelegator<? extends ItemView> createBinder() {
+    if (itemView instanceof StatusView) {
+      return new StatusViewBinder(this);
+    } else {
+      return new UserViewBinder(this);
+    }
+  }
+
+  private static ItemView create(final ViewGroup parent, final int viewType) {
+    if (viewType == TYPE_STATUS) {
+      return new StatusView(parent.getContext());
+    } else {
+      return new UserItemView(parent.getContext());
+    }
   }
 
   public void bind(final ListItem item) {
     final TwitterListItem twitterListItem = (TwitterListItem) item;
-    getView().bind(twitterListItem);
+    binder.bind(twitterListItem);
     itemView.setOnClickListener(v ->
         itemViewClickListener.onItemViewClicked(this, getItemId(), v));
     getView().getIcon().setOnClickListener(
         v -> userIconClickedListener.onUserIconClicked(v, item.getUser()));
-    StatusViewImageHelper.load(twitterListItem, getView());
-    setupMediaView(item, getView());
-    setupQuotedStatusView(twitterListItem, getView().getQuotedStatusView());
   }
 
   public void subscribe(Observable<ListItem> observable) {
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(item -> getView().update((TwitterListItem) item),
+        .subscribe(binder::onUpdate,
             th -> Log.e("ItemViewHolder", "update: ", th));
   }
 
@@ -75,14 +91,7 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   public void recycle() {
-    unloadMediaView(getView());
-
-    final QuotedStatusView quotedStatusView = getView().getQuotedStatusView();
-    if (quotedStatusView.getVisibility() == View.VISIBLE) {
-      unloadMediaView(quotedStatusView);
-    }
-
-    StatusViewImageHelper.unload(getView(), getItemId());
+    binder.recycle();
     getView().reset();
 
     quotedStatusId = -1;
@@ -90,11 +99,11 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
     subscription = null;
   }
 
-  private StatusView getView() {
-    return (StatusView) itemView;
+  private ItemView getView() {
+    return binder.getView();
   }
 
-  private void setupMediaView(final ListItem item, final ItemView statusView) {
+  private void setupMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {
     if (item.getMediaCount() < 1) {
       return;
     }
@@ -107,7 +116,7 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   private void setupQuotedStatusView(TwitterListItem status, final QuotedStatusView quotedStatusView) {
-    final ListItem quotedStatus = status.getQuotedItem();
+    final TwitterListItem quotedStatus = status.getQuotedItem();
     if (quotedStatus == null) {
       return;
     }
@@ -117,7 +126,7 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
     setupMediaView(quotedStatus, quotedStatusView);
   }
 
-  private void unloadMediaView(ItemView v) {
+  private void unloadMediaView(ThumbnailCapable v) {
     final ThumbnailContainer thumbnailContainer = v.getThumbnailContainer();
     for (int i = 0; i < thumbnailContainer.getThumbCount(); i++) {
       thumbnailContainer.getChildAt(i).setOnClickListener(null);
@@ -133,22 +142,126 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   public void onSelected(long itemId) {
-    if (getItemId() == itemId) {
-      getView().setSelectedColor();
-    } else if (quotedStatusId == itemId) {
-      getView().getQuotedStatusView().setSelectedColor();
-    }
+    binder.onSelected(itemId);
   }
 
   public void onUnselected(long itemId) {
-    if (getItemId() == itemId) {
-      getView().setUnselectedColor();
-    } else if (quotedStatusId == itemId) {
-      getView().getQuotedStatusView().setUnselectedColor();
+    binder.onUnselected(itemId);
+  }
+
+  private long quotedStatusId;
+  public long getQuotedItemId() {
+    return quotedStatusId;
+  }
+
+  interface BindDelegator<T> {
+    void bind(TwitterListItem item);
+
+    void onUpdate(ListItem item);
+
+    void recycle();
+
+    void onSelected(long itemId);
+
+    void onUnselected(long itemId);
+
+    T getView();
+  }
+
+  private static class StatusViewBinder implements BindDelegator<StatusView> {
+    private final ItemViewHolder holder;
+
+    StatusViewBinder(ItemViewHolder holder) {
+      this.holder = holder;
+    }
+
+    @Override
+    public void bind(TwitterListItem item) {
+      getView().bind(item);
+      StatusViewImageHelper.load(item, getView());
+      holder.setupMediaView(item, getView());
+      holder.setupQuotedStatusView(item, getView().getQuotedStatusView());
+    }
+
+    @Override
+    public void onUpdate(ListItem item) {
+      getView().update((TwitterListItem) item);
+    }
+
+    @Override
+    public void recycle() {
+      holder.unloadMediaView(getView());
+      final QuotedStatusView quotedStatusView = getView().getQuotedStatusView();
+      if (quotedStatusView != null && quotedStatusView.getVisibility() == View.VISIBLE) {
+        holder.unloadMediaView(quotedStatusView);
+      }
+      StatusViewImageHelper.unload(getView(), holder.getItemId());
+    }
+
+    @Override
+    public void onSelected(long itemId) {
+      if (holder.getItemId() == itemId) {
+        getView().setSelectedColor();
+      } else if (holder.quotedStatusId == itemId) {
+        final QuotedStatusView quotedStatusView = getView().getQuotedStatusView();
+        if (quotedStatusView != null) {
+          quotedStatusView.setSelectedColor();
+        }
+      }
+    }
+
+    @Override
+    public void onUnselected(long itemId) {
+      if (holder.getItemId() == itemId) {
+        getView().setUnselectedColor();
+      } else if (holder.quotedStatusId == itemId) {
+        final QuotedStatusView quotedStatusView = getView().getQuotedStatusView();
+        if (quotedStatusView != null) {
+          quotedStatusView.setUnselectedColor();
+        }
+      }
+    }
+
+    @Override
+    public StatusView getView() {
+      return (StatusView) holder.itemView;
     }
   }
 
-  public long getQuotedItemId() {
-    return quotedStatusId;
+  private static class UserViewBinder implements BindDelegator<UserItemView> {
+    private final ItemViewHolder holder;
+
+    UserViewBinder(ItemViewHolder viewHolder) {
+      this.holder = viewHolder;
+    }
+
+    @Override
+    public void bind(TwitterListItem item) {
+      getView().bind(item);
+      StatusViewImageHelper.loadUserIcon(item.getUser(), holder.getItemId(), getView());
+    }
+
+    @Override
+    public void onUpdate(ListItem item) {
+      getView().update((TwitterListItem) item);
+    }
+
+    @Override
+    public void recycle() {
+      StatusViewImageHelper.unloadUserIcon(getView());
+    }
+
+    @Override
+    public void onSelected(long itemId) {
+    }
+
+    @Override
+    public void onUnselected(long itemId) {
+    }
+
+    @Override
+    public UserItemView getView() {
+      return (UserItemView) holder.itemView;
+    }
   }
 }

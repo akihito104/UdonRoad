@@ -53,6 +53,17 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
   }
 
   @Override
+  public int getItemViewType(int position) {
+    final T t = timelineStore.get(position);
+    if (t instanceof Status) {
+      return ItemViewHolder.TYPE_STATUS;
+    } else if (t instanceof User) {
+      return ItemViewHolder.TYPE_USER;
+    }
+    throw new IllegalStateException();
+  }
+
+  @Override
   public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     return new ItemViewHolder(parent, viewType);
   }

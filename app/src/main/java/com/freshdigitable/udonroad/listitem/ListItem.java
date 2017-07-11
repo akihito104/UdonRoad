@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.listitem;
 
-import android.content.Context;
-
 import java.util.List;
 
 import twitter4j.User;
@@ -31,13 +29,7 @@ public interface ListItem {
 
   CharSequence getText();
 
-  String getCreatedTime(Context context);
-
-  String getSource();
-
   User getUser(); // XXX
-
-  int getMediaCount();
 
   List<Stat> getStats();
 

@@ -19,8 +19,10 @@ package com.freshdigitable.udonroad.listitem;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.TextView;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 /**
  * QuotedStatusView is for quoted tweet in StatusView and StatusDetailFragment.<br>
@@ -28,7 +30,10 @@ import com.freshdigitable.udonroad.R;
  *
  * Created by akihit on 2016/06/26.
  */
-public class QuotedStatusView extends ItemView {
+public class QuotedStatusView extends ItemView implements ThumbnailCapable {
+  TextView createdAt;
+  TextView clientName;
+  ThumbnailContainer thumbnailContainer;
 
   private TwitterListItem.TimeTextStrategy timeStrategy;
 
@@ -61,6 +66,9 @@ public class QuotedStatusView extends ItemView {
     }
     super.bind(item);
     timeStrategy = item.getTimeStrategy();
+    createdAt.setText(item.getCreatedTime(getContext()));
+    thumbnailContainer.bindMediaEntities(item.getMediaCount());
+    clientName.setText(formatString(R.string.tweet_via, item.getSource()));
   }
 
   public void updateTime() {
@@ -81,6 +89,8 @@ public class QuotedStatusView extends ItemView {
   @Override
   public void reset() {
     super.reset();
+    thumbnailContainer.reset();
+    thumbnailContainer.setOnMediaClickListener(null);
     setBackgroundResource(R.drawable.s_rounded_frame_default);
   }
 
@@ -92,5 +102,10 @@ public class QuotedStatusView extends ItemView {
   @Override
   public void setUnselectedColor() {
     setBackgroundResource(R.drawable.s_rounded_frame_default);
+  }
+
+  @Override
+  public ThumbnailContainer getThumbnailContainer() {
+    return thumbnailContainer;
   }
 }

@@ -158,10 +158,24 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
       tlAdapter = new TimelineAdapter<>(sortedCache);
       binding.timeline.setAdapter(tlAdapter);
-      fetchTweet(null);
+      if (getUserVisibleHint()) {
+        fetchTweet(null);
+        doneFirstFetch = true;
+      }
     }
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
     tlAdapter.registerAdapterDataObserver(createdAtObserver);
+  }
+
+  private boolean doneFirstFetch = false;
+
+  @Override
+  public void setUserVisibleHint(boolean isVisibleToUser) {
+    super.setUserVisibleHint(isVisibleToUser);
+    if (isVisibleToUser && !doneFirstFetch && requestWorker != null) {
+      fetchTweet(null);
+      doneFirstFetch = true;
+    }
   }
 
   private final AdapterDataObserver itemInsertedObserver
