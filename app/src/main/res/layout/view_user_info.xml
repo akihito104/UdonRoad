@@ -168,6 +168,7 @@
         android:layout_alignLeft="@+id/user_screen_name"
         android:layout_alignStart="@id/user_screen_name"
         android:textSize="@dimen/tweet_main_size"
+        android:textColor="@color/text_primary_inverse"
         android:paddingStart="@dimen/grid_margin"
         android:paddingLeft="@dimen/grid_margin"
         android:paddingEnd="@dimen/grid_margin"
@@ -176,7 +177,7 @@
         />
 
     <com.freshdigitable.udonroad.IconAttachedTextView
-        android:id="@+id/user_url"
+        android:id="@+id/user_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/grid_margin_detail"
@@ -184,26 +185,27 @@
         android:layout_alignLeft="@+id/user_screen_name"
         android:layout_alignStart="@id/user_screen_name"
         android:visibility="gone"
-        app:icon="@drawable/ic_link"
-        app:paddingEnd="@dimen/grid_margin"
-        app:tintIcon="#000"
-        tools:text="www.user-web.com"
-        tools:visibility="visible"
-        />
-
-    <com.freshdigitable.udonroad.IconAttachedTextView
-        android:id="@+id/user_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/grid_margin_detail"
-        android:layout_below="@+id/user_url"
-        android:layout_alignLeft="@+id/user_screen_name"
-        android:layout_alignStart="@id/user_screen_name"
-        android:visibility="gone"
+        android:textColor="@color/text_primary_inverse"
         app:icon="@drawable/ic_location_on"
         app:paddingEnd="@dimen/grid_margin"
         app:tintIcon="#000"
         tools:text="user location"
+        tools:visibility="visible"
+        />
+
+    <com.freshdigitable.udonroad.IconAttachedTextView
+        android:id="@+id/user_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/grid_margin_detail"
+        android:layout_below="@+id/user_location"
+        android:layout_alignLeft="@+id/user_screen_name"
+        android:layout_alignStart="@id/user_screen_name"
+        android:visibility="gone"
+        app:icon="@drawable/ic_link"
+        app:paddingEnd="@dimen/grid_margin"
+        app:tintIcon="#000"
+        tools:text="www.user-web.com"
         tools:visibility="visible"
         />
 </merge>
