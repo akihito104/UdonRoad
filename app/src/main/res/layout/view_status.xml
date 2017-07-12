@@ -147,17 +147,4 @@
         tools:visibility="visible"
         app:thumbCount="4"
         />
-
-    <View
-        android:id="@+id/tl_quoted_placeholder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/grid_margin"
-        android:layout_below="@id/tl_via"
-        android:layout_toRightOf="@id/tl_icon"
-        android:layout_toEndOf="@id/tl_icon"
-        android:background="@drawable/selector_rounded_frame"
-        android:visibility="gone"
-        tools:visibility="visible"
-        />
 </merge>

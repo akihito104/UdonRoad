@@ -18,11 +18,13 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.R;
@@ -41,7 +43,6 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
   TextView clientName;
   ThumbnailContainer thumbnailContainer;
   QuotedStatusView quotedStatus;
-  View quotedStatusPlaceHolder;
   RetweetUserView rtUser;
   private TwitterListItem.TimeTextStrategy timeStrategy;
 
@@ -67,7 +68,6 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
     clientName = v.findViewById(R.id.tl_via);
     rtUser = v.findViewById(R.id.tl_rt_user);
     thumbnailContainer = v.findViewById(R.id.tl_image_group);
-    quotedStatusPlaceHolder = v.findViewById(R.id.tl_quoted_placeholder);
     reactionContainer = v.findViewById(R.id.tl_reaction_container);
   }
 
@@ -99,15 +99,24 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
     } else {
       if (quotedStatus == null) {
         quotedStatus = new QuotedStatusView(getContext());
-        final ViewGroup.LayoutParams lp = quotedStatusPlaceHolder.getLayoutParams();
-        final int index = indexOfChild(quotedStatusPlaceHolder);
-        removeView(quotedStatusPlaceHolder);
-        quotedStatusPlaceHolder = null;
-        addView(quotedStatus, index, lp);
+        final LayoutParams lp = createQuotedItemLayoutParams();
+        addView(quotedStatus, lp);
       }
       quotedStatus.setVisibility(VISIBLE);
       quotedStatus.bind(quotedItem);
     }
+  }
+
+  @NonNull
+  private LayoutParams createQuotedItemLayoutParams() {
+    final LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    lp.topMargin = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    lp.addRule(RelativeLayout.BELOW, R.id.tl_via);
+    lp.addRule(RelativeLayout.RIGHT_OF, R.id.tl_icon);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+      lp.addRule(RelativeLayout.END_OF, R.id.tl_icon);
+    }
+    return lp;
   }
 
   @Override
