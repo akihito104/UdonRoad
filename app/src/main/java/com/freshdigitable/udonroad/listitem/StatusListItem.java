@@ -132,6 +132,8 @@ public class StatusListItem implements TwitterListItem {
     RETWEET(TwitterReactionContainer.ReactionIcon.RETWEET){
       @Override
       Stat getStat(Status status) {
+        final int retweetCount = status.getRetweetCount();
+        final boolean retweeted = status.isRetweeted();
         return new Stat() {
           @Override
           public int getType() {
@@ -140,18 +142,20 @@ public class StatusListItem implements TwitterListItem {
 
           @Override
           public int getCount() {
-            return status.getRetweetCount();
+            return retweetCount;
           }
 
           @Override
           public boolean isMarked() {
-            return status.isRetweeted();
+            return retweeted;
           }
         };
       }
     }, FAV(TwitterReactionContainer.ReactionIcon.FAV) {
       @Override
       Stat getStat(Status status) {
+        final int favoriteCount = status.getFavoriteCount();
+        final boolean favorited = status.isFavorited();
         return new Stat() {
           @Override
           public int getType() {
@@ -160,18 +164,19 @@ public class StatusListItem implements TwitterListItem {
 
           @Override
           public int getCount() {
-            return status.getFavoriteCount();
+            return favoriteCount;
           }
 
           @Override
           public boolean isMarked() {
-            return status.isFavorited();
+            return favorited;
           }
         };
       }
     }, HAS_REPLY(TwitterReactionContainer.ReactionIcon.IN_REPLY_TO) {
       @Override
       Stat getStat(Status status) {
+        final boolean marked = status.getInReplyToStatusId() > 0;
         return new Stat() {
           @Override
           public int getType() {
@@ -185,7 +190,7 @@ public class StatusListItem implements TwitterListItem {
 
           @Override
           public boolean isMarked() {
-            return status.getInReplyToStatusId() > 0;
+            return marked;
           }
         };
       }

@@ -65,7 +65,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
 
   @Override
   public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    return new ItemViewHolder(parent, viewType);
+    return ItemViewHolder.create(parent, viewType);
   }
 
   @Override
