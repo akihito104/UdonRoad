@@ -16,11 +16,17 @@
 
 package com.freshdigitable.udonroad.listitem;
 
+import com.freshdigitable.udonroad.RetweetUserView;
+
 /**
  * Created by akihit on 2017/07/09.
  */
 
-public interface TwitterItemView {
+public interface StatusItemView extends ItemView, ThumbnailCapable {
+  RetweetUserView getRtUser();
+
+  QuotedStatusView getQuotedStatusView();
+
   void update(TwitterListItem item);
 
   void updateTime();

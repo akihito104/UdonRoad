@@ -17,11 +17,18 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 /**
@@ -30,10 +37,15 @@ import com.freshdigitable.udonroad.media.ThumbnailContainer;
  *
  * Created by akihit on 2016/06/26.
  */
-public class QuotedStatusView extends ItemView implements ThumbnailCapable {
-  TextView createdAt;
-  TextView clientName;
-  ThumbnailContainer thumbnailContainer;
+public class QuotedStatusView extends RelativeLayout implements StatusItemView {
+  final ImageView icon;
+  final CombinedScreenNameTextView names;
+  final TextView tweet;
+  final ReactionContainer reactionContainer;
+  final int selectedColor;
+  final TextView createdAt;
+  final TextView clientName;
+  final ThumbnailContainer thumbnailContainer;
 
   private TwitterListItem.TimeTextStrategy timeStrategy;
 
@@ -58,27 +70,27 @@ public class QuotedStatusView extends ItemView implements ThumbnailCapable {
     clientName = v.findViewById(R.id.q_via);
     thumbnailContainer = v.findViewById(R.id.q_image_group);
     reactionContainer = v.findViewById(R.id.q_reaction_container);
+
+    final int grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    setPadding(grid, grid, grid, grid);
+    selectedColor = ContextCompat.getColor(context, R.color.twitter_action_normal_transparent);
   }
 
   public void bind(TwitterListItem item) {
     if (item == null) {
       return;
     }
-    super.bind(item);
+    names.setNames(item.getUser());
+    tweet.setText(item.getText());
+    reactionContainer.update(item.getStats());
     timeStrategy = item.getTimeStrategy();
     createdAt.setText(item.getCreatedTime(getContext()));
     thumbnailContainer.bindMediaEntities(item.getMediaCount());
     clientName.setText(formatString(R.string.tweet_via, item.getSource()));
   }
 
-  public void updateTime() {
-    if (timeStrategy == null) {
-      return;
-    }
-    createdAt.setText(timeStrategy.getCreatedTime(getContext()));
-  }
-
-  public void update(ListItem item) {
+  @Override
+  public void update(TwitterListItem item) {
     if (item == null) {
       return;
     }
@@ -87,19 +99,29 @@ public class QuotedStatusView extends ItemView implements ThumbnailCapable {
   }
 
   @Override
+  public void updateTime() {
+    if (timeStrategy == null) {
+      return;
+    }
+    createdAt.setText(timeStrategy.getCreatedTime(getContext()));
+  }
+
   public void reset() {
-    super.reset();
+    setBackgroundColor(Color.TRANSPARENT);
+
+    icon.setImageDrawable(null);
+    icon.setImageResource(android.R.color.transparent);
+    icon.setOnClickListener(null);
+    setOnClickListener(null);
     thumbnailContainer.reset();
     thumbnailContainer.setOnMediaClickListener(null);
     setBackgroundResource(R.drawable.s_rounded_frame_default);
   }
 
-  @Override
   public void setSelectedColor() {
     setBackgroundResource(R.drawable.s_rounded_frame_pressed);
   }
 
-  @Override
   public void setUnselectedColor() {
     setBackgroundResource(R.drawable.s_rounded_frame_default);
   }
@@ -107,5 +129,25 @@ public class QuotedStatusView extends ItemView implements ThumbnailCapable {
   @Override
   public ThumbnailContainer getThumbnailContainer() {
     return thumbnailContainer;
+  }
+
+  @Override
+  public ImageView getIcon() {
+    return icon;
+  }
+
+  String formatString(@StringRes int id, Object... items) {
+    final String format = getResources().getString(id);
+    return String.format(format, items);
+  }
+
+  @Override
+  public RetweetUserView getRtUser() {
+    return null;
+  }
+
+  @Override
+  public QuotedStatusView getQuotedStatusView() {
+    return null;
   }
 }

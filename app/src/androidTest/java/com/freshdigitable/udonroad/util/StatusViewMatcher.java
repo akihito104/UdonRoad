@@ -50,7 +50,7 @@ public class StatusViewMatcher {
     return ofStatusViewInternal(viewMatcher, QuotedStatusView.class);
   }
 
-  private static <T extends ItemView> Matcher<View> ofStatusViewInternal(
+  private static <T extends View & ItemView> Matcher<View> ofStatusViewInternal(
       final Matcher<View> viewMatcher, Class<T> clz) {
     return new BoundedMatcher<View, T>(clz) {
       @Override

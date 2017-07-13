@@ -40,7 +40,7 @@ import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.TwitterItemView;
+import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
@@ -219,7 +219,9 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       final int childCount = binding.timeline.getChildCount();
       for (int i = 0; i < childCount; i++) {
         final View v = binding.timeline.getChildAt(i);
-        ((TwitterItemView) v).updateTime();
+        if (v instanceof StatusView) {
+          ((StatusView) v).updateTime();
+        }
       }
     }
   };

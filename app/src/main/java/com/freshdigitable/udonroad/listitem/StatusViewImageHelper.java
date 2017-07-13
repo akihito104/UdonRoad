@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
@@ -45,14 +46,14 @@ public class StatusViewImageHelper {
   @SuppressWarnings("unused")
   private static final String TAG = StatusViewImageHelper.class.getSimpleName();
 
-  public static void load(TwitterListItem item, StatusView statusView) {
+  public static <T extends View & StatusItemView> void  load(TwitterListItem item, T statusView) {
     loadUserIcon(item.getUser(), item.getId(), statusView);
     loadRTUserIcon(item, statusView);
     loadMediaView(item, statusView);
     loadQuotedStatusImages(item, statusView.getQuotedStatusView());
   }
 
-  public static void unload(StatusView itemView, long entityId) {
+  public static <T extends View & StatusItemView> void unload(T itemView, long entityId) {
     Picasso.with(itemView.getContext()).cancelTag(entityId);
     unloadRTUserIcon(itemView);
     unloadUserIcon(itemView);
@@ -60,7 +61,7 @@ public class StatusViewImageHelper {
     unloadQuotedStatusImages(itemView.getQuotedStatusView());
   }
 
-  static void loadUserIcon(User user, final long tagId, final ItemView itemView) {
+  static <T extends View & ItemView> void loadUserIcon(User user, final long tagId, final T itemView) {
     getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
         .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
         .placeholder(R.drawable.ic_person_outline_black)
@@ -71,7 +72,7 @@ public class StatusViewImageHelper {
     unloadImage(itemView.getIcon());
   }
 
-  private static void loadRTUserIcon(TwitterListItem item, StatusView itemView) {
+  private static <T extends View & StatusItemView> void loadRTUserIcon(TwitterListItem item, T itemView) {
     if (!item.isRetweet()) {
       return;
     }
@@ -118,7 +119,7 @@ public class StatusViewImageHelper {
         });
   }
 
-  private static void unloadRTUserIcon(StatusView itemView) {
+  private static void unloadRTUserIcon(StatusItemView itemView) {
     itemView.getRtUser().setText("");
   }
 

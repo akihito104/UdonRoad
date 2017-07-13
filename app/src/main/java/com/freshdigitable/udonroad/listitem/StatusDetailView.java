@@ -17,18 +17,37 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.LinkableTextView;
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.RetweetUserView;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 /**
  * StatusDetailView is a View to show in StatusDetailFragment.
  *
  * Created by akihit on 2016/08/18.
  */
-public class StatusDetailView extends StatusView {
+public class StatusDetailView extends RelativeLayout implements StatusItemView {
+  final ImageView icon;
+  final CombinedScreenNameTextView names;
+  final TextView tweet;
+  final ReactionContainer reactionContainer;
+  final TextView createdAt;
+  final TextView clientName;
+  final ThumbnailContainer thumbnailContainer;
+  QuotedStatusView quotedStatus;
+  final RetweetUserView rtUser;
+
   public StatusDetailView(Context context) {
     this(context, null);
   }
@@ -39,10 +58,6 @@ public class StatusDetailView extends StatusView {
 
   public StatusDetailView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-  }
-
-  @Override
-  void init(Context context) {
     final View v = View.inflate(context, R.layout.view_status_detail, this);
     createdAt = v.findViewById(R.id.d_create_at);
     icon = v.findViewById(R.id.d_icon);
@@ -53,18 +68,97 @@ public class StatusDetailView extends StatusView {
     rtUser = v.findViewById(R.id.d_rt_user);
     quotedStatus = v.findViewById(R.id.d_quoted);
     reactionContainer = v.findViewById(R.id.d_reaction_container);
+
+    final int grid = getResources().getDimensionPixelSize(R.dimen.grid_margin_detail);
+    setPadding(grid, grid, grid, grid);
+  }
+
+  public void bind(TwitterListItem item) {
+    if (item == null) {
+      return;
+    }
+    setTextColor(item.isRetweet() ?
+        ContextCompat.getColor(getContext(), R.color.twitter_action_retweeted)
+        : Color.GRAY);
+    rtUser.setVisibility(item.isRetweet() ? VISIBLE : GONE);
+    names.setNames(item.getUser());
+    tweet.setText(item.getText());
+    reactionContainer.update(item.getStats());
+    createdAt.setText(item.getCreatedTime(getContext()));
+    thumbnailContainer.bindMediaEntities(item.getMediaCount());
+    clientName.setText(formatString(R.string.tweet_via, item.getSource()));
+
+    final TwitterListItem quotedItem = item.getQuotedItem();
+    bindQuotedStatus(quotedItem);
+  }
+
+  private void bindQuotedStatus(TwitterListItem quotedItem) {
+    if (quotedItem == null) {
+      quotedStatus.setVisibility(GONE);
+    } else {
+      quotedStatus.setVisibility(VISIBLE);
+      quotedStatus.bind(quotedItem);
+    }
+  }
+
+  public void update(TwitterListItem item) {
+    reactionContainer.update(item.getStats());
+    names.setNames(item.getUser());
+    if (quotedStatus != null) {
+      quotedStatus.update(item.getQuotedItem());
+    }
   }
 
   @Override
-  protected int getGrid() {
-    return getResources().getDimensionPixelSize(R.dimen.grid_margin_detail);
+  public void updateTime() {
+    quotedStatus.updateTime();
+  }
+
+  private void setTextColor(int color) {
+    names.setTextColor(color);
+    createdAt.setTextColor(color);
+    tweet.setTextColor(color);
+  }
+
+  public void reset() {
+    setBackgroundColor(Color.TRANSPARENT);
+
+    icon.setImageDrawable(null);
+    icon.setImageResource(android.R.color.transparent);
+    icon.setOnClickListener(null);
+    setOnClickListener(null);
+
+    rtUser.setText("");
+    if (quotedStatus != null) {
+      quotedStatus.reset();
+    }
+    thumbnailContainer.reset();
+    thumbnailContainer.setOnMediaClickListener(null);
+  }
+
+  public ImageView getIcon() {
+    return icon;
+  }
+
+  public RetweetUserView getRtUser() {
+    return rtUser;
+  }
+
+  public QuotedStatusView getQuotedStatusView() {
+    return quotedStatus;
   }
 
   @Override
-  public void setSelectedColor() {
+  public ThumbnailContainer getThumbnailContainer() {
+    return thumbnailContainer;
   }
 
-  @Override
-  public void setUnselectedColor() {
+  public TextView getUserName() {
+    return names;
+  }
+
+  private String formatString(@StringRes int id, Object... items) {
+    final String format = getResources().getString(id);
+    return String.format(format, items);
   }
 }
