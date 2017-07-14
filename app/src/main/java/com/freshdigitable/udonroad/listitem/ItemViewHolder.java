@@ -20,7 +20,6 @@ import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import io.reactivex.Observable;
@@ -31,23 +30,12 @@ import io.reactivex.disposables.Disposable;
  * Created by akihit on 2017/06/14.
  */
 public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
-  public static final int TYPE_STATUS = 1;
-  public static final int TYPE_USER = 2;
   private Disposable subscription;
   OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
 
   ItemViewHolder(View view) {
     super(view);
-  }
-
-  public static ItemViewHolder create(final ViewGroup parent, final int viewType) {
-    if (viewType == TYPE_STATUS) {
-      return new StatusViewHolder(parent);
-    } else if (viewType == TYPE_USER) {
-      return new UserItemViewHolder(parent);
-    }
-    throw new IllegalArgumentException();
   }
 
   @CallSuper

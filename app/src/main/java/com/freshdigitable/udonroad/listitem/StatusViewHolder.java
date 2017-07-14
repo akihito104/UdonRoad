@@ -27,8 +27,8 @@ import com.freshdigitable.udonroad.media.ThumbnailContainer;
  * Created by akihit on 2017/07/12.
  */
 
-class StatusViewHolder extends ItemViewHolder {
-  StatusViewHolder(ViewGroup parent) {
+public class StatusViewHolder extends ItemViewHolder {
+  public StatusViewHolder(ViewGroup parent) {
     super(new StatusView(parent.getContext()));
   }
 

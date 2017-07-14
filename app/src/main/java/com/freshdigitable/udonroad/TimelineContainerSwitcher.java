@@ -26,10 +26,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
-
-import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.StoreType.CONVERSATION;
 
@@ -60,8 +57,8 @@ class TimelineContainerSwitcher {
 
   void showConversation(long statusId) {
     ffab.transToFAB(View.INVISIBLE);
-    final TimelineFragment<Status> conversationFragment
-        = StatusListFragment.getInstance(CONVERSATION, statusId);
+    final TimelineFragment<?> conversationFragment
+        = TimelineFragment.getInstance(CONVERSATION, statusId);
     final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
     replaceTimelineContainer(name, conversationFragment);
     switchFFABMenuTo(R.id.iffabMenu_main_detail);

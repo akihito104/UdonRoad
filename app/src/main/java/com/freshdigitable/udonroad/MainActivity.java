@@ -35,7 +35,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
-  private TimelineFragment<Status> tlFragment;
+  private TimelineFragment<?> tlFragment;
   private TweetInputFragment tweetInputFragment;
 
   @Inject
@@ -95,7 +94,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupHomeTimeline() {
-    tlFragment = StatusListFragment.getInstance(HOME);
+    tlFragment = TimelineFragment.getInstance(HOME);
 
     configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
         .replace(R.id.main_timeline_container, tlFragment)

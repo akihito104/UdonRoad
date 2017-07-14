@@ -88,6 +88,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
           }
         },
         e -> Log.e(TAG, "updateEvent: ", e));
+    requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
   }
 
   @Override
@@ -122,6 +123,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
     if (binding == null) {
       binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
+      binding.timeline.setHasFixedSize(true);
+      binding.timeline.setAdapter(tlAdapter);
     }
     return binding.getRoot();
   }
@@ -140,7 +143,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onActivityCreated: " + getStoreName());
     super.onActivityCreated(savedInstanceState);
-    binding.timeline.setHasFixedSize(true);
     if (timelineDecoration == null) {
       timelineDecoration = new TimelineDecoration(getContext());
       binding.timeline.addItemDecoration(timelineDecoration);
@@ -154,17 +156,11 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       timelineAnimator = new TimelineAnimator();
       binding.timeline.setItemAnimator(timelineAnimator);
     }
-    if (tlAdapter == null) {
-      requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
-      tlAdapter = new TimelineAdapter<>(sortedCache);
-      binding.timeline.setAdapter(tlAdapter);
-      if (getUserVisibleHint()) {
-        fetchTweet(null);
-        doneFirstFetch = true;
-      }
+    if (!doneFirstFetch && getUserVisibleHint()) {
+      fetchTweet(null);
+      doneFirstFetch = true;
     }
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
-    tlAdapter.registerAdapterDataObserver(createdAtObserver);
   }
 
   private boolean doneFirstFetch = false;
@@ -191,37 +187,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
         scrollTo(0);
       } else {
         addedUntilStopped = true;
-      }
-    }
-  };
-
-  private final AdapterDataObserver createdAtObserver
-      = new AdapterDataObserver() {
-    @Override
-    public void onItemRangeChanged(int positionStart, int itemCount) {
-      super.onItemRangeChanged(positionStart, itemCount);
-      updateTime();
-    }
-
-    @Override
-    public void onItemRangeInserted(int positionStart, int itemCount) {
-      super.onItemRangeInserted(positionStart, itemCount);
-      updateTime();
-    }
-
-    @Override
-    public void onItemRangeRemoved(int positionStart, int itemCount) {
-      super.onItemRangeRemoved(positionStart, itemCount);
-      updateTime();
-    }
-
-    private void updateTime() {
-      final int childCount = binding.timeline.getChildCount();
-      for (int i = 0; i < childCount; i++) {
-        final View v = binding.timeline.getChildAt(i);
-        if (v instanceof StatusView) {
-          ((StatusView) v).updateTime();
-        }
       }
     }
   };
@@ -309,7 +274,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       }
     }
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
-    tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
   }
 
   private AdapterDataObserver firstItemObserver;
@@ -478,6 +442,24 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     return args;
   }
 
+  public static TimelineFragment<?> getInstance(StoreType storeType) {
+    return getInstance(storeType, -1);
+  }
+
+  public static TimelineFragment<?> getInstance(StoreType storeType, long entityId) {
+    final TimelineFragment<?> fragment;
+    if (storeType.isForStatus()) {
+      fragment = new StatusListFragment();
+    } else if (storeType.isForUser()) {
+      fragment = new UserListFragment();
+    } else {
+      throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
+    }
+    final Bundle args = TimelineFragment.createArgs(storeType, entityId);
+    fragment.setArguments(args);
+    return fragment;
+  }
+
   private String getStoreName() {
     return getStoreType().nameWithSuffix(getEntityId() > 0 ? Long.toString(getEntityId()) : null);
   }
@@ -491,40 +473,62 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   }
 
   public static class StatusListFragment extends TimelineFragment<Status> {
-    public static StatusListFragment getInstance(StoreType storeType) {
-      return getInstance(storeType, -1);
-    }
-
-    public static StatusListFragment getInstance(StoreType storeType, long entityId) {
-      final Bundle args = TimelineFragment.createArgs(storeType, entityId);
-      final StatusListFragment fragment = new StatusListFragment();
-      fragment.setArguments(args);
-      return fragment;
-    }
-
     @Override
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
+      super.tlAdapter = new TimelineAdapter.StatusTimelineAdapter(super.sortedCache);
     }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      super.tlAdapter.registerAdapterDataObserver(createdAtObserver);
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      super.tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
+    }
+
+    private final AdapterDataObserver createdAtObserver = new AdapterDataObserver() {
+      @Override
+      public void onItemRangeChanged(int positionStart, int itemCount) {
+        super.onItemRangeChanged(positionStart, itemCount);
+        updateTime();
+      }
+
+      @Override
+      public void onItemRangeInserted(int positionStart, int itemCount) {
+        super.onItemRangeInserted(positionStart, itemCount);
+        updateTime();
+      }
+
+      @Override
+      public void onItemRangeRemoved(int positionStart, int itemCount) {
+        super.onItemRangeRemoved(positionStart, itemCount);
+        updateTime();
+      }
+
+      private void updateTime() {
+        final int childCount = StatusListFragment.super.binding.timeline.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+          final View v = StatusListFragment.super.binding.timeline.getChildAt(i);
+          if (v instanceof StatusView) {
+            ((StatusView) v).updateTime();
+          }
+        }
+      }
+    };
   }
 
   public static class UserListFragment extends TimelineFragment<User> {
-    public static UserListFragment getInstance(StoreType storeType) {
-      return getInstance(storeType, -1);
-    }
-
-    public static UserListFragment getInstance(StoreType storeType, long entityId) {
-      final Bundle args = TimelineFragment.createArgs(storeType, entityId);
-      final UserListFragment fragment = new UserListFragment();
-      fragment.setArguments(args);
-      return fragment;
-    }
-
     @Override
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
+      super.tlAdapter = new TimelineAdapter.UserListAdapter(super.sortedCache);
     }
   }
 

@@ -23,8 +23,8 @@ import android.widget.ImageView;
  * Created by akihit on 2017/07/12.
  */
 
-class UserItemViewHolder extends ItemViewHolder {
-  UserItemViewHolder(ViewGroup parent) {
+public class UserItemViewHolder extends ItemViewHolder {
+  public UserItemViewHolder(ViewGroup parent) {
     super(new UserItemView(parent.getContext()));
   }
 
