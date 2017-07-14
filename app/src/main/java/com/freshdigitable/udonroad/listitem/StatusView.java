@@ -18,31 +18,40 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 /**
  * StatusView shows Status data in RecyclerView.
- *
+ * <p>
  * Created by akihit on 2016/01/11.
  */
-public class StatusView extends ItemView implements TwitterItemView, ThumbnailCapable {
+public class StatusView extends RelativeLayout implements StatusItemView {
   @SuppressWarnings("unused")
   private static final String TAG = StatusView.class.getSimpleName();
-  TextView createdAt;
-  TextView clientName;
-  ThumbnailContainer thumbnailContainer;
+  final ImageView icon;
+  final CombinedScreenNameTextView names;
+  final TextView tweet;
+  final ReactionContainer reactionContainer;
+  final int selectedColor;
+  final TextView createdAt;
+  final TextView clientName;
+  final ThumbnailContainer thumbnailContainer;
   QuotedStatusView quotedStatus;
-  View quotedStatusPlaceHolder;
-  RetweetUserView rtUser;
+  final RetweetUserView rtUser;
   private TwitterListItem.TimeTextStrategy timeStrategy;
 
   public StatusView(Context context) {
@@ -55,10 +64,6 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
 
   public StatusView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    init(context);
-  }
-
-  void init(Context context) {
     final View v = View.inflate(context, R.layout.view_status, this);
     createdAt = v.findViewById(R.id.tl_create_at);
     icon = v.findViewById(R.id.tl_icon);
@@ -67,8 +72,12 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
     clientName = v.findViewById(R.id.tl_via);
     rtUser = v.findViewById(R.id.tl_rt_user);
     thumbnailContainer = v.findViewById(R.id.tl_image_group);
-    quotedStatusPlaceHolder = v.findViewById(R.id.tl_quoted_placeholder);
     reactionContainer = v.findViewById(R.id.tl_reaction_container);
+
+    final int grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    setPadding(grid, grid, grid, grid);
+    setBackgroundColor(Color.TRANSPARENT);
+    selectedColor = ContextCompat.getColor(context, R.color.twitter_action_normal_transparent);
   }
 
   public void bind(TwitterListItem item) {
@@ -76,12 +85,13 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
       return;
     }
     timeStrategy = item.getTimeStrategy();
-    setTextColor(item.isRetweet()
-        ? ContextCompat.getColor(getContext(), R.color.twitter_action_retweeted)
+    setTextColor(item.isRetweet() ?
+        ContextCompat.getColor(getContext(), R.color.twitter_action_retweeted)
         : Color.GRAY);
-
     rtUser.setVisibility(item.isRetweet() ? VISIBLE : GONE);
-    super.bind(item);
+    names.setNames(item.getUser());
+    tweet.setText(item.getText());
+    reactionContainer.update(item.getStats());
     createdAt.setText(item.getCreatedTime(getContext()));
     thumbnailContainer.bindMediaEntities(item.getMediaCount());
     clientName.setText(formatString(R.string.tweet_via, item.getSource()));
@@ -99,18 +109,26 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
     } else {
       if (quotedStatus == null) {
         quotedStatus = new QuotedStatusView(getContext());
-        final ViewGroup.LayoutParams lp = quotedStatusPlaceHolder.getLayoutParams();
-        final int index = indexOfChild(quotedStatusPlaceHolder);
-        removeView(quotedStatusPlaceHolder);
-        quotedStatusPlaceHolder = null;
-        addView(quotedStatus, index, lp);
+        final LayoutParams lp = createQuotedItemLayoutParams();
+        addView(quotedStatus, lp);
       }
       quotedStatus.setVisibility(VISIBLE);
       quotedStatus.bind(quotedItem);
     }
   }
 
-  @Override
+  @NonNull
+  private LayoutParams createQuotedItemLayoutParams() {
+    final LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    lp.topMargin = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    lp.addRule(RelativeLayout.BELOW, R.id.tl_via);
+    lp.addRule(RelativeLayout.RIGHT_OF, R.id.tl_icon);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+      lp.addRule(RelativeLayout.END_OF, R.id.tl_icon);
+    }
+    return lp;
+  }
+
   public void updateTime() {
     if (timeStrategy == null) {
       return;
@@ -121,7 +139,6 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
     }
   }
 
-  @Override
   public void update(TwitterListItem item) {
     reactionContainer.update(item.getStats());
     names.setNames(item.getUser());
@@ -130,15 +147,20 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
     }
   }
 
-  void setTextColor(int color) {
+  private void setTextColor(int color) {
     names.setTextColor(color);
     createdAt.setTextColor(color);
     tweet.setTextColor(color);
   }
 
-  @Override
   public void reset() {
-    super.reset();
+    setBackgroundColor(Color.TRANSPARENT);
+
+    icon.setImageDrawable(null);
+    icon.setImageResource(android.R.color.transparent);
+    icon.setOnClickListener(null);
+    setOnClickListener(null);
+
     rtUser.setText("");
     if (quotedStatus != null) {
       quotedStatus.reset();
@@ -155,21 +177,26 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
         + ", text: " + cs;
   }
 
-  @Override
   public void setSelectedColor() {
     setBackgroundColor(selectedColor);
   }
 
-  @Override
   public void setUnselectedColor() {
     setBackgroundColor(Color.TRANSPARENT);
   }
 
+  @Override
+  public ImageView getIcon() {
+    return icon;
+  }
+
+  @Override
   public RetweetUserView getRtUser() {
     return rtUser;
   }
 
   @Nullable
+  @Override
   public QuotedStatusView getQuotedStatusView() {
     return quotedStatus;
   }
@@ -177,5 +204,10 @@ public class StatusView extends ItemView implements TwitterItemView, ThumbnailCa
   @Override
   public ThumbnailContainer getThumbnailContainer() {
     return thumbnailContainer;
+  }
+
+  private String formatString(@StringRes int id, Object... items) {
+    final String format = getResources().getString(id);
+    return String.format(format, items);
   }
 }

@@ -36,7 +36,7 @@
 
     <TextView
         android:id="@+id/q_tweet"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/q_icon"
         android:textSize="@dimen/tweet_main_size"

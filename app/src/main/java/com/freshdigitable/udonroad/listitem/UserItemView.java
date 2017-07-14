@@ -19,14 +19,23 @@ package com.freshdigitable.udonroad.listitem;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.R;
 
 /**
  * Created by akihit on 2017/07/09.
  */
 
-public class UserItemView extends ItemView implements TwitterItemView {
+public class UserItemView extends RelativeLayout implements ItemView {
+  final ImageView icon;
+  final CombinedScreenNameTextView names;
+  final TextView description;
+  final ReactionContainer reactionContainer;
+
   public UserItemView(Context context) {
     this(context, null);
   }
@@ -40,21 +49,34 @@ public class UserItemView extends ItemView implements TwitterItemView {
     final View v = View.inflate(context, R.layout.view_user_list, this);
     icon = v.findViewById(R.id.tl_icon);
     names = v.findViewById(R.id.tl_names);
-    tweet = v.findViewById(R.id.tl_tweet);
+    description = v.findViewById(R.id.tl_tweet);
     reactionContainer = v.findViewById(R.id.tl_reaction_container);
+
+    final int grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    setPadding(grid, grid, grid, grid);
   }
 
-  @Override
+  public void bind(ListItem item) {
+    if (item == null) {
+      return;
+    }
+    names.setNames(item.getUser());
+    description.setText(item.getText());
+    reactionContainer.update(item.getStats());
+  }
+
+  public void reset() {
+    icon.setImageDrawable(null);
+    icon.setImageResource(android.R.color.transparent);
+    icon.setOnClickListener(null);
+    setOnClickListener(null);
+  }
+
+  public ImageView getIcon() {
+    return icon;
+  }
+
   public void update(TwitterListItem item) {
-    tweet.setText(item.getText());
+    description.setText(item.getText());
   }
-
-  @Override
-  public void updateTime() {}
-
-  @Override
-  public void setSelectedColor() {}
-
-  @Override
-  public void setUnselectedColor() {}
 }

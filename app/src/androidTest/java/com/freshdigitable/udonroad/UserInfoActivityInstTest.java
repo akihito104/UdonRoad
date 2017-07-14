@@ -96,6 +96,8 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
       onView(withId(R.id.action_group_user)).check(doesNotExist());
       onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+      // tear down
+      PerformUtil.clickCancelWriteOnMenu();
     }
 
     @Test

@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
@@ -27,6 +26,8 @@ import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
+import com.freshdigitable.udonroad.listitem.StatusViewHolder;
+import com.freshdigitable.udonroad.listitem.UserItemViewHolder;
 import com.freshdigitable.udonroad.listitem.UserListItem;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 
@@ -41,31 +42,15 @@ import twitter4j.User;
  *
  * Created by akihit on 15/10/18.
  */
-public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
+public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
   private final SortedCache<T> timelineStore;
 
-  public TimelineAdapter(SortedCache<T> timelineStore) {
+  private TimelineAdapter(SortedCache<T> timelineStore) {
     this.timelineStore = timelineStore;
     setHasStableIds(true);
-  }
-
-  @Override
-  public int getItemViewType(int position) {
-    final T t = timelineStore.get(position);
-    if (t instanceof Status) {
-      return ItemViewHolder.TYPE_STATUS;
-    } else if (t instanceof User) {
-      return ItemViewHolder.TYPE_USER;
-    }
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    return new ItemViewHolder(parent, viewType);
   }
 
   @Override
@@ -73,24 +58,11 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
     return timelineStore.getId(position);
   }
 
-  private ListItem wrapListItem(int position) {
-    final T item = timelineStore.get(position);
-    return wrapListItem(item);
-  }
-
-  @NonNull
-  private static <T> ListItem wrapListItem(T item) {
-    if (item instanceof Status) {
-      return new StatusListItem((Status) item);
-    } else if (item instanceof User) {
-      return new UserListItem((User) item);
-    }
-    throw new IllegalStateException();
-  }
+  abstract ListItem wrapListItem(T item);
 
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
-    final ListItem item = wrapListItem(position);
+    final ListItem item = wrapListItem(timelineStore.get(position));
     holder.bind(item);
 
     if (position == getItemCount() - 1) {
@@ -123,7 +95,7 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
     super.onViewAttachedToWindow(holder);
     final Observable<ListItem> observable
         = timelineStore.observeById(holder.getItemId())
-        .map(TimelineAdapter::wrapListItem);
+        .map(this::wrapListItem);
     holder.subscribe(observable);
     holder.setItemViewClickListener(itemViewClickListener);
     holder.setUserIconClickedListener(userIconClickedListener);
@@ -272,5 +244,37 @@ public class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
 
   public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {
     this.userIconClickedListener = listener;
+  }
+
+  public static class StatusTimelineAdapter extends TimelineAdapter<Status> {
+    public StatusTimelineAdapter(SortedCache<Status> timelineStore) {
+      super(timelineStore);
+    }
+
+    @Override
+    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      return new StatusViewHolder(parent);
+    }
+
+    @Override
+    ListItem wrapListItem(Status item) {
+      return new StatusListItem(item);
+    }
+  }
+
+  public static class UserListAdapter extends TimelineAdapter<User> {
+    public UserListAdapter(SortedCache<User> timelineStore) {
+      super(timelineStore);
+    }
+
+    @Override
+    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      return new UserItemViewHolder(parent);
+    }
+
+    @Override
+    ListItem wrapListItem(User item) {
+      return new UserListItem(item);
+    }
   }
 }

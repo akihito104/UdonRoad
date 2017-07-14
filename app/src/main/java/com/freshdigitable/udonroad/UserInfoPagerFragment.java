@@ -38,9 +38,6 @@ import java.util.Map;
 
 import twitter4j.User;
 
-import static com.freshdigitable.udonroad.TimelineFragment.StatusListFragment;
-import static com.freshdigitable.udonroad.TimelineFragment.UserListFragment;
-
 /**
  * UserInfoPagerFragment provides ViewPager to show specified user tweets.
  *
@@ -245,13 +242,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     }
 
     TimelineFragment<?> setup(long id) {
-      if (storeType.isForStatus()) {
-        return StatusListFragment.getInstance(storeType, id);
-      }
-      if (storeType.isForUser()) {
-        return UserListFragment.getInstance(storeType, id);
-      }
-      throw new IllegalStateException();
+      return TimelineFragment.getInstance(storeType, id);
     }
 
     public boolean isStatus() {
