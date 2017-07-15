@@ -32,8 +32,12 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Single;
+import io.reactivex.SingleObserver;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.exceptions.CompositeException;
+import io.reactivex.exceptions.Exceptions;
+import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
@@ -90,31 +94,70 @@ public class TwitterCard {
   }
 
   @NonNull
-  public static Observable<TwitterCard> observeFetch(final String expandedURL) {
-    final Call call = Fetcher.createCall(expandedURL);
-    return Observable.create((ObservableOnSubscribe<TwitterCard>) subscriber -> {
-      try {
-        final TwitterCard twitterCard = Fetcher.fetch(call);
-        subscriber.onNext(twitterCard);
-        subscriber.onComplete();
-      } catch (IOException | XmlPullParserException e) {
-        subscriber.onError(e);
-      }
-    }).subscribeOn(Schedulers.io())
-        .doOnDispose(call::cancel);
+  public static Single<TwitterCard> observeFetch(final String expandedURL) {
+    return FetchObservable.create(expandedURL)
+        .subscribeOn(Schedulers.io());
   }
 
-  private static class Fetcher {
-    private static final String TAG = Fetcher.class.getSimpleName();
+  private static class FetchObservable extends Single<TwitterCard> {
+    private static final String TAG = FetchObservable.class.getSimpleName();
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
         .followRedirects(true)
         .build();
+
+    private final Call call;
+
+    private static FetchObservable create(String url) {
+      return new FetchObservable(url);
+    }
 
     private static Call createCall(String url) {
       final Request request = new Request.Builder()
           .url(url)
           .build();
       return httpClient.newCall(request);
+    }
+
+    private FetchObservable(String url) {
+      this.call = createCall(url);
+    }
+
+    @Override
+    protected void subscribeActual(SingleObserver<? super TwitterCard> observer) {
+      observer.onSubscribe(new Disposable() {
+        @Override
+        public void dispose() {
+          call.cancel();
+        }
+
+        @Override
+        public boolean isDisposed() {
+          return call.isCanceled();
+        }
+      });
+
+      boolean terminated = false;
+      try {
+        final TwitterCard card = fetch(call);
+        if (!call.isCanceled()) {
+          terminated = true;
+          observer.onSuccess(card);
+        }
+      } catch (Throwable t) {
+        Exceptions.throwIfFatal(t);
+        if (!terminated) {
+          if (!call.isCanceled()) {
+            try {
+              observer.onError(t);
+            } catch (Throwable inner) {
+              Exceptions.throwIfFatal(inner);
+              RxJavaPlugins.onError(new CompositeException(t, inner));
+            }
+          }
+        } else {
+          RxJavaPlugins.onError(t);
+        }
+      }
     }
 
     @NonNull
@@ -215,10 +258,6 @@ public class TwitterCard {
 
     private static boolean isMetaTag(String tag) {
       return "meta".equalsIgnoreCase(tag);
-    }
-
-    private Fetcher() {
-      throw new AssertionError();
     }
   }
 

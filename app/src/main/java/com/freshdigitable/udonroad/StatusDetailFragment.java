@@ -128,13 +128,12 @@ public class StatusDetailFragment extends Fragment {
         (view, index) -> MediaViewActivity.start(view.getContext(), item, index));
 
     binding.statusView.bind(item);
-    subscription = statusCache.observeById(statusId)
-        .subscribe(s -> {
-              final StatusListItem listItem = new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE);
-              binding.statusView.update(listItem);
-              updateFabMenuItem(s);
-            },
-            e -> Log.e(TAG, "onStart: ", e));
+    subscription = statusCache.observeById(statusId).subscribe(s -> {
+          final StatusListItem listItem = new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE);
+          binding.statusView.update(listItem);
+          updateFabMenuItem(s);
+        },
+        e -> Log.e(TAG, "onStart: ", e));
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
