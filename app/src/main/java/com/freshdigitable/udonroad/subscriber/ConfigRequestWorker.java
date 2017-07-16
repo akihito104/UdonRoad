@@ -106,12 +106,21 @@ public class ConfigRequestWorker implements RequestWorker {
 
   private Completable fetchTwitterAPIConfig() {
     appSettings.open();
-    return appSettings.isTwitterAPIConfigFetchable() ?
-        Completable.fromSingle(twitterApi.getTwitterAPIConfiguration()
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess(appSettings::setTwitterAPIConfig)
-            .doOnError(onErrorAction))
-            .doOnDispose(appSettings::close)
+    final boolean twitterAPIConfigFetchable = appSettings.isTwitterAPIConfigFetchable();
+    appSettings.close();
+    return twitterAPIConfigFetchable ?
+        Completable.create(e ->
+            twitterApi.getTwitterAPIConfiguration()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(twitterAPIConfig -> {
+                  appSettings.open();
+                  appSettings.setTwitterAPIConfig(twitterAPIConfig);
+                  appSettings.close();
+                  e.onComplete();
+                }, err -> {
+                  onErrorAction.accept(err);
+                  e.onError(err);
+                }))
         : Completable.complete();
   }
 

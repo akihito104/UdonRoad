@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,7 +32,6 @@ import com.freshdigitable.udonroad.module.InjectionUtil;
 import javax.inject.Inject;
 
 import io.reactivex.Single;
-import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import twitter4j.Twitter;
@@ -86,7 +86,7 @@ public class OAuthActivity extends AppCompatActivity {
   private RequestToken requestToken;
 
   private void startAuthorization() {
-    Single.create((SingleOnSubscribe<String>) subscriber -> {
+    Single.<String>create(subscriber -> {
       try {
         requestToken = twitter.getOAuthRequestToken(callbackUrl);
         String authUrl = requestToken.getAuthorizationURL();
@@ -99,13 +99,13 @@ public class OAuthActivity extends AppCompatActivity {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             this::startAuthAction,
-            e -> Log.e(TAG, "Authorization error: ", e));
+            e -> {
+              Log.e(TAG, "Authorization error: ", e);
+              Toast.makeText(this, "authorization is failed...", Toast.LENGTH_LONG).show();
+            });
   }
 
   private void startAuthAction(String url) {
-    if (url == null) {
-      Toast.makeText(this, "authorization is failed...", Toast.LENGTH_LONG).show();
-    }
     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
     startActivity(intent);
   }
@@ -127,7 +127,7 @@ public class OAuthActivity extends AppCompatActivity {
   }
 
   private void startAuthentication(final String verifier) {
-    Single.create((SingleOnSubscribe<AccessToken>) subscriber -> {
+    Single.<AccessToken>create(subscriber -> {
       try {
         AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
         subscriber.onSuccess(accessToken);
@@ -139,14 +139,13 @@ public class OAuthActivity extends AppCompatActivity {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             this::checkOAuth,
-            e -> Log.e(TAG, "authentication error: ", e));
+            e -> {
+              Log.e(TAG, "authentication error: ", e);
+              Toast.makeText(this, "authentication is failed...", Toast.LENGTH_LONG).show();
+            });
   }
 
   private void checkOAuth(AccessToken accessToken) {
-    if (accessToken == null) {
-      Toast.makeText(this, "authentication is failed...", Toast.LENGTH_LONG).show();
-      return;
-    }
     appSettings.storeAccessToken(accessToken);
     appSettings.setCurrentUserId(accessToken.getUserId());
     Toast.makeText(this, "authentication is success!", Toast.LENGTH_LONG).show();
@@ -155,14 +154,18 @@ public class OAuthActivity extends AppCompatActivity {
     finish();
   }
 
-  public static final String EXTRAS_REDIRECT = "redirect";
+  private static final String EXTRAS_REDIRECT = "redirect";
 
   public static Intent createIntent(Activity redirect) {
     if (redirect instanceof OAuthActivity) {
       throw new IllegalArgumentException();
     }
-    final Intent intent = new Intent(redirect.getApplicationContext(), OAuthActivity.class);
-    intent.putExtra(EXTRAS_REDIRECT, redirect.getClass());
+    return createIntent(redirect.getApplicationContext(), redirect.getClass());
+  }
+
+  public static Intent createIntent(Context context, Class<? extends Activity> clz) {
+    final Intent intent = new Intent(context, OAuthActivity.class);
+    intent.putExtra(EXTRAS_REDIRECT, clz);
     return intent;
   }
 
