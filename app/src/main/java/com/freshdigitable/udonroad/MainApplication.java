@@ -104,7 +104,7 @@ public class MainApplication extends Application {
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
       Log.d(TAG, "onActivityCreated: count>" + activities.size());
-      if (activities.size() == 0) {
+      if (activities.size() == 0 || !isTokenSetup) {
         isTokenSetup = setupAccessToken(activity);
       }
       if (!isTokenSetup) {
