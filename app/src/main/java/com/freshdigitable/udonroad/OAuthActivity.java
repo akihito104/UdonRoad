@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -153,14 +154,18 @@ public class OAuthActivity extends AppCompatActivity {
     finish();
   }
 
-  public static final String EXTRAS_REDIRECT = "redirect";
+  private static final String EXTRAS_REDIRECT = "redirect";
 
   public static Intent createIntent(Activity redirect) {
     if (redirect instanceof OAuthActivity) {
       throw new IllegalArgumentException();
     }
-    final Intent intent = new Intent(redirect.getApplicationContext(), OAuthActivity.class);
-    intent.putExtra(EXTRAS_REDIRECT, redirect.getClass());
+    return createIntent(redirect.getApplicationContext(), redirect.getClass());
+  }
+
+  public static Intent createIntent(Context context, Class<? extends Activity> clz) {
+    final Intent intent = new Intent(context, OAuthActivity.class);
+    intent.putExtra(EXTRAS_REDIRECT, clz);
     return intent;
   }
 
