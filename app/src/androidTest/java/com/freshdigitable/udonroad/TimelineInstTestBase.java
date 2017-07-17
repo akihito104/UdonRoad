@@ -151,6 +151,8 @@ public abstract class TimelineInstTestBase {
   protected void setupConfig(User loginUser) throws Exception {
     final TwitterAPIConfiguration twitterAPIConfigMock
         = TwitterResponseMock.createTwitterAPIConfigMock();
+    when(twitterAPIConfigMock.getShortURLLength()).thenReturn(23);
+    when(twitterAPIConfigMock.getShortURLLengthHttps()).thenReturn(23);
     when(twitter.getAPIConfiguration()).thenReturn(twitterAPIConfigMock);
 
     final long userId = loginUser.getId();

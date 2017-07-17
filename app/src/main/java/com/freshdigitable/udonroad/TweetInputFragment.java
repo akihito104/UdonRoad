@@ -39,7 +39,7 @@ import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -73,7 +73,7 @@ public class TweetInputFragment extends Fragment {
   @Inject
   StatusRequestWorker statusRequestWorker;
   @Inject
-  ConfigRequestWorker configRequestWorker;
+  AppSettingRequestWorker appSettingRequestWorker;
   @Inject
   AppSettingStore appSettings;
   private Disposable subscription;
@@ -147,12 +147,6 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onCreateView: ");
     binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
     return binding.getRoot();
-  }
-
-  @Override
-  public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onActivityCreated: ");
-    super.onActivityCreated(savedInstanceState);
   }
 
   @Override
@@ -232,11 +226,12 @@ public class TweetInputFragment extends Fragment {
       return;
     }
 
-    final User currentUser = appSettings.getAuthenticatedUser(appSettings.getCurrentUserId());
-    replyEntity = ReplyEntity.create(inReplyTo, currentUser);
-    inputText.addText(replyEntity.createReplyString());
-    inputText.setInReplyTo();
-    stretchTweetInputView();
+    appSettingRequestWorker.getAuthenticatedUser().subscribe(u -> {
+      replyEntity = ReplyEntity.create(inReplyTo, u);
+      inputText.addText(replyEntity.createReplyString());
+      inputText.setInReplyTo();
+      stretchTweetInputView();
+    });
   }
 
   private void stretchTweetInputViewWithQuoteStatus(long quotedStatus) {
@@ -247,7 +242,7 @@ public class TweetInputFragment extends Fragment {
 
   private void setUpTweetInputView() {
     final TweetInputView inputText = binding.mainTweetInputView;
-    subscription = configRequestWorker.getAuthenticatedUser()
+    subscription = appSettingRequestWorker.getAuthenticatedUser()
         .subscribe(authenticatedUser -> {
           inputText.setUserInfo(authenticatedUser);
           Picasso.with(inputText.getContext())
@@ -321,16 +316,15 @@ public class TweetInputFragment extends Fragment {
 
   private Single<Status> observeUpdateStatus() {
     final TweetInputView inputText = binding.mainTweetInputView;
-    return createSendObservable()
-        .doOnSuccess(status -> {
-          inputText.getText().clear();
-          inputText.reset();
-          inputText.clearFocus();
-          inputText.disappearing();
-          setupMenuVisibility();
-          replyEntity = null;
-          quoteStatusIds.clear();
-        });
+    return createSendObservable().doOnSuccess(status -> {
+      inputText.getText().clear();
+      inputText.reset();
+      inputText.clearFocus();
+      inputText.disappearing();
+      setupMenuVisibility();
+      replyEntity = null;
+      quoteStatusIds.clear();
+    });
   }
 
   private boolean isStatusUpdateNeeded() {

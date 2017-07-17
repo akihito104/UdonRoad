@@ -41,6 +41,7 @@ import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -74,6 +75,8 @@ public class MainActivity extends AppCompatActivity
 
   @Inject
   ConfigRequestWorker configRequestWorker;
+  @Inject
+  AppSettingRequestWorker appSettingRequestWorker;
   private TimelineContainerSwitcher timelineContainerSwitcher;
 
   @Override
@@ -95,17 +98,17 @@ public class MainActivity extends AppCompatActivity
 
   private void setupHomeTimeline() {
     tlFragment = TimelineFragment.getInstance(HOME);
-
-    configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_timeline_container, tlFragment)
-        .commit());
+    configRequestWorker.setup().subscribe(() ->
+        getSupportFragmentManager().beginTransaction()
+            .replace(R.id.main_timeline_container, tlFragment)
+            .commit());
   }
 
   private Disposable subscription;
 
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
-    subscription = configRequestWorker.getAuthenticatedUser()
+    subscription = appSettingRequestWorker.getAuthenticatedUser()
         .subscribe(this::setupNavigationDrawerHeader,
             e -> Log.e(TAG, "setupNavigationDrawer: ", e));
     binding.navDrawer.setNavigationItemSelectedListener(item -> {

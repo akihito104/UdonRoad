@@ -23,13 +23,13 @@ import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.view.View;
 
-import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.leakcanary.LeakCanary;
 
@@ -37,8 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
-
-import twitter4j.auth.AccessToken;
 
 /**
  * MainApplication is custom Application class.
@@ -50,7 +48,7 @@ public class MainApplication extends Application {
   @Inject
   TwitterApi twitterApi;
   @Inject
-  AppSettingStore appSettings;
+  AppSettingRequestWorker appSettings;
   @Inject
   UserStreamUtil userStreamUtil;
   @Inject
@@ -86,14 +84,7 @@ public class MainApplication extends Application {
   }
 
   private static boolean init(MainApplication application) {
-    application.appSettings.open();
-    final AccessToken accessToken = application.appSettings.getCurrentUserAccessToken();
-    application.appSettings.close();
-    if (accessToken == null) {
-      return false;
-    }
-    application.twitterApi.setOAuthAccessToken(accessToken);
-    return true;
+    return application.appSettings.setup();
   }
 
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
