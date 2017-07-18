@@ -181,4 +181,11 @@ public class TweetInputView extends RelativeLayout {
     inputText.setOnFocusChangeListener(null);
     inputText.removeTextChangedListener(textWatcher);
   }
+
+  @Override
+  public void setClickable(boolean clickable) {
+    super.setClickable(clickable);
+    inputText.setClickable(clickable);
+    appendImage.setClickable(clickable);
+  }
 }

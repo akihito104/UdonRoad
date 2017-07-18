@@ -32,7 +32,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -89,6 +88,7 @@ public class TweetInputFragment extends Fragment {
   @Inject
   AppSettingStore appSettings;
   private Disposable subscription;
+  private Disposable updateStatusTask;
 
   public static TweetInputFragment create() {
     return create(TYPE_NONE);
@@ -200,6 +200,16 @@ public class TweetInputFragment extends Fragment {
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
   }
 
+  @Override
+  public void onDetach() {
+    super.onDetach();
+    if (updateStatusTask != null && !updateStatusTask.isDisposed()) {
+      updateStatusTask.dispose();
+    }
+    tweetSendFab.setOnClickListener(null);
+    binding.mainTweetInputView.removeTextWatcher(textWatcher);
+  }
+
   private FloatingActionButton tweetSendFab;
 
   public void setTweetSendFab(FloatingActionButton fab) {
@@ -304,19 +314,21 @@ public class TweetInputFragment extends Fragment {
   }
 
   private View.OnClickListener createSendClickListener() {
-    final FragmentActivity activity = getActivity();
-    if (activity instanceof TweetSendable) {
-      return v -> {
-        v.setClickable(false);
-        ((TweetSendable) activity).observeUpdateStatus(observeUpdateStatus())
-            .subscribe((s, e) -> v.setClickable(true));
-      };
-    } else {
-      return view -> {
-        view.setClickable(false);
-        observeUpdateStatus().subscribe((s, e) -> view.setClickable(true));
-      };
-    }
+    final TweetSendable tweetSendable = getActivity() instanceof TweetSendable ?
+        (TweetSendable) getActivity() : (s) -> {};
+    final TweetInputView mainTweetInputView = binding.mainTweetInputView;
+    return v -> {
+      v.setClickable(false);
+      mainTweetInputView.setClickable(false);
+      updateStatusTask = createSendObservable().subscribe((s, e) -> {
+        v.setClickable(true);
+        mainTweetInputView.setClickable(true);
+        if (s != null) { //  on success
+          reset();
+          tweetSendable.onTweetComplete(s);
+        }
+      });
+    };
   }
 
   private void tearDownSendTweetFab() {
@@ -344,12 +356,6 @@ public class TweetInputFragment extends Fragment {
     return media.size() > 0 ?
         statusRequestWorker.observeUpdateStatus(getContext(), statusUpdate, media)
         : statusRequestWorker.observeUpdateStatus(statusUpdate);
-  }
-
-  private Single<Status> observeUpdateStatus() {
-    return createSendObservable().doOnSuccess(status -> {
-      reset();
-    });
   }
 
   private boolean isStatusUpdateNeeded() {
@@ -382,9 +388,7 @@ public class TweetInputFragment extends Fragment {
   }
 
   interface TweetSendable {
-    void setupInput(@TweetType int type, long statusId);
-
-    Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable);
+    void onTweetComplete(Status updated);
   }
 
   public static final int TYPE_DEFAULT = 0;

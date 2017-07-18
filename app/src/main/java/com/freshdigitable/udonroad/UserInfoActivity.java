@@ -52,7 +52,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
@@ -269,13 +268,8 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
-  public void setupInput(@TweetType int type, long statusId) {
-    showTwitterInputView(type, statusId);
-  }
-
-  @Override
-  public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnSuccess(status -> closeTwitterInputView());
+  public void onTweetComplete(Status updated) {
+    closeTwitterInputView();
   }
 
 

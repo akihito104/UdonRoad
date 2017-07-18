@@ -50,7 +50,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
@@ -289,13 +288,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void setupInput(@TweetType int type, long statusId) {
-    sendStatusSelected(type, statusId);
-  }
-
-  @Override
-  public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnSuccess(status -> cancelWritingSelected());
+  public void onTweetComplete(Status updated) {
+    cancelWritingSelected();
   }
 
   private void setupActionMap() {
