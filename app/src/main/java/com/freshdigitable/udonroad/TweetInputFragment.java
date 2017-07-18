@@ -16,12 +16,19 @@
 
 package com.freshdigitable.udonroad;
 
+import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Images.Media;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -34,6 +41,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -59,6 +67,8 @@ import twitter4j.StatusUpdate;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+import static android.app.Activity.RESULT_OK;
+import static android.content.Context.INPUT_METHOD_SERVICE;
 import static android.view.View.GONE;
 
 /**
@@ -149,6 +159,8 @@ public class TweetInputFragment extends Fragment {
     return binding.getRoot();
   }
 
+  private AppendMediaBottomSheet appendMediaBottomSheet;
+
   @Override
   public void onStart() {
     super.onStart();
@@ -161,6 +173,14 @@ public class TweetInputFragment extends Fragment {
     final @TweetType int tweetType = arguments.getInt("tweet_type");
     final long statusId = arguments.getLong("status_id", -1);
     stretchTweetInputView(tweetType, statusId);
+    binding.mainTweetInputView.getAppendImageButton().setOnClickListener(v -> {
+      if (appendMediaBottomSheet == null) {
+        appendMediaBottomSheet = new AppendMediaBottomSheet();
+      }
+      final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
+      imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+      appendMediaBottomSheet.show(getFragmentManager(), "bottomSheet");
+    });
   }
 
   @Override
@@ -168,6 +188,7 @@ public class TweetInputFragment extends Fragment {
     super.onStop();
     appSettings.close();
     statusCache.close();
+    binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
   }
 
   private FloatingActionButton tweetSendFab;
@@ -311,7 +332,9 @@ public class TweetInputFragment extends Fragment {
     if (replyEntity != null) {
       statusUpdate.setInReplyToStatusId(replyEntity.inReplyToStatusId);
     }
-    return statusRequestWorker.observeUpdateStatus(statusUpdate);
+    return appendMediaBottomSheet != null && appendMediaBottomSheet.media.size() > 0 ?
+        statusRequestWorker.observeUpdateStatus(getContext(), statusUpdate, appendMediaBottomSheet.media)
+        : statusRequestWorker.observeUpdateStatus(statusUpdate);
   }
 
   private Single<Status> observeUpdateStatus() {
@@ -324,12 +347,16 @@ public class TweetInputFragment extends Fragment {
       setupMenuVisibility();
       replyEntity = null;
       quoteStatusIds.clear();
+      if (appendMediaBottomSheet != null) {
+        appendMediaBottomSheet.media.clear();
+      }
     });
   }
 
   private boolean isStatusUpdateNeeded() {
     return replyEntity != null
-        || quoteStatusIds.size() > 0;
+        || quoteStatusIds.size() > 0
+        || (appendMediaBottomSheet != null && appendMediaBottomSheet.media.size() > 0);
   }
 
   public void addQuoteStatus(long quoteStatusId) {
@@ -395,6 +422,76 @@ public class TweetInputFragment extends Fragment {
         s.append("@").append(sn).append(" ");
       }
       return s.toString();
+    }
+  }
+
+  public static class AppendMediaBottomSheet extends BottomSheetDialogFragment {
+    private View takePicture;
+    private View selectFromGallery;
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+      final Dialog dialog = super.onCreateDialog(savedInstanceState);
+      final View view = View.inflate(getContext(), R.layout.view_append_image_menu, null);
+      takePicture = view.findViewById(R.id.appendMedia_take_picture);
+      selectFromGallery = view.findViewById(R.id.appendMedia_select_picture);
+      dialog.setContentView(view);
+      dialog.setCancelable(true);
+      dialog.setCanceledOnTouchOutside(true);
+      return dialog;
+    }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      selectFromGallery.setOnClickListener(v -> {
+        final Intent intent;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+          intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+          intent.setType("image/*");
+          intent.addCategory(Intent.CATEGORY_OPENABLE);
+        } else {
+          intent = new Intent(Intent.ACTION_GET_CONTENT);
+          intent.setType("image/*");
+        }
+        startActivityForResult(intent, 40);
+      });
+      takePicture.setOnClickListener(v -> {
+        final ContentValues contentValues = new ContentValues();
+        contentValues.put(Media.CONTENT_TYPE, "image/jpeg");
+        contentValues.put(Media.TITLE, "tw_" + System.currentTimeMillis() + ".jpg");
+
+        final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraPicUri = v.getContext().getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, contentValues);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraPicUri);
+        startActivityForResult(intent, 40);
+      });
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      takePicture.setOnClickListener(null);
+      selectFromGallery.setOnClickListener(null);
+    }
+
+    private Uri cameraPicUri;
+    private final List<Uri> media = new ArrayList<>(4);
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      Log.d(TAG, "onActivityResult: " + requestCode);
+      if (requestCode == 40) {
+        if (resultCode == RESULT_OK) {
+          media.add(data == null ? cameraPicUri : data.getData());
+        } else if (cameraPicUri != null) {
+          getContext().getContentResolver().delete(cameraPicUri, null, null);
+        }
+        cameraPicUri = null;
+        dismiss();
+      }
+      super.onActivityResult(requestCode, resultCode, data);
     }
   }
 }

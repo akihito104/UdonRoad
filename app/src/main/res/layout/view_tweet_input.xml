@@ -69,12 +69,22 @@
         android:text="140"
         android:textColor="@android:color/primary_text_dark"
         />
-
+    <android.support.v7.widget.AppCompatImageButton
+        android:id="@+id/tw_append_image"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_below="@id/tw_intext"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_add_a_photo"
+        />
     <android.support.v7.widget.AppCompatTextView
         android:id="@+id/tw_replyTo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/tw_intext"
+        android:layout_toRightOf="@id/tw_append_image"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:text="\@"

@@ -21,8 +21,10 @@ import android.support.design.widget.TextInputEditText;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -43,6 +45,7 @@ public class TweetInputView extends RelativeLayout {
   private final TextView counter;
   private final TextView inReplyToMark;
   private final TextView quoteMark;
+  private final ImageButton appendImage;
 
   public TweetInputView(Context context) {
     this(context, null);
@@ -62,6 +65,7 @@ public class TweetInputView extends RelativeLayout {
     counter = v.findViewById(R.id.tw_counter);
     inReplyToMark = v.findViewById(R.id.tw_replyTo);
     quoteMark = v.findViewById(R.id.tw_quote);
+    appendImage = v.findViewById(R.id.tw_append_image);
   }
 
   public boolean isVisible() {
@@ -90,6 +94,10 @@ public class TweetInputView extends RelativeLayout {
     return icon;
   }
 
+  public ImageButton getAppendImageButton() {
+    return appendImage;
+  }
+
   public void addTextWatcher(TextWatcher textWatcher) {
     inputText.addTextChangedListener(textWatcher);
   }
@@ -111,6 +119,7 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public void reset() {
+    inputText.setText("");
     inReplyToMark.setVisibility(INVISIBLE);
     quoteMark.setVisibility(INVISIBLE);
     icon.setImageDrawable(null);
@@ -150,6 +159,7 @@ public class TweetInputView extends RelativeLayout {
 
   @Override
   protected void onAttachedToWindow() {
+    Log.d(TAG, "onAttachedToWindow: ");
     super.onAttachedToWindow();
     final InputMethodManager inputMethodManager
         = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -165,8 +175,9 @@ public class TweetInputView extends RelativeLayout {
 
   @Override
   protected void onDetachedFromWindow() {
+    Log.d(TAG, "onDetachedFromWindow: ");
+    super.onDetachedFromWindow();
     inputText.setOnFocusChangeListener(null);
     inputText.removeTextChangedListener(textWatcher);
-    super.onDetachedFromWindow();
   }
 }

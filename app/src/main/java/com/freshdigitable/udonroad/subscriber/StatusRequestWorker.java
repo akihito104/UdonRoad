@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
+import android.content.Context;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.util.Log;
@@ -30,6 +32,7 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListe
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -157,6 +160,14 @@ public class StatusRequestWorker implements RequestWorker {
         .observeOn(AndroidSchedulers.mainThread())
         .doOnSuccess(createUpsertAction(R.string.msg_updateStatus_success))
         .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed));
+  }
+
+  public Single<Status> observeUpdateStatus(Context context, StatusUpdate statusUpdate, List<Uri> media) {
+    return twitterApi.updateStatus(context, statusUpdate, media)
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnSuccess(createUpsertAction(R.string.msg_updateStatus_success))
+        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed))
+        .doOnError(err -> Log.e(TAG, "observeUpdateStatus: ", err));
   }
 
   @NonNull
