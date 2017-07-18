@@ -79,6 +79,7 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public void disappearing() {
+    clearFocus();
     setVisibility(View.GONE);
   }
 
@@ -119,7 +120,7 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public void reset() {
-    inputText.setText("");
+    inputText.getText().clear();
     inReplyToMark.setVisibility(INVISIBLE);
     quoteMark.setVisibility(INVISIBLE);
     icon.setImageDrawable(null);

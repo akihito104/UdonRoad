@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -28,6 +29,7 @@ import android.provider.MediaStore.Images.Media;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -53,6 +55,7 @@ import com.squareup.picasso.Picasso;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -154,12 +157,15 @@ public class TweetInputFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
+    if (binding == null) {
+      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
+    }
     return binding.getRoot();
   }
 
   @Override
   public void onStart() {
+    Log.d(TAG, "onStart: ");
     super.onStart();
     // workaround: for support lib 25.1.0
     binding.mainTweetInputView.setVisibility(GONE);
@@ -187,6 +193,7 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onStop() {
+    Log.d(TAG, "onStop: ");
     super.onStop();
     appSettings.close();
     statusCache.close();
@@ -340,16 +347,8 @@ public class TweetInputFragment extends Fragment {
   }
 
   private Single<Status> observeUpdateStatus() {
-    final TweetInputView inputText = binding.mainTweetInputView;
     return createSendObservable().doOnSuccess(status -> {
-      inputText.getText().clear();
-      inputText.reset();
-      inputText.clearFocus();
-      inputText.disappearing();
-      setupMenuVisibility();
-      replyEntity = null;
-      quoteStatusIds.clear();
-      media.clear();
+      reset();
     });
   }
 
@@ -366,9 +365,14 @@ public class TweetInputFragment extends Fragment {
   public void collapseStatusInputView() {
     tearDownTweetInputView();
     tearDownSendTweetFab();
+    reset();
+  }
+
+  private void reset() {
     replyEntity = null;
     quoteStatusIds.clear();
     media.clear();
+    binding.mainTweetInputView.reset();
     binding.mainTweetInputView.disappearing();
     setupMenuVisibility();
   }
@@ -436,8 +440,13 @@ public class TweetInputFragment extends Fragment {
       if (resultCode == RESULT_OK) {
         if (data != null && data.getData() != null) {
           media.add(data.getData());
-        } else if (cameraPicUri != null) {
-          media.add(cameraPicUri);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+          final List<Uri> m = parseClipData(data);
+          media.addAll(m);
+        } else {
+          if (cameraPicUri != null) {
+            media.add(cameraPicUri);
+          }
         }
       } else if (cameraPicUri != null) {
         getContext().getContentResolver().delete(cameraPicUri, null, null);
@@ -447,17 +456,34 @@ public class TweetInputFragment extends Fragment {
     super.onActivityResult(requestCode, resultCode, data);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+  private static List<Uri> parseClipData(Intent data) {
+    if (data == null || data.getClipData() == null) {
+      return Collections.emptyList();
+    }
+    final ClipData clipData = data.getClipData();
+    final int itemCount = clipData.getItemCount();
+    final ArrayList<Uri> res = new ArrayList<>(itemCount);
+    for (int i = 0; i < itemCount; i++) {
+      final ClipData.Item item = clipData.getItemAt(i);
+      res.add(item.getUri());
+    }
+    return res;
+  }
+
   @NonNull
   private static Intent getPickMediaIntent() {
     final Intent intent;
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-      intent.setType("image/*");
       intent.addCategory(Intent.CATEGORY_OPENABLE);
     } else {
       intent = new Intent(Intent.ACTION_GET_CONTENT);
-      intent.setType("image/*");
     }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+    }
+    intent.setType("image/*");
     return intent;
   }
 

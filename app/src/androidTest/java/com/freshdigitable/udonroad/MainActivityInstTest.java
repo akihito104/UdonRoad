@@ -42,7 +42,6 @@ import static com.freshdigitable.udonroad.util.StatusViewAssertion.recyclerViewD
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
-import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -219,22 +218,6 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   }
 
   @Test
-  public void clickSendIcon_then_openTweetInputViewAndShowFab() {
-    // open
-    PerformUtil.clickWriteOnMenu();
-    onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
-    onView(withId(R.id.main_send_tweet)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_write)).check(doesNotExist());
-
-    // close
-    PerformUtil.clickCancelWriteOnMenu();
-    onView(withId(R.id.action_write)).check(matches(isDisplayed()));
-    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
-    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
-  }
-
-  @Test
   public void performFavorite_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
     // setup
     final Status target = createStatus(21000, getLoginUser());
@@ -306,16 +289,6 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     AssertionUtil.checkRTCountAt(0, 1);
     AssertionUtil.checkFavCountAt(0, expectedFavCount);
-  }
-
-  @Test
-  public void pressBackAfterTweetInputIsAppeared_then_hideTweetInput() {
-    PerformUtil.clickWriteOnMenu();
-    pressBack();
-    pressBack();
-    onView(withId(R.id.action_write)).check(matches(isDisplayed()));
-    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
-    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
   @Test
