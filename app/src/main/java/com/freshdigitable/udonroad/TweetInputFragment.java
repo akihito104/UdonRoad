@@ -42,18 +42,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -360,7 +364,7 @@ public class TweetInputFragment extends Fragment {
   private void reset() {
     replyEntity = null;
     quoteStatusIds.clear();
-    media.clear();
+    clearMedia();
     binding.mainTweetInputView.reset();
     binding.mainTweetInputView.disappearing();
     setupMenuVisibility();
@@ -420,19 +424,50 @@ public class TweetInputFragment extends Fragment {
   private Uri cameraPicUri;
   private final List<Uri> media = new ArrayList<>(4);
 
+  private void addMedia(Uri uri) {
+    media.add(uri);
+    updateMediaContainer();
+  }
+
+  private void addAllMedia(Collection<Uri> uris) {
+    media.addAll(uris);
+    updateMediaContainer();
+  }
+
+  private void updateMediaContainer() {
+    final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
+    mediaContainer.bindMediaEntities(media.size());
+    final int thumbCount = mediaContainer.getThumbCount();
+    for (int i = 0; i < thumbCount; i++) {
+      final RequestCreator rc = Picasso.with(getContext())
+          .load(media.get(i));
+      if (mediaContainer.getThumbWidth() <= 0 || mediaContainer.getHeight() <= 0) {
+        rc.fit();
+      } else {
+        rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
+      }
+      rc.centerCrop().into((ImageView) mediaContainer.getChildAt(i));
+    }
+  }
+
+  private void clearMedia() {
+    media.clear();
+    binding.mainTweetInputView.getMediaContainer().reset();
+  }
+
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     Log.d(TAG, "onActivityResult: " + requestCode);
     if (requestCode == 40) {
       if (resultCode == RESULT_OK) {
         if (data != null && data.getData() != null) {
-          media.add(data.getData());
+          addMedia(data.getData());
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
           final List<Uri> m = parseClipData(data);
-          media.addAll(m);
+          addAllMedia(m);
         } else {
           if (cameraPicUri != null) {
-            media.add(cameraPicUri);
+            addMedia(cameraPicUri);
           }
         }
       } else if (cameraPicUri != null) {

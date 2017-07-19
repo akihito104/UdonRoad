@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.support.design.widget.TextInputEditText;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -28,6 +29,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 import twitter4j.User;
 
@@ -46,6 +49,7 @@ public class TweetInputView extends RelativeLayout {
   private final TextView inReplyToMark;
   private final TextView quoteMark;
   private final ImageButton appendImage;
+  private final ThumbnailContainer mediaContainer;
 
   public TweetInputView(Context context) {
     this(context, null);
@@ -66,6 +70,18 @@ public class TweetInputView extends RelativeLayout {
     inReplyToMark = v.findViewById(R.id.tw_replyTo);
     quoteMark = v.findViewById(R.id.tw_quote);
     appendImage = v.findViewById(R.id.tw_append_image);
+    mediaContainer = v.findViewById(R.id.tw_media_container);
+    final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TweetInputView, defStyleAttr, 0);
+    try {
+      final int textColor = a.getColor(R.styleable.TweetInputView_textColor, -1);
+      inputText.setTextColor(textColor);
+      name.setTextColor(textColor);
+      counter.setTextColor(textColor);
+      inReplyToMark.setTextColor(textColor);
+      quoteMark.setTextColor(textColor);
+    } finally {
+      a.recycle();
+    }
   }
 
   public boolean isVisible() {
@@ -187,5 +203,9 @@ public class TweetInputView extends RelativeLayout {
     super.setClickable(clickable);
     inputText.setClickable(clickable);
     appendImage.setClickable(clickable);
+  }
+
+  public ThumbnailContainer getMediaContainer() {
+    return mediaContainer;
   }
 }

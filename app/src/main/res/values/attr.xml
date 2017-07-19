@@ -19,4 +19,8 @@
     <declare-styleable name="ThumbnailContainer">
         <attr name="thumbCount" format="integer" />
     </declare-styleable>
+
+    <declare-styleable name="TweetInputView">
+        <attr name="textColor" format="reference|color" />
+    </declare-styleable>
 </resources>
