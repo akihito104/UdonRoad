@@ -425,13 +425,13 @@ public class TweetInputFragment extends Fragment {
   private final List<Uri> media = new ArrayList<>(4);
 
   private void addMedia(Uri uri) {
-    media.add(uri);
-    updateMediaContainer();
+    addAllMedia(Collections.singletonList(uri));
   }
 
   private void addAllMedia(Collection<Uri> uris) {
     media.addAll(uris);
     updateMediaContainer();
+    tweetSendFab.setEnabled(true);
   }
 
   private void updateMediaContainer() {
@@ -453,6 +453,7 @@ public class TweetInputFragment extends Fragment {
   private void clearMedia() {
     media.clear();
     binding.mainTweetInputView.getMediaContainer().reset();
+    tweetSendFab.setEnabled(false);
   }
 
   @Override
