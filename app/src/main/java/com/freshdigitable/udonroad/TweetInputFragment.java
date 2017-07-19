@@ -70,7 +70,6 @@ import twitter4j.UserMentionEntity;
 
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.INPUT_METHOD_SERVICE;
-import static android.view.View.GONE;
 
 /**
  * TweetInputFragment provides TweetInputView and logic to send tweet.
@@ -87,24 +86,13 @@ public class TweetInputFragment extends Fragment {
   AppSettingRequestWorker appSettingRequestWorker;
   @Inject
   AppSettingStore appSettings;
+  @Inject
+  TypedCache<Status> statusCache;
   private Disposable subscription;
   private Disposable updateStatusTask;
 
   public static TweetInputFragment create() {
-    return create(TYPE_NONE);
-  }
-
-  public static TweetInputFragment create(@TweetType int type) {
-    return create(type, -1);
-  }
-
-  public static TweetInputFragment create(@TweetType int type, long statusId) {
-    final Bundle args = new Bundle();
-    args.putInt("tweet_type", type);
-    args.putLong("status_id", statusId);
-    final TweetInputFragment tweetInputFragment = new TweetInputFragment();
-    tweetInputFragment.setArguments(args);
-    return tweetInputFragment;
+    return new TweetInputFragment();
   }
 
   @Override
@@ -133,6 +121,9 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void setupMenuVisibility() {
+    if (binding == null) {
+      return;
+    }
     if (sendStatusMenuItem != null) {
       sendStatusMenuItem.setVisible(!binding.mainTweetInputView.isVisible());
     }
@@ -167,15 +158,8 @@ public class TweetInputFragment extends Fragment {
   public void onStart() {
     Log.d(TAG, "onStart: ");
     super.onStart();
-    // workaround: for support lib 25.1.0
-    binding.mainTweetInputView.setVisibility(GONE);
-
     statusCache.open();
     appSettings.open();
-    final Bundle arguments = getArguments();
-    final @TweetType int tweetType = arguments.getInt("tweet_type");
-    final long statusId = arguments.getLong("status_id", -1);
-    stretchTweetInputView(tweetType, statusId);
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(v -> {
       final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
@@ -207,7 +191,9 @@ public class TweetInputFragment extends Fragment {
       updateStatusTask.dispose();
     }
     tweetSendFab.setOnClickListener(null);
-    binding.mainTweetInputView.removeTextWatcher(textWatcher);
+    if (binding != null && binding.mainTweetInputView != null) {
+      binding.mainTweetInputView.removeTextWatcher(textWatcher);
+    }
   }
 
   private FloatingActionButton tweetSendFab;
@@ -254,9 +240,6 @@ public class TweetInputFragment extends Fragment {
   }
 
   private ReplyEntity replyEntity;
-
-  @Inject
-  TypedCache<Status> statusCache;
 
   private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
     final Status inReplyTo = statusCache.find(inReplyToStatusId);

@@ -93,6 +93,13 @@ public class MainActivity extends AppCompatActivity
     timelineContainerSwitcher = new TimelineContainerSwitcher(binding.mainTimelineContainer, tlFragment, binding.ffab);
     setupTweetInputView();
     setupNavigationDrawer();
+
+    setSupportActionBar(binding.mainToolbar);
+    final ActionBar supportActionBar = getSupportActionBar();
+    if (supportActionBar != null) {
+      supportActionBar.setDisplayHomeAsUpEnabled(true);
+      supportActionBar.setHomeButtonEnabled(true);
+    }
   }
 
   private void setupHomeTimeline() {
@@ -178,13 +185,6 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
-    binding.mainToolbar.setTitle("Home");
-    setSupportActionBar(binding.mainToolbar);
-    final ActionBar supportActionBar = getSupportActionBar();
-    if (supportActionBar != null) {
-      supportActionBar.setDisplayHomeAsUpEnabled(true);
-      supportActionBar.setHomeButtonEnabled(true);
-    }
     setupActionMap();
     timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
       if (isAppeared) {

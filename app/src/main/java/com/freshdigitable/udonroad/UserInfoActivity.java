@@ -222,18 +222,19 @@ public class UserInfoActivity extends AppCompatActivity
   private void showTwitterInputView(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
 
-    tweetInputFragment = TweetInputFragment.create(type, statusId);
+    tweetInputFragment = TweetInputFragment.create();
     tweetInputFragment.setTweetSendFab(binding.userInfoTweetSend);
     getSupportFragmentManager().beginTransaction()
         .hide(userInfoAppbarFragment)
         .add(R.id.userInfo_appbar_container, tweetInputFragment)
-        .commit();
+        .commitNow();
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     if (type == TYPE_REPLY) {
       binding.userInfoToolbar.setTitle("返信する");
     } else if (type == TYPE_QUOTE) {
       binding.userInfoToolbar.setTitle("コメントする");
     }
+    tweetInputFragment.stretchTweetInputView(type, statusId);
     binding.userInfoAppbarLayout.setExpanded(true);
   }
 
@@ -271,7 +272,6 @@ public class UserInfoActivity extends AppCompatActivity
   public void onTweetComplete(Status updated) {
     closeTwitterInputView();
   }
-
 
   private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
     if (viewPager.getViewPager() != null) {
