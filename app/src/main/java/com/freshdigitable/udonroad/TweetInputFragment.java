@@ -434,25 +434,46 @@ public class TweetInputFragment extends Fragment {
     tweetSendFab.setEnabled(true);
   }
 
+  private void removeMedia(Uri uri) {
+    media.remove(uri);
+    updateMediaContainer();
+    tweetSendFab.setEnabled(!media.isEmpty());
+  }
+
   private void updateMediaContainer() {
     final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
     mediaContainer.bindMediaEntities(media.size());
     final int thumbCount = mediaContainer.getThumbCount();
     for (int i = 0; i < thumbCount; i++) {
+      final Uri uri = media.get(i);
       final RequestCreator rc = Picasso.with(getContext())
-          .load(media.get(i));
+          .load(uri);
       if (mediaContainer.getThumbWidth() <= 0 || mediaContainer.getHeight() <= 0) {
         rc.fit();
       } else {
         rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
       }
-      rc.centerCrop().into((ImageView) mediaContainer.getChildAt(i));
+      final ImageView imageView = (ImageView) mediaContainer.getChildAt(i);
+      rc.centerCrop().into(imageView);
+
+      imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
+        final MenuItem delete = contextMenu.add(0, 1, 0, "削除する");
+        delete.setOnMenuItemClickListener(menuItem -> {
+          removeMedia(uri);
+          return true;
+        });
+      });
     }
   }
 
   private void clearMedia() {
     media.clear();
-    binding.mainTweetInputView.getMediaContainer().reset();
+    final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
+    mediaContainer.reset();
+    final int childCount = mediaContainer.getChildCount();
+    for (int i = 0; i < childCount; i++) {
+      mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);
+    }
     tweetSendFab.setEnabled(false);
   }
 
