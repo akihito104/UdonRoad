@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.module.twitter;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -90,11 +91,11 @@ public class TwitterApi {
   public Single<Status> updateStatus(Context context, StatusUpdate statusUpdate, List<Uri> media) {
     return Observable.fromIterable(media)
         .map(uri -> uploadMedia(context, uri))
-        .collectInto(new ArrayList<Long>(media.size()), (m, um) -> m.add(um.getMediaId()))
-        .map(mIds -> {
-          final long[] ids = new long[mIds.size()];
+        .collectInto(new ArrayList<UploadedMedia>(media.size()), ArrayList::add)
+        .map(uploadedMedia -> {
+          final long[] ids = new long[uploadedMedia.size()];
           for (int i = 0; i < ids.length; i++) {
-            ids[i] = mIds.get(i);
+            ids[i] = uploadedMedia.get(i).getMediaId();
           }
           statusUpdate.setMediaIds(ids);
           return twitter.updateStatus(statusUpdate);
@@ -106,9 +107,11 @@ public class TwitterApi {
     if (uri.getScheme().startsWith("file")) {
       return twitter.uploadMedia(new File(uri.getPath()));
     } else if (uri.getScheme().startsWith("content")) {
-      try (final Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
-        final String fileName = cursor.moveToFirst() ? cursor.getString(0) : "";
-        return twitter.uploadMedia(fileName, context.getContentResolver().openInputStream(uri));
+      final ContentResolver contentResolver = context.getContentResolver();
+      final String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
+      try (final Cursor cursor = contentResolver.query(uri, projection, null, null, null)) {
+        final String fileName = (cursor != null && cursor.moveToFirst()) ? cursor.getString(0) : "";
+        return twitter.uploadMedia(fileName, contentResolver.openInputStream(uri));
       }
     }
     throw new IllegalStateException();
