@@ -85,18 +85,18 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public boolean isVisible() {
-    return getVisibility() == View.VISIBLE;
+    return getVisibility() == VISIBLE;
   }
 
   public void appearing() {
-    setVisibility(View.VISIBLE);
+    setVisibility(VISIBLE);
     inputText.requestFocus();
     updateTextCounter(inputText.getText());
   }
 
   public void disappearing() {
     clearFocus();
-    setVisibility(View.GONE);
+    setVisibility(GONE);
   }
 
   public void setUserInfo(User user) {
@@ -137,8 +137,8 @@ public class TweetInputView extends RelativeLayout {
 
   public void reset() {
     inputText.getText().clear();
-    inReplyToMark.setVisibility(INVISIBLE);
-    quoteMark.setVisibility(INVISIBLE);
+    inReplyToMark.setVisibility(GONE);
+    quoteMark.setVisibility(GONE);
     icon.setImageDrawable(null);
   }
 
