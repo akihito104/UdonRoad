@@ -21,7 +21,6 @@ import android.support.annotation.StringRes;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
@@ -35,15 +34,12 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.IDs;
 import twitter4j.Relationship;
-import twitter4j.TwitterException;
 import twitter4j.User;
-import twitter4j.auth.AccessToken;
 
 /**
  * ConfigRequestWorker provides to fetch twitter api and to store its data.
@@ -55,17 +51,14 @@ public class ConfigRequestWorker implements RequestWorker {
   private final TwitterApi twitterApi;
   private final ConfigStore cache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
-  private final AppSettingStore appSettings;
 
   @Inject
   public ConfigRequestWorker(@NonNull TwitterApi twitterApi,
                              @NonNull ConfigStore configStore,
-                             @NonNull AppSettingStore appSettings,
                              @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
     this.twitterApi = twitterApi;
     this.cache = configStore;
     this.userFeedback = userFeedback;
-    this.appSettings = appSettings;
   }
 
   @Override
@@ -73,55 +66,8 @@ public class ConfigRequestWorker implements RequestWorker {
     return item -> {};
   }
 
-  public void setup(Action completeAction) {
-    if (!isAuthenticated()) return;
-    Completable.concatArray(
-        Completable.fromSingle(verifyCredentials()),
-        fetchTwitterAPIConfig(),
-        Completable.fromSingle(fetchAllIgnoringUsers()))
-        .subscribe(completeAction, onErrorAction);
-  }
-
-  private boolean isAuthenticated() {
-    final AccessToken token = appSettings.getCurrentUserAccessToken();
-    return token != null;
-  }
-
-  private Single<User> verifyCredentials() {
-    return twitterApi.verifyCredentials()
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(u -> {
-          appSettings.open();
-          appSettings.addAuthenticatedUser(u);
-          appSettings.close();
-        })
-        .doOnError(onErrorAction);
-  }
-
-  public Single<User> getAuthenticatedUser() {
-    return isAuthenticated() ?
-        verifyCredentials()
-        : Single.error(new TwitterException("not authenticated yet..."));
-  }
-
-  private Completable fetchTwitterAPIConfig() {
-    appSettings.open();
-    final boolean twitterAPIConfigFetchable = appSettings.isTwitterAPIConfigFetchable();
-    appSettings.close();
-    return twitterAPIConfigFetchable ?
-        Completable.create(e ->
-            twitterApi.getTwitterAPIConfiguration()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(twitterAPIConfig -> {
-                  appSettings.open();
-                  appSettings.setTwitterAPIConfig(twitterAPIConfig);
-                  appSettings.close();
-                  e.onComplete();
-                }, err -> {
-                  onErrorAction.accept(err);
-                  e.onError(err);
-                }))
-        : Completable.complete();
+  public Completable setup() {
+    return Completable.fromSingle(fetchAllIgnoringUsers());
   }
 
   private final Consumer<Throwable> onErrorAction = throwable -> Log.e(TAG, "call: ", throwable);

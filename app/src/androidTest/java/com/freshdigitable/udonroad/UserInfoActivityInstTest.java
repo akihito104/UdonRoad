@@ -423,7 +423,7 @@ public class UserInfoActivityInstTest {
       Espresso.registerIdlingResources(idlingResource);
 
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
-          configRequestWorker.setup(() -> idlingResource.setDoneSetup(true)));
+          configRequestWorker.setup().subscribe(() -> idlingResource.setDoneSetup(true)));
     }
 
     @Override

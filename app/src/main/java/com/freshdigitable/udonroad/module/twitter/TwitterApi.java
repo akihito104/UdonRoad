@@ -16,8 +16,17 @@
 
 package com.freshdigitable.udonroad.module.twitter;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
+
 import com.freshdigitable.udonroad.Utils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -36,6 +45,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
+import twitter4j.UploadedMedia;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
@@ -76,6 +86,35 @@ public class TwitterApi {
 
   public Single<Status> updateStatus(final StatusUpdate statusUpdate) {
     return observeThrowableFetch(() -> twitter.updateStatus(statusUpdate));
+  }
+
+  public Single<Status> updateStatus(Context context, StatusUpdate statusUpdate, List<Uri> media) {
+    return Observable.fromIterable(media)
+        .map(uri -> uploadMedia(context, uri))
+        .collectInto(new ArrayList<UploadedMedia>(media.size()), ArrayList::add)
+        .map(uploadedMedia -> {
+          final long[] ids = new long[uploadedMedia.size()];
+          for (int i = 0; i < ids.length; i++) {
+            ids[i] = uploadedMedia.get(i).getMediaId();
+          }
+          statusUpdate.setMediaIds(ids);
+          return twitter.updateStatus(statusUpdate);
+        })
+        .subscribeOn(Schedulers.io());
+  }
+
+  private UploadedMedia uploadMedia(Context context, Uri uri) throws TwitterException, FileNotFoundException {
+    if (uri.getScheme().startsWith("file")) {
+      return twitter.uploadMedia(new File(uri.getPath()));
+    } else if (uri.getScheme().startsWith("content")) {
+      final ContentResolver contentResolver = context.getContentResolver();
+      final String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
+      try (final Cursor cursor = contentResolver.query(uri, projection, null, null, null)) {
+        final String fileName = (cursor != null && cursor.moveToFirst()) ? cursor.getString(0) : "";
+        return twitter.uploadMedia(fileName, contentResolver.openInputStream(uri));
+      }
+    }
+    throw new IllegalStateException();
   }
 
   public Single<Status> retweetStatus(final long tweetId) {

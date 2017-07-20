@@ -102,7 +102,11 @@ public class ThumbnailContainer extends LinearLayout {
   private void setThumbCount(int count) {
     this.thumbCount = count;
     final int size = getChildCount();
-    if (count <= size) {
+    if (count < size) {
+      for (int i = size - 1; i >= count; i--) {
+        final View v = getChildAt(i);
+        v.setVisibility(GONE);
+      }
       return;
     }
     for (int i = 0; i < count - size; i++) {

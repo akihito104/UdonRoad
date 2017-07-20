@@ -17,15 +17,20 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.support.design.widget.TextInputEditText;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 import twitter4j.User;
 
@@ -43,6 +48,8 @@ public class TweetInputView extends RelativeLayout {
   private final TextView counter;
   private final TextView inReplyToMark;
   private final TextView quoteMark;
+  private final ImageButton appendImage;
+  private final ThumbnailContainer mediaContainer;
 
   public TweetInputView(Context context) {
     this(context, null);
@@ -62,20 +69,34 @@ public class TweetInputView extends RelativeLayout {
     counter = v.findViewById(R.id.tw_counter);
     inReplyToMark = v.findViewById(R.id.tw_replyTo);
     quoteMark = v.findViewById(R.id.tw_quote);
+    appendImage = v.findViewById(R.id.tw_append_image);
+    mediaContainer = v.findViewById(R.id.tw_media_container);
+    final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TweetInputView, defStyleAttr, 0);
+    try {
+      final int textColor = a.getColor(R.styleable.TweetInputView_textColor, -1);
+      inputText.setTextColor(textColor);
+      name.setTextColor(textColor);
+      counter.setTextColor(textColor);
+      inReplyToMark.setTextColor(textColor);
+      quoteMark.setTextColor(textColor);
+    } finally {
+      a.recycle();
+    }
   }
 
   public boolean isVisible() {
-    return getVisibility() == View.VISIBLE;
+    return getVisibility() == VISIBLE;
   }
 
   public void appearing() {
-    setVisibility(View.VISIBLE);
+    setVisibility(VISIBLE);
     inputText.requestFocus();
     updateTextCounter(inputText.getText());
   }
 
   public void disappearing() {
-    setVisibility(View.GONE);
+    clearFocus();
+    setVisibility(GONE);
   }
 
   public void setUserInfo(User user) {
@@ -88,6 +109,10 @@ public class TweetInputView extends RelativeLayout {
 
   public ImageView getIcon() {
     return icon;
+  }
+
+  public ImageButton getAppendImageButton() {
+    return appendImage;
   }
 
   public void addTextWatcher(TextWatcher textWatcher) {
@@ -111,8 +136,9 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public void reset() {
-    inReplyToMark.setVisibility(INVISIBLE);
-    quoteMark.setVisibility(INVISIBLE);
+    inputText.getText().clear();
+    inReplyToMark.setVisibility(GONE);
+    quoteMark.setVisibility(GONE);
     icon.setImageDrawable(null);
   }
 
@@ -150,6 +176,7 @@ public class TweetInputView extends RelativeLayout {
 
   @Override
   protected void onAttachedToWindow() {
+    Log.d(TAG, "onAttachedToWindow: ");
     super.onAttachedToWindow();
     final InputMethodManager inputMethodManager
         = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -165,8 +192,28 @@ public class TweetInputView extends RelativeLayout {
 
   @Override
   protected void onDetachedFromWindow() {
+    Log.d(TAG, "onDetachedFromWindow: ");
+    super.onDetachedFromWindow();
     inputText.setOnFocusChangeListener(null);
     inputText.removeTextChangedListener(textWatcher);
-    super.onDetachedFromWindow();
+  }
+
+  @Override
+  public void setClickable(boolean clickable) {
+    super.setClickable(clickable);
+    inputText.setClickable(clickable);
+    appendImage.setClickable(clickable);
+  }
+
+  public ThumbnailContainer getMediaContainer() {
+    return mediaContainer;
+  }
+
+  public void clearMedia() {
+    mediaContainer.reset();
+    final int childCount = mediaContainer.getChildCount();
+    for (int i = 0; i < childCount; i++) {
+      mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);
+    }
   }
 }

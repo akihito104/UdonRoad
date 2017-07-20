@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
@@ -32,6 +33,7 @@ import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
@@ -41,8 +43,8 @@ import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -119,6 +121,32 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     PerformUtil.clickCancelWriteOnMenu();
   }
 
+  @Test
+  public void pressBackAfterTweetInputIsAppeared_then_hideTweetInput() {
+    PerformUtil.clickWriteOnMenu();
+    pressBack();
+    pressBack();
+    onActionWrite().check(matches(isDisplayed()));
+    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
+  }
+
+  @Test
+  public void clickSendIcon_then_openTweetInputViewAndShowFab() {
+    // open
+    PerformUtil.clickWriteOnMenu();
+    onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
+    onView(withId(R.id.main_send_tweet)).check(matches(isDisplayed()));
+    onActionCancel().check(matches(isDisplayed()));
+    onActionWrite().check(doesNotExist());
+
+    // close
+    PerformUtil.clickCancelWriteOnMenu();
+    onActionWrite().check(matches(isDisplayed()));
+    onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
+  }
+
   private void sendReplyToMe() throws Exception {
     final Status replied = findByStatusId(20000);
     PerformUtil.selectItemView(replied);
@@ -129,8 +157,16 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
         .check(matches(withText(inputText)));
     onView(withId(R.id.main_send_tweet)).perform(click());
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
-    onView(withId(R.id.action_write)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_cancel)).check(doesNotExist());
+    onActionWrite().check(matches(isDisplayed()));
+    onActionCancel().check(doesNotExist());
+  }
+
+  private static ViewInteraction onActionCancel() {
+    return onView(withId(R.id.action_cancel));
+  }
+
+  private static ViewInteraction onActionWrite() {
+    return onView(withId(R.id.action_write));
   }
 
   @Override

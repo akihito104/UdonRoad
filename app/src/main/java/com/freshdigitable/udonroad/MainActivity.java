@@ -41,6 +41,7 @@ import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -49,7 +50,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
@@ -74,6 +74,8 @@ public class MainActivity extends AppCompatActivity
 
   @Inject
   ConfigRequestWorker configRequestWorker;
+  @Inject
+  AppSettingRequestWorker appSettingRequestWorker;
   private TimelineContainerSwitcher timelineContainerSwitcher;
 
   @Override
@@ -91,21 +93,28 @@ public class MainActivity extends AppCompatActivity
     timelineContainerSwitcher = new TimelineContainerSwitcher(binding.mainTimelineContainer, tlFragment, binding.ffab);
     setupTweetInputView();
     setupNavigationDrawer();
+
+    setSupportActionBar(binding.mainToolbar);
+    final ActionBar supportActionBar = getSupportActionBar();
+    if (supportActionBar != null) {
+      supportActionBar.setDisplayHomeAsUpEnabled(true);
+      supportActionBar.setHomeButtonEnabled(true);
+    }
   }
 
   private void setupHomeTimeline() {
     tlFragment = TimelineFragment.getInstance(HOME);
-
-    configRequestWorker.setup(() -> getSupportFragmentManager().beginTransaction()
-        .replace(R.id.main_timeline_container, tlFragment)
-        .commit());
+    configRequestWorker.setup().subscribe(() ->
+        getSupportFragmentManager().beginTransaction()
+            .replace(R.id.main_timeline_container, tlFragment)
+            .commit());
   }
 
   private Disposable subscription;
 
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
-    subscription = configRequestWorker.getAuthenticatedUser()
+    subscription = appSettingRequestWorker.getAuthenticatedUser()
         .subscribe(this::setupNavigationDrawerHeader,
             e -> Log.e(TAG, "setupNavigationDrawer: ", e));
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
@@ -176,13 +185,6 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
-    binding.mainToolbar.setTitle("Home");
-    setSupportActionBar(binding.mainToolbar);
-    final ActionBar supportActionBar = getSupportActionBar();
-    if (supportActionBar != null) {
-      supportActionBar.setDisplayHomeAsUpEnabled(true);
-      supportActionBar.setHomeButtonEnabled(true);
-    }
     setupActionMap();
     timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
       if (isAppeared) {
@@ -286,13 +288,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void setupInput(@TweetType int type, long statusId) {
-    sendStatusSelected(type, statusId);
-  }
-
-  @Override
-  public Single<Status> observeUpdateStatus(Single<Status> updateStatusObservable) {
-    return updateStatusObservable.doOnSuccess(status -> cancelWritingSelected());
+  public void onTweetComplete(Status updated) {
+    cancelWritingSelected();
   }
 
   private void setupActionMap() {
