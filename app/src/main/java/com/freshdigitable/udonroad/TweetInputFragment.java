@@ -177,6 +177,8 @@ public class TweetInputFragment extends Fragment {
           new Intent[]{cameraIntent});
       startActivityForResult(chooser, 40);
     });
+    binding.mainTweetInputView.addTextWatcher(textWatcher);
+    tweetSendFab.setOnClickListener(createSendClickListener());
   }
 
   @Override
@@ -186,6 +188,8 @@ public class TweetInputFragment extends Fragment {
     appSettings.close();
     statusCache.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
+    binding.mainTweetInputView.removeTextWatcher(textWatcher);
+    tweetSendFab.setOnClickListener(null);
   }
 
   @Override
@@ -195,9 +199,6 @@ public class TweetInputFragment extends Fragment {
       updateStatusTask.dispose();
     }
     tweetSendFab.setOnClickListener(null);
-    if (binding != null && binding.mainTweetInputView != null) {
-      binding.mainTweetInputView.removeTextWatcher(textWatcher);
-    }
   }
 
   private FloatingActionButton tweetSendFab;
@@ -278,17 +279,15 @@ public class TweetInputFragment extends Fragment {
               .tag(LOADINGTAG_TWEET_INPUT_ICON)
               .into(inputText.getIcon());
         }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
-    inputText.addTextWatcher(textWatcher);
     inputText.setShortUrlLength(
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
-  public void tearDownTweetInputView() {
+  private void tearDownTweetInputView() {
     if (subscription != null && !subscription.isDisposed()) {
       Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
       subscription.dispose();
     }
-    binding.mainTweetInputView.removeTextWatcher(textWatcher);
     binding.mainTweetInputView.reset();
   }
 
@@ -297,7 +296,6 @@ public class TweetInputFragment extends Fragment {
     if (inputText.getText().length() < 1) {
       tweetSendFab.setEnabled(false);
     }
-    tweetSendFab.setOnClickListener(createSendClickListener());
   }
 
   private View.OnClickListener createSendClickListener() {
@@ -316,10 +314,6 @@ public class TweetInputFragment extends Fragment {
         }
       });
     };
-  }
-
-  private void tearDownSendTweetFab() {
-    tweetSendFab.setOnClickListener(null);
   }
 
   private Single<Status> createSendObservable() {
@@ -357,7 +351,6 @@ public class TweetInputFragment extends Fragment {
 
   public void collapseStatusInputView() {
     tearDownTweetInputView();
-    tearDownSendTweetFab();
     reset();
   }
 
@@ -468,12 +461,7 @@ public class TweetInputFragment extends Fragment {
 
   private void clearMedia() {
     media.clear();
-    final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
-    mediaContainer.reset();
-    final int childCount = mediaContainer.getChildCount();
-    for (int i = 0; i < childCount; i++) {
-      mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);
-    }
+    binding.mainTweetInputView.clearMedia();
     tweetSendFab.setEnabled(false);
   }
 
@@ -535,7 +523,8 @@ public class TweetInputFragment extends Fragment {
   private static Intent getCameraIntent(Context context) {
     final ContentValues contentValues = new ContentValues();
     contentValues.put(Media.MIME_TYPE, "image/jpeg");
-    contentValues.put(Media.TITLE, "tw_" + System.currentTimeMillis() + ".jpg");
+    contentValues.put(Media.TITLE, System.currentTimeMillis() + ".jpg");
+    contentValues.put(Media.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
 
     final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
     Uri cameraPicUri = context.getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, contentValues);

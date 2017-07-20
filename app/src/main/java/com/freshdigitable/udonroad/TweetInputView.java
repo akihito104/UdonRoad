@@ -208,4 +208,12 @@ public class TweetInputView extends RelativeLayout {
   public ThumbnailContainer getMediaContainer() {
     return mediaContainer;
   }
+
+  public void clearMedia() {
+    mediaContainer.reset();
+    final int childCount = mediaContainer.getChildCount();
+    for (int i = 0; i < childCount; i++) {
+      mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);
+    }
+  }
 }
