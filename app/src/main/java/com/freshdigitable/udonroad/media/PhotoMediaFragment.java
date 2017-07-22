@@ -21,8 +21,10 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.Log;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -32,6 +34,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -63,7 +66,15 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     Picasso.with(getContext())
         .load(mediaEntity.getMediaURLHttps() + ":medium")
         .tag(loadingTag)
-        .into(imageView);
+        .into(imageView, new Callback() {
+          @Override
+          public void onSuccess() {
+            imageView.setScaleType(ImageView.ScaleType.MATRIX);
+          }
+
+          @Override
+          public void onError() {}
+        });
   }
 
   @Override
@@ -76,50 +87,73 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   }
 
   private static class ScalableImageView extends AppCompatImageView {
-    private ScaleGestureDetector gestureDetector;
-    private final OnScaleGestureListener listener = new SimpleOnScaleGestureListener() {
-      @Override
-      public boolean onScale(ScaleGestureDetector detector) {
-        Log.d(TAG, "onScale: dt>" + detector.getTimeDelta() + ", sf>" + detector.getScaleFactor() + ", ps>" + detector.getPreviousSpan() + ", cs>" + detector.getCurrentSpan());
-        final float scaleFactor = detector.getScaleFactor();
-        if (scaleFactor <= 0) {
-          return false;
-        }
-        scale = gestureDetector.getScaleFactor();
-        focusX = gestureDetector.getFocusX();
-        focusY = gestureDetector.getFocusY();
-        return true;
-      }
-    };
-    private float scale = 1;
-    private float focusX;
-    private float focusY;
+    private final GestureDetectorCompat gestureDetector;
+    private final ScaleGestureDetector scaleGestureDetector;
 
     public ScalableImageView(Context context) {
       super(context, null, 0);
-      gestureDetector = new ScaleGestureDetector(getContext(), listener);
+      scaleGestureDetector = new ScaleGestureDetector(getContext(), scaleListener);
+      gestureDetector = new GestureDetectorCompat(getContext(), scrollListener);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-      if (gestureDetector.onTouchEvent(event)) {
-        if (getScaleType() != ScaleType.MATRIX) {
-          setScaleType(ScaleType.MATRIX);
-        }
-        invalidate();
-        return true;
+      scaleGestureDetector.onTouchEvent(event);
+      final boolean scaling = scaleGestureDetector.isInProgress();
+      if (scaling) {
+        currentMat.postScale(scale, scale, focusX, focusY);
       }
-      return super.onTouchEvent(event);
+      final boolean scrolled = gestureDetector.onTouchEvent(event);
+      if (scrolled) {
+        currentMat.postTranslate(transX, transY);
+      }
+      final boolean invalidated = scaling || scrolled;
+      if (invalidated) {
+        invalidate();
+      }
+      return invalidated || super.onTouchEvent(event);
     }
 
     @Override
-    public void draw(Canvas canvas) {
-      Log.d(TAG, "draw: fX>" + focusX + ", fY>" + focusY + ", s>" + scale);
-      final Matrix matrix = getImageMatrix();
-      matrix.postScale(scale, scale, focusX, focusY);
-      Log.d(TAG, "draw: " + matrix.toShortString());
-      setImageMatrix(matrix);
-      super.draw(canvas);
+    protected void onDraw(Canvas canvas) {
+      super.onDraw(canvas);
+      if (!oldMat.equals(currentMat)) {
+        final Matrix matrix = getImageMatrix();
+        matrix.postConcat(currentMat);
+        Log.d(TAG, "onTouchEvent: " + matrix.toShortString());
+        setImageMatrix(matrix);
+        oldMat.set(currentMat);
+        currentMat.reset();
+      }
     }
+
+    private Matrix oldMat = new Matrix();
+    private Matrix currentMat = new Matrix();
+    private float scale = 1;
+    private float focusX;
+    private float focusY;
+    private float transX;
+    private float transY;
+
+    private final SimpleOnGestureListener scrollListener = new SimpleOnGestureListener() {
+      @Override
+      public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        Log.d(TAG, "onScroll: dX>" + distanceX + ", dY>" + distanceY);
+        transX = -distanceX;
+        transY = -distanceY;
+        return true;
+      }
+    };
+
+    private final OnScaleGestureListener scaleListener = new SimpleOnScaleGestureListener() {
+      @Override
+      public boolean onScale(ScaleGestureDetector detector) {
+        Log.d(TAG, "onScale: dt>" + detector.getTimeDelta() + ", sf>" + detector.getScaleFactor() + ", ps>" + detector.getPreviousSpan() + ", cs>" + detector.getCurrentSpan());
+        scale = detector.getScaleFactor();
+        focusX = detector.getFocusX();
+        focusY = detector.getFocusY();
+        return true;
+      }
+    };
   }
 }

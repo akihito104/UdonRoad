@@ -344,7 +344,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
               final double powDist = deltaX * deltaX + deltaY * deltaY;
               if (powDist < 100) {  // maybe click
 //              Log.d(TAG, "onTouch: click: " + powDist);
-                view.performClick();
                 return false;
               }
               final double rad = Math.atan2(deltaY, deltaX);
