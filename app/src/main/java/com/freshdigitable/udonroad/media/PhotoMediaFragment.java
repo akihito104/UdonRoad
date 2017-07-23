@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad.media;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
@@ -47,6 +49,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   private static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
   private String loadingTag;
+  private Matrix imageMatrix;
 
   @Nullable
   @Override
@@ -70,6 +73,9 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
           @Override
           public void onSuccess() {
             imageView.setScaleType(ImageView.ScaleType.MATRIX);
+            if (imageMatrix != null) {
+              imageView.setImageMatrix(imageMatrix);
+            }
           }
 
           @Override
@@ -81,6 +87,8 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   public void onStop() {
     super.onStop();
     Picasso.with(getContext()).cancelTag(loadingTag);
+    imageMatrix = imageView.getImageMatrix();
+    imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
     imageView.setImageDrawable(null);
@@ -94,6 +102,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
       super(context, null, 0);
       scaleGestureDetector = new ScaleGestureDetector(getContext(), scaleListener);
       gestureDetector = new GestureDetectorCompat(getContext(), scrollListener);
+      gestureDetector.setIsLongpressEnabled(false);
     }
 
     @Override
@@ -110,17 +119,53 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
       final boolean invalidated = scaling || scrolled;
       if (invalidated) {
         invalidate();
+      } else {
+        Log.d(TAG, "onTouchEvent: not invalidated");
       }
       return invalidated || super.onTouchEvent(event);
     }
 
+    private final RectF viewRect = new RectF();
+    private final RectF drawableRect = new RectF();
+    private final Matrix matrixToFit = new Matrix();
+    private final float[] matToFit = new float[9];
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+      super.onSizeChanged(w, h, oldw, oldh);
+      viewRect.set(0, 0, w, h);
+      updateMatrixToFit();
+    }
+
+    @Override
+    public void setImageDrawable(@Nullable Drawable drawable) {
+      super.setImageDrawable(drawable);
+      if (drawable == null) {
+        drawableRect.setEmpty();
+      } else {
+        drawableRect.set(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+      }
+      updateMatrixToFit();
+    }
+
+    private void updateMatrixToFit() {
+      matrixToFit.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
+      matrixToFit.getValues(matToFit);
+      Log.d(TAG, "updateMatrixToFit: " + matrixToFit.toShortString());
+    }
+
+    private final float[] mat = new float[9];
     @Override
     protected void onDraw(Canvas canvas) {
       super.onDraw(canvas);
       if (!oldMat.equals(currentMat)) {
         final Matrix matrix = getImageMatrix();
         matrix.postConcat(currentMat);
-        Log.d(TAG, "onTouchEvent: " + matrix.toShortString());
+        matrix.getValues(mat);
+        mat[Matrix.MSCALE_X] = Math.max(mat[Matrix.MSCALE_X], matToFit[Matrix.MSCALE_X]);
+        mat[Matrix.MSCALE_Y] = Math.max(mat[Matrix.MSCALE_Y], matToFit[Matrix.MSCALE_Y]);
+        matrix.setValues(mat);
+        Log.d(TAG, "onDraw: " + matrix.toShortString());
         setImageMatrix(matrix);
         oldMat.set(currentMat);
         currentMat.reset();
@@ -138,6 +183,9 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     private final SimpleOnGestureListener scrollListener = new SimpleOnGestureListener() {
       @Override
       public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        if (matrixToFit.equals(getImageMatrix())) {
+          return false;
+        }
         Log.d(TAG, "onScroll: dX>" + distanceX + ", dY>" + distanceY);
         transX = -distanceX;
         transY = -distanceY;
