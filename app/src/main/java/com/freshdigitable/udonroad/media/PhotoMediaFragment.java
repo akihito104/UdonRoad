@@ -49,7 +49,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   private static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
   private String loadingTag;
-  private Matrix imageMatrix;
+  private Matrix imageMatrix = new Matrix();
 
   @Nullable
   @Override
@@ -72,8 +72,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
         .into(imageView, new Callback() {
           @Override
           public void onSuccess() {
-            imageView.setScaleType(ImageView.ScaleType.MATRIX);
-            if (imageMatrix != null) {
+            if (!imageMatrix.isIdentity()) {
               imageView.setImageMatrix(imageMatrix);
             }
           }
@@ -86,9 +85,8 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onStop() {
     super.onStop();
+    imageMatrix.set(imageView.getImageMatrix());
     Picasso.with(getContext()).cancelTag(loadingTag);
-    imageMatrix = imageView.getImageMatrix();
-    imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
     imageView.setImageDrawable(null);
@@ -103,6 +101,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
       scaleGestureDetector = new ScaleGestureDetector(getContext(), scaleListener);
       gestureDetector = new GestureDetectorCompat(getContext(), scrollListener);
       gestureDetector.setIsLongpressEnabled(false);
+      setScaleType(ScaleType.MATRIX);
     }
 
     @Override
@@ -118,6 +117,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
       }
       final boolean invalidated = scaling || scrolled;
       if (invalidated) {
+        getParent().requestDisallowInterceptTouchEvent(true);
         invalidate();
       } else {
         Log.d(TAG, "onTouchEvent: not invalidated");
@@ -149,7 +149,13 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     }
 
     private void updateMatrixToFit() {
-      matrixToFit.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
+      if (drawableRect.isEmpty() || viewRect.isEmpty()) {
+        matrixToFit.reset();
+      } else {
+        matrixToFit.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
+        currentMat.set(matrixToFit);
+        invalidate();
+      }
       matrixToFit.getValues(matToFit);
       Log.d(TAG, "updateMatrixToFit: " + matrixToFit.toShortString());
     }
@@ -164,6 +170,22 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
         matrix.getValues(mat);
         mat[Matrix.MSCALE_X] = Math.max(mat[Matrix.MSCALE_X], matToFit[Matrix.MSCALE_X]);
         mat[Matrix.MSCALE_Y] = Math.max(mat[Matrix.MSCALE_Y], matToFit[Matrix.MSCALE_Y]);
+        final int drawableWidth = (int) (getDrawable().getIntrinsicWidth() * mat[Matrix.MSCALE_X]);
+        if (drawableWidth > getWidth()) {
+          mat[Matrix.MTRANS_X] = Math.max(getWidth() - drawableWidth, mat[Matrix.MTRANS_X]);
+          mat[Matrix.MTRANS_X] = Math.min(mat[Matrix.MTRANS_X], 0);
+        } else {
+          mat[Matrix.MTRANS_X] = Math.max(0, mat[Matrix.MTRANS_X]);
+          mat[Matrix.MTRANS_X] = Math.min(mat[Matrix.MTRANS_X], getWidth() - drawableWidth);
+        }
+        final int drawableHeight = (int) (getDrawable().getIntrinsicHeight() * mat[Matrix.MSCALE_Y]);
+        if (drawableHeight > getHeight()) {
+          mat[Matrix.MTRANS_Y] = Math.max(getHeight() - drawableHeight, mat[Matrix.MTRANS_Y]);
+          mat[Matrix.MTRANS_Y] = Math.min(mat[Matrix.MTRANS_Y], 0);
+        } else {
+          mat[Matrix.MTRANS_Y] = Math.max(0, mat[Matrix.MTRANS_Y]);
+          mat[Matrix.MTRANS_Y] = Math.min(mat[Matrix.MTRANS_Y], getHeight() - drawableHeight);
+        }
         matrix.setValues(mat);
         Log.d(TAG, "onDraw: " + matrix.toShortString());
         setImageMatrix(matrix);
