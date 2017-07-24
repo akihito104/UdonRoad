@@ -119,8 +119,6 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
       if (invalidated) {
         getParent().requestDisallowInterceptTouchEvent(true);
         invalidate();
-      } else {
-        Log.d(TAG, "onTouchEvent: not invalidated");
       }
       return invalidated || super.onTouchEvent(event);
     }
@@ -157,36 +155,34 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
         invalidate();
       }
       matrixToFit.getValues(matToFit);
-      Log.d(TAG, "updateMatrixToFit: " + matrixToFit.toShortString());
     }
 
-    private final float[] mat = new float[9];
+    private final float[] imageMat = new float[9];
     @Override
     protected void onDraw(Canvas canvas) {
       super.onDraw(canvas);
       if (!oldMat.equals(currentMat)) {
         final Matrix matrix = getImageMatrix();
         matrix.postConcat(currentMat);
-        matrix.getValues(mat);
-        mat[Matrix.MSCALE_X] = Math.max(mat[Matrix.MSCALE_X], matToFit[Matrix.MSCALE_X]);
-        mat[Matrix.MSCALE_Y] = Math.max(mat[Matrix.MSCALE_Y], matToFit[Matrix.MSCALE_Y]);
-        final int drawableWidth = (int) (getDrawable().getIntrinsicWidth() * mat[Matrix.MSCALE_X]);
-        if (drawableWidth > getWidth()) {
-          mat[Matrix.MTRANS_X] = Math.max(getWidth() - drawableWidth, mat[Matrix.MTRANS_X]);
-          mat[Matrix.MTRANS_X] = Math.min(mat[Matrix.MTRANS_X], 0);
-        } else {
-          mat[Matrix.MTRANS_X] = Math.max(0, mat[Matrix.MTRANS_X]);
-          mat[Matrix.MTRANS_X] = Math.min(mat[Matrix.MTRANS_X], getWidth() - drawableWidth);
+        matrix.getValues(imageMat);
+        imageMat[Matrix.MSCALE_X] = Math.max(imageMat[Matrix.MSCALE_X], matToFit[Matrix.MSCALE_X]);
+        imageMat[Matrix.MSCALE_Y] = Math.max(imageMat[Matrix.MSCALE_Y], matToFit[Matrix.MSCALE_Y]);
+
+        final float maxTransX = getWidth() - getDrawable().getIntrinsicWidth() * imageMat[Matrix.MSCALE_X];
+        if (Math.abs(maxTransX) < Math.abs(imageMat[Matrix.MTRANS_X])) {
+          imageMat[Matrix.MTRANS_X] = maxTransX;
+        } else if (Math.signum(maxTransX) * imageMat[Matrix.MTRANS_X] < 0) {
+          imageMat[Matrix.MTRANS_X] = 0;
         }
-        final int drawableHeight = (int) (getDrawable().getIntrinsicHeight() * mat[Matrix.MSCALE_Y]);
-        if (drawableHeight > getHeight()) {
-          mat[Matrix.MTRANS_Y] = Math.max(getHeight() - drawableHeight, mat[Matrix.MTRANS_Y]);
-          mat[Matrix.MTRANS_Y] = Math.min(mat[Matrix.MTRANS_Y], 0);
-        } else {
-          mat[Matrix.MTRANS_Y] = Math.max(0, mat[Matrix.MTRANS_Y]);
-          mat[Matrix.MTRANS_Y] = Math.min(mat[Matrix.MTRANS_Y], getHeight() - drawableHeight);
+
+        final float maxTransY = getHeight() - getDrawable().getIntrinsicHeight() * imageMat[Matrix.MSCALE_Y];
+        if (Math.abs(maxTransY) < Math.abs(imageMat[Matrix.MTRANS_Y])) {
+          imageMat[Matrix.MTRANS_Y] = maxTransY;
+        } else if (Math.signum(maxTransY) * imageMat[Matrix.MTRANS_Y] < 0) {
+          imageMat[Matrix.MTRANS_Y] = 0;
         }
-        matrix.setValues(mat);
+
+        matrix.setValues(imageMat);
         Log.d(TAG, "onDraw: " + matrix.toShortString());
         setImageMatrix(matrix);
         oldMat.set(currentMat);
@@ -205,20 +201,35 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     private final SimpleOnGestureListener scrollListener = new SimpleOnGestureListener() {
       @Override
       public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        if (matrixToFit.equals(getImageMatrix())) {
+        if (e2.getEventTime() - e1.getEventTime() < 200
+            && shouldGoNextPage(distanceX)) {
           return false;
         }
-        Log.d(TAG, "onScroll: dX>" + distanceX + ", dY>" + distanceY);
         transX = -distanceX;
         transY = -distanceY;
         return true;
+      }
+
+      private boolean shouldGoNextPage(final float distX) {
+        if (Math.abs(distX) < 0.1) {
+          return false;
+        }
+        if (getHeight() == getDrawable().getIntrinsicHeight() * imageMat[Matrix.MSCALE_Y]) {
+          return true;
+        }
+        if (distX > 0) {
+          final float maxTransX = getWidth() - getDrawable().getIntrinsicWidth() * imageMat[Matrix.MSCALE_X];
+          return maxTransX <= 0
+              && Math.abs(maxTransX - imageMat[Matrix.MTRANS_X]) < 0.01;
+        } else {
+          return Math.abs(imageMat[Matrix.MTRANS_X]) < 0.01;
+        }
       }
     };
 
     private final OnScaleGestureListener scaleListener = new SimpleOnScaleGestureListener() {
       @Override
       public boolean onScale(ScaleGestureDetector detector) {
-        Log.d(TAG, "onScale: dt>" + detector.getTimeDelta() + ", sf>" + detector.getScaleFactor() + ", ps>" + detector.getPreviousSpan() + ", cs>" + detector.getCurrentSpan());
         scale = detector.getScaleFactor();
         focusX = detector.getFocusX();
         focusY = detector.getFocusY();
