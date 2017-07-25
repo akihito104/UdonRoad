@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.widget.AppCompatImageView;
-import android.util.Log;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -36,7 +35,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -49,7 +47,6 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   private static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
   private String loadingTag;
-  private Matrix imageMatrix = new Matrix();
 
   @Nullable
   @Override
@@ -69,23 +66,12 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     Picasso.with(getContext())
         .load(mediaEntity.getMediaURLHttps() + ":medium")
         .tag(loadingTag)
-        .into(imageView, new Callback() {
-          @Override
-          public void onSuccess() {
-            if (!imageMatrix.isIdentity()) {
-              imageView.setImageMatrix(imageMatrix);
-            }
-          }
-
-          @Override
-          public void onError() {}
-        });
+        .into(imageView);
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    imageMatrix.set(imageView.getImageMatrix());
     Picasso.with(getContext()).cancelTag(loadingTag);
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
@@ -109,11 +95,11 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
       scaleGestureDetector.onTouchEvent(event);
       final boolean scaling = scaleGestureDetector.isInProgress();
       if (scaling) {
-        currentMat.postScale(scale, scale, focusX, focusY);
+        transformMatrix.postScale(scale, scale, focusX, focusY);
       }
       final boolean scrolled = gestureDetector.onTouchEvent(event);
       if (scrolled) {
-        currentMat.postTranslate(transX, transY);
+        transformMatrix.postTranslate(transX, transY);
       }
       final boolean invalidated = scaling || scrolled;
       if (invalidated) {
@@ -123,47 +109,13 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
       return invalidated || super.onTouchEvent(event);
     }
 
-    private final RectF viewRect = new RectF();
-    private final RectF drawableRect = new RectF();
-    private final Matrix matrixToFit = new Matrix();
-    private final float[] matToFit = new float[9];
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-      super.onSizeChanged(w, h, oldw, oldh);
-      viewRect.set(0, 0, w, h);
-      updateMatrixToFit();
-    }
-
-    @Override
-    public void setImageDrawable(@Nullable Drawable drawable) {
-      super.setImageDrawable(drawable);
-      if (drawable == null) {
-        drawableRect.setEmpty();
-      } else {
-        drawableRect.set(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-      }
-      updateMatrixToFit();
-    }
-
-    private void updateMatrixToFit() {
-      if (drawableRect.isEmpty() || viewRect.isEmpty()) {
-        matrixToFit.reset();
-      } else {
-        matrixToFit.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
-        currentMat.set(matrixToFit);
-        invalidate();
-      }
-      matrixToFit.getValues(matToFit);
-    }
-
     private final float[] imageMat = new float[9];
+
     @Override
     protected void onDraw(Canvas canvas) {
-      super.onDraw(canvas);
-      if (!oldMat.equals(currentMat)) {
+      if (!transformMatrix.isIdentity()) {
         final Matrix matrix = getImageMatrix();
-        matrix.postConcat(currentMat);
+        matrix.postConcat(transformMatrix);
         matrix.getValues(imageMat);
         imageMat[Matrix.MSCALE_X] = Math.max(imageMat[Matrix.MSCALE_X], matToFit[Matrix.MSCALE_X]);
         imageMat[Matrix.MSCALE_Y] = Math.max(imageMat[Matrix.MSCALE_Y], matToFit[Matrix.MSCALE_Y]);
@@ -183,15 +135,13 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
         }
 
         matrix.setValues(imageMat);
-        Log.d(TAG, "onDraw: " + matrix.toShortString());
         setImageMatrix(matrix);
-        oldMat.set(currentMat);
-        currentMat.reset();
+        transformMatrix.reset();
       }
+      super.onDraw(canvas);
     }
 
-    private Matrix oldMat = new Matrix();
-    private Matrix currentMat = new Matrix();
+    private Matrix transformMatrix = new Matrix();
     private float scale = 1;
     private float focusX;
     private float focusY;
@@ -236,5 +186,46 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
         return true;
       }
     };
+
+    private final RectF viewRect = new RectF();
+    private final RectF drawableRect = new RectF();
+    private final Matrix matrixToFit = new Matrix();
+    private final float[] matToFit = new float[9];
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+      super.onSizeChanged(w, h, oldw, oldh);
+      viewRect.set(0, 0, w, h);
+      updateMatrixToFit();
+    }
+
+    @Override
+    public void setImageDrawable(@Nullable Drawable drawable) {
+      super.setImageDrawable(drawable);
+      if (drawable == null) {
+        drawableRect.setEmpty();
+      } else {
+        drawableRect.set(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+      }
+      updateMatrixToFit();
+    }
+
+    private void updateMatrixToFit() {
+      if (drawableRect.isEmpty() || viewRect.isEmpty()) {
+        matrixToFit.reset();
+        transformMatrix.reset();
+      } else {
+        matrixToFit.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
+        setImageMatrix(matrixToFit);
+        invalidate();
+      }
+      matrixToFit.getValues(matToFit);
+    }
+
+    @Override
+    public void setImageMatrix(Matrix matrix) {
+      super.setImageMatrix(matrix);
+      matrix.getValues(imageMat);
+    }
   }
 }
