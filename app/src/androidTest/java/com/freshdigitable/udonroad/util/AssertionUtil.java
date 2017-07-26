@@ -75,7 +75,7 @@ public class AssertionUtil {
         .check(selectedDescendantsMatch(getHasReplyIcon(), isDisplayed()));
   }
 
-  private static void checkReactionIcon(Matcher<View> root, Matcher<View> icon,
+  public static void checkReactionIcon(Matcher<View> root, Matcher<View> icon,
                                         int expectedVisibility, int expectedCount) {
     final Matcher<View> displayed = expectedVisibility == View.VISIBLE ? isDisplayed() : not(isDisplayed());
     onView(root).check(selectedDescendantsMatch(icon, displayed));

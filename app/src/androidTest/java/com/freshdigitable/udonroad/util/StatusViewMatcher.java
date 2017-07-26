@@ -121,7 +121,7 @@ public class StatusViewMatcher {
         R.id.tl_reaction_container, R.drawable.ic_forum, ImageView.class);
   }
 
-  private static <T extends View> Matcher<View> getReactionContainerMatcher(
+  public static <T extends View> Matcher<View> getReactionContainerMatcher(
       @IdRes int containerId, @DrawableRes int expectedId, Class<T> clz) {
     return new BoundedMatcher<View, T>(clz) {
       @Override
