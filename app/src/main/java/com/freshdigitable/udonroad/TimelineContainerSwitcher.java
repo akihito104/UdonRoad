@@ -51,7 +51,7 @@ class TimelineContainerSwitcher {
   void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
     replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
-    switchFFABMenuTo(R.id.iffabMenu_main_conv);
+    setDetailIsEnabled(false);
     ffab.transToToolbar();
   }
 
@@ -61,7 +61,7 @@ class TimelineContainerSwitcher {
         = TimelineFragment.getInstance(CONVERSATION, statusId);
     final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
     replaceTimelineContainer(name, conversationFragment);
-    switchFFABMenuTo(R.id.iffabMenu_main_detail);
+    setDetailIsEnabled(true);
   }
 
   private void replaceTimelineContainer(String name, Fragment fragment) {
@@ -112,26 +112,21 @@ class TimelineContainerSwitcher {
     final String appearFragmentName = backStack.getName();
     if ("main".equals(appearFragmentName)) {
       listener.onMainFragmentSwitched(true);
-      switchFFABMenuTo(R.id.iffabMenu_main_detail);
+      setDetailIsEnabled(true);
       ffab.transToFAB(((ItemSelectable) mainFragment).isItemSelected() ? View.VISIBLE : View.INVISIBLE);
     } else if ("detail".equals(appearFragmentName)) {
-      switchFFABMenuTo(R.id.iffabMenu_main_conv);
+      setDetailIsEnabled(false);
       ffab.transToToolbar();
     } else if ("conv".equals(appearFragmentName)) {
-      switchFFABMenuTo(R.id.iffabMenu_main_detail);
+      setDetailIsEnabled(true);
       ffab.transToFAB();
     }
     return true;
   }
 
-  private static final int[] FFAB_MENU_LEFT_SETS
-      = {R.id.iffabMenu_main_conv, R.id.iffabMenu_main_detail};
-
-  private void switchFFABMenuTo(@IdRes int targetItem) {
+  private void setDetailIsEnabled(boolean enabled) {
     final Menu menu = ffab.getMenu();
-    for (@IdRes int menuItemId : FFAB_MENU_LEFT_SETS) {
-      menu.findItem(menuItemId).setEnabled(menuItemId == targetItem);
-    }
+    menu.findItem(R.id.iffabMenu_main_detail).setEnabled(enabled);
   }
 
   private FragmentManager getSupportFragmentManager() {
