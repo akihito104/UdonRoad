@@ -39,6 +39,7 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusDetailView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
@@ -47,6 +48,7 @@ import com.freshdigitable.udonroad.listitem.StatusListItem.TimeTextType;
 import com.freshdigitable.udonroad.listitem.StatusViewImageHelper;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
@@ -109,6 +111,8 @@ public class StatusDetailFragment extends Fragment {
       Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
       return;
     }
+
+    setupActionToolbar(statusId);
 
     final StatusDetailView statusView = binding.statusView;
     final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
@@ -210,6 +214,7 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
+    tearDownActionToolbar();
     binding.statusView.getRtUser().setOnClickListener(null);
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
@@ -241,6 +246,25 @@ public class StatusDetailFragment extends Fragment {
       return (OnUserIconClickedListener) activity;
     } else {
       return (view, user) -> UserInfoActivity.start(activity, user, view);
+    }
+  }
+
+  @Inject
+  StatusRequestWorker statusRequestWorker;
+  private IndicatableFFAB.OnIffabItemSelectedListener onIffabItemSelectedListener;
+
+  private void setupActionToolbar(long statusId) {
+    if (getActivity() instanceof FabHandleable) {
+      final FabHandleable fabHandleable = (FabHandleable) getActivity();
+      onIffabItemSelectedListener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
+      fabHandleable.addOnItemSelectedListener(onIffabItemSelectedListener);
+    }
+  }
+
+  private void tearDownActionToolbar() {
+    if (getActivity() instanceof FabHandleable) {
+      final FabHandleable fabHandleable = (FabHandleable) getActivity();
+      fabHandleable.removeOnItemSelectedListener(onIffabItemSelectedListener);
     }
   }
 

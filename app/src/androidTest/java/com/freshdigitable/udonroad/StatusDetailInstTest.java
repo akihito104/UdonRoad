@@ -19,11 +19,13 @@ package com.freshdigitable.udonroad;
 import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
+import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -40,6 +42,8 @@ import static android.support.test.espresso.assertion.ViewAssertions.doesNotExis
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.getReactionContainerMatcher;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -62,6 +66,33 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     PerformUtil.showDetail();
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
+  }
+
+  @Test
+  public void retweetSimpleStatusOnStatusDetail() throws Exception {
+    final Status rtStatus = createRtStatus(simple, 21000, 4, 6, true);
+    when(twitter.retweetStatus(simple.getId())).thenReturn(rtStatus);
+
+    PerformUtil.selectItemViewAt(1);
+    PerformUtil.showDetail();
+    onView(withId(R.id.timeline)).check(doesNotExist());
+    onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
+    onView(withId(R.id.iffabMenu_main_rt)).perform(click());
+    checkRTCount(4);
+    checkFavCount(6);
+  }
+
+  @Test
+  public void favoSimpleStatusOnStatusDetail() throws Exception {
+    setupCreateFavorite(3, 9);
+
+    PerformUtil.selectItemViewAt(1);
+    PerformUtil.showDetail();
+    onView(withId(R.id.timeline)).check(doesNotExist());
+    onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
+    onView(withId(R.id.iffabMenu_main_fav)).perform(click());
+    checkRTCount(3);
+    checkFavCount(9);
   }
 
   @Test
@@ -131,6 +162,26 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     when(relationship.isSourceFollowingTarget()).thenReturn(true);
     when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
     return responseList.size();
+  }
+
+  private static void checkRTCount(int expectedCount) {
+    final int expectedVisibility = expectedCount > 0 ? View.VISIBLE : View.INVISIBLE;
+    AssertionUtil.checkReactionIcon(withId(R.id.d_reaction_container), getRTIcon(), expectedVisibility, expectedCount);
+  }
+
+  private static void checkFavCount(int expectedCount) {
+    final int expectedVisibility = expectedCount > 0 ? View.VISIBLE : View.INVISIBLE;
+    AssertionUtil.checkReactionIcon(withId(R.id.d_reaction_container), getFavIcon(), expectedVisibility, expectedCount);
+  }
+
+  private static Matcher<View> getRTIcon() {
+    return getReactionContainerMatcher(
+        R.id.d_reaction_container, R.drawable.ic_retweet, IconAttachedTextView.class);
+  }
+
+  private static Matcher<View> getFavIcon() {
+    return getReactionContainerMatcher(
+        R.id.d_reaction_container, R.drawable.ic_like, IconAttachedTextView.class);
   }
 
   @Override
