@@ -470,15 +470,13 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onActivityResult: " + requestCode);
     if (requestCode == 40) {
       if (resultCode == RESULT_OK) {
-        if (data != null && data.getData() != null) {
+        if (cameraPicUri != null) {
+          addMedia(cameraPicUri);
+        } else if (data != null && data.getData() != null) {
           addMedia(data.getData());
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
           final List<Uri> m = parseClipData(data);
           addAllMedia(m);
-        } else {
-          if (cameraPicUri != null) {
-            addMedia(cameraPicUri);
-          }
         }
       } else if (cameraPicUri != null) {
         getContext().getContentResolver().delete(cameraPicUri, null, null);
