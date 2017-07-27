@@ -34,7 +34,8 @@ import java.util.Map;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import twitter4j.MediaEntity;
@@ -253,59 +254,28 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       return Observable.empty();
     }
     final StatusRealm bindingStatus = getBindingStatus(status);
-    final Observable<Status> statusObservable
-        = statusChangesObservable(bindingStatus, status);
-    final Observable<Status> quotedObservable
-        = statusChangesObservable((StatusRealm) bindingStatus.getQuotedStatus(), status);
+    final Observable<Status> statusObservable = statusChangesObservable(status);
     final Observable<Status> reactionObservable
         = reactionObservable(bindingStatus.getId(), status);
     final Observable<Status> qReactionObservable
         = reactionObservable(bindingStatus.getQuotedStatusId(), status);
     return Observable.merge(
-        statusObservable, quotedObservable, reactionObservable, qReactionObservable);
+        statusObservable, reactionObservable, qReactionObservable);
   }
 
-  private Observable<Status> statusChangesObservable(@Nullable final StatusRealm bindings,
-                                                     @NonNull final StatusRealm original) {
-    if (bindings == null) {
-      return Observable.empty();
-    }
-    final int favoriteCount = bindings.getFavoriteCount();
-    final int retweetCount = bindings.getRetweetCount();
-    final Observable<Status> statusObservable = Observable.create(
-        (ObservableOnSubscribe<Status>) subscriber -> StatusRealm.addChangeListener(bindings,
-            new RealmChangeListener<StatusRealm>() {
-              private int prevFav = favoriteCount;
-              private int prevRT = retweetCount;
-
-              @Override
-              public void onChange(StatusRealm element) {
-                final Status bindings1 = getBindingStatus(element);
-                if (isIgnorableChange(bindings1)) {
-                  return;
-                }
-                subscriber.onNext(element);
-                prevRT = bindings1.getRetweetCount();
-                prevFav = bindings1.getFavoriteCount();
-              }
-
-              private boolean isIgnorableChange(Status bindings1) {
-                return bindings1.getFavoriteCount() == prevFav
-                    && bindings1.getRetweetCount() == prevRT;
-              }
-            })).doOnDispose(() -> StatusRealm.removeAllChangeListeners(bindings));
-    if (original.getId() == bindings.getId()) {
-      return statusObservable;
-    }
-    return statusObservable.map(status -> {
-      final long statusId = status.getId();
-      final StatusRealm binds = getBindingStatus(original);
-      if (binds.getId() == statusId) {
-        binds.setRetweetedStatus(status);
-      } else if (binds.getQuotedStatusId() == statusId) {
-        binds.setQuotedStatus(status);
+  private Observable<Status> statusChangesObservable(@NonNull final StatusRealm original) {
+    return new StatusChangeObservable(original).distinctUntilChanged((old, cur) -> {
+      final Status oldBindings = getBindingStatus(old);
+      final Status curBindings = getBindingStatus(cur);
+      if (oldBindings.getRetweetCount() != curBindings.getRetweetCount()
+          || oldBindings.getFavoriteCount() != curBindings.getFavoriteCount()) {
+        return false;
       }
-      return original;
+      final Status oldQuoted = oldBindings.getQuotedStatus();
+      final Status curQuoted = curBindings.getQuotedStatus();
+      return oldQuoted == null || curQuoted == null
+          || (oldQuoted.getRetweetCount() == curQuoted.getRetweetCount()
+          && oldQuoted.getFavoriteCount() == curQuoted.getFavoriteCount());
     });
   }
 
@@ -348,5 +318,49 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @Override
   public void drop() {
     pool.drop();
+  }
+
+  private static class StatusChangeObservable extends Observable<Status> {
+    private final StatusRealm statusRealm;
+
+    StatusChangeObservable(StatusRealm statusRealm) {
+      this.statusRealm = statusRealm;
+    }
+
+    @Override
+    protected void subscribeActual(Observer<? super Status> observer) {
+      final RealmChangeListener<StatusRealm> changeListener = element -> observer.onNext(statusRealm);
+
+      observer.onSubscribe(new Disposable() {
+        boolean disposed = false;
+
+        @Override
+        public void dispose() {
+          if (statusRealm != null && !statusRealm.isManaged()) {
+            disposed = true;
+            return;
+          }
+          final StatusRealm bindingStatus = getBindingStatus(statusRealm);
+          bindingStatus.removeChangeListener(changeListener);
+          final Status quotedStatus = bindingStatus.getQuotedStatus();
+          if (quotedStatus != null && quotedStatus instanceof StatusRealm) {
+            ((StatusRealm) quotedStatus).removeChangeListener(changeListener);
+          }
+          disposed = true;
+        }
+
+        @Override
+        public boolean isDisposed() {
+          return disposed;
+        }
+      });
+
+      final StatusRealm bindingStatus = getBindingStatus(statusRealm);
+      bindingStatus.addChangeListener(changeListener);
+      final Status quotedStatus = bindingStatus.getQuotedStatus();
+      if (quotedStatus != null && quotedStatus instanceof StatusRealm) {
+        ((StatusRealm) quotedStatus).addChangeListener(changeListener);
+      }
+    }
   }
 }
