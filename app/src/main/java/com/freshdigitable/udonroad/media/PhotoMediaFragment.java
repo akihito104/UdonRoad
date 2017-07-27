@@ -164,6 +164,9 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
         if (Math.abs(distX) < 0.1) {
           return false;
         }
+        if (getDrawable() == null) {
+          return true;
+        }
         if (getHeight() == getDrawable().getIntrinsicHeight() * imageMat[Matrix.MSCALE_Y]) {
           return true;
         }
