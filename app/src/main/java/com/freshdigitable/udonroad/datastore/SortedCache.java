@@ -40,5 +40,5 @@ public interface SortedCache<T> extends NamingBaseCache {
   int getPositionById(long id);
 
   @NonNull
-  Observable<T> observeById(long id);
+  Observable<? extends T> observeById(long id);
 }

@@ -120,7 +120,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
 
   @NonNull
   @Override
-  public Observable<User> observeById(long id) {
+  public Observable<? extends User> observeById(long id) {
     return pool.observeById(id);
   }
 

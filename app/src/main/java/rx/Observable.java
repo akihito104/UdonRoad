@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.datastore;
+package rx;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
-import io.reactivex.Observable;
-
-/**
- * TypedCache defines to access for cache specified type.
- *
- * Created by akihit on 2016/09/14.
- */
-public interface TypedCache<T> extends WritableCache<T>, ObservableWriteOperation<T>, BaseCache {
-  @Nullable
-  T find(long id);
-
-  @NonNull
-  Observable<? extends T> observeById(long id);
+public class Observable {
+  // workaround
 }

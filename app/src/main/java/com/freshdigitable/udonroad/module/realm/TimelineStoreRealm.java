@@ -156,7 +156,7 @@ public class TimelineStoreRealm implements SortedCache<Status> {
 
   @NonNull
   @Override
-  public Observable<Status> observeById(long statusId) {
+  public Observable<? extends Status> observeById(long statusId) {
     return pool.observeById(statusId);
   }
 }
