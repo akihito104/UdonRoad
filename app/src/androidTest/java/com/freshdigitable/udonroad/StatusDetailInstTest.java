@@ -40,11 +40,14 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getReactionContainerMatcher;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,7 +65,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
 
   @Test
   public void showStatusDetailForSimpleStatus() {
-    PerformUtil.selectItemViewAt(1);
+    PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
@@ -73,7 +76,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     final Status rtStatus = createRtStatus(simple, 21000, 4, 6, true);
     when(twitter.retweetStatus(simple.getId())).thenReturn(rtStatus);
 
-    PerformUtil.selectItemViewAt(1);
+    PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
@@ -86,7 +89,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void favoSimpleStatusOnStatusDetail() throws Exception {
     setupCreateFavorite(3, 9);
 
-    PerformUtil.selectItemViewAt(1);
+    PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
@@ -97,7 +100,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
 
   @Test
   public void showStatusDetailForSimpleStatus_then_clickUserIcon() {
-    PerformUtil.selectItemViewAt(1);
+    PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
@@ -109,7 +112,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
 
   @Test
   public void showStatusDetailForQuotingStatus() {
-    PerformUtil.selectItemViewAt(0);
+    PerformUtil.selectItemView(target);
     PerformUtil.showDetail();
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(target.getText())));
@@ -145,6 +148,12 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     AssertionUtil.checkFavCountForQuoted(quoted, 1);
   }
 
+  @Test
+  public void deleteQuotedStatus() {
+    receiveDeletionNotice(quoted);
+    onView(ofQuotedStatusView(withText(quoted.getText()))).check(matches(not(isDisplayed())));
+  }
+
   @Override
   protected int setupTimeline() throws TwitterException {
     quoted = createStatus(10000, getLoginUser());
@@ -155,7 +164,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     when(target.getQuotedStatus()).thenReturn(quoted);
 
     final ResponseList<Status> responseList
-        = TwitterResponseMock.createResponseList(Arrays.asList(target, simple));
+        = TwitterResponseMock.createResponseList(Arrays.asList(target, simple, quoted));
     super.responseList = responseList;
     when(twitter.getHomeTimeline()).thenReturn(responseList);
     final Relationship relationship = mock(Relationship.class);

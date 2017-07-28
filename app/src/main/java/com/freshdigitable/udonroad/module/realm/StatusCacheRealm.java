@@ -35,6 +35,7 @@ import java.util.Map;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -264,7 +265,7 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   }
 
   private Observable<Status> statusChangesObservable(@NonNull final StatusRealm original) {
-    return new StatusChangeObservable(original).distinctUntilChanged((old, cur) -> {
+    return StatusChangeObservable.create(original).distinctUntilChanged((old, cur) -> {
       final Status oldBindings = getBindingStatus(old);
       final Status curBindings = getBindingStatus(cur);
       if (oldBindings.getRetweetCount() != curBindings.getRetweetCount()
@@ -273,9 +274,13 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       }
       final Status oldQuoted = oldBindings.getQuotedStatus();
       final Status curQuoted = curBindings.getQuotedStatus();
-      return oldQuoted == null || curQuoted == null
-          || (oldQuoted.getRetweetCount() == curQuoted.getRetweetCount()
-          && oldQuoted.getFavoriteCount() == curQuoted.getFavoriteCount());
+      if (oldQuoted == null) { // RT and fav is not changed and no need to compare any more
+        return true;
+      } else if (curQuoted == null) { // quoted status is deleted
+        return false;
+      }
+      return oldQuoted.getRetweetCount() == curQuoted.getRetweetCount()
+          && oldQuoted.getFavoriteCount() == curQuoted.getFavoriteCount();
     });
   }
 
@@ -321,45 +326,89 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   }
 
   private static class StatusChangeObservable extends Observable<Status> {
-    private final StatusRealm statusRealm;
+    static StatusChangeObservable create(@NonNull StatusRealm statusRealm) {
+      if (!statusRealm.isManaged()) {
+        throw new IllegalStateException("status is not managed...");
+      }
+      return new StatusChangeObservable(statusRealm);
+    }
 
-    StatusChangeObservable(StatusRealm statusRealm) {
+    private final StatusRealm statusRealm;
+    private StatusChangeObservable quotedChangeObservable;
+    private final CompositeDisposable disposables = new CompositeDisposable();
+
+    private StatusChangeObservable(StatusRealm statusRealm) {
       this.statusRealm = statusRealm;
+      final StatusRealm bindingStatus = getBindingStatus(statusRealm);
+      final Status quotedStatus = bindingStatus.getQuotedStatus();
+      if (quotedStatus != null && quotedStatus instanceof StatusRealm) {
+        quotedChangeObservable = create((StatusRealm) quotedStatus);
+      }
     }
 
     @Override
     protected void subscribeActual(Observer<? super Status> observer) {
-      final RealmChangeListener<StatusRealm> changeListener = element -> observer.onNext(statusRealm);
-
-      observer.onSubscribe(new Disposable() {
-        boolean disposed = false;
-
-        @Override
-        public void dispose() {
-          if (statusRealm != null && !statusRealm.isManaged()) {
-            disposed = true;
-            return;
-          }
-          final StatusRealm bindingStatus = getBindingStatus(statusRealm);
-          bindingStatus.removeChangeListener(changeListener);
-          final Status quotedStatus = bindingStatus.getQuotedStatus();
-          if (quotedStatus != null && quotedStatus instanceof StatusRealm) {
-            ((StatusRealm) quotedStatus).removeChangeListener(changeListener);
-          }
-          disposed = true;
+      final RealmChangeListener<StatusRealm> changeListener = element -> {
+        observer.onNext(statusRealm);
+        if (!element.isValid() || !element.isManaged()) {
+          observer.onComplete();
         }
-
-        @Override
-        public boolean isDisposed() {
-          return disposed;
-        }
-      });
+      };
+      disposables.add(new StatusChangeListenerDisposable(statusRealm, changeListener));
+      observer.onSubscribe(disposables);
 
       final StatusRealm bindingStatus = getBindingStatus(statusRealm);
       bindingStatus.addChangeListener(changeListener);
-      final Status quotedStatus = bindingStatus.getQuotedStatus();
-      if (quotedStatus != null && quotedStatus instanceof StatusRealm) {
-        ((StatusRealm) quotedStatus).addChangeListener(changeListener);
+      if (quotedChangeObservable != null) {
+        quotedChangeObservable.subscribeActual(new Observer<Status>() {
+          @Override
+          public void onSubscribe(Disposable d) {
+            disposables.add(d);
+          }
+
+          @Override
+          public void onNext(Status status) {
+            if (!((StatusRealm) status).isValid()) {
+              statusRealm.setQuotedStatus(null);
+            }
+            observer.onNext(statusRealm);
+          }
+
+          @Override
+          public void onError(Throwable e) {
+            observer.onError(e);
+          }
+
+          @Override
+          public void onComplete() {}
+        });
+      }
+    }
+
+    private static class StatusChangeListenerDisposable implements Disposable {
+      boolean disposed = false;
+      private final StatusRealm statusRealm;
+      private final RealmChangeListener changeListener;
+
+      private StatusChangeListenerDisposable(StatusRealm statusRealm, RealmChangeListener changeListener) {
+        this.statusRealm = statusRealm;
+        this.changeListener = changeListener;
+      }
+
+      @Override
+      public void dispose() {
+        if (statusRealm != null && (!statusRealm.isValid() || !statusRealm.isManaged())) {
+          disposed = true;
+          return;
+        }
+        final StatusRealm bindingStatus = getBindingStatus(statusRealm);
+        bindingStatus.removeChangeListener(changeListener);
+        disposed = true;
+      }
+
+      @Override
+      public boolean isDisposed() {
+        return disposed;
       }
     }
   }

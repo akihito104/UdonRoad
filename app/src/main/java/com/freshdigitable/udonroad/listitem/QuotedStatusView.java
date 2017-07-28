@@ -92,6 +92,7 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
   @Override
   public void update(TwitterListItem item) {
     if (item == null) {
+      setVisibility(GONE);
       return;
     }
     reactionContainer.update(item.getStats());

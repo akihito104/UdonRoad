@@ -30,7 +30,8 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
@@ -172,30 +173,10 @@ public class ConfigStoreRealm implements ConfigStore {
   @Override
   public Observable<StatusReaction> observeById(long id) {
     final StatusReactionRealm statusReaction = find(id);
-    if (statusReaction == null) {
-      return Observable.empty();
-    }
-    return Observable.create((ObservableOnSubscribe<StatusReaction>) subscriber ->
-        RealmObject.addChangeListener(statusReaction,
-            new RealmChangeListener<StatusReactionRealm>() {
-              private boolean prevFaved = statusReaction.isFavorited();
-              private boolean prevRTed = statusReaction.isRetweeted();
-
-              @Override
-              public void onChange(StatusReactionRealm element) {
-                if (isIgnorableChange(element)) {
-                  return;
-                }
-                subscriber.onNext(element);
-                prevFaved = element.isFavorited();
-                prevRTed = element.isRetweeted();
-              }
-
-              private boolean isIgnorableChange(StatusReaction l) {
-                return l.isFavorited() == prevFaved
-                    && l.isRetweeted() == prevRTed;
-              }
-            })).doOnDispose(() -> RealmObject.removeAllChangeListeners(statusReaction));
+    return statusReaction != null ?
+        ReactionChangeObservable.create(statusReaction).distinctUntilChanged((old, cur) ->
+            old.isFavorited() == cur.isFavorited() && old.isRetweeted() == cur.isRetweeted())
+        : Observable.empty();
   }
 
   @Override
@@ -229,5 +210,55 @@ public class ConfigStoreRealm implements ConfigStore {
           .findAll()
           .deleteAllFromRealm();
     });
+  }
+
+  private static class ReactionChangeObservable extends Observable<StatusReaction> {
+    static ReactionChangeObservable create(StatusReactionRealm statusReactionRealm) {
+      return new ReactionChangeObservable(statusReactionRealm);
+    }
+
+    private final StatusReactionRealm statusReactionRealm;
+
+    private ReactionChangeObservable(StatusReactionRealm statusReactionRealm) {
+      this.statusReactionRealm = statusReactionRealm;
+    }
+
+    @Override
+    protected void subscribeActual(Observer<? super StatusReaction> observer) {
+      final RealmChangeListener<StatusReactionRealm> changeListener = elem -> {
+        if (!RealmObject.isValid(elem)) {
+          observer.onComplete();
+          return;
+        }
+        observer.onNext(statusReactionRealm);
+      };
+      observer.onSubscribe(new ChangeListenerDisposable(statusReactionRealm, changeListener));
+      RealmObject.addChangeListener(statusReactionRealm, changeListener);
+    }
+
+    private static class ChangeListenerDisposable implements Disposable {
+      private boolean disposed = false;
+      private final StatusReactionRealm statusReactionRealm;
+      private final RealmChangeListener<StatusReactionRealm> changeListener;
+
+      private ChangeListenerDisposable(@NonNull StatusReactionRealm statusReactionRealm,
+                                       @NonNull RealmChangeListener<StatusReactionRealm> changeListener) {
+        this.statusReactionRealm = statusReactionRealm;
+        this.changeListener = changeListener;
+      }
+
+      @Override
+      public void dispose() {
+        if (RealmObject.isValid(statusReactionRealm)) {
+          RealmObject.removeChangeListener(statusReactionRealm, changeListener);
+        }
+        disposed = true;
+      }
+
+      @Override
+      public boolean isDisposed() {
+        return disposed;
+      }
+    }
   }
 }
