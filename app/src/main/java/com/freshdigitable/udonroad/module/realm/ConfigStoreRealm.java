@@ -30,8 +30,10 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.functions.BiPredicate;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -171,11 +173,17 @@ public class ConfigStoreRealm implements ConfigStore {
   public Observable<? extends StatusReaction> observeById(long id) {
     final StatusReactionRealm statusReaction = find(id);
     return statusReaction != null ?
-        RealmObjectObservable.create(statusReaction)
-            .filter(RealmObject::isValid)
-            .distinctUntilChanged((old, cur) ->
-                old.isFavorited() == cur.isFavorited() && old.isRetweeted() == cur.isRetweeted())
+        observe(statusReaction).cast(StatusReaction.class)
         : Observable.empty();
+  }
+
+  private static final BiPredicate<StatusReaction, StatusReaction> reactionPredicate = (old, cur) ->
+      old.isFavorited() == cur.isFavorited() && old.isRetweeted() == cur.isRetweeted();
+
+  static Observable<? extends RealmModel> observe(StatusReactionRealm statusReaction) {
+    return RealmObjectObservable.create(statusReaction)
+        .filter(RealmObject::isValid)
+        .distinctUntilChanged(reactionPredicate);
   }
 
   @Override

@@ -45,7 +45,7 @@ class RealmObjectObservable<T extends RealmModel> extends Observable<T> {
   @Override
   protected void subscribeActual(Observer<? super T> observer) {
     final RealmChangeListener<T> changeListener = e -> {
-      observer.onNext(this.elem);
+      observer.onNext(e);
       if (!RealmObject.isValid(e)) {
         observer.onComplete();
       }

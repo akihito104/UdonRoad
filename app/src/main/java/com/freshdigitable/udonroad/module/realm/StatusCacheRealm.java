@@ -37,6 +37,7 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiPredicate;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
@@ -252,60 +253,16 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @Override
   public Observable<? extends Status> observeById(long statusId) {
     final StatusRealm status = find(statusId);
-    if (status == null) {
-      return Observable.empty();
-    }
-    final StatusRealm bindingStatus = getBindingStatus(status);
-    final Observable<? extends Status> statusObservable = statusChangesObservable(status);
-    final Observable<Status> reactionObservable
-        = reactionObservable(bindingStatus.getId(), status);
-    final Observable<Status> qReactionObservable
-        = reactionObservable(bindingStatus.getQuotedStatusId(), status);
-    return Observable.merge(
-        statusObservable, reactionObservable, qReactionObservable);
-  }
-
-  private Observable<? extends Status> statusChangesObservable(@NonNull final StatusRealm original) {
-    return StatusChangeObservable.create(original)
-        .map(s -> {
-          final Status quotedStatus = s.getQuotedStatus();
-          if (quotedStatus != null && !RealmObject.isValid(((StatusRealm) quotedStatus))) {
-            s.setQuotedStatus(null);
-          }
-          return s;
-        })
-        .distinctUntilChanged((old, cur) -> {
-          final Status oldBindings = getBindingStatus(old);
-          final Status curBindings = getBindingStatus(cur);
-          if (oldBindings.getRetweetCount() != curBindings.getRetweetCount()
-              || oldBindings.getFavoriteCount() != curBindings.getFavoriteCount()) {
-            return false;
-          }
-          final Status oldQuoted = oldBindings.getQuotedStatus();
-          final Status curQuoted = curBindings.getQuotedStatus();
-          if (oldQuoted == null) { // RT and fav is not changed and no need to compare any more
-            return true;
-          } else if (curQuoted == null) { // quoted status is deleted
-            return false;
-          }
-          return oldQuoted.getRetweetCount() == curQuoted.getRetweetCount()
-              && oldQuoted.getFavoriteCount() == curQuoted.getFavoriteCount();
-        });
-  }
-
-  private Observable<Status> reactionObservable(final long statusId,
-                                                @NonNull final StatusRealm original) {
-    final StatusRealm bindings = getBindingStatus(original);
-    return configStore.observeById(statusId)
-        .map(reaction -> {
-          final long statusId1 = reaction.getId();
-          if (bindings.getId() == statusId1) {
-            bindings.setStatusReaction(reaction);
-          } else if (bindings.getQuotedStatusId() == statusId1) {
-            ((StatusRealm) bindings.getQuotedStatus()).setStatusReaction(reaction);
-          }
-          return original;
-        });
+    return status != null ?
+        StatusChangeObservable.create(status)
+            .map(s -> {
+              final Status quotedStatus = s.getQuotedStatus();
+              if (quotedStatus != null && !RealmObject.isValid((StatusRealm) quotedStatus)) {
+                s.setQuotedStatus(null);
+              }
+              return s;
+            })
+        : Observable.empty();
   }
 
   @Override
@@ -343,27 +300,44 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
     }
 
     private final StatusRealm statusRealm;
-    private final RealmObjectObservable<StatusRealm> rootObjectObservable;
-    private RealmObjectObservable<StatusRealm> quotedChangeObservable;
     private final CompositeDisposable disposables = new CompositeDisposable();
+    private final Collection<Observable<? extends RealmModel>> observables = new ArrayList<>();
 
     private StatusChangeObservable(StatusRealm statusRealm) {
       this.statusRealm = statusRealm;
-      rootObjectObservable = RealmObjectObservable.create(statusRealm);
       final StatusRealm bindingStatus = getBindingStatus(statusRealm);
+      observables.add(observeStatus(bindingStatus));
+      observables.add(ConfigStoreRealm.observe((StatusReactionRealm) bindingStatus.getStatusReaction()));
       final Status quotedStatus = bindingStatus.getQuotedStatus();
-      if (quotedStatus != null && quotedStatus instanceof StatusRealm) {
-        quotedChangeObservable = RealmObjectObservable.create((StatusRealm) quotedStatus);
+      if (quotedStatus != null) {
+        final StatusRealm qs = (StatusRealm) quotedStatus;
+        observables.add(observeStatus(qs));
+        observables.add(RealmObjectObservable.create((StatusReactionRealm) qs.getStatusReaction()));
       }
     }
 
+    private static Observable<StatusRealm> observeStatus(StatusRealm bindingStatus) {
+      return RealmObjectObservable.create(bindingStatus)
+          .distinctUntilChanged(statusPredicate);
+    }
+
+    private static final BiPredicate<StatusRealm, StatusRealm> statusPredicate = (old, cur) -> {
+      if (old == null || !RealmObject.isValid(old)) { // nothing to do
+        return true;
+      } else {
+        if (cur == null || !RealmObject.isValid(cur)) { // quoted status is deleted
+          return false;
+        }
+      }
+      return old.getRetweetCount() == cur.getRetweetCount()
+          && old.getFavoriteCount() == cur.getFavoriteCount();
+    };
+
     @Override
     protected void subscribeActual(Observer<? super StatusRealm> observer) {
-      rootObjectObservable.subscribeActual(new StatusObserver<>(statusRealm, observer, disposables));
-      if (quotedChangeObservable != null) {
-        quotedChangeObservable.subscribeActual(new StatusObserver<>(statusRealm, observer, disposables));
+      for (Observable<? extends RealmModel> o : observables) {
+        o.subscribeWith(new StatusObserver<>(statusRealm, observer, disposables));
       }
-
       observer.onSubscribe(disposables);
     }
 
@@ -371,6 +345,7 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       private StatusRealm root;
       private Observer<? super StatusRealm> observer;
       private CompositeDisposable disposables;
+      private boolean done = false;
 
       StatusObserver(StatusRealm root,
                      Observer<? super StatusRealm> observer,
@@ -387,7 +362,9 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
 
       @Override
       public void onNext(T t) {
-        observer.onNext(root);
+        if (!done) {
+          observer.onNext(root);
+        }
       }
 
       @Override
@@ -396,7 +373,9 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       }
 
       @Override
-      public void onComplete() {}
+      public void onComplete() {
+        done = true;
+      }
     }
   }
 }
