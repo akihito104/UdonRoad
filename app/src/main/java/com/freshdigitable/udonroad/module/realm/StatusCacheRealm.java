@@ -262,7 +262,6 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
               }
               return s;
             })
-            .distinctUntilChanged(StatusKey::new)
         : Observable.empty();
   }
 
@@ -364,58 +363,6 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       public void onComplete() {
         done = true;
       }
-    }
-  }
-
-  private static class StatusKey {
-    private final boolean retweeted;
-    private final boolean favorited;
-    private final int rt;
-    private final int fav;
-    private final StatusKey quoted;
-
-    StatusKey(StatusRealm status) {
-      final StatusRealm s = getBindingStatus(status);
-      retweeted = s.isRetweeted();
-      favorited = s.isFavorited();
-      rt = s.getRetweetCount();
-      fav = s.getFavoriteCount();
-      quoted = s.getQuotedStatus() != null ?
-          new StatusKey(((StatusRealm) s.getQuotedStatus()))
-          : null;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || !(obj instanceof StatusKey)) {
-        return false;
-      }
-      final StatusKey other = (StatusKey) obj;
-      return (this.quoted == other.quoted || this.quoted != null && this.quoted.equals(other))
-          && this.retweeted == other.retweeted
-          && this.favorited == other.favorited
-          && this.rt == other.rt
-          && this.fav == other.fav;
-    }
-
-    @Override
-    public int hashCode() {
-      int res = 17;
-      res = 31 * res + (quoted != null ? quoted.hashCode() : 0);
-      res = 31 * res + (retweeted ? 1 : 0);
-      res = 31 * res + rt;
-      res = 31 * res + (favorited ? 1 : 0);
-      res = 31 * res + fav;
-      return res;
-    }
-
-    @Override
-    public String toString() {
-      return "{RT:" + retweeted + "," + rt + ", fav:" + favorited + "," + fav + "}"
-          + (quoted != null ? "{RT:" + quoted.retweeted + "," + quoted.rt + ", fav:" + quoted.favorited + "," + quoted.fav + "}" : "");
     }
   }
 }
