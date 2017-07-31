@@ -99,9 +99,12 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
       return Completable.complete();
     }
 
-    return pool.observeUpsert(targets)
-        .doOnComplete(() ->
-            sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs)))
+    return Completable.concatArray(
+        pool.observeUpsert(targets),
+        Completable.create(e -> {
+          sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs));
+          e.onComplete();
+        }))
         .doOnError(throwable -> Log.e(TAG, "upsert: ", throwable));
   }
 
