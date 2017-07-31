@@ -109,10 +109,11 @@ public class ConfigStoreRealm implements ConfigStore {
   @Override
   public void removeIgnoringUser(User user) {
     final long userId = user.getId();
-    configStore.executeTransaction(realm -> realm.where(IgnoringUser.class)
-        .equalTo("id", userId)
-        .findAll()
-        .deleteAllFromRealm());
+    configStore.executeTransaction(realm ->
+        realm.where(IgnoringUser.class)
+            .equalTo("id", userId)
+            .findAll()
+            .deleteAllFromRealm());
   }
 
   @Override
@@ -157,8 +158,7 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Override
   public void insert(final StatusReaction entity) {
-    configStore.executeTransaction(
-        realm -> realm.insertOrUpdate(new StatusReactionRealm(entity)));
+    configStore.executeTransaction(realm -> realm.insertOrUpdate(new StatusReactionRealm(entity)));
   }
 
   @Nullable
@@ -183,10 +183,11 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Override
   public void delete(final long id) {
-    configStore.executeTransactionAsync(realm -> realm.where(StatusReactionRealm.class)
-        .equalTo(KEY_ID, id)
-        .findAll()
-        .deleteAllFromRealm());
+    configStore.executeTransactionAsync(realm ->
+        realm.where(StatusReactionRealm.class)
+            .equalTo(KEY_ID, id)
+            .findAll()
+            .deleteAllFromRealm());
   }
 
   @Override

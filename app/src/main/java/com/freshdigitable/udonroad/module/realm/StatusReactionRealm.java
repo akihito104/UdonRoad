@@ -74,12 +74,17 @@ public class StatusReactionRealm implements StatusReaction, RealmModel {
   }
 
   public void merge(StatusReaction others) {
+    if (others == null) {
+      return;
+    }
     // `Status.favorited` is nullable and in the case `favoried` is false.
-    if (isNullOrFalse(this.favorited) && others.isFavorited() != null) {
+    if (isNullOrFalse(this.favorited)
+        && others.isFavorited() != null && !others.isFavorited().equals(this.favorited)) {
       this.favorited = others.isFavorited();
     }
     // `Status.retweeted` is nullable and in the case `retweeted` is false.
-    if (isNullOrFalse(this.retweeted) && others.isRetweeted() != null) {
+    if (isNullOrFalse(this.retweeted)
+        && others.isRetweeted() != null && !others.isRetweeted().equals(this.retweeted)) {
       this.retweeted = others.isRetweeted();
     }
   }
