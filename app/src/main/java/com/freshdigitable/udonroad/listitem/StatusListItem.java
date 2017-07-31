@@ -219,9 +219,10 @@ public class StatusListItem implements TwitterListItem {
     RELATIVE {
       @Override
       public TimeTextStrategy getStrategy(Status bindingStatus) {
+        final Date createdAtDate = bindingStatus.getCreatedAt();
+        final long createdTime = createdAtDate.getTime();
         return context -> {
-          final Date createdAtDate = bindingStatus.getCreatedAt();
-          final long deltaInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - createdAtDate.getTime());
+          final long deltaInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - createdTime);
           if (deltaInSec <= TimeUnit.SECONDS.toSeconds(1)) {
             return context.getString(R.string.created_now);
           }
@@ -247,8 +248,11 @@ public class StatusListItem implements TwitterListItem {
     }, ABSOLUTE {
       @Override
       public TimeTextStrategy getStrategy(Status bindingStatus) {
-        return context -> DateUtils.formatDateTime(context, bindingStatus.getCreatedAt().getTime(),
-            DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME);
+        return context -> {
+          final long createdTime = bindingStatus.getCreatedAt().getTime();
+          return DateUtils.formatDateTime(context, createdTime,
+              DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME);
+        };
       }
     };
 

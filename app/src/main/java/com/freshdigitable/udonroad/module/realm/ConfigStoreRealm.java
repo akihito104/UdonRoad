@@ -30,10 +30,9 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -110,10 +109,11 @@ public class ConfigStoreRealm implements ConfigStore {
   @Override
   public void removeIgnoringUser(User user) {
     final long userId = user.getId();
-    configStore.executeTransaction(realm -> realm.where(IgnoringUser.class)
-        .equalTo("id", userId)
-        .findAll()
-        .deleteAllFromRealm());
+    configStore.executeTransaction(realm ->
+        realm.where(IgnoringUser.class)
+            .equalTo("id", userId)
+            .findAll()
+            .deleteAllFromRealm());
   }
 
   @Override
@@ -158,8 +158,7 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Override
   public void insert(final StatusReaction entity) {
-    configStore.executeTransaction(
-        realm -> realm.insertOrUpdate(new StatusReactionRealm(entity)));
+    configStore.executeTransaction(realm -> realm.insertOrUpdate(new StatusReactionRealm(entity)));
   }
 
   @Nullable
@@ -170,40 +169,25 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @NonNull
   @Override
-  public Observable<StatusReaction> observeById(long id) {
+  public Observable<? extends StatusReaction> observeById(long id) {
     final StatusReactionRealm statusReaction = find(id);
-    if (statusReaction == null) {
-      return Observable.empty();
-    }
-    return Observable.create((ObservableOnSubscribe<StatusReaction>) subscriber ->
-        RealmObject.addChangeListener(statusReaction,
-            new RealmChangeListener<StatusReactionRealm>() {
-              private boolean prevFaved = statusReaction.isFavorited();
-              private boolean prevRTed = statusReaction.isRetweeted();
+    return statusReaction != null ?
+        observe(statusReaction).cast(StatusReaction.class)
+        : Observable.empty();
+  }
 
-              @Override
-              public void onChange(StatusReactionRealm element) {
-                if (isIgnorableChange(element)) {
-                  return;
-                }
-                subscriber.onNext(element);
-                prevFaved = element.isFavorited();
-                prevRTed = element.isRetweeted();
-              }
-
-              private boolean isIgnorableChange(StatusReaction l) {
-                return l.isFavorited() == prevFaved
-                    && l.isRetweeted() == prevRTed;
-              }
-            })).doOnDispose(() -> RealmObject.removeAllChangeListeners(statusReaction));
+  static Observable<? extends RealmModel> observe(StatusReactionRealm statusReaction) {
+    return RealmObjectObservable.create(statusReaction)
+        .filter(RealmObject::isValid);
   }
 
   @Override
   public void delete(final long id) {
-    configStore.executeTransactionAsync(realm -> realm.where(StatusReactionRealm.class)
-        .equalTo(KEY_ID, id)
-        .findAll()
-        .deleteAllFromRealm());
+    configStore.executeTransactionAsync(realm ->
+        realm.where(StatusReactionRealm.class)
+            .equalTo(KEY_ID, id)
+            .findAll()
+            .deleteAllFromRealm());
   }
 
   @Override

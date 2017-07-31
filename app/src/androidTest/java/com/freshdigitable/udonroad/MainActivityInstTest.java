@@ -267,6 +267,8 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     AssertionUtil.checkFavCountAt(0, 3);
     AssertionUtil.checkRTCountAt(0, 1);
+    AssertionUtil.checkFavCountAt(1, 3);
+    AssertionUtil.checkRTCountAt(1, 1);
   }
 
   @Test
@@ -289,6 +291,8 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     AssertionUtil.checkRTCountAt(0, 1);
     AssertionUtil.checkFavCountAt(0, expectedFavCount);
+    AssertionUtil.checkRTCountAt(1, 1);
+    AssertionUtil.checkFavCountAt(1, expectedFavCount);
   }
 
   @Test

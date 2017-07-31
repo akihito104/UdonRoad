@@ -77,17 +77,19 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public void onAttach(Context context) {
     super.onAttach(context);
     sortedCache.open(getStoreName());
-    updateEventSubscription
-        = sortedCache.observeUpdateEvent().subscribe(event -> {
-          if (event.type == UpdateEvent.EventType.INSERT) {
-            tlAdapter.notifyItemRangeInserted(event.index, event.length);
-          } else if (event.type == UpdateEvent.EventType.CHANGE) {
-            tlAdapter.notifyItemRangeChanged(event.index, event.length);
-          } else if (event.type == UpdateEvent.EventType.DELETE) {
-            tlAdapter.notifyItemRangeRemoved(event.index, event.length);
-          }
-        },
-        e -> Log.e(TAG, "updateEvent: ", e));
+    updateEventSubscription = sortedCache.observeUpdateEvent()
+        .retry()
+        .doOnSubscribe(subs -> Log.d(TAG, "onAttach: updateEvent is subscribed"))
+        .subscribe(event -> {
+              if (event.type == UpdateEvent.EventType.INSERT) {
+                tlAdapter.notifyItemRangeInserted(event.index, event.length);
+              } else if (event.type == UpdateEvent.EventType.CHANGE) {
+                tlAdapter.notifyItemRangeChanged(event.index, event.length);
+              } else if (event.type == UpdateEvent.EventType.DELETE) {
+                tlAdapter.notifyItemRangeRemoved(event.index, event.length);
+              }
+            },
+            e -> Log.e(TAG, "updateEvent: ", e));
     requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
   }
 

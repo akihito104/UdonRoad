@@ -28,7 +28,6 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
 import io.realm.Realm;
 import twitter4j.User;
 
@@ -95,12 +94,9 @@ public class UserCacheRealm implements TypedCache<User> {
   @Override
   public Observable<User> observeById(final long userId) {
     final UserRealm user = pool.findById(userId, UserRealm.class);
-    if (user == null) {
-      return Observable.empty();
-    }
-    return Observable.create((ObservableOnSubscribe<User>) subscriber ->
-        UserRealm.addChangeListener(user, subscriber::onNext))
-        .doOnDispose(() -> UserRealm.removeAllChangeListeners(user));
+    return user != null ?
+        RealmObjectObservable.create(user).cast(User.class)
+        : Observable.empty();
   }
 
   @Override
