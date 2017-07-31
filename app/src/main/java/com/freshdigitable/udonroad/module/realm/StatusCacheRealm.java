@@ -254,6 +254,7 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
     final StatusRealm status = find(statusId);
     return status != null ?
         StatusChangeObservable.create(status)
+            .filter(s -> RealmObject.isValid(s))
             .map(s -> {
               final Status quotedStatus = s.getQuotedStatus();
               if (quotedStatus != null && !RealmObject.isValid((StatusRealm) quotedStatus)) {

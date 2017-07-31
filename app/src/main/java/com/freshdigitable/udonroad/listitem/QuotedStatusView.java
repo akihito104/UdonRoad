@@ -117,6 +117,7 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
     thumbnailContainer.reset();
     thumbnailContainer.setOnMediaClickListener(null);
     setBackgroundResource(R.drawable.s_rounded_frame_default);
+    timeStrategy = null;
   }
 
   public void setSelectedColor() {
@@ -137,7 +138,7 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
     return icon;
   }
 
-  String formatString(@StringRes int id, Object... items) {
+  private String formatString(@StringRes int id, Object... items) {
     final String format = getResources().getString(id);
     return String.format(format, items);
   }

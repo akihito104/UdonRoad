@@ -160,6 +160,7 @@ public class StatusView extends RelativeLayout implements StatusItemView {
     icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);
+    timeStrategy = null;
 
     rtUser.setText("");
     if (quotedStatus != null) {
