@@ -79,7 +79,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     sortedCache.open(getStoreName());
     updateEventSubscription = sortedCache.observeUpdateEvent()
         .retry()
-        .doOnSubscribe(subs -> Log.d(TAG, "onAttach: updateEvent is subscripted"))
+        .doOnSubscribe(subs -> Log.d(TAG, "onAttach: updateEvent is subscribed"))
         .subscribe(event -> {
               if (event.type == UpdateEvent.EventType.INSERT) {
                 tlAdapter.notifyItemRangeInserted(event.index, event.length);
