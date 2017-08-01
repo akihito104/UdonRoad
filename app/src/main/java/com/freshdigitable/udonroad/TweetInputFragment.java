@@ -228,13 +228,28 @@ public class TweetInputFragment extends Fragment {
     if (type == TYPE_NONE) {
       return;
     }
-    if (type == TYPE_DEFAULT) {
-      stretchTweetInputView();
-    } else if (type == TYPE_REPLY) {
-      stretchTweetInputViewWithInReplyTo(statusId);
+    if (type == TYPE_REPLY) {
+      setupReplyEntity(statusId);
     } else if (type == TYPE_QUOTE) {
-      stretchTweetInputViewWithQuoteStatus(statusId);
+      setupQuote(statusId);
     }
+    stretchTweetInputView();
+  }
+
+  private ReplyEntity replyEntity;
+
+  private void setupReplyEntity(long inReplyToStatusId) {
+    final Status inReplyTo = statusCache.find(inReplyToStatusId);
+    if (inReplyTo != null) {
+      replyEntity = ReplyEntity.create(inReplyTo, appSettings.getCurrentUserId());
+      binding.mainTweetInputView.addText(replyEntity.createReplyString());
+      binding.mainTweetInputView.setInReplyTo();
+    }
+  }
+
+  private void setupQuote(long quotedStatus) {
+    quoteStatusIds.add(quotedStatus);
+    binding.mainTweetInputView.setQuote();
   }
 
   private void stretchTweetInputView() {
@@ -242,30 +257,6 @@ public class TweetInputFragment extends Fragment {
     setUpTweetSendFab();
     binding.mainTweetInputView.appearing();
     setupMenuVisibility();
-  }
-
-  private ReplyEntity replyEntity;
-
-  private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
-    final Status inReplyTo = statusCache.find(inReplyToStatusId);
-    final TweetInputView inputText = binding.mainTweetInputView;
-    if (inReplyTo == null) {
-      stretchTweetInputView();
-      return;
-    }
-
-    appSettingRequestWorker.getAuthenticatedUser().subscribe(u -> {
-      replyEntity = ReplyEntity.create(inReplyTo, u);
-      inputText.addText(replyEntity.createReplyString());
-      inputText.setInReplyTo();
-      stretchTweetInputView();
-    });
-  }
-
-  private void stretchTweetInputViewWithQuoteStatus(long quotedStatus) {
-    quoteStatusIds.add(quotedStatus);
-    binding.mainTweetInputView.setQuote();
-    stretchTweetInputView();
   }
 
   private void setUpTweetInputView() {
@@ -382,27 +373,36 @@ public class TweetInputFragment extends Fragment {
   }
 
   private static class ReplyEntity {
-    long inReplyToStatusId;
-    Set<String> screenNames;
+    final long inReplyToStatusId;
+    final Set<String> screenNames;
 
-    static ReplyEntity create(@NonNull Status status, User from) {
-      final ReplyEntity res = new ReplyEntity();
-      res.inReplyToStatusId = status.getId();
-      res.screenNames = new LinkedHashSet<>();
+    static ReplyEntity create(@NonNull Status status, long fromUserId) {
+      final Set<String> screenNames = new LinkedHashSet<>();
       final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
       for (UserMentionEntity u : userMentionEntities) {
-        res.screenNames.add(u.getScreenName());
+        if (u.getId() != fromUserId) {
+          screenNames.add(u.getScreenName());
+        }
       }
 
       if (status.isRetweet()) {
         final Status retweetedStatus = status.getRetweetedStatus();
-        res.screenNames.add(retweetedStatus.getUser().getScreenName());
+        final User user = retweetedStatus.getUser();
+        if (user.getId() != fromUserId) {
+          screenNames.add(user.getScreenName());
+        }
       }
 
       final User user = status.getUser();
-      res.screenNames.add(user.getScreenName());
-      res.screenNames.remove(from.getScreenName());
-      return res;
+      if (user.getId() != fromUserId) {
+        screenNames.add(user.getScreenName());
+      }
+      return new ReplyEntity(status.getId(), screenNames);
+    }
+
+    private ReplyEntity(long replyToStatusId, Set<String> replyToUsers) {
+      this.inReplyToStatusId = replyToStatusId;
+      this.screenNames = replyToUsers;
     }
 
     String createReplyString() {

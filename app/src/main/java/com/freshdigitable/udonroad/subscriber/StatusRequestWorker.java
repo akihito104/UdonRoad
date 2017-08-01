@@ -56,7 +56,7 @@ public class StatusRequestWorker implements RequestWorker {
   private final TwitterApi twitterApi;
   private final TypedCache<Status> cache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
-  private final ConfigStore configStore;
+  private final TypedCache<StatusReaction> configStore;
 
   @Inject
   public StatusRequestWorker(@NonNull TwitterApi twitterApi,
