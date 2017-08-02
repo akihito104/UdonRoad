@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.content.SharedPreferences;
-import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -27,8 +26,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
@@ -93,11 +94,15 @@ public class AppSettingStoreRealm implements AppSettingStore {
     });
   }
 
-  @Override @Nullable
-  public User getAuthenticatedUser(long userId) {
-    return realm.where(UserRealm.class)
-        .equalTo("id", userId)
-        .findFirst();
+  @Override
+  public Observable<User> observeCurrentUser() {
+    final long currentUserId = getCurrentUserId();
+    final RealmResults<UserRealm> currentUser = realm.where(UserRealm.class)
+        .equalTo("id", currentUserId)
+        .findAll();
+    return currentUser.isEmpty() ?
+        EmptyRealmObjectObservable.create(currentUser).cast(User.class)
+        : RealmObjectObservable.create(currentUser.first()).cast(User.class);
   }
 
   @Override

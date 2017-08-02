@@ -164,7 +164,18 @@ public class TweetInputFragment extends Fragment {
     super.onStart();
     statusCache.open();
     appSettings.open();
-    binding.mainTweetInputView.getAppendImageButton().setOnClickListener(v -> {
+
+    final TweetInputView inputText = binding.mainTweetInputView;
+    subscription = appSettings.observeCurrentUser().subscribe(authenticatedUser -> {
+      inputText.setUserInfo(authenticatedUser);
+      Picasso.with(inputText.getContext())
+          .load(authenticatedUser.getMiniProfileImageURLHttps())
+          .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+          .tag(LOADINGTAG_TWEET_INPUT_ICON)
+          .into(inputText.getIcon());
+    }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
+
+    inputText.getAppendImageButton().setOnClickListener(v -> {
       final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
@@ -177,7 +188,7 @@ public class TweetInputFragment extends Fragment {
           new Intent[]{cameraIntent});
       startActivityForResult(chooser, 40);
     });
-    binding.mainTweetInputView.addTextWatcher(textWatcher);
+    inputText.addTextWatcher(textWatcher);
     tweetSendFab.setOnClickListener(createSendClickListener());
   }
 
@@ -185,6 +196,10 @@ public class TweetInputFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
+    if (subscription != null && !subscription.isDisposed()) {
+      Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
+      subscription.dispose();
+    }
     appSettings.close();
     statusCache.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
@@ -260,25 +275,12 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void setUpTweetInputView() {
-    final TweetInputView inputText = binding.mainTweetInputView;
-    subscription = appSettingRequestWorker.getAuthenticatedUser()
-        .subscribe(authenticatedUser -> {
-          inputText.setUserInfo(authenticatedUser);
-          Picasso.with(inputText.getContext())
-              .load(authenticatedUser.getMiniProfileImageURLHttps())
-              .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-              .tag(LOADINGTAG_TWEET_INPUT_ICON)
-              .into(inputText.getIcon());
-        }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
-    inputText.setShortUrlLength(
+    appSettingRequestWorker.verifyCredentials();
+    binding.mainTweetInputView.setShortUrlLength(
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
   private void tearDownTweetInputView() {
-    if (subscription != null && !subscription.isDisposed()) {
-      Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
-      subscription.dispose();
-    }
     binding.mainTweetInputView.reset();
   }
 

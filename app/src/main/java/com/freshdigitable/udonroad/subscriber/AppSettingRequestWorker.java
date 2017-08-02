@@ -25,11 +25,8 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
-import twitter4j.TwitterException;
-import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
 /**
@@ -70,21 +67,18 @@ public class AppSettingRequestWorker implements RequestWorker {
     return authenticated;
   }
 
-  private Single<User> verifyCredentials() {
-    return twitterApi.verifyCredentials()
+  public void verifyCredentials() {
+    if (!isAuthenticated()) {
+      return;
+    }
+    twitterApi.verifyCredentials()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(u -> {
-          appSettings.open();
-          appSettings.addAuthenticatedUser(u);
-          appSettings.close();
-        })
-        .doOnError(onErrorAction);
-  }
-
-  public Single<User> getAuthenticatedUser() {
-    return isAuthenticated() ?
-        verifyCredentials()
-        : Single.error(new TwitterException("not authenticated yet..."));
+        .subscribe(u -> {
+              appSettings.open();
+              appSettings.addAuthenticatedUser(u);
+              appSettings.close();
+            },
+            onErrorAction);
   }
 
   private void fetchTwitterAPIConfig() {
