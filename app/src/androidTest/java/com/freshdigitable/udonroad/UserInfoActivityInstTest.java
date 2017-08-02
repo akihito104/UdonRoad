@@ -78,7 +78,7 @@ public class UserInfoActivityInstTest {
   public static class WhenTargetIsFollowed extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
-      final Relationship relationship = mock(Relationship.class);
+      final Relationship relationship = getRelationship();
       when(relationship.isSourceFollowingTarget()).thenReturn(true);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
@@ -145,7 +145,7 @@ public class UserInfoActivityInstTest {
   public static class WhenTargetIsNotFollowed extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
-      final Relationship relationship = mock(Relationship.class);
+      final Relationship relationship = getRelationship();
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
@@ -213,7 +213,7 @@ public class UserInfoActivityInstTest {
   public static class WhenTargetIsBlocked extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
-      final Relationship relationship = mock(Relationship.class);
+      final Relationship relationship = getRelationship();
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(true);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
@@ -252,7 +252,7 @@ public class UserInfoActivityInstTest {
   public static class WhenTargetIsMuted extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
-      final Relationship relationship = mock(Relationship.class);
+      final Relationship relationship = getRelationship();
       when(relationship.isSourceFollowingTarget()).thenReturn(false);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(true);
@@ -291,7 +291,7 @@ public class UserInfoActivityInstTest {
   public static class WhenTargetIsFollowedAndMuted extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
-      final Relationship relationship = mock(Relationship.class);
+      final Relationship relationship = getRelationship();
       when(relationship.isSourceFollowingTarget()).thenReturn(true);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(true);
@@ -316,7 +316,7 @@ public class UserInfoActivityInstTest {
   public static class WhenTargetIsBlockedRetweet extends Base {
     @Override
     protected int setupTimeline() throws TwitterException {
-      final Relationship relationship = mock(Relationship.class);
+      final Relationship relationship = getRelationship();
       when(relationship.isSourceFollowingTarget()).thenReturn(true);
       when(relationship.isSourceBlockingTarget()).thenReturn(false);
       when(relationship.isSourceMutingTarget()).thenReturn(false);
@@ -409,6 +409,13 @@ public class UserInfoActivityInstTest {
       });
       return UserInfoActivity.createIntent(
           InstrumentationRegistry.getTargetContext(), user);
+    }
+
+    Relationship getRelationship() {
+      final Relationship relationship = mock(Relationship.class);
+      final long userId = UserUtil.createUserA().getId();
+      when(relationship.getTargetUserId()).thenReturn(userId);
+      return relationship;
     }
 
     @Inject

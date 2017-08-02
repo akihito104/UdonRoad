@@ -23,53 +23,43 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.realm.RealmChangeListener;
 import io.realm.RealmModel;
-import io.realm.RealmObject;
+import io.realm.RealmResults;
 
 /**
- * Created by akihit on 2017/07/28.
+ * Created by akihit on 2017/08/01.
  */
-class RealmObjectObservable<T extends RealmModel> extends Observable<T> {
-  static <T extends RealmModel> Observable<T> create(T elem) {
-    if (elem == null || !RealmObject.isValid(elem)) {
-      throw new IllegalStateException();
-    }
-    return new RealmObjectObservable<>(elem);
+
+class EmptyRealmObjectObservable<T extends RealmModel> extends Observable<T> {
+  static <T extends RealmModel> Observable<T> create(@NonNull RealmResults<T> realmResult) {
+    return new EmptyRealmObjectObservable<>(realmResult);
   }
+  private final RealmResults<T> realmResult;
 
-  private final T elem;
-
-  private RealmObjectObservable(T elem) {
-    this.elem = elem;
+  private EmptyRealmObjectObservable(RealmResults<T> realmResult) {
+    this.realmResult = realmResult;
   }
 
   @Override
   protected void subscribeActual(Observer<? super T> observer) {
-    final RealmChangeListener<T> changeListener = e -> {
-      observer.onNext(e);
-      if (!RealmObject.isValid(e)) {
-        observer.onComplete();
-      }
-    };
-    observer.onSubscribe(new ChangeListenerDisposable<>(elem, changeListener));
-    RealmObject.addChangeListener(elem, changeListener);
+    final RealmChangeListener<RealmResults<T>> changeListener = ts -> observer.onNext(ts.first());
+    observer.onSubscribe(new ChangeListenerDisposable<>(realmResult, changeListener));
+    realmResult.addChangeListener(changeListener);
   }
 
   private static class ChangeListenerDisposable<T extends RealmModel> implements Disposable {
     private boolean disposed = false;
-    private final T elem;
-    private final RealmChangeListener<T> changeListener;
+    private final RealmResults<T> elem;
+    private final RealmChangeListener<RealmResults<T>> changeListener;
 
-    private ChangeListenerDisposable(@NonNull T elem,
-                                     @NonNull RealmChangeListener<T> changeListener) {
+    private ChangeListenerDisposable(@NonNull RealmResults<T> elem,
+                                     @NonNull RealmChangeListener<RealmResults<T>> changeListener) {
       this.elem = elem;
       this.changeListener = changeListener;
     }
 
     @Override
     public void dispose() {
-      if (RealmObject.isValid(elem)) {
-        RealmObject.removeChangeListener(elem, changeListener);
-      }
+      elem.removeChangeListener(changeListener);
       disposed = true;
     }
 

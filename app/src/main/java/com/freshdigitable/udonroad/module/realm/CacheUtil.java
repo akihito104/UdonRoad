@@ -42,5 +42,5 @@ class CacheUtil {
         .findFirst();
   }
 
-  CacheUtil() {}
+  private CacheUtil() {}
 }

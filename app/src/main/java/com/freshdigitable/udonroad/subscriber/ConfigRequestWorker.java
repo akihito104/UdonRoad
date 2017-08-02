@@ -32,14 +32,12 @@ import javax.inject.Inject;
 import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.IDs;
 import twitter4j.Relationship;
-import twitter4j.User;
 
 /**
  * ConfigRequestWorker provides to fetch twitter api and to store its data.
@@ -90,79 +88,126 @@ public class ConfigRequestWorker implements RequestWorker {
         });
   }
 
-  public Single<Relationship> observeFetchRelationship(long userId) {
-    return twitterApi.showFriendship(userId)
-        .doOnError(onErrorFeedback(R.string.msg_fetch_relationship_failed));
+  public void fetchRelationship(long userId) {
+    twitterApi.showFriendship(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(r -> {
+              cache.open();
+              cache.upsertRelationship(r);
+              cache.close();
+            },
+            onErrorFeedback(R.string.msg_fetch_relationship_failed));
   }
 
-  public Single<User> observeCreateBlock(long userId) {
-    return twitterApi.createBlock(userId)
+  public void fetchCreateFriendship(long userId) {
+    twitterApi.createFriendship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(addIgnoringUserAction(R.string.msg_create_block_success))
-        .doOnError(onErrorFeedback(R.string.msg_create_block_failed));
+        .subscribe(u -> {
+              cache.open();
+              cache.updateFriendship(userId, true);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_create_friendship_success));
+            },
+            onErrorFeedback(R.string.msg_create_friendship_failed));
   }
 
-  public Single<User> observeDestroyBlock(long userId) {
-    return twitterApi.destroyBlock(userId)
+  public void fetchDestroyFriendship(long userId) {
+    twitterApi.destroyFriendship(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(removeIgnoringUserAction(R.string.msg_create_block_success))
-        .doOnError(onErrorFeedback(R.string.msg_create_block_failed));
+        .subscribe(u -> {
+              cache.open();
+              cache.updateFriendship(userId, false);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_destroy_friendship_success));
+            },
+            onErrorFeedback(R.string.msg_destroy_friendship_failed));
+  }
+
+  public void fetchCreateBlock(long userId) {
+    twitterApi.createBlock(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(u -> {
+              cache.open();
+              cache.updateBlocking(userId, true);
+              cache.addIgnoringUser(u);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_create_block_success));
+            },
+            onErrorFeedback(R.string.msg_create_block_failed));
+
+  }
+
+  public void fetchDestroyBlock(long userId) {
+    twitterApi.destroyBlock(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(u -> {
+              cache.open();
+              cache.updateBlocking(userId, false);
+              cache.removeIgnoringUser(u);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_create_block_success));
+            },
+            onErrorFeedback(R.string.msg_create_block_failed));
   }
 
   public void reportSpam(long userId) {
     twitterApi.reportSpam(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            addIgnoringUserAction(R.string.msg_report_spam_success),
+        .subscribe(user -> {
+              cache.open();
+              cache.addIgnoringUser(user);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_report_spam_success));
+            },
             onErrorFeedback(R.string.msg_report_spam_failed));
   }
 
-  public Single<User> observeCreateMute(long userId) {
-    return twitterApi.createMute(userId)
+  public void fetchCreateMute(long userId) {
+    twitterApi.createMute(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(addIgnoringUserAction(R.string.msg_create_mute_success))
-        .doOnError(onErrorFeedback(R.string.msg_create_mute_failed));
+        .subscribe(u -> {
+              cache.open();
+              cache.updateMuting(userId, true);
+              cache.addIgnoringUser(u);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_create_mute_success));
+            },
+            onErrorFeedback(R.string.msg_create_mute_failed));
   }
 
-  public Single<User> observeDestroyMute(long userId) {
-    return twitterApi.destroyMute(userId)
+  public void fetchDestroyMute(long userId) {
+    twitterApi.destroyMute(userId)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(removeIgnoringUserAction(R.string.msg_destroy_mute_success))
-        .doOnError(onErrorFeedback(R.string.msg_destroy_mute_failed));
+        .subscribe(u -> {
+              cache.open();
+              cache.updateMuting(userId, false);
+              cache.removeIgnoringUser(u);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_destroy_mute_success));
+            },
+            onErrorFeedback(R.string.msg_destroy_mute_failed));
   }
 
-  public Single<Relationship> observeBlockRetweet(Relationship old) {
-    return twitterApi.updateFriendship(old.getTargetUserId(),
-        old.isSourceNotificationsEnabled(), false)
-        .doOnSuccess(r -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_block_retweet_success)))
-        .doOnError(onErrorFeedback(R.string.msg_block_retweet_failed));
+  public void fetchBlockRetweet(Relationship old) {
+    twitterApi.updateFriendship(old.getTargetUserId(), old.isSourceNotificationsEnabled(), false)
+        .subscribe(r -> {
+              cache.open();
+              cache.upsertRelationship(r);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_block_retweet_success));
+            },
+            onErrorFeedback(R.string.msg_block_retweet_failed));
   }
 
-  public Single<Relationship> observeUnblockRetweet(Relationship old) {
-    return twitterApi.updateFriendship(old.getTargetUserId(),
-        old.isSourceNotificationsEnabled(), true)
-        .doOnSuccess(r -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_unblock_retweet_success)))
-        .doOnError(onErrorFeedback(R.string.msg_unblock_retweet_failed));
-  }
-
-  @NonNull
-  private Consumer<User> addIgnoringUserAction(@StringRes int msg) {
-    return user -> {
-      cache.open();
-      cache.addIgnoringUser(user);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
-  }
-
-  @NonNull
-  private Consumer<User> removeIgnoringUserAction(@StringRes int msg) {
-    return user -> {
-      cache.open();
-      cache.removeIgnoringUser(user);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
+  public void fetchUnblockRetweet(Relationship old) {
+    twitterApi.updateFriendship(old.getTargetUserId(), old.isSourceNotificationsEnabled(), true)
+        .subscribe(r -> {
+              cache.open();
+              cache.upsertRelationship(r);
+              cache.close();
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_unblock_retweet_success));
+            },
+            onErrorFeedback(R.string.msg_unblock_retweet_failed));
   }
 
   public void shrink() {

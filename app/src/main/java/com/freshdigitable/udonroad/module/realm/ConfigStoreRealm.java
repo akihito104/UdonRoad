@@ -36,6 +36,7 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
+import twitter4j.Relationship;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.module.realm.CacheUtil.findById;
@@ -213,5 +214,51 @@ public class ConfigStoreRealm implements ConfigStore {
           .findAll()
           .deleteAllFromRealm();
     });
+  }
+
+  @Override
+  public void upsertRelationship(Relationship relationship) {
+    final RelationshipRealm f = findRelationshipById(relationship.getTargetUserId());
+    configStore.executeTransaction(r -> {
+      if (f == null) {
+        r.insertOrUpdate(new RelationshipRealm(relationship));
+      } else {
+        f.merge(relationship);
+      }
+    });
+  }
+
+  private RelationshipRealm findRelationshipById(long targetUserId) {
+    return configStore.where(RelationshipRealm.class)
+        .equalTo("id", targetUserId)
+        .findFirst();
+  }
+
+  @Override
+  public void updateFriendship(long targetUserId, boolean following) {
+    final RelationshipRealm relationship = findRelationshipById(targetUserId);
+    configStore.executeTransaction(r -> relationship.setSourceFollowingTarget(following));
+  }
+
+  @Override
+  public void updateBlocking(long targetUserId, boolean blocking) {
+    final RelationshipRealm relationship = findRelationshipById(targetUserId);
+    configStore.executeTransaction(r -> relationship.setSourceBlockingTarget(blocking));
+  }
+
+  @Override
+  public void updateMuting(long targetUserId, boolean muting) {
+    final RelationshipRealm relationship = findRelationshipById(targetUserId);
+    configStore.executeTransaction(r -> relationship.setSourceMutingTarget(muting));
+  }
+
+  @Override
+  public Observable<Relationship> observeRelationshipById(long targetUserId) {
+    final RealmResults<RelationshipRealm> relationship = configStore.where(RelationshipRealm.class)
+        .equalTo("id", targetUserId)
+        .findAll();
+    return relationship.isEmpty() ?
+        EmptyRealmObjectObservable.create(relationship).cast(Relationship.class)
+        : RealmObjectObservable.create(relationship.first()).cast(Relationship.class);
   }
 }
