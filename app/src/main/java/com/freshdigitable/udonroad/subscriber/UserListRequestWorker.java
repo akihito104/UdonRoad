@@ -29,8 +29,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
+import io.reactivex.Single;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Paging;
 import twitter4j.User;
@@ -70,56 +69,33 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          fetchFollowers(userId, -1);
+          fetchToStore(twitterApi.getFollowersList(userId, -1L), R.string.msg_follower_list_failed);
         }
 
         @Override
         public void fetch(Paging paging) {
-          fetchFollowers(userId, paging.getMaxId());
+          fetchToStore(twitterApi.getFollowersList(userId, paging.getMaxId()), R.string.msg_follower_list_failed);
         }
       };
     } else if (storeType == StoreType.USER_FRIEND) {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          fetchFriends(userId, -1);
+          fetchToStore(twitterApi.getFriendsList(userId, -1L), R.string.msg_friends_list_failed);
         }
 
         @Override
         public void fetch(Paging paging) {
-          fetchFriends(userId, paging.getMaxId());
+          fetchToStore(twitterApi.getFriendsList(userId, paging.getMaxId()), R.string.msg_friends_list_failed);
         }
       };
     }
     throw new IllegalStateException();
   }
 
-  private void fetchFollowers(final long userId, final long cursor) {
-    twitterApi.getFollowersList(userId, cursor)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createUpsertListAction(),
-            onErrorFeedback(R.string.msg_follower_list_failed));
-  }
-
-  private void fetchFriends(long userId, long cursor) {
-    twitterApi.getFriendsList(userId, cursor)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createUpsertListAction(),
-            onErrorFeedback(R.string.msg_friends_list_failed));
-  }
-
-  @NonNull
-  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
-    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
-  }
-
-  @NonNull
-  private Consumer<List<User>> createUpsertListAction() {
-    return entities -> {
-      sortedCache.open(storeName);
-      sortedCache.observeUpsert(entities)
-          .subscribe(sortedCache::close);
-    };
+  private void fetchToStore(Single<? extends List<User>> fetchTask, @StringRes int failureRes) {
+    Util.fetchToStore(fetchTask, sortedCache, storeName,
+        throwable -> userFeedback.onNext(new UserFeedbackEvent(failureRes)));
   }
 
   @Override

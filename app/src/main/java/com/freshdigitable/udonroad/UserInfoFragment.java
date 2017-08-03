@@ -33,18 +33,16 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
+import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserRequestWorker;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import twitter4j.RateLimitStatus;
+import io.reactivex.disposables.CompositeDisposable;
 import twitter4j.Relationship;
 import twitter4j.User;
 
@@ -56,7 +54,7 @@ import twitter4j.User;
 public class UserInfoFragment extends Fragment {
   private static final String LOADINGTAG_USER_INFO_IMAGES = "UserInfoImages";
   private FragmentUserInfoBinding binding;
-  private Disposable subscription;
+  private CompositeDisposable subscription;
 
   @Override
   public void onAttach(Context context) {
@@ -82,11 +80,11 @@ public class UserInfoFragment extends Fragment {
 
   @Inject
   TypedCache<User> userCache;
+  @Inject
+  ConfigStore configStore;
 
   void onEnterAnimationComplete() {
-    configRequestWorker.observeFetchRelationship(getUserId())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(updateRelationship(), e -> {});
+    configRequestWorker.fetchRelationship(getUserId());
   }
 
   @Override
@@ -95,12 +93,17 @@ public class UserInfoFragment extends Fragment {
 
     final long userId = getUserId();
     userCache.open();
+    configStore.open();
     final User user = userCache.find(userId);
     showUserInfo(user);
-    subscription = userCache.observeById(userId)
+    subscription = new CompositeDisposable();
+    subscription.add(userCache.observeById(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(this::showUserInfo,
-            e-> Log.e("UserInfoFragment", "userUpdated: ", e));
+            e -> Log.e("UserInfoFragment", "userUpdated: ", e)));
+    subscription.add(configStore.observeRelationshipById(userId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(this::setRelationship));
   }
 
   @Override
@@ -110,6 +113,7 @@ public class UserInfoFragment extends Fragment {
       subscription.dispose();
     }
     userCache.close();
+    configStore.close();
   }
 
   @Override
@@ -152,8 +156,6 @@ public class UserInfoFragment extends Fragment {
   }
 
   @Inject
-  UserRequestWorker userRequestWorker;
-  @Inject
   ConfigRequestWorker configRequestWorker;
 
   @Override
@@ -161,33 +163,33 @@ public class UserInfoFragment extends Fragment {
     final int itemId = item.getItemId();
     final long userId = getUserId();
     if (itemId == R.id.action_follow) {
-      userRequestWorker.observeCreateFriendship(userId)
-          .subscribe(updateFollowing(true), e -> {});
+      configRequestWorker.fetchCreateFriendship(userId);
     } else if (itemId == R.id.action_unfollow) {
-      userRequestWorker.observeDestroyFriendship(userId)
-          .subscribe(updateFollowing(false), e -> {});
+      configRequestWorker.fetchDestroyFriendship(userId);
     } else if (itemId == R.id.action_block) {
-      configRequestWorker.observeCreateBlock(userId)
-          .subscribe(updateBlocking(true), e -> {});
+      configRequestWorker.fetchCreateBlock(userId);
     } else if (itemId == R.id.action_unblock) {
-      configRequestWorker.observeDestroyBlock(userId)
-          .subscribe(updateBlocking(false), e -> {});
+      configRequestWorker.fetchDestroyBlock(userId);
     } else if (itemId == R.id.action_block_retweet) {
-      configRequestWorker.observeBlockRetweet(relationship)
-          .subscribe(updateRelationship(), e -> {});
+      configRequestWorker.fetchBlockRetweet(relationship);
     } else if (itemId == R.id.action_unblock_retweet) {
-      configRequestWorker.observeUnblockRetweet(relationship)
-          .subscribe(updateRelationship(), e -> {});
+      configRequestWorker.fetchUnblockRetweet(relationship);
     } else if (itemId == R.id.action_mute) {
-      configRequestWorker.observeCreateMute(userId)
-          .subscribe(updateMuting(true), e -> {});
+      configRequestWorker.fetchCreateMute(userId);
     } else if (itemId == R.id.action_unmute) {
-      configRequestWorker.observeDestroyMute(userId)
-          .subscribe(updateMuting(false), e -> {});
+      configRequestWorker.fetchDestroyMute(userId);
     } else if (itemId == R.id.action_r4s) {
       configRequestWorker.reportSpam(userId);
     }
     return false;
+  }
+
+  private Relationship relationship;
+
+  private void setRelationship(Relationship relationship) {
+    this.relationship = relationship;
+    binding.userInfoUserInfoView.bindRelationship(relationship);
+    getActivity().invalidateOptionsMenu();
   }
 
   private void showUserInfo(User user) {
@@ -244,148 +246,5 @@ public class UserInfoFragment extends Fragment {
   private long getUserId() {
     final Bundle arguments = getArguments();
     return arguments.getLong("userId");
-  }
-
-  private RelationshipImpl relationship;
-
-  private void setRelationship(RelationshipImpl relationship) {
-    this.relationship = relationship;
-    notifyRelationshipChanged();
-  }
-
-  private void notifyRelationshipChanged() {
-    binding.userInfoUserInfoView.bindRelationship(relationship);
-    getActivity().invalidateOptionsMenu();
-  }
-
-  @NonNull
-  private Consumer<User> updateFollowing(final boolean following) {
-    return u -> {
-      relationship.setFollowing(following);
-      notifyRelationshipChanged();
-    };
-  }
-
-  @NonNull
-  private Consumer<User> updateBlocking(final boolean blocking) {
-    return u -> {
-      relationship.setBlocking(blocking);
-      notifyRelationshipChanged();
-    };
-  }
-
-  @NonNull
-  private Consumer<User> updateMuting(final boolean muting) {
-    return u -> {
-      relationship.setMuting(muting);
-      notifyRelationshipChanged();
-    };
-  }
-
-  private Consumer<Relationship> updateRelationship() {
-    return relationship1 -> setRelationship(new RelationshipImpl(relationship1));
-  }
-
-  private static class RelationshipImpl implements Relationship {
-    private final Relationship relationship;
-
-    RelationshipImpl(Relationship relationship) {
-      this.relationship = relationship;
-      this.following = relationship.isSourceFollowingTarget();
-      this.blocking = relationship.isSourceBlockingTarget();
-      this.muting = relationship.isSourceMutingTarget();
-    }
-    private boolean blocking;
-
-    @Override
-    public boolean isSourceBlockingTarget() {
-      return blocking;
-    }
-
-    void setBlocking(boolean blocking) {
-      this.blocking = blocking;
-    }
-
-    private boolean muting;
-
-    @Override
-    public boolean isSourceMutingTarget() {
-      return muting;
-    }
-
-    void setMuting(boolean muting) {
-      this.muting = muting;
-    }
-
-    private boolean following;
-
-    @Override
-    public boolean isSourceFollowingTarget() {
-      return following;
-    }
-
-    void setFollowing(boolean following) {
-      this.following = following;
-    }
-
-    @Override
-    public long getSourceUserId() {
-      return relationship.getSourceUserId();
-    }
-
-    @Override
-    public long getTargetUserId() {
-      return relationship.getTargetUserId();
-    }
-
-    @Override
-    public String getSourceUserScreenName() {
-      return relationship.getSourceUserScreenName();
-    }
-
-    @Override
-    public String getTargetUserScreenName() {
-      return relationship.getTargetUserScreenName();
-    }
-
-    @Override
-    public boolean isTargetFollowingSource() {
-      return relationship.isTargetFollowingSource();
-    }
-
-    @Override
-    public boolean isSourceFollowedByTarget() {
-      return relationship.isSourceFollowedByTarget();
-    }
-
-    @Override
-    public boolean isTargetFollowedBySource() {
-      return following;
-    }
-
-    @Override
-    public boolean canSourceDm() {
-      return relationship.canSourceDm();
-    }
-
-    @Override
-    public boolean isSourceNotificationsEnabled() {
-      return relationship.isSourceNotificationsEnabled();
-    }
-
-    @Override
-    public boolean isSourceWantRetweets() {
-      return relationship.isSourceWantRetweets();
-    }
-
-    @Override
-    public RateLimitStatus getRateLimitStatus() {
-      return relationship.getRateLimitStatus();
-    }
-
-    @Override
-    public int getAccessLevel() {
-      return relationship.getAccessLevel();
-    }
   }
 }

@@ -26,7 +26,6 @@ import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -76,35 +75,19 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          subscribeWithCommonTask(twitterApi.getHomeTimeline());
+          fetchToStore(twitterApi.getHomeTimeline());
         }
 
         @Override
         public void fetch(Paging paging) {
-          subscribeWithCommonTask(twitterApi.getHomeTimeline(paging));
+          fetchToStore(twitterApi.getHomeTimeline(paging));
         }
       };
     } else if (storeType == StoreType.USER_HOME) {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          subscribeWithCommonTask(twitterApi.getUserTimeline(id));
-        }
-
-        @Override
-        public void fetch(Paging paging) {
-          if (paging == null) {
-            fetch();
-            return;
-          }
-          subscribeWithCommonTask(twitterApi.getUserTimeline(id, paging));
-        }
-      };
-    } else if (storeType == StoreType.USER_FAV) {
-      return new ListFetchStrategy() {
-        @Override
-        public void fetch() {
-          subscribeWithCommonTask(twitterApi.getFavorites(id));
+          fetchToStore(twitterApi.getUserTimeline(id));
         }
 
         @Override
@@ -112,7 +95,23 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
           if (paging == null) {
             fetch();
           } else {
-            subscribeWithCommonTask(twitterApi.getFavorites(id, paging));
+            fetchToStore(twitterApi.getUserTimeline(id, paging));
+          }
+        }
+      };
+    } else if (storeType == StoreType.USER_FAV) {
+      return new ListFetchStrategy() {
+        @Override
+        public void fetch() {
+          fetchToStore(twitterApi.getFavorites(id));
+        }
+
+        @Override
+        public void fetch(Paging paging) {
+          if (paging == null) {
+            fetch();
+          } else {
+            fetchToStore(twitterApi.getFavorites(id, paging));
           }
         }
       };
@@ -122,12 +121,14 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         public void fetch() {
           twitterApi.fetchConversations(id)
               .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(entity -> {
-                    sortedCache.open(storeName);
-                    sortedCache.observeUpsert(Collections.singletonList(entity))
-                        .subscribe(sortedCache::close);
+              .subscribe(
+                  sortedCache::upsert,
+                  th -> {
+                    onErrorFeedback(R.string.msg_tweet_not_download).accept(th);
+                    sortedCache.close();
                   },
-                  onErrorFeedback(R.string.msg_tweet_not_download));
+                  sortedCache::close,
+                  d -> sortedCache.open(storeName));
         }
 
         @Override
@@ -137,14 +138,9 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
     throw new IllegalStateException();
   }
 
-  private void subscribeWithCommonTask(Single<List<Status>> fetchingTask) {
-    fetchingTask.observeOn(AndroidSchedulers.mainThread())
-        .subscribe(entities -> {
-              sortedCache.open(storeName);
-              sortedCache.observeUpsert(entities)
-                  .subscribe(sortedCache::close);
-            },
-            onErrorFeedback(R.string.msg_tweet_not_download));
+  private void fetchToStore(Single<List<Status>> fetchingTask) {
+    Util.fetchToStore(fetchingTask, sortedCache, storeName,
+        onErrorFeedback(R.string.msg_tweet_not_download));
   }
 
   @NonNull

@@ -139,7 +139,6 @@ public class TweetInputView extends RelativeLayout {
     inputText.getText().clear();
     inReplyToMark.setVisibility(GONE);
     quoteMark.setVisibility(GONE);
-    icon.setImageDrawable(null);
   }
 
   private int shortUrlLength;

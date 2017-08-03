@@ -87,12 +87,13 @@ public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
         order++;
       }
     }
-    return pool.observeUpsert(entities)
-        .doOnComplete(() -> {
+    return Completable.concatArray(
+        pool.observeUpsert(entities),
+        Completable.create(e -> {
           sortedCache.executeTransaction(r -> r.insertOrUpdate(inserts));
           updateCursorList(entities);
-        })
-        .doOnError(e -> {});
+          e.onComplete();
+        }));
   }
 
   private void updateCursorList(Collection<User> users) {

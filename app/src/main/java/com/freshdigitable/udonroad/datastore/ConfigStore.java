@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad.datastore;
 
 import java.util.Collection;
 
+import io.reactivex.Observable;
+import twitter4j.Relationship;
 import twitter4j.User;
 
 /**
@@ -35,4 +37,14 @@ public interface ConfigStore extends TypedCache<StatusReaction> {
   void removeIgnoringUser(User user);
 
   void shrink();
+
+  void upsertRelationship(Relationship friendship);
+
+  void updateFriendship(long targetUserId, boolean following);
+
+  void updateMuting(long targetUserId, boolean muting);
+
+  void updateBlocking(long targetUserId, boolean blocking);
+
+  Observable<Relationship> observeRelationshipById(long targetUserId);
 }

@@ -17,7 +17,14 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+
+import java.util.Collection;
+
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 
 /**
  * Created by akihit on 2017/03/31.
@@ -29,4 +36,18 @@ public interface ListRequestWorker<T> {
   ListFetchStrategy getFetchStrategy(long id);
 
   OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId);
+
+  final class Util {
+    static <T> void fetchToStore(
+        Single<? extends Collection<T>> fetchTask,
+        WritableSortedCache<T> sortedCache, String storeName,
+        Consumer<Throwable> failedFeedback) {
+      fetchTask.observeOn(AndroidSchedulers.mainThread()).subscribe(
+          t -> {
+            sortedCache.open(storeName);
+            sortedCache.observeUpsert(t).subscribe(sortedCache::close);
+          },
+          failedFeedback);
+    }
+  }
 }

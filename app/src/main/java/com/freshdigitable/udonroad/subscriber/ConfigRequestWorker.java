@@ -25,21 +25,19 @@ import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
-import java.util.Set;
 import java.util.TreeSet;
 
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.BiConsumer;
-import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.IDs;
 import twitter4j.Relationship;
-import twitter4j.User;
 
 /**
  * ConfigRequestWorker provides to fetch twitter api and to store its data.
@@ -67,13 +65,11 @@ public class ConfigRequestWorker implements RequestWorker {
   }
 
   public Completable setup() {
-    return Completable.fromSingle(fetchAllIgnoringUsers());
+    return Completable.create(this::storeAllIgnoringUsers);
   }
 
-  private final Consumer<Throwable> onErrorAction = throwable -> Log.e(TAG, "call: ", throwable);
-
-  private Single<? extends Set<Long>> fetchAllIgnoringUsers() {
-    return Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
+  private void storeAllIgnoringUsers(CompletableEmitter emitter) {
+    Observable.concat(twitterApi.getAllMutesIDs(), twitterApi.getAllBlocksIDs())
         .map(IDs::getIDs)
         .collect(TreeSet::new, (BiConsumer<TreeSet<Long>, long[]>) (collector, ids) -> {
           for (long l : ids) {
@@ -81,97 +77,100 @@ public class ConfigRequestWorker implements RequestWorker {
           }
         })
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(u -> {
+        .subscribe(u -> {
           cache.open();
           cache.replaceIgnoringUsers(u);
           cache.close();
-        })
-        .doOnError(onErrorAction);
+          emitter.onComplete();
+        }, th -> {
+          Log.e(TAG, "call: ", th);
+          emitter.onError(th);
+        });
   }
 
-  public Single<Relationship> observeFetchRelationship(long userId) {
-    return twitterApi.showFriendship(userId)
-        .doOnError(onErrorFeedback(R.string.msg_fetch_relationship_failed));
+  public void fetchRelationship(long userId) {
+    fetchToStore(twitterApi.showFriendship(userId),
+        ConfigStore::upsertRelationship,
+        0, R.string.msg_fetch_relationship_failed);
   }
 
-  public Single<User> observeCreateBlock(long userId) {
-    return twitterApi.createBlock(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(addIgnoringUserAction(R.string.msg_create_block_success))
-        .doOnError(onErrorFeedback(R.string.msg_create_block_failed));
+  public void fetchCreateFriendship(long userId) {
+    fetchToStore(twitterApi.createFriendship(userId),
+        (cache, u) -> cache.updateFriendship(userId, true),
+        R.string.msg_create_friendship_success, R.string.msg_create_friendship_failed);
   }
 
-  public Single<User> observeDestroyBlock(long userId) {
-    return twitterApi.destroyBlock(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(removeIgnoringUserAction(R.string.msg_create_block_success))
-        .doOnError(onErrorFeedback(R.string.msg_create_block_failed));
+  public void fetchDestroyFriendship(long userId) {
+    fetchToStore(twitterApi.destroyFriendship(userId),
+        (cache, u) -> cache.updateFriendship(userId, false),
+        R.string.msg_destroy_friendship_success, R.string.msg_destroy_friendship_failed);
+  }
+
+  public void fetchCreateBlock(long userId) {
+    fetchToStore(twitterApi.createBlock(userId),
+        (cache, u) -> {
+          cache.updateBlocking(userId, true);
+          cache.addIgnoringUser(u);
+        },
+        R.string.msg_create_block_success, R.string.msg_create_block_failed);
+
+  }
+
+  public void fetchDestroyBlock(long userId) {
+    fetchToStore(twitterApi.destroyBlock(userId),
+        (cache, u) -> {
+          cache.updateBlocking(userId, false);
+          cache.removeIgnoringUser(u);
+        },
+        R.string.msg_create_block_success, R.string.msg_create_block_failed);
   }
 
   public void reportSpam(long userId) {
-    twitterApi.reportSpam(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            addIgnoringUserAction(R.string.msg_report_spam_success),
-            onErrorFeedback(R.string.msg_report_spam_failed));
+    fetchToStore(twitterApi.reportSpam(userId),
+        ConfigStore::addIgnoringUser,
+        R.string.msg_report_spam_success, R.string.msg_report_spam_failed);
   }
 
-  public Single<User> observeCreateMute(long userId) {
-    return twitterApi.createMute(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(addIgnoringUserAction(R.string.msg_create_mute_success))
-        .doOnError(onErrorFeedback(R.string.msg_create_mute_failed));
+  public void fetchCreateMute(long userId) {
+    fetchToStore(twitterApi.createMute(userId),
+        (cache, u) -> {
+          cache.updateMuting(userId, true);
+          cache.addIgnoringUser(u);
+        },
+        R.string.msg_create_mute_success, R.string.msg_create_mute_failed);
   }
 
-  public Single<User> observeDestroyMute(long userId) {
-    return twitterApi.destroyMute(userId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(removeIgnoringUserAction(R.string.msg_destroy_mute_success))
-        .doOnError(onErrorFeedback(R.string.msg_destroy_mute_failed));
+  public void fetchDestroyMute(long userId) {
+    fetchToStore(twitterApi.destroyMute(userId),
+        (cache, u) -> {
+          cache.updateMuting(userId, false);
+          cache.removeIgnoringUser(u);
+        },
+        R.string.msg_destroy_mute_success, R.string.msg_destroy_mute_failed);
   }
 
-  public Single<Relationship> observeBlockRetweet(Relationship old) {
-    return twitterApi.updateFriendship(old.getTargetUserId(),
-        old.isSourceNotificationsEnabled(), false)
-        .doOnSuccess(r -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_block_retweet_success)))
-        .doOnError(onErrorFeedback(R.string.msg_block_retweet_failed));
+  public void fetchBlockRetweet(Relationship old) {
+    fetchToStore(twitterApi.updateFriendship(old.getTargetUserId(), old.isSourceNotificationsEnabled(), false),
+        ConfigStore::upsertRelationship,
+        R.string.msg_block_retweet_success, R.string.msg_block_retweet_failed);
   }
 
-  public Single<Relationship> observeUnblockRetweet(Relationship old) {
-    return twitterApi.updateFriendship(old.getTargetUserId(),
-        old.isSourceNotificationsEnabled(), true)
-        .doOnSuccess(r -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_unblock_retweet_success)))
-        .doOnError(onErrorFeedback(R.string.msg_unblock_retweet_failed));
+  public void fetchUnblockRetweet(Relationship old) {
+    fetchToStore(twitterApi.updateFriendship(old.getTargetUserId(), old.isSourceNotificationsEnabled(), true),
+        ConfigStore::upsertRelationship,
+        R.string.msg_unblock_retweet_success, R.string.msg_unblock_retweet_failed);
   }
 
-  @NonNull
-  private Consumer<User> addIgnoringUserAction(@StringRes int msg) {
-    return user -> {
-      cache.open();
-      cache.addIgnoringUser(user);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
-  }
-
-  @NonNull
-  private Consumer<User> removeIgnoringUserAction(@StringRes int msg) {
-    return user -> {
-      cache.open();
-      cache.removeIgnoringUser(user);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
+  private <T> void fetchToStore(Single<T> fetchTask, BiConsumer<ConfigStore, T> storeTask,
+                                @StringRes int successRes, @StringRes int failedRes) {
+    Util.fetchToStore(fetchTask, cache, storeTask,
+        successRes > 0 ? t -> userFeedback.onNext(new UserFeedbackEvent(successRes)) : t -> {},
+        throwable -> userFeedback.onNext(new UserFeedbackEvent(failedRes)));
   }
 
   public void shrink() {
     cache.open();
     cache.shrink();
     cache.close();
-  }
-
-  @NonNull
-  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
-    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
   }
 }

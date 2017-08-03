@@ -164,7 +164,18 @@ public class TweetInputFragment extends Fragment {
     super.onStart();
     statusCache.open();
     appSettings.open();
-    binding.mainTweetInputView.getAppendImageButton().setOnClickListener(v -> {
+
+    final TweetInputView inputText = binding.mainTweetInputView;
+    subscription = appSettings.observeCurrentUser().subscribe(authenticatedUser -> {
+      inputText.setUserInfo(authenticatedUser);
+      Picasso.with(inputText.getContext())
+          .load(authenticatedUser.getMiniProfileImageURLHttps())
+          .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+          .tag(LOADINGTAG_TWEET_INPUT_ICON)
+          .into(inputText.getIcon());
+    }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
+
+    inputText.getAppendImageButton().setOnClickListener(v -> {
       final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
@@ -177,7 +188,7 @@ public class TweetInputFragment extends Fragment {
           new Intent[]{cameraIntent});
       startActivityForResult(chooser, 40);
     });
-    binding.mainTweetInputView.addTextWatcher(textWatcher);
+    inputText.addTextWatcher(textWatcher);
     tweetSendFab.setOnClickListener(createSendClickListener());
   }
 
@@ -185,6 +196,10 @@ public class TweetInputFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
+    if (subscription != null && !subscription.isDisposed()) {
+      Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
+      subscription.dispose();
+    }
     appSettings.close();
     statusCache.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
@@ -228,13 +243,28 @@ public class TweetInputFragment extends Fragment {
     if (type == TYPE_NONE) {
       return;
     }
-    if (type == TYPE_DEFAULT) {
-      stretchTweetInputView();
-    } else if (type == TYPE_REPLY) {
-      stretchTweetInputViewWithInReplyTo(statusId);
+    if (type == TYPE_REPLY) {
+      setupReplyEntity(statusId);
     } else if (type == TYPE_QUOTE) {
-      stretchTweetInputViewWithQuoteStatus(statusId);
+      setupQuote(statusId);
     }
+    stretchTweetInputView();
+  }
+
+  private ReplyEntity replyEntity;
+
+  private void setupReplyEntity(long inReplyToStatusId) {
+    final Status inReplyTo = statusCache.find(inReplyToStatusId);
+    if (inReplyTo != null) {
+      replyEntity = ReplyEntity.create(inReplyTo, appSettings.getCurrentUserId());
+      binding.mainTweetInputView.addText(replyEntity.createReplyString());
+      binding.mainTweetInputView.setInReplyTo();
+    }
+  }
+
+  private void setupQuote(long quotedStatus) {
+    quoteStatusIds.add(quotedStatus);
+    binding.mainTweetInputView.setQuote();
   }
 
   private void stretchTweetInputView() {
@@ -244,51 +274,10 @@ public class TweetInputFragment extends Fragment {
     setupMenuVisibility();
   }
 
-  private ReplyEntity replyEntity;
-
-  private void stretchTweetInputViewWithInReplyTo(long inReplyToStatusId) {
-    final Status inReplyTo = statusCache.find(inReplyToStatusId);
-    final TweetInputView inputText = binding.mainTweetInputView;
-    if (inReplyTo == null) {
-      stretchTweetInputView();
-      return;
-    }
-
-    appSettingRequestWorker.getAuthenticatedUser().subscribe(u -> {
-      replyEntity = ReplyEntity.create(inReplyTo, u);
-      inputText.addText(replyEntity.createReplyString());
-      inputText.setInReplyTo();
-      stretchTweetInputView();
-    });
-  }
-
-  private void stretchTweetInputViewWithQuoteStatus(long quotedStatus) {
-    quoteStatusIds.add(quotedStatus);
-    binding.mainTweetInputView.setQuote();
-    stretchTweetInputView();
-  }
-
   private void setUpTweetInputView() {
-    final TweetInputView inputText = binding.mainTweetInputView;
-    subscription = appSettingRequestWorker.getAuthenticatedUser()
-        .subscribe(authenticatedUser -> {
-          inputText.setUserInfo(authenticatedUser);
-          Picasso.with(inputText.getContext())
-              .load(authenticatedUser.getMiniProfileImageURLHttps())
-              .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-              .tag(LOADINGTAG_TWEET_INPUT_ICON)
-              .into(inputText.getIcon());
-        }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
-    inputText.setShortUrlLength(
+    appSettingRequestWorker.verifyCredentials();
+    binding.mainTweetInputView.setShortUrlLength(
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
-  }
-
-  private void tearDownTweetInputView() {
-    if (subscription != null && !subscription.isDisposed()) {
-      Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
-      subscription.dispose();
-    }
-    binding.mainTweetInputView.reset();
   }
 
   private void setUpTweetSendFab() {
@@ -350,7 +339,6 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void collapseStatusInputView() {
-    tearDownTweetInputView();
     reset();
   }
 
@@ -382,27 +370,36 @@ public class TweetInputFragment extends Fragment {
   }
 
   private static class ReplyEntity {
-    long inReplyToStatusId;
-    Set<String> screenNames;
+    final long inReplyToStatusId;
+    final Set<String> screenNames;
 
-    static ReplyEntity create(@NonNull Status status, User from) {
-      final ReplyEntity res = new ReplyEntity();
-      res.inReplyToStatusId = status.getId();
-      res.screenNames = new LinkedHashSet<>();
+    static ReplyEntity create(@NonNull Status status, long fromUserId) {
+      final Set<String> screenNames = new LinkedHashSet<>();
       final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
       for (UserMentionEntity u : userMentionEntities) {
-        res.screenNames.add(u.getScreenName());
+        if (u.getId() != fromUserId) {
+          screenNames.add(u.getScreenName());
+        }
       }
 
       if (status.isRetweet()) {
         final Status retweetedStatus = status.getRetweetedStatus();
-        res.screenNames.add(retweetedStatus.getUser().getScreenName());
+        final User user = retweetedStatus.getUser();
+        if (user.getId() != fromUserId) {
+          screenNames.add(user.getScreenName());
+        }
       }
 
       final User user = status.getUser();
-      res.screenNames.add(user.getScreenName());
-      res.screenNames.remove(from.getScreenName());
-      return res;
+      if (user.getId() != fromUserId) {
+        screenNames.add(user.getScreenName());
+      }
+      return new ReplyEntity(status.getId(), screenNames);
+    }
+
+    private ReplyEntity(long replyToStatusId, Set<String> replyToUsers) {
+      this.inReplyToStatusId = replyToStatusId;
+      this.screenNames = replyToUsers;
     }
 
     String createReplyString() {

@@ -36,9 +36,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Status;
@@ -56,7 +57,7 @@ public class StatusRequestWorker implements RequestWorker {
   private final TwitterApi twitterApi;
   private final TypedCache<Status> cache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
-  private final ConfigStore configStore;
+  private final TypedCache<StatusReaction> configStore;
 
   @Inject
   public StatusRequestWorker(@NonNull TwitterApi twitterApi,
@@ -94,111 +95,97 @@ public class StatusRequestWorker implements RequestWorker {
     };
   }
 
-  public Single<Status> observeCreateFavorite(final long statusId) {
-    return twitterApi.createFavorite(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(createUpsertAction(R.string.msg_fav_create_success))
-        .doOnError(throwable -> {
-          final int msg = findMessageByTwitterExeption(throwable);
-          if (msg == R.string.msg_already_fav) {
-            updateStatusWithReaction(statusId,
-                reaction -> reaction.setFavorited(true));
-          }
-          final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0
-              ? msg : R.string.msg_fav_create_failed);
-          userFeedback.onNext(event);
-        });
+  private Completable observeCreateFavorite(final long statusId) {
+    return Completable.create(e ->
+        Util.fetchToStore(twitterApi.createFavorite(statusId), cache, TypedCache::upsert,
+            t -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_fav_create_success));
+              e.onComplete();
+            },
+            throwable -> {
+              feedbackOnError(statusId, throwable, R.string.msg_fav_create_failed);
+              e.onError(throwable);
+            }));
   }
 
-  public void createFavorite(long statusId) {
-    observeCreateFavorite(statusId).subscribe((s, e) -> {});
+  private void createFavorite(long statusId) {
+    observeCreateFavorite(statusId).subscribe(() -> {}, e -> {});
   }
 
-  public Single<Status> observeRetweetStatus(final long statusId) {
-    return twitterApi.retweetStatus(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(createUpsertAction(R.string.msg_rt_create_success))
-        .doOnError(throwable -> {
-          final int msg = findMessageByTwitterExeption(throwable);
-          if (msg == R.string.msg_already_rt) {
-            updateStatusWithReaction(statusId,
-                reaction -> reaction.setRetweeted(true));
-          }
-          final UserFeedbackEvent event = new UserFeedbackEvent(msg > 0 ?
-              msg : R.string.msg_rt_create_failed);
-          userFeedback.onNext(event);
-        });
+  private Completable observeRetweetStatus(final long statusId) {
+    return Completable.create(e ->
+        Util.fetchToStore(twitterApi.retweetStatus(statusId), cache, TypedCache::upsert,
+            s -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_create_success));
+              e.onComplete();
+            },
+            throwable -> {
+              feedbackOnError(statusId, throwable, R.string.msg_rt_create_failed);
+              e.onError(throwable);
+            }));
   }
 
-  public void retweetStatus(long statusId) {
-    observeRetweetStatus(statusId).subscribe((s, e) -> {});
+  private void retweetStatus(long statusId) {
+    observeRetweetStatus(statusId).subscribe(() -> {}, e -> {});
   }
 
-  public void destroyFavorite(long statusId) {
-    twitterApi.destroyFavorite(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createInsertAction(R.string.msg_fav_delete_success),
-            onErrorFeedback(R.string.msg_fav_delete_failed));
+  private void destroyFavorite(long statusId) {
+    fetchToStore(twitterApi.destroyFavorite(statusId), TypedCache::insert,
+        R.string.msg_fav_delete_success, R.string.msg_fav_delete_failed);
   }
 
-  public void destroyRetweet(long statusId) {
-    twitterApi.destroyStatus(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createInsertAction(R.string.msg_rt_delete_success),
-            onErrorFeedback(R.string.msg_rt_delete_failed));
+  private void destroyRetweet(long statusId) {
+    fetchToStore(twitterApi.destroyStatus(statusId), TypedCache::insert,
+        R.string.msg_rt_delete_success, R.string.msg_rt_delete_failed);
+  }
+
+  private void fetchToStore(Single<Status> fetchTask, BiConsumer<TypedCache<Status>, Status> storeTask,
+                            @StringRes int successRes, @StringRes int failureRes) {
+    Util.fetchToStore(fetchTask, cache, storeTask,
+        s -> userFeedback.onNext(new UserFeedbackEvent(successRes)),
+        throwable -> userFeedback.onNext(new UserFeedbackEvent(failureRes)));
   }
 
   public Single<Status> observeUpdateStatus(String text) {
-    return twitterApi.updateStatus(text)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(createUpsertAction(R.string.msg_updateStatus_success))
-        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed));
+    return observeUpdateStatus(twitterApi.updateStatus(text));
   }
 
   public Single<Status> observeUpdateStatus(StatusUpdate statusUpdate) {
-    return twitterApi.updateStatus(statusUpdate)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(createUpsertAction(R.string.msg_updateStatus_success))
-        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed));
+    return observeUpdateStatus(twitterApi.updateStatus(statusUpdate));
   }
 
   public Single<Status> observeUpdateStatus(Context context, StatusUpdate statusUpdate, List<Uri> media) {
-    return twitterApi.updateStatus(context, statusUpdate, media)
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSuccess(createUpsertAction(R.string.msg_updateStatus_success))
-        .doOnError(onErrorFeedback(R.string.msg_updateStatus_failed))
-        .doOnError(err -> Log.e(TAG, "observeUpdateStatus: ", err));
+    return observeUpdateStatus(twitterApi.updateStatus(context, statusUpdate, media));
   }
 
-  @NonNull
-  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
-    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
+  private Single<Status> observeUpdateStatus(Single<Status> updateStatus) {
+    return Single.create(e ->
+        Util.fetchToStore(updateStatus, cache, TypedCache::upsert,
+            s -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_updateStatus_success));
+              e.onSuccess(s);
+            },
+            throwable -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_updateStatus_failed));
+              e.onError(throwable);
+            }));
   }
 
-  @NonNull
-  private Consumer<Status> createUpsertAction(@StringRes int msg) {
-    return s -> {
-      cache.open();
-      cache.upsert(s);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
-  }
-
-  @NonNull
-  private Consumer<Status> createInsertAction(@StringRes int msg) {
-    return s -> {
-      cache.open();
-      cache.insert(s);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
+  private void feedbackOnError(long statusId, Throwable throwable, @StringRes int defaultId) {
+    final int msg = findMessageByTwitterExeption(throwable, defaultId);
+    if (msg == R.string.msg_already_fav) {
+      updateStatusWithReaction(statusId, reaction -> reaction.setFavorited(true));
+    } else if (msg == R.string.msg_already_rt) {
+      updateStatusWithReaction(statusId, reaction -> reaction.setRetweeted(true));
+    }
+    final UserFeedbackEvent event = new UserFeedbackEvent(msg);
+    userFeedback.onNext(event);
   }
 
   @StringRes
-  private static int findMessageByTwitterExeption(@NonNull Throwable throwable) {
+  private static int findMessageByTwitterExeption(@NonNull Throwable throwable, @StringRes int defaultId) {
     if (!(throwable instanceof TwitterException)) {
-      return 0;
+      return defaultId;
     }
     final TwitterException te = (TwitterException) throwable;
     final int statusCode = te.getStatusCode();
@@ -209,7 +196,7 @@ public class StatusRequestWorker implements RequestWorker {
       return R.string.msg_already_rt;
     }
     Log.d(TAG, "not registered exception: ", throwable);
-    return 0;
+    return defaultId;
   }
 
   private void updateStatusWithReaction(long statusId, Consumer<StatusReaction> action) {

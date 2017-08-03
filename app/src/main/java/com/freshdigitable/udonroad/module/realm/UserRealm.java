@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 import io.realm.Realm;
@@ -373,34 +375,75 @@ public class UserRealm extends RealmObject implements User {
 
   void merge(@NonNull User u, @NonNull Realm realm) {
     if (u.getDescription() != null) { // description is nullable
-      this.description = u.getDescription();
+      if (description == null || !description.equals(u.getDescription())) {
+        this.description = u.getDescription();
+      }
       final URLEntity[] descriptionURLEntities = u.getDescriptionURLEntities();
       if (descriptionURLEntities != null && descriptionURLEntities.length > 0) {
-        this.descriptionURLEntities.clear();
+        for (int i = this.descriptionURLEntities.size() - 1; i >= 0; i--) {
+          final URLEntityRealm old = this.descriptionURLEntities.get(i);
+          final int index = Arrays.binarySearch(descriptionURLEntities, old, (l, r) -> l.getURL().compareTo(r.getURL()));
+          if (index < 0) {
+            this.descriptionURLEntities.remove(old);
+          } else {
+            old.merge(descriptionURLEntities[index]);
+          }
+        }
         for (URLEntity url : descriptionURLEntities) {
-          this.descriptionURLEntities.add(URLEntityRealm.findOrCreateFromRealm(url, realm));
+          final int index = Collections.binarySearch(this.descriptionURLEntities, url, (l, r) -> l.getURL().compareTo(r.getURL()));
+          if (index < 0) {
+            this.descriptionURLEntities.add(URLEntityRealm.findOrCreateFromRealm(url, realm));
+          }
         }
       }
     }
-    this.favoritesCount = u.getFavouritesCount();
-    this.followersCount = u.getFollowersCount();
-    this.friendsCount = u.getFriendsCount();
-    this.miniProfileImageURLHttps = u.getMiniProfileImageURLHttps();
-    this.name = u.getName();
-    this.profileBannerMobileURL = u.getProfileBannerMobileURL();
-    this.profileImageURLHttps = u.getProfileImageURLHttps();
-    this.profileLinkColor = u.getProfileLinkColor();
-    this.screenName = u.getScreenName();
-    this.statusesCount = u.getStatusesCount();
-    this.url = u.getURL();
+    if (favoritesCount != u.getFavouritesCount()) {
+      this.favoritesCount = u.getFavouritesCount();
+    }
+    if (followersCount != u.getFollowersCount()) {
+      this.followersCount = u.getFollowersCount();
+    }
+    if (friendsCount != u.getFriendsCount()) {
+      this.friendsCount = u.getFriendsCount();
+    }
+    if (miniProfileImageURLHttps == null || !miniProfileImageURLHttps.equals(u.getMiniProfileImageURLHttps())) {
+      this.miniProfileImageURLHttps = u.getMiniProfileImageURLHttps();
+    }
+    if (name == null || !name.equals(u.getName())) {
+      this.name = u.getName();
+    }
+    if (profileBannerMobileURL == null || !profileBannerMobileURL.equals(u.getProfileBannerMobileURL())) {
+      this.profileBannerMobileURL = u.getProfileBannerMobileURL();
+    }
+    if (profileImageURLHttps == null || !profileImageURLHttps.equals(u.getProfileImageURLHttps())) {
+      this.profileImageURLHttps = u.getProfileImageURLHttps();
+    }
+    if (profileLinkColor == null || !profileLinkColor.equals(u.getProfileLinkColor())) {
+      this.profileLinkColor = u.getProfileLinkColor();
+    }
+    if (screenName == null || !screenName.equals(u.getScreenName())) {
+      this.screenName = u.getScreenName();
+    }
+    if (statusesCount != u.getStatusesCount()) {
+      this.statusesCount = u.getStatusesCount();
+    }
+    if (url == null || !url.equals(u.getURL())) {
+      this.url = u.getURL();
+    }
     final URLEntity urlEntity = u.getURLEntity();
     if (urlEntity != null
         && isNewUrlEntity(urlEntity)) {
       this.urlEntity = URLEntityRealm.findOrCreateFromRealm(urlEntity, realm);
     }
-    this.location = u.getLocation();
-    this.verified = u.isVerified();
-    this.isProtected = u.isProtected();
+    if (location == null || !location.equals(u.getLocation())) {
+      this.location = u.getLocation();
+    }
+    if (verified != u.isVerified()) {
+      this.verified = u.isVerified();
+    }
+    if (isProtected != u.isProtected()) {
+      this.isProtected = u.isProtected();
+    }
   }
 
   private boolean isNewUrlEntity(@NonNull URLEntity urlEntity) {

@@ -145,4 +145,13 @@ public class URLEntityRealm extends RealmObject implements URLEntity {
         .equalTo("expandedUrl", urlEntity.getURL())
         .findFirst();
   }
+
+  public void merge(URLEntity other) {
+    if (expandedUrl == null || !expandedUrl.equals(other.getExpandedURL())) {
+      expandedUrl = other.getExpandedURL();
+    }
+    if (displayUrl == null || !expandedUrl.equals(other.getDisplayURL())) {
+      displayUrl = other.getDisplayURL();
+    }
+  }
 }

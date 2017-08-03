@@ -38,6 +38,7 @@ import android.widget.ImageView;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -76,6 +77,8 @@ public class MainActivity extends AppCompatActivity
   ConfigRequestWorker configRequestWorker;
   @Inject
   AppSettingRequestWorker appSettingRequestWorker;
+  @Inject
+  AppSettingStore appSetting;
   private TimelineContainerSwitcher timelineContainerSwitcher;
 
   @Override
@@ -104,19 +107,18 @@ public class MainActivity extends AppCompatActivity
 
   private void setupHomeTimeline() {
     tlFragment = TimelineFragment.getInstance(HOME);
-    configRequestWorker.setup().subscribe(() ->
-        getSupportFragmentManager().beginTransaction()
+    configRequestWorker.setup().subscribe(
+        () -> getSupportFragmentManager().beginTransaction()
             .replace(R.id.main_timeline_container, tlFragment)
-            .commit());
+            .commit(),
+        throwable -> Log.e(TAG, "config.setup: ", throwable));
   }
 
   private Disposable subscription;
 
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
-    subscription = appSettingRequestWorker.getAuthenticatedUser()
-        .subscribe(this::setupNavigationDrawerHeader,
-            e -> Log.e(TAG, "setupNavigationDrawer: ", e));
+    appSettingRequestWorker.verifyCredentials();
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
       int itemId = item.getItemId();
       if (itemId == R.id.menu_home) {
@@ -185,6 +187,11 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
+    appSetting.open();
+    subscription = appSetting.observeCurrentUser()
+        .subscribe(this::setupNavigationDrawerHeader,
+            e -> Log.e(TAG, "setupNavigationDrawer: ", e));
+
     setupActionMap();
     timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
       if (isAppeared) {
@@ -198,6 +205,10 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStop() {
     super.onStop();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
+    }
+    appSetting.close();
     timelineContainerSwitcher.setOnMainFragmentSwitchedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
     if (subscription != null && !subscription.isDisposed()) {
