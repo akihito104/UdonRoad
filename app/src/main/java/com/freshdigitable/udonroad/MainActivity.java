@@ -107,10 +107,11 @@ public class MainActivity extends AppCompatActivity
 
   private void setupHomeTimeline() {
     tlFragment = TimelineFragment.getInstance(HOME);
-    configRequestWorker.setup().subscribe(() ->
-        getSupportFragmentManager().beginTransaction()
+    configRequestWorker.setup().subscribe(
+        () -> getSupportFragmentManager().beginTransaction()
             .replace(R.id.main_timeline_container, tlFragment)
-            .commit());
+            .commit(),
+        throwable -> Log.e(TAG, "config.setup: ", throwable));
   }
 
   private Disposable subscription;
