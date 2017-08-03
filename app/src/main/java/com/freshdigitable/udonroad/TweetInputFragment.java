@@ -280,10 +280,6 @@ public class TweetInputFragment extends Fragment {
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
-  private void tearDownTweetInputView() {
-    binding.mainTweetInputView.reset();
-  }
-
   private void setUpTweetSendFab() {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inputText.getText().length() < 1) {
@@ -343,7 +339,6 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void collapseStatusInputView() {
-    tearDownTweetInputView();
     reset();
   }
 

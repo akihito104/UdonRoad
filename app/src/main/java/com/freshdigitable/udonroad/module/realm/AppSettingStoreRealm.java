@@ -85,12 +85,16 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
-    if (authenticatedUser == null) {
-      return;
-    }
+    final UserRealm user = realm.where(UserRealm.class)
+        .equalTo("id", authenticatedUser.getId())
+        .findFirst();
     realm.executeTransaction(r -> {
-      final UserRealm userRealm = new UserRealm(authenticatedUser);
-      r.insertOrUpdate(userRealm);
+      if (user == null) {
+        final UserRealm userRealm = new UserRealm(authenticatedUser);
+        r.insertOrUpdate(userRealm);
+      } else {
+        user.merge(authenticatedUser, r);
+      }
     });
   }
 
