@@ -213,6 +213,9 @@ public class ConfigStoreRealm implements ConfigStore {
           .lessThan("id", deadline.getId())
           .findAll()
           .deleteAllFromRealm();
+      r.where(RelationshipRealm.class)
+          .findAll()
+          .deleteAllFromRealm();
     });
   }
 
@@ -229,9 +232,7 @@ public class ConfigStoreRealm implements ConfigStore {
   }
 
   private RelationshipRealm findRelationshipById(long targetUserId) {
-    return configStore.where(RelationshipRealm.class)
-        .equalTo("id", targetUserId)
-        .findFirst();
+    return findById(configStore, targetUserId, RelationshipRealm.class);
   }
 
   @Override
