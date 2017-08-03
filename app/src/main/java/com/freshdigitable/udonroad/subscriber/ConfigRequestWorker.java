@@ -163,15 +163,8 @@ public class ConfigRequestWorker implements RequestWorker {
 
   private <T> void fetchToStore(Single<T> fetchTask, BiConsumer<ConfigStore, T> storeTask,
                                 @StringRes int successRes, @StringRes int failedRes) {
-    fetchTask.observeOn(AndroidSchedulers.mainThread()).subscribe(
-        t -> {
-          cache.open();
-          storeTask.accept(cache, t);
-          cache.close();
-          if (successRes > 0) {
-            userFeedback.onNext(new UserFeedbackEvent(successRes));
-          }
-        },
+    Util.fetchToStore(fetchTask, cache, storeTask,
+        successRes > 0 ? t -> userFeedback.onNext(new UserFeedbackEvent(successRes)) : t -> {},
         throwable -> userFeedback.onNext(new UserFeedbackEvent(failedRes)));
   }
 

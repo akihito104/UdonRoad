@@ -39,7 +39,7 @@ import javax.inject.Inject;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Status;
@@ -97,16 +97,15 @@ public class StatusRequestWorker implements RequestWorker {
 
   private Completable observeCreateFavorite(final long statusId) {
     return Completable.create(e ->
-        twitterApi.createFavorite(statusId)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(s -> {
-                  createUpsertAction(R.string.msg_fav_create_success).accept(s);
-                  e.onComplete();
-                },
-                throwable -> {
-                  feedbackOnError(statusId, throwable, R.string.msg_fav_create_failed);
-                  e.onError(throwable);
-                }));
+        Util.fetchToStore(twitterApi.createFavorite(statusId), cache, TypedCache::upsert,
+            t -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_fav_create_success));
+              e.onComplete();
+            },
+            throwable -> {
+              feedbackOnError(statusId, throwable, R.string.msg_fav_create_failed);
+              e.onError(throwable);
+            }));
   }
 
   private void createFavorite(long statusId) {
@@ -115,16 +114,15 @@ public class StatusRequestWorker implements RequestWorker {
 
   private Completable observeRetweetStatus(final long statusId) {
     return Completable.create(e ->
-        twitterApi.retweetStatus(statusId)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(s -> {
-                  createUpsertAction(R.string.msg_rt_create_success).accept(s);
-                  e.onComplete();
-                },
-                throwable -> {
-                  feedbackOnError(statusId, throwable, R.string.msg_rt_create_failed);
-                  e.onError(throwable);
-                }));
+        Util.fetchToStore(twitterApi.retweetStatus(statusId), cache, TypedCache::upsert,
+            s -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_create_success));
+              e.onComplete();
+            },
+            throwable -> {
+              feedbackOnError(statusId, throwable, R.string.msg_rt_create_failed);
+              e.onError(throwable);
+            }));
   }
 
   private void retweetStatus(long statusId) {
@@ -132,17 +130,20 @@ public class StatusRequestWorker implements RequestWorker {
   }
 
   private void destroyFavorite(long statusId) {
-    twitterApi.destroyFavorite(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createInsertAction(R.string.msg_fav_delete_success),
-            onErrorFeedback(R.string.msg_fav_delete_failed));
+    fetchToStore(twitterApi.destroyFavorite(statusId), TypedCache::insert,
+        R.string.msg_fav_delete_success, R.string.msg_fav_delete_failed);
   }
 
   private void destroyRetweet(long statusId) {
-    twitterApi.destroyStatus(statusId)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(createInsertAction(R.string.msg_rt_delete_success),
-            onErrorFeedback(R.string.msg_rt_delete_failed));
+    fetchToStore(twitterApi.destroyStatus(statusId), TypedCache::insert,
+        R.string.msg_rt_delete_success, R.string.msg_rt_delete_failed);
+  }
+
+  private void fetchToStore(Single<Status> fetchTask, BiConsumer<TypedCache<Status>, Status> storeTask,
+                            @StringRes int successRes, @StringRes int failureRes) {
+    Util.fetchToStore(fetchTask, cache, storeTask,
+        s -> userFeedback.onNext(new UserFeedbackEvent(successRes)),
+        throwable -> userFeedback.onNext(new UserFeedbackEvent(failureRes)));
   }
 
   public Single<Status> observeUpdateStatus(String text) {
@@ -159,40 +160,15 @@ public class StatusRequestWorker implements RequestWorker {
 
   private Single<Status> observeUpdateStatus(Single<Status> updateStatus) {
     return Single.create(e ->
-        updateStatus.observeOn(AndroidSchedulers.mainThread())
-            .subscribe(s -> {
-                  createUpsertAction(R.string.msg_updateStatus_success).accept(s);
-                  e.onSuccess(s);
-                },
-                throwable -> {
-                  onErrorFeedback(R.string.msg_updateStatus_failed).accept(throwable);
-                  e.onError(throwable);
-                }));
-  }
-
-  @NonNull
-  private Consumer<Throwable> onErrorFeedback(@StringRes final int msg) {
-    return throwable -> userFeedback.onNext(new UserFeedbackEvent(msg));
-  }
-
-  @NonNull
-  private Consumer<Status> createUpsertAction(@StringRes int msg) {
-    return s -> {
-      cache.open();
-      cache.upsert(s);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
-  }
-
-  @NonNull
-  private Consumer<Status> createInsertAction(@StringRes int msg) {
-    return s -> {
-      cache.open();
-      cache.insert(s);
-      cache.close();
-      userFeedback.onNext(new UserFeedbackEvent(msg));
-    };
+        Util.fetchToStore(updateStatus, cache, TypedCache::upsert,
+            s -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_updateStatus_success));
+              e.onSuccess(s);
+            },
+            throwable -> {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_updateStatus_failed));
+              e.onError(throwable);
+            }));
   }
 
   private void feedbackOnError(long statusId, Throwable throwable, @StringRes int defaultId) {

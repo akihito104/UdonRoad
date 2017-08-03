@@ -25,7 +25,6 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import javax.inject.Inject;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import twitter4j.auth.AccessToken;
 
@@ -71,24 +70,15 @@ public class AppSettingRequestWorker implements RequestWorker {
     if (!isAuthenticated()) {
       return;
     }
-    twitterApi.verifyCredentials()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(u -> {
-              appSettings.open();
-              appSettings.addAuthenticatedUser(u);
-              appSettings.close();
-            },
-            onErrorAction);
+    Util.fetchToStore(twitterApi.verifyCredentials(),
+        appSettings, AppSettingStore::addAuthenticatedUser,
+        t -> {}, onErrorAction);
   }
 
   private void fetchTwitterAPIConfig() {
-    twitterApi.getTwitterAPIConfiguration()
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(twitterAPIConfig -> {
-          appSettings.open();
-          appSettings.setTwitterAPIConfig(twitterAPIConfig);
-          appSettings.close();
-        }, onErrorAction);
+    Util.fetchToStore(twitterApi.getTwitterAPIConfiguration(),
+        appSettings, AppSettingStore::setTwitterAPIConfig,
+        t -> {}, onErrorAction);
   }
 
   private final Consumer<Throwable> onErrorAction = throwable -> Log.e(TAG, "call: ", throwable);
