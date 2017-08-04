@@ -27,6 +27,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;
 import com.freshdigitable.udonroad.util.StreamIdlingResource;
 import com.freshdigitable.udonroad.util.StreamIdlingResource.Operation;
@@ -111,33 +112,9 @@ public abstract class TimelineInstTestBase {
 
   @NonNull
   IdlingResource getTimelineIdlingResource(String name, int initResListCount) {
-    return new IdlingResource() {
-      @Override
-      public String getName() {
-        return name;
-      }
-
-      @Override
-      public boolean isIdleNow() {
-        if (getRecyclerView() == null) {
-          return false;
-        }
-        if (getRecyclerView().getAdapter().getItemCount() < initResListCount) {
-          return false;
-        }
-        if (callback != null) {
-          callback.onTransitionToIdle();
-        }
-        return true;
-      }
-
-      private ResourceCallback callback;
-
-      @Override
-      public void registerIdleTransitionCallback(ResourceCallback callback) {
-        this.callback = callback;
-      }
-    };
+    return IdlingResourceUtil.getSimpleIdlingResource(name,
+        () -> getRecyclerView() != null
+            && getRecyclerView().getAdapter().getItemCount() >= initResListCount);
   }
 
 
