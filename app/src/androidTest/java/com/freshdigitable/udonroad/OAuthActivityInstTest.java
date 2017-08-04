@@ -12,6 +12,7 @@ import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
 
@@ -91,24 +92,27 @@ public class OAuthActivityInstTest {
       final Intent fromBrowser = new Intent(Intent.ACTION_VIEW, data);
       fromBrowser.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
       rule.getActivity().startActivity(fromBrowser);
-      Thread.sleep(500);
 
-      try{
-        appSetting.open();
-        assertThat(appSetting.getCurrentUserAccessToken().getToken(), is("valid.token"));
-        assertThat(appSetting.getCurrentUserAccessToken().getTokenSecret(), is("valid.secret"));
-        assertThat(appSetting.getCurrentUserId(), is(100L));
-      } finally {
-        appSetting.close();
-      }
-      intended(hasComponent(MainActivity.class.getName()));
-
+      final IdlingResource idlingResource = IdlingResourceUtil.getSimpleIdlingResource("launchMain",
+          () -> findResumeActivityByClass(MainActivity.class) != null);
       try {
         Espresso.registerIdlingResources(idlingResource);
         onView(withText("Home")).check(matches(isDisplayed()));
       } finally {
         Espresso.unregisterIdlingResources(idlingResource);
       }
+
+      intended(hasComponent(MainActivity.class.getName()));
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+        try {
+          appSetting.open();
+          assertThat(appSetting.getCurrentUserAccessToken().getToken(), is("valid.token"));
+          assertThat(appSetting.getCurrentUserAccessToken().getTokenSecret(), is("valid.secret"));
+          assertThat(appSetting.getCurrentUserId(), is(100L));
+        } finally {
+          appSetting.close();
+        }
+      });
     }
 
     @Before
@@ -138,23 +142,7 @@ public class OAuthActivityInstTest {
       home.addCategory(Intent.CATEGORY_HOME);
       home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       InstrumentationRegistry.getTargetContext().startActivity(home);
-      Thread.sleep(500);
     }
-
-    private final IdlingResource idlingResource = new IdlingResource() {
-      @Override
-      public String getName() {
-        return "launchMain";
-      }
-
-      @Override
-      public boolean isIdleNow() {
-        return findResumeActivityByClass(MainActivity.class) != null;
-      }
-
-      @Override
-      public void registerIdleTransitionCallback(ResourceCallback callback) {}
-    };
   }
 
   static abstract class Base {
