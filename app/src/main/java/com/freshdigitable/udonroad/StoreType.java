@@ -33,7 +33,8 @@ public enum StoreType {
   CONVERSATION("conv"),
   CONFIG("config"),
   APP_SETTINGS("appSettings"),
-  POOL("cache");
+  POOL("cache"),
+  USER_MEDIA("user_media");
 
   public final String storeName;
 
@@ -52,7 +53,7 @@ public enum StoreType {
   }
 
   public boolean isForStatus() {
-    for (StoreType type : Arrays.asList(HOME, USER_HOME, USER_FAV, CONVERSATION)) {
+    for (StoreType type : Arrays.asList(HOME, USER_HOME, USER_FAV, CONVERSATION, USER_MEDIA)) {
       if (this == type) {
         return true;
       }

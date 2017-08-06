@@ -108,16 +108,6 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     return ordered.size();
   }
 
-  @Override
-  public long getLastPageCursor() {
-    final PageCursor cursor = sortedCache.where(PageCursor.class)
-        .equalTo("type", PageCursor.TYPE_NEXT)
-        .findFirst();
-    return cursor != null ?
-        cursor.cursor
-        : -1;
-  }
-
   @NonNull
   @Override
   public Observable<? extends User> observeById(long id) {

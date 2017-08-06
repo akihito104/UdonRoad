@@ -126,10 +126,11 @@ public class DataStoreModule {
 
   @Provides
   ListRequestWorker<Status> provideListRequestWorkerStatus(TwitterApi twitterApi,
+                                                           TypedCache<User> userTypedCache,
                                                            WritableSortedCache<Status> sortedCache,
                                                            PublishProcessor<UserFeedbackEvent> userFeedback,
                                                            StatusRequestWorker requestWorker) {
-    return new StatusListRequestWorker(twitterApi, sortedCache, userFeedback, requestWorker);
+    return new StatusListRequestWorker(twitterApi, userTypedCache, sortedCache, userFeedback, requestWorker);
   }
 
   @Provides

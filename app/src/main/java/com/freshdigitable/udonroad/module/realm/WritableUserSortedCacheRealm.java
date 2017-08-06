@@ -108,6 +108,16 @@ public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
   }
 
   @Override
+  public long getLastPageCursor() {
+    final PageCursor cursor = sortedCache.where(PageCursor.class)
+        .equalTo("type", PageCursor.TYPE_NEXT)
+        .findFirst();
+    return cursor != null ?
+        cursor.cursor
+        : -1;
+  }
+
+  @Override
   public void insert(User entity) {
     upsert(entity);
   }

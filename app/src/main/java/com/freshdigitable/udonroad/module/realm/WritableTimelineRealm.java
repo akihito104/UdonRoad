@@ -28,6 +28,7 @@ import java.util.Collections;
 
 import io.reactivex.Completable;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
@@ -138,6 +139,15 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
         pool.delete(id);
       }
     }, e -> {});
+  }
+
+  @Override
+  public long getLastPageCursor() {
+    final RealmResults<StatusIDs> timeline = sortedCache.where(StatusIDs.class)
+        .findAllSorted(KEY_ID, Sort.DESCENDING);
+    return timeline.size() > 0 ?
+        timeline.last().getId() - 1
+        : -1;
   }
 
   @Override

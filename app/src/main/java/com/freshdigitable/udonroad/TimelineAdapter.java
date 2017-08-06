@@ -66,10 +66,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     holder.bind(item);
 
     if (position == getItemCount() - 1) {
-      final long nextCursor = timelineStore.getLastPageCursor();
-      if (nextCursor > 0) {
-        lastItemBoundListener.onLastItemBound(nextCursor);
-      }
+      lastItemBoundListener.onLastItemBound();
     }
 
     bindSelectedItemView(holder);
@@ -166,7 +163,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public interface LastItemBoundListener {
-    void onLastItemBound(long itemId);
+    void onLastItemBound();
   }
 
   private LastItemBoundListener lastItemBoundListener;

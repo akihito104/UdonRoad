@@ -233,6 +233,12 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
       public String createTitle(User user) {
         return name() + "\n" + user.getFavouritesCount();
       }
+    },
+    MEDIA(StoreType.USER_MEDIA) {
+      @Override
+      public String createTitle(User user) {
+        return name();
+      }
     },;
 
     final StoreType storeType;
@@ -246,11 +252,11 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     }
 
     public boolean isStatus() {
-      return this == TWEET || this == FAV;
+      return storeType.isForStatus();
     }
 
     public boolean isUser() {
-      return this == FOLLOWER || this == FRIEND;
+      return storeType.isForUser();
     }
 
     public abstract String createTitle(User user);

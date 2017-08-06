@@ -48,7 +48,6 @@ import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 import javax.inject.Inject;
 
 import io.reactivex.disposables.Disposable;
-import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -72,6 +71,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   SortedCache<T> sortedCache;
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
+  private ListFetchStrategy fetcher;
 
   @Override
   public void onAttach(Context context) {
@@ -91,6 +91,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
             },
             e -> Log.e(TAG, "updateEvent: ", e));
     requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
+    fetcher = requestWorker.getFetchStrategy(getEntityId());
   }
 
   @Override
@@ -159,7 +160,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       binding.timeline.setItemAnimator(timelineAnimator);
     }
     if (!doneFirstFetch && getUserVisibleHint()) {
-      fetchTweet(null);
+      fetcher.fetch();
       doneFirstFetch = true;
     }
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
@@ -170,8 +171,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   @Override
   public void setUserVisibleHint(boolean isVisibleToUser) {
     super.setUserVisibleHint(isVisibleToUser);
-    if (isVisibleToUser && !doneFirstFetch && requestWorker != null) {
-      fetchTweet(null);
+    if (isVisibleToUser && !doneFirstFetch && fetcher != null) {
+      fetcher.fetch();
       doneFirstFetch = true;
     }
   }
@@ -232,8 +233,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
         }
       });
     }
-    tlAdapter.setLastItemBoundListener(
-        lastPageCursor -> fetchTweet(new Paging(1, 20, 1, lastPageCursor)));
+    tlAdapter.setLastItemBoundListener(() -> fetcher.fetchNext());
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     isAddedUntilStopped();
@@ -420,15 +420,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       return ((OnUserIconClickedListener) activity);
     } else {
       return (view, user) -> { /* nop */ };
-    }
-  }
-
-  private void fetchTweet(@Nullable Paging paging) {
-    final ListFetchStrategy fetcher = requestWorker.getFetchStrategy(getEntityId());
-    if (paging == null) {
-      fetcher.fetch();
-    } else {
-      fetcher.fetch(paging);
     }
   }
 

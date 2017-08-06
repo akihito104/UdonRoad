@@ -22,6 +22,7 @@ import android.support.annotation.StringRes;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
@@ -35,7 +36,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Paging;
+import twitter4j.Query;
+import twitter4j.QueryResult;
 import twitter4j.Status;
+import twitter4j.User;
 
 /**
  * Created by akihit on 2017/03/31.
@@ -46,15 +50,18 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final WritableSortedCache<Status> sortedCache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final StatusRequestWorker requestWorker;
+  private final TypedCache<User> userCache;
   private StoreType storeType;
   private String storeName;
 
   @Inject
   public StatusListRequestWorker(@NonNull TwitterApi twitterApi,
+                                 @NonNull TypedCache<User> userCache,
                                  @NonNull WritableSortedCache<Status> statusStore,
                                  @NonNull PublishProcessor<UserFeedbackEvent> userFeedback,
                                  @NonNull StatusRequestWorker requestWorker) {
     this.twitterApi = twitterApi;
+    this.userCache = userCache;
     this.sortedCache = statusStore;
     this.userFeedback = userFeedback;
     this.requestWorker = requestWorker;
@@ -79,8 +86,8 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         }
 
         @Override
-        public void fetch(Paging paging) {
-          fetchToStore(twitterApi.getHomeTimeline(paging));
+        public void fetchNext() {
+          fetchToStore(twitterApi.getHomeTimeline(getNextPage()));
         }
       };
     } else if (storeType == StoreType.USER_HOME) {
@@ -91,12 +98,8 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         }
 
         @Override
-        public void fetch(Paging paging) {
-          if (paging == null) {
-            fetch();
-          } else {
-            fetchToStore(twitterApi.getUserTimeline(id, paging));
-          }
+        public void fetchNext() {
+          fetchToStore(twitterApi.getUserTimeline(id, getNextPage()));
         }
       };
     } else if (storeType == StoreType.USER_FAV) {
@@ -107,12 +110,8 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         }
 
         @Override
-        public void fetch(Paging paging) {
-          if (paging == null) {
-            fetch();
-          } else {
-            fetchToStore(twitterApi.getFavorites(id, paging));
-          }
+        public void fetchNext() {
+          fetchToStore(twitterApi.getFavorites(id, getNextPage()));
         }
       };
     } else if (storeType == StoreType.CONVERSATION) {
@@ -132,7 +131,27 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         }
 
         @Override
-        public void fetch(Paging paging) {}
+        public void fetchNext() {}
+      };
+    } else if (storeType == StoreType.USER_MEDIA) {
+      userCache.open();
+      final String user = userCache.find(id).getScreenName();
+      userCache.close();
+      return new ListFetchStrategy() {
+        @Override
+        public void fetch() {
+          fetchToStore(twitterApi.fetchSearch(getQuery()).map(QueryResult::getTweets));
+        }
+
+        @Override
+        public void fetchNext() {
+          final Query query = getQuery().maxId(sortedCache.getLastPageCursor());
+          fetchToStore(twitterApi.fetchSearch(query).map(QueryResult::getTweets));
+        }
+
+        private Query getQuery() {
+          return new Query("from:" + user + " filter:media -filter:retweets").count(20);
+        }
       };
     }
     throw new IllegalStateException();
@@ -141,6 +160,11 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private void fetchToStore(Single<List<Status>> fetchingTask) {
     Util.fetchToStore(fetchingTask, sortedCache, storeName,
         onErrorFeedback(R.string.msg_tweet_not_download));
+  }
+
+  private Paging getNextPage() {
+    final long lastPageCursor = sortedCache.getLastPageCursor();
+    return new Paging(1, 20, 1, lastPageCursor);
   }
 
   @NonNull

@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
-import twitter4j.Paging;
-
 /**
  * Created by akihit on 2017/03/30.
  */
@@ -25,5 +23,5 @@ import twitter4j.Paging;
 public interface ListFetchStrategy {
   void fetch();
 
-  void fetch(Paging paging);
+  void fetchNext();
 }
