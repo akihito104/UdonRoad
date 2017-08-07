@@ -28,17 +28,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Single;
-import io.reactivex.SingleOnSubscribe;
 import io.reactivex.schedulers.Schedulers;
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
+import twitter4j.Query;
 import twitter4j.Relationship;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -203,7 +203,7 @@ public class TwitterApi {
   }
 
   public Observable<IDs> getAllBlocksIDs() {
-    return Observable.create((ObservableOnSubscribe<IDs>) subscriber -> {
+    return Observable.<IDs>create(subscriber -> {
       try {
         IDs blocksIDs = twitter.getBlocksIDs(-1);
         while (blocksIDs != null) {
@@ -221,7 +221,7 @@ public class TwitterApi {
   }
 
   public Observable<IDs> getAllMutesIDs() {
-    return Observable.create((ObservableOnSubscribe<IDs>) subscriber -> {
+    return Observable.<IDs>create(subscriber -> {
       try {
         IDs mutesIDs = twitter.getMutesIDs(-1);
         while (mutesIDs != null) {
@@ -239,7 +239,7 @@ public class TwitterApi {
   }
 
   public Observable<Status> fetchConversations(long statusId) {
-    return Observable.create((ObservableOnSubscribe<Status>) subscriber -> {
+    return Observable.<Status>create(subscriber -> {
       try {
         Status status = twitter.showStatus(statusId);
         while (status != null) {
@@ -265,12 +265,12 @@ public class TwitterApi {
     });
   }
 
-  interface ThrowableFetch<T> {
-    T call() throws Exception;
+  public Single<List<Status>> fetchSearch(Query query) {
+    return observeThrowableFetch(() -> twitter.search(query)).map(QueryResultList::new);
   }
 
-  private static <T> Single<T> observeThrowableFetch(final ThrowableFetch<T> fetch) {
-    return Single.create((SingleOnSubscribe<T>) subscriber -> {
+  private static <T> Single<T> observeThrowableFetch(final Callable<T> fetch) {
+    return Single.<T>create(subscriber -> {
       try {
         final T ret = fetch.call();
         subscriber.onSuccess(ret);

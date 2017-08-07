@@ -31,7 +31,6 @@ import javax.inject.Inject;
 
 import io.reactivex.Single;
 import io.reactivex.processors.PublishProcessor;
-import twitter4j.Paging;
 import twitter4j.User;
 
 /**
@@ -73,8 +72,13 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
         }
 
         @Override
-        public void fetch(Paging paging) {
-          fetchToStore(twitterApi.getFollowersList(userId, paging.getMaxId()), R.string.msg_follower_list_failed);
+        public void fetchNext() {
+          if (!sortedCache.hasNextPage()) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
+            return;
+          }
+          final long lastPageCursor = sortedCache.getLastPageCursor();
+          fetchToStore(twitterApi.getFollowersList(userId, lastPageCursor), R.string.msg_follower_list_failed);
         }
       };
     } else if (storeType == StoreType.USER_FRIEND) {
@@ -85,8 +89,13 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
         }
 
         @Override
-        public void fetch(Paging paging) {
-          fetchToStore(twitterApi.getFriendsList(userId, paging.getMaxId()), R.string.msg_friends_list_failed);
+        public void fetchNext() {
+          if (!sortedCache.hasNextPage()) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
+            return;
+          }
+          final long lastPageCursor = sortedCache.getLastPageCursor();
+          fetchToStore(twitterApi.getFriendsList(userId, lastPageCursor), R.string.msg_friends_list_failed);
         }
       };
     }

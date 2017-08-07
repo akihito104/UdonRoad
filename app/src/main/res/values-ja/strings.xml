@@ -91,4 +91,5 @@
     <string name="desc_swipe_to_left">左へスワイプ</string>
     <string name="desc_swipe_to_right">右へスワイプ</string>
     <string name="desc_swipe_to_top">上へスワイプ</string>
+    <string name="msg_no_next_page">最後まで読みました</string>
 </resources>

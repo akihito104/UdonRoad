@@ -145,15 +145,6 @@ public class TimelineStoreRealm implements SortedCache<Status> {
     itemCount = count;
   }
 
-  @Override
-  public long getLastPageCursor() {
-    if (timeline.size() < 1) {
-      return -1;
-    }
-    final StatusIDs lastStatus = timeline.last();
-    return lastStatus.getId() - 1;
-  }
-
   @NonNull
   @Override
   public Observable<? extends Status> observeById(long statusId) {

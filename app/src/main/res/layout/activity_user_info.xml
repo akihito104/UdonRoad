@@ -71,6 +71,7 @@
                 android:layout_width="match_parent"
                 app:tabTextColor="@color/text_secondary_inverse"
                 app:tabSelectedTextColor="@color/text_primary_inverse"
+                app:tabMode="scrollable"
                 />
 
         </android.support.design.widget.AppBarLayout>

@@ -35,8 +35,6 @@ public interface SortedCache<T> extends NamingBaseCache {
 
   int getItemCount();
 
-  long getLastPageCursor();
-
   int getPositionById(long id);
 
   @NonNull
