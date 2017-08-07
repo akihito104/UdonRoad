@@ -153,7 +153,9 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         }
 
         private Query getQuery() {
-          return new Query("from:" + user + " filter:media").count(20).resultType(Query.RECENT);
+          return new Query("from:" + user + " filter:media exclude:retweets")
+              .count(20)
+              .resultType(Query.RECENT);
         }
       };
     }
