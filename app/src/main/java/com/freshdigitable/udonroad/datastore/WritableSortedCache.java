@@ -22,4 +22,6 @@ package com.freshdigitable.udonroad.datastore;
 
 public interface WritableSortedCache<T> extends WritableCache<T>, ObservableWriteOperation<T>, NamingBaseCache {
   long getLastPageCursor();
+
+  boolean hasNextPage();
 }

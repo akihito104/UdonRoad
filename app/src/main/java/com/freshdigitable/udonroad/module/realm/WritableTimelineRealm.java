@@ -21,6 +21,7 @@ import android.util.Log;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
+import com.freshdigitable.udonroad.module.twitter.QueryResultList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,9 +105,22 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
         pool.observeUpsert(targets),
         Completable.create(e -> {
           sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs));
+          updatePageCursor(statuses);
           e.onComplete();
         }))
         .doOnError(throwable -> Log.e(TAG, "upsert: ", throwable));
+  }
+
+  private void updatePageCursor(Collection<Status> statuses) {
+    if (!(statuses instanceof QueryResultList)) {
+      return;
+    }
+    final QueryResultList queryResult = (QueryResultList) statuses;
+    final long cursor = queryResult.hasNext() ? queryResult.nextQuery().getMaxId() : -1;
+    sortedCache.executeTransaction(r -> {
+      final PageCursor nextCursor = new PageCursor(PageCursor.TYPE_NEXT, cursor);
+      r.insertOrUpdate(nextCursor);
+    });
   }
 
   @Override
@@ -142,12 +156,28 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
   }
 
   @Override
+  public boolean hasNextPage() {
+    final PageCursor nextPageCursor = getNextPageCursor();
+    return nextPageCursor != null && nextPageCursor.cursor > 0;
+  }
+
+  @Override
   public long getLastPageCursor() {
+    final PageCursor nextPage = getNextPageCursor();
+    if (nextPage != null) {
+      return nextPage.cursor;
+    }
     final RealmResults<StatusIDs> timeline = sortedCache.where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
     return timeline.size() > 0 ?
         timeline.last().getId() - 1
         : -1;
+  }
+
+  private PageCursor getNextPageCursor() {
+    return sortedCache.where(PageCursor.class)
+          .equalTo("type", PageCursor.TYPE_NEXT)
+          .findFirst();
   }
 
   @Override

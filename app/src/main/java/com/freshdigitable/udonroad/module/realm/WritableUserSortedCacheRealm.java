@@ -108,13 +108,23 @@ public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
   }
 
   @Override
+  public boolean hasNextPage() {
+    final PageCursor nextPageCursor = getNextPageCursor();
+    return nextPageCursor != null && nextPageCursor.cursor > 0;
+  }
+
+  @Override
   public long getLastPageCursor() {
-    final PageCursor cursor = sortedCache.where(PageCursor.class)
-        .equalTo("type", PageCursor.TYPE_NEXT)
-        .findFirst();
+    final PageCursor cursor = getNextPageCursor();
     return cursor != null ?
         cursor.cursor
         : -1;
+  }
+
+  private PageCursor getNextPageCursor() {
+    return sortedCache.where(PageCursor.class)
+          .equalTo("type", PageCursor.TYPE_NEXT)
+          .findFirst();
   }
 
   @Override

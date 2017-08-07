@@ -39,7 +39,6 @@ import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.Query;
-import twitter4j.QueryResult;
 import twitter4j.Relationship;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -266,8 +265,8 @@ public class TwitterApi {
     });
   }
 
-  public Single<QueryResult> fetchSearch(Query query) {
-    return observeThrowableFetch(() -> twitter.search(query));
+  public Single<List<Status>> fetchSearch(Query query) {
+    return observeThrowableFetch(() -> twitter.search(query)).map(QueryResultList::new);
   }
 
   private static <T> Single<T> observeThrowableFetch(final Callable<T> fetch) {

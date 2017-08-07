@@ -37,7 +37,6 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Paging;
 import twitter4j.Query;
-import twitter4j.QueryResult;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -140,17 +139,21 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
       return new ListFetchStrategy() {
         @Override
         public void fetch() {
-          fetchToStore(twitterApi.fetchSearch(getQuery()).map(QueryResult::getTweets));
+          fetchToStore(twitterApi.fetchSearch(getQuery()));
         }
 
         @Override
         public void fetchNext() {
+          if (!sortedCache.hasNextPage()) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
+            return;
+          }
           final Query query = getQuery().maxId(sortedCache.getLastPageCursor());
-          fetchToStore(twitterApi.fetchSearch(query).map(QueryResult::getTweets));
+          fetchToStore(twitterApi.fetchSearch(query));
         }
 
         private Query getQuery() {
-          return new Query("from:" + user + " filter:media -filter:retweets").count(20);
+          return new Query("from:" + user + " filter:media").count(20).resultType(Query.RECENT);
         }
       };
     }

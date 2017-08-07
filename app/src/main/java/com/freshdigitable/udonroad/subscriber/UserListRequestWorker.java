@@ -73,6 +73,10 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
 
         @Override
         public void fetchNext() {
+          if (!sortedCache.hasNextPage()) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
+            return;
+          }
           final long lastPageCursor = sortedCache.getLastPageCursor();
           fetchToStore(twitterApi.getFollowersList(userId, lastPageCursor), R.string.msg_follower_list_failed);
         }
