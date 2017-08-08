@@ -62,6 +62,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   private RealmList<URLEntityRealm> urlEntities;
   private RealmList<MediaEntityRealm> mediaEntities;
   private RealmList<UserMentionEntityRealm> userMentionEntities;
+  private RealmList<HashtagEntityRealm> hashtagEntities;
   @Ignore
   private Status quotedStatus;
   private long quotedStatusId;
@@ -101,6 +102,11 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     this.userMentionEntities = new RealmList<>();
     for (UserMentionEntity u : userMentionEntities) {
       this.userMentionEntities.add(new UserMentionEntityRealm(u));
+    }
+    final HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+    this.hashtagEntities = new RealmList<>();
+    for (HashtagEntity hashtagEntity : hashtagEntities) {
+      this.hashtagEntities.add(new HashtagEntityRealm(hashtagEntity));
     }
 
     this.quotedStatus = status.getQuotedStatus();
@@ -192,6 +198,10 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
 
   public MediaEntity[] getMediaEntities() {
     return mediaEntities.toArray(new MediaEntity[mediaEntities.size()]);
+  }
+
+  public HashtagEntity[] getHashtagEntities() {
+    return hashtagEntities.toArray(new HashtagEntity[hashtagEntities.size()]);
   }
 
   @Override
@@ -296,10 +306,6 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   }
 
   public Place getPlace() {
-    throw new RuntimeException(NOT_IMPLEMENT_YET);
-  }
-
-  public HashtagEntity[] getHashtagEntities() {
     throw new RuntimeException(NOT_IMPLEMENT_YET);
   }
 

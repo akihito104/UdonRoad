@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 
 import com.freshdigitable.udonroad.R;
@@ -50,7 +49,6 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private final StatusRequestWorker requestWorker;
   private final TypedCache<User> userCache;
-  private StoreType storeType;
   private String storeName;
 
   @Inject
@@ -67,16 +65,9 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   }
 
   @Override
-  public void setStoreName(@NonNull StoreType type, @Nullable String suffix) {
-    if (!type.isForStatus()) {
-      throw new IllegalArgumentException();
-    }
-    this.storeType = type;
-    this.storeName = type.nameWithSuffix(suffix);
-  }
+  public ListFetchStrategy getFetchStrategy(StoreType storeType, long id, String query) {
+    this.storeName = storeType.nameWithSuffix(id, query);
 
-  @Override
-  public ListFetchStrategy getFetchStrategy(final long id) {
     if (storeType == StoreType.HOME) {
       return new ListFetchStrategy() {
         @Override
@@ -154,6 +145,29 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
 
         private Query getQuery() {
           return new Query("from:" + user + " filter:media exclude:retweets")
+              .count(20)
+              .resultType(Query.RECENT);
+        }
+      };
+    } else if (storeType == StoreType.SEARCH) {
+      return new ListFetchStrategy() {
+        @Override
+        public void fetch() {
+          fetchToStore(twitterApi.fetchSearch(getQuery()));
+        }
+
+        @Override
+        public void fetchNext() {
+          if (!sortedCache.hasNextPage()) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
+            return;
+          }
+          final Query q = getQuery().maxId(sortedCache.getLastPageCursor());
+          fetchToStore(twitterApi.fetchSearch(q));
+        }
+
+        private Query getQuery() {
+          return new Query(query + " exclude:retweets")
               .count(20)
               .resultType(Query.RECENT);
         }

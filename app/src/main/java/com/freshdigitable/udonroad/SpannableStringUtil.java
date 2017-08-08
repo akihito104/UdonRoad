@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
@@ -56,6 +57,7 @@ public class SpannableStringUtil {
     List<SpanningInfo> info = new ArrayList<>();
     info.addAll(createURLSpanningInfo(bindingStatus));
     info.addAll(createUserSpanningInfo(bindingStatus));
+    info.addAll(createHashtagSpanningInfo(bindingStatus));
     for (int i = info.size() - 1; i >= 0; i--) {
       final SpanningInfo spanningInfo = info.get(i);
       for (int j = 0; j < i; j++) {
@@ -133,6 +135,26 @@ public class SpannableStringUtil {
       }, start, end, null));
     }
     return info;
+  }
+
+  private static List<SpanningInfo> createHashtagSpanningInfo(Status bindingStatus) {
+    final String text = bindingStatus.getText();
+    final HashtagEntity[] hashtagEntities = bindingStatus.getHashtagEntities();
+    final ArrayList<SpanningInfo> res = new ArrayList<>();
+    for (HashtagEntity hashtagEntity : hashtagEntities) {
+      final int start = text.indexOf("#" + hashtagEntity.getText());
+      final int end = start + hashtagEntity.getText().length() + 1;
+      if (isInvalidRange(text, start, end)) {
+        continue;
+      }
+      res.add(new SpanningInfo(new ClickableSpan() {
+        @Override
+        public void onClick(View view) {
+          SearchActivity.start(view.getContext(), "#" + hashtagEntity.getText());
+        }
+      }, start, end, null));
+    }
+    return res;
   }
 
   private static boolean isInvalidRange(String text, int start, int end) {

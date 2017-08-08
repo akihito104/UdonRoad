@@ -21,6 +21,7 @@ import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.animation.Animation;
@@ -59,7 +60,7 @@ class TimelineContainerSwitcher {
     ffab.transToFAB(View.INVISIBLE);
     final TimelineFragment<?> conversationFragment
         = TimelineFragment.getInstance(CONVERSATION, statusId);
-    final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
+    final String name = StoreType.CONVERSATION.nameWithSuffix(statusId, "");
     replaceTimelineContainer(name, conversationFragment);
     setDetailIsEnabled(true);
   }
@@ -67,6 +68,7 @@ class TimelineContainerSwitcher {
   private void replaceTimelineContainer(String name, Fragment fragment) {
     final FragmentManager fm = getSupportFragmentManager();
     final Fragment current = fm.findFragmentById(containerId);
+    Log.d("TLContainerSwitcher", "replaceTimelineContainer: " + current.getTag());
     final String tag;
     if (current == mainFragment) {
       tag = "main";

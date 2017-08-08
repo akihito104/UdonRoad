@@ -90,8 +90,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
               }
             },
             e -> Log.e(TAG, "updateEvent: ", e));
-    requestWorker.setStoreName(getStoreType(), getEntityId() > 0 ? Long.toString(getEntityId()) : null);
-    fetcher = requestWorker.getFetchStrategy(getEntityId());
+    fetcher = requestWorker.getFetchStrategy(getStoreType(), getEntityId(), getQuery());
   }
 
   @Override
@@ -425,13 +424,15 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   private static final String ARGS_STORE_NAME = "store_name";
   private static final String ARGS_ENTITY_ID = "entity_id";
+  private static final String ARGS_QUERY = "query";
 
-  private static Bundle createArgs(StoreType storeType, long entityId) {
+  private static Bundle createArgs(StoreType storeType, long entityId, String query) {
     final Bundle args = new Bundle();
     args.putSerializable(ARGS_STORE_NAME, storeType);
     if (entityId > 0) {
       args.putLong(ARGS_ENTITY_ID, entityId);
     }
+    args.putString(ARGS_QUERY, query);
     return args;
   }
 
@@ -448,13 +449,23 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     } else {
       throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
     }
-    final Bundle args = TimelineFragment.createArgs(storeType, entityId);
+    final Bundle args = TimelineFragment.createArgs(storeType, entityId, "");
+    fragment.setArguments(args);
+    return fragment;
+  }
+
+  public static TimelineFragment<Status> getInstance(StoreType storeType, String query) {
+    if (!storeType.isForStatus()) {
+      throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
+    }
+    final StatusListFragment fragment = new StatusListFragment();
+    final Bundle args = TimelineFragment.createArgs(storeType, -1, query);
     fragment.setArguments(args);
     return fragment;
   }
 
   private String getStoreName() {
-    return getStoreType().nameWithSuffix(getEntityId() > 0 ? Long.toString(getEntityId()) : null);
+    return getStoreType().nameWithSuffix(getEntityId(), getQuery());
   }
 
   private StoreType getStoreType() {
@@ -463,6 +474,10 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   private long getEntityId() {
     return getArguments().getLong(ARGS_ENTITY_ID, -1);
+  }
+
+  private String getQuery() {
+    return getArguments().getString(ARGS_QUERY, "");
   }
 
   public static class StatusListFragment extends TimelineFragment<Status> {
