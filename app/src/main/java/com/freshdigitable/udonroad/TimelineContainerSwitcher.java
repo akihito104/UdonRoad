@@ -167,7 +167,7 @@ class TimelineContainerSwitcher {
     if (current instanceof TimelineFragment) {
       return ((TimelineFragment) current).getSelectedTweetId();
     } else if (current instanceof StatusDetailFragment) {
-      ((StatusDetailFragment) current).getStatusId();
+      return ((StatusDetailFragment) current).getStatusId();
     }
     throw new IllegalStateException("unknown fragment is shown now...");
   }

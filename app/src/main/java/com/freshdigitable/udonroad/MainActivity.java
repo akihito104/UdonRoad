@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity
     timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
       if (isAppeared) {
         tlFragment.startScroll();
+        binding.mainToolbar.setTitle("Home");
       } else {
         tlFragment.stopScroll();
       }
