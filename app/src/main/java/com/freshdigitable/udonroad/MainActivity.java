@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
-      final long selectedTweetId = tlFragment.getSelectedTweetId();
+      final long selectedTweetId = timelineContainerSwitcher.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_detail) {
         timelineContainerSwitcher.showStatusDetail(selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_reply) {

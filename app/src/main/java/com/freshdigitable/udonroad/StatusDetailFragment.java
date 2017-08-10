@@ -305,7 +305,7 @@ public class StatusDetailFragment extends Fragment {
     return super.onCreateAnimation(transit, enter, nextAnim);
   }
 
-  private long getStatusId() {
+  long getStatusId() {
     return (long) getArguments().get("statusId");
   }
 

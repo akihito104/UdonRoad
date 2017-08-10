@@ -161,6 +161,17 @@ class TimelineContainerSwitcher {
     return mainFragment.getActivity().getSupportFragmentManager();
   }
 
+  long getSelectedTweetId() {
+    final FragmentManager fm = getSupportFragmentManager();
+    final Fragment current = fm.findFragmentById(containerId);
+    if (current instanceof TimelineFragment) {
+      return ((TimelineFragment) current).getSelectedTweetId();
+    } else if (current instanceof StatusDetailFragment) {
+      ((StatusDetailFragment) current).getStatusId();
+    }
+    throw new IllegalStateException("unknown fragment is shown now...");
+  }
+
   interface OnMainFragmentSwitchedListener {
     void onMainFragmentSwitched(boolean isAppeared);
   }

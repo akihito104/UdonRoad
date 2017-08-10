@@ -135,11 +135,14 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
 
         @Override
         public void fetchNext() {
+          sortedCache.open(storeName);
           if (!sortedCache.hasNextPage()) {
             userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
+            sortedCache.close();
             return;
           }
           final Query query = getQuery().maxId(sortedCache.getLastPageCursor());
+          sortedCache.close();
           fetchToStore(twitterApi.fetchSearch(query));
         }
 
@@ -158,11 +161,14 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
 
         @Override
         public void fetchNext() {
+          sortedCache.open(storeName);
           if (!sortedCache.hasNextPage()) {
             userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
+            sortedCache.close();
             return;
           }
           final Query q = getQuery().maxId(sortedCache.getLastPageCursor());
+          sortedCache.close();
           fetchToStore(twitterApi.fetchSearch(q));
         }
 
@@ -182,7 +188,9 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
   }
 
   private Paging getNextPage() {
+    sortedCache.open(storeName);
     final long lastPageCursor = sortedCache.getLastPageCursor();
+    sortedCache.close();
     return new Paging(1, 20, 1, lastPageCursor);
   }
 

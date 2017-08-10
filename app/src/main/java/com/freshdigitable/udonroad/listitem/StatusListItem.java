@@ -30,6 +30,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -56,7 +58,7 @@ public class StatusListItem implements TwitterListItem {
     this(item, TextType.DEFAULT, TimeTextType.RELATIVE);
   }
 
-  public StatusListItem(Status item, TextType textType) {
+  private StatusListItem(Status item, TextType textType) {
     this(item, textType, TimeTextType.RELATIVE);
   }
 
@@ -138,19 +140,20 @@ public class StatusListItem implements TwitterListItem {
     }
 
     final UserMentionEntity[] userMentionEntities = bindingStatus.getUserMentionEntities();
-    for (UserMentionEntity mentionEntity : userMentionEntities) {
-      final String mention = "@" + mentionEntity.getScreenName();
-      final int start = text.indexOf(mention);
-      final int end = start + mention.length();
-      res.add(new SpanItem(SpanItem.TYPE_MENTION, start, end, mentionEntity.getId()));
+    for (UserMentionEntity mention : userMentionEntities) {
+      final Matcher matcher = Pattern.compile("[@＠]" + mention.getScreenName()).matcher(text);
+      while (matcher.find()) {
+        res.add(new SpanItem(SpanItem.TYPE_MENTION, matcher.start(), matcher.end(), mention.getId()));
+      }
     }
 
     final HashtagEntity[] hashtagEntities = bindingStatus.getHashtagEntities();
     for (HashtagEntity hashtagEntity : hashtagEntities) {
       final String hashtag = "#" + hashtagEntity.getText();
-      final int start = text.indexOf(hashtag);
-      final int end = start + hashtag.length();
-      res.add(new SpanItem(SpanItem.TYPE_HASHTAG, start, end, hashtag));
+      final Matcher matcher = Pattern.compile("[#＃]" + hashtagEntity.getText()).matcher(text);
+      while (matcher.find()) {
+        res.add(new SpanItem(SpanItem.TYPE_HASHTAG, matcher.start(), matcher.end(), hashtag));
+      }
     }
     return res;
   }
