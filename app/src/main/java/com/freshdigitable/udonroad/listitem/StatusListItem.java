@@ -25,15 +25,18 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.SpannableStringUtil;
 import com.freshdigitable.udonroad.Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 import twitter4j.util.TimeSpanConverter;
 
 /**
@@ -118,6 +121,38 @@ public class StatusListItem implements TwitterListItem {
       }
       return text;
     }
+  }
+
+  public List<SpannableStringUtil.SpanItem> createSpanItems() {
+    final String text = textType.getText(bindingStatus).toString();
+    final ArrayList<SpannableStringUtil.SpanItem> res = new ArrayList<>();
+
+    final URLEntity[] urlEntities = bindingStatus.getURLEntities();
+    for (URLEntity urlEntity : urlEntities) {
+      final int start = text.indexOf(urlEntity.getDisplayURL());
+      if (start < 0) {
+        continue;
+      }
+      final int end = start + urlEntity.getDisplayURL().length();
+      res.add(new SpannableStringUtil.SpanItem(SpannableStringUtil.SpanItem.TYPE_URL, start, end, urlEntity.getExpandedURL()));
+    }
+
+    final UserMentionEntity[] userMentionEntities = bindingStatus.getUserMentionEntities();
+    for (UserMentionEntity mentionEntity : userMentionEntities) {
+      final String mention = "@" + mentionEntity.getScreenName();
+      final int start = text.indexOf(mention);
+      final int end = start + mention.length();
+      res.add(new SpannableStringUtil.SpanItem(SpannableStringUtil.SpanItem.TYPE_MENTION, start, end, mentionEntity.getId()));
+    }
+
+    final HashtagEntity[] hashtagEntities = bindingStatus.getHashtagEntities();
+    for (HashtagEntity hashtagEntity : hashtagEntities) {
+      final String hashtag = "#" + hashtagEntity.getText();
+      final int start = text.indexOf(hashtag);
+      final int end = start + hashtag.length();
+      res.add(new SpannableStringUtil.SpanItem(SpannableStringUtil.SpanItem.TYPE_HASHTAG, start, end, hashtag));
+    }
+    return res;
   }
 
   @Override

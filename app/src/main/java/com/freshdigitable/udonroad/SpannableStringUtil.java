@@ -202,4 +202,54 @@ public class SpannableStringUtil {
       return displayingText != null;
     }
   }
+
+  public interface OnSpanClickListener{
+    void onClicked(View v, SpanItem item);
+  }
+
+  public static class SpanItem {
+    public static final int TYPE_URL = 0;
+    public static final int TYPE_MENTION = 1;
+    public static final int TYPE_HASHTAG = 2;
+
+    private int type;
+    private int start, end;
+
+    private long idForQuery;
+    private String query;
+
+    public SpanItem(int type, int start, int end, String query) {
+      this.type = type;
+      this.start = start;
+      this.end = end;
+      this.query = query;
+    }
+
+    public SpanItem(int type, int start, int end, long id) {
+      this.type = type;
+      this.start = start;
+      this.end = end;
+      this.idForQuery = id;
+    }
+
+    public int getType() {
+      return type;
+    }
+
+    public String getQuery() {
+      return query;
+    }
+
+    public long getId() {
+      return idForQuery;
+    }
+
+    public int getStart() {
+      return start;
+    }
+
+    public int getEnd() {
+      return end;
+    }
+  }
 }

@@ -29,7 +29,10 @@ import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
+import twitter4j.Status;
+
 import static com.freshdigitable.udonroad.StoreType.CONVERSATION;
+import static com.freshdigitable.udonroad.StoreType.SEARCH;
 
 /**
  * Created by akihit on 2017/07/07.
@@ -51,6 +54,11 @@ class TimelineContainerSwitcher {
 
   void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
+    statusDetail.setOnSpanClickListener((v, item) -> {
+      if (item.getType() == SpannableStringUtil.SpanItem.TYPE_HASHTAG) {
+        showSearchResult(item.getQuery());
+      }
+    });
     replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
     setDetailIsEnabled(false);
     ffab.transToToolbar();
@@ -60,8 +68,16 @@ class TimelineContainerSwitcher {
     ffab.transToFAB(View.INVISIBLE);
     final TimelineFragment<?> conversationFragment
         = TimelineFragment.getInstance(CONVERSATION, statusId);
-    final String name = StoreType.CONVERSATION.nameWithSuffix(statusId, "");
+    final String name = CONVERSATION.nameWithSuffix(statusId, "");
     replaceTimelineContainer(name, conversationFragment);
+    setDetailIsEnabled(true);
+  }
+
+  void showSearchResult(String query) {
+    ffab.transToFAB(View.INVISIBLE);
+    final TimelineFragment<Status> fragment = TimelineFragment.getInstance(SEARCH, query);
+    final String name = SEARCH.nameWithSuffix(-1, query);
+    replaceTimelineContainer(name, fragment);
     setDetailIsEnabled(true);
   }
 
@@ -75,7 +91,13 @@ class TimelineContainerSwitcher {
     } else if (current instanceof StatusDetailFragment) {
       tag = "detail";
     } else {
-      tag = "conv";
+      if (current.getTag().startsWith("conv")) {
+        tag = "conv";
+      } else if (current.getTag().startsWith("search")) {
+        tag = "search";
+      }else {
+        throw new IllegalStateException("unknown fragment is shown now...");
+      }
     }
     if (current == mainFragment) {
       listener.onMainFragmentSwitched(false);
@@ -120,6 +142,9 @@ class TimelineContainerSwitcher {
       setDetailIsEnabled(false);
       ffab.transToToolbar();
     } else if ("conv".equals(appearFragmentName)) {
+      setDetailIsEnabled(true);
+      ffab.transToFAB();
+    } else if ("search".equals(appearFragmentName)) {
       setDetailIsEnabled(true);
       ffab.transToFAB();
     }
