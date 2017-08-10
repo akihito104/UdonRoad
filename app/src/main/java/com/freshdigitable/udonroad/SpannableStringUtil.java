@@ -22,17 +22,12 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
-import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
-import twitter4j.Status;
 import twitter4j.URLEntity;
-import twitter4j.UserMentionEntity;
 
 /**
  * SpannableStringUtil creates clickable text.
@@ -40,54 +35,12 @@ import twitter4j.UserMentionEntity;
  * Created by akihit on 2016/10/08.
  */
 public class SpannableStringUtil {
-  public static CharSequence create(Status bindingStatus) {
-    final List<SpanningInfo> spannableInfo = createSpanningInfo(bindingStatus);
-    return createClickableSpan(bindingStatus.getText(), spannableInfo);
-  }
-
   public static CharSequence create(final String text, URLEntity[] urlEntities) {
     if (TextUtils.isEmpty(text)) {
       return "";
     }
     final List<SpanningInfo> urlSpanningInfo = createURLSpanningInfo(text, urlEntities, null);
     return createClickableSpan(text, urlSpanningInfo);
-  }
-
-  private static List<SpanningInfo> createSpanningInfo(Status bindingStatus) {
-    List<SpanningInfo> info = new ArrayList<>();
-    info.addAll(createURLSpanningInfo(bindingStatus));
-    info.addAll(createUserSpanningInfo(bindingStatus));
-    info.addAll(createHashtagSpanningInfo(bindingStatus));
-    for (int i = info.size() - 1; i >= 0; i--) {
-      final SpanningInfo spanningInfo = info.get(i);
-      for (int j = 0; j < i; j++) {
-        if (spanningInfo.start == info.get(j).start) {
-          info.remove(spanningInfo);
-          break;
-        }
-      }
-    }
-    return info;
-  }
-
-  private static List<SpanningInfo> createURLSpanningInfo(Status bindingStatus) {
-    final String text = bindingStatus.getText();
-    final String quotedStatusIdStr = bindingStatus.getQuotedStatus() != null
-        ? Long.toString(bindingStatus.getQuotedStatusId())
-        : "";
-    final List<SpanningInfo> info = new ArrayList<>();
-    final URLEntity[] urlEntities = bindingStatus.getURLEntities();
-    info.addAll(createURLSpanningInfo(text, urlEntities, quotedStatusIdStr));
-    final MediaEntity[] me = bindingStatus.getMediaEntities();
-    for (MediaEntity e : me) {
-      int start = text.indexOf(e.getURL());
-      int end = start + e.getURL().length();
-      if (isInvalidRange(text, start, end)) {
-        continue;
-      }
-      info.add(new SpanningInfo(null, start, end, ""));
-    }
-    return info;
   }
 
   private static List<SpanningInfo> createURLSpanningInfo(final String text,
@@ -114,47 +67,6 @@ public class SpannableStringUtil {
       info.add(new SpanningInfo(new URLSpan(u.getExpandedURL()), start, end, u.getDisplayURL()));
     }
     return info;
-  }
-
-  private static List<SpanningInfo> createUserSpanningInfo(Status bindingStatus) {
-    final String text = bindingStatus.getText();
-    final UserMentionEntity[] userMentionEntities = bindingStatus.getUserMentionEntities();
-    final List<SpanningInfo> info = new ArrayList<>();
-    for (UserMentionEntity u : userMentionEntities) {
-      final int start = text.indexOf("@" + u.getScreenName());
-      final int end = start + u.getScreenName().length() + 1;
-      if (isInvalidRange(text, start, end)) {
-        continue;
-      }
-      final long id = u.getId();
-      info.add(new SpanningInfo(new ClickableSpan() {
-        @Override
-        public void onClick(View view) {
-          UserInfoActivity.start(view.getContext(), id);
-        }
-      }, start, end, null));
-    }
-    return info;
-  }
-
-  private static List<SpanningInfo> createHashtagSpanningInfo(Status bindingStatus) {
-    final String text = bindingStatus.getText();
-    final HashtagEntity[] hashtagEntities = bindingStatus.getHashtagEntities();
-    final ArrayList<SpanningInfo> res = new ArrayList<>();
-    for (HashtagEntity hashtagEntity : hashtagEntities) {
-      final int start = text.indexOf("#" + hashtagEntity.getText());
-      final int end = start + hashtagEntity.getText().length() + 1;
-      if (isInvalidRange(text, start, end)) {
-        continue;
-      }
-      res.add(new SpanningInfo(new ClickableSpan() {
-        @Override
-        public void onClick(View view) {
-          SearchActivity.start(view.getContext(), "#" + hashtagEntity.getText());
-        }
-      }, start, end, null));
-    }
-    return res;
   }
 
   private static boolean isInvalidRange(String text, int start, int end) {
@@ -200,56 +112,6 @@ public class SpannableStringUtil {
 
     boolean isReplacing() {
       return displayingText != null;
-    }
-  }
-
-  public interface OnSpanClickListener{
-    void onClicked(View v, SpanItem item);
-  }
-
-  public static class SpanItem {
-    public static final int TYPE_URL = 0;
-    public static final int TYPE_MENTION = 1;
-    public static final int TYPE_HASHTAG = 2;
-
-    private int type;
-    private int start, end;
-
-    private long idForQuery;
-    private String query;
-
-    public SpanItem(int type, int start, int end, String query) {
-      this.type = type;
-      this.start = start;
-      this.end = end;
-      this.query = query;
-    }
-
-    public SpanItem(int type, int start, int end, long id) {
-      this.type = type;
-      this.start = start;
-      this.end = end;
-      this.idForQuery = id;
-    }
-
-    public int getType() {
-      return type;
-    }
-
-    public String getQuery() {
-      return query;
-    }
-
-    public long getId() {
-      return idForQuery;
-    }
-
-    public int getStart() {
-      return start;
-    }
-
-    public int getEnd() {
-      return end;
     }
   }
 }

@@ -38,6 +38,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
@@ -118,7 +119,7 @@ public class StatusDetailFragment extends Fragment {
     setupActionToolbar(statusId);
 
     final StatusDetailView statusView = binding.statusView;
-    final StatusListItem item = new StatusListItem(status, TextType.DEFAULT, TimeTextType.ABSOLUTE);
+    final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
     StatusViewImageHelper.load(item, statusView);
     final User user = item.getUser();
 
@@ -135,14 +136,14 @@ public class StatusDetailFragment extends Fragment {
         (view, index) -> MediaViewActivity.start(view.getContext(), item, index));
 
     statusView.bind(item);
-    final List<SpannableStringUtil.SpanItem> spanItems = item.createSpanItems();
+    final List<SpanItem> spanItems = item.createSpanItems();
     if (!spanItems.isEmpty()) {
       statusView.setClickableItems(spanItems, (v, si) -> {
-        if (si.getType() == SpannableStringUtil.SpanItem.TYPE_URL) {
+        if (si.getType() == SpanItem.TYPE_URL) {
           new URLSpan(si.getQuery()).onClick(v);
-        } else if (si.getType() == SpannableStringUtil.SpanItem.TYPE_MENTION) {
+        } else if (si.getType() == SpanItem.TYPE_MENTION) {
           UserInfoActivity.start(v.getContext(), si.getId());
-        } else if (si.getType() == SpannableStringUtil.SpanItem.TYPE_HASHTAG) {
+        } else if (si.getType() == SpanItem.TYPE_HASHTAG) {
           if (spanClickListener != null) {
             spanClickListener.onClicked(v, si);
           }
@@ -150,7 +151,7 @@ public class StatusDetailFragment extends Fragment {
       });
     }
     subscription = statusCache.observeById(statusId).subscribe(s -> {
-          final StatusListItem listItem = new StatusListItem(s, TextType.DEFAULT, TimeTextType.ABSOLUTE);
+          final StatusListItem listItem = new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE);
           statusView.update(listItem);
           updateFabMenuItem(s);
         },
@@ -308,9 +309,9 @@ public class StatusDetailFragment extends Fragment {
     return (long) getArguments().get("statusId");
   }
 
-  private SpannableStringUtil.OnSpanClickListener spanClickListener;
+  private OnSpanClickListener spanClickListener;
 
-  public void setOnSpanClickListener(SpannableStringUtil.OnSpanClickListener listener) {
+  public void setOnSpanClickListener(OnSpanClickListener listener) {
     this.spanClickListener = listener;
   }
 }

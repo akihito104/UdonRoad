@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
 import twitter4j.Status;
@@ -55,7 +56,7 @@ class TimelineContainerSwitcher {
   void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
     statusDetail.setOnSpanClickListener((v, item) -> {
-      if (item.getType() == SpannableStringUtil.SpanItem.TYPE_HASHTAG) {
+      if (item.getType() == SpanItem.TYPE_HASHTAG) {
         showSearchResult(item.getQuery());
       }
     });

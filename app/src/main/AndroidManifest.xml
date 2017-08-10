@@ -64,10 +64,6 @@
             android:supportsPictureInPicture="false"
         />
 
-        <activity android:name=".SearchActivity"
-                  android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-                  />
-
         <activity
             android:name=".LicenseActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"

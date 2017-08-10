@@ -31,9 +31,10 @@ import android.widget.TextView;
 
 import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.LinkableTextView;
+import com.freshdigitable.udonroad.OnSpanClickListener;
+import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
-import com.freshdigitable.udonroad.SpannableStringUtil;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 import java.util.List;
@@ -98,9 +99,9 @@ public class StatusDetailView extends RelativeLayout implements StatusItemView {
     bindQuotedStatus(quotedItem);
   }
 
-  public void setClickableItems(List<SpannableStringUtil.SpanItem> spans, SpannableStringUtil.OnSpanClickListener listener) {
+  public void setClickableItems(List<SpanItem> spans, OnSpanClickListener listener) {
     final Spannable text = (Spannable) tweet.getText();
-    for (SpannableStringUtil.SpanItem span : spans) {
+    for (SpanItem span : spans) {
       text.setSpan(new ClickableSpan() {
         @Override
         public void onClick(View view) {

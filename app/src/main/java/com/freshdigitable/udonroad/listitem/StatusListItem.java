@@ -21,8 +21,8 @@ import android.content.res.Resources;
 import android.text.Html;
 import android.text.format.DateUtils;
 
+import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.SpannableStringUtil;
 import com.freshdigitable.udonroad.Utils;
 
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public class StatusListItem implements TwitterListItem {
     }, DETAIL {
       @Override
       CharSequence getText(Status bindingStatus) {
-        return SpannableStringUtil.create(bindingStatus);
+        return DEFAULT.getText(bindingStatus);
       }
     };
 
@@ -123,9 +123,9 @@ public class StatusListItem implements TwitterListItem {
     }
   }
 
-  public List<SpannableStringUtil.SpanItem> createSpanItems() {
+  public List<SpanItem> createSpanItems() {
     final String text = textType.getText(bindingStatus).toString();
-    final ArrayList<SpannableStringUtil.SpanItem> res = new ArrayList<>();
+    final ArrayList<SpanItem> res = new ArrayList<>();
 
     final URLEntity[] urlEntities = bindingStatus.getURLEntities();
     for (URLEntity urlEntity : urlEntities) {
@@ -134,7 +134,7 @@ public class StatusListItem implements TwitterListItem {
         continue;
       }
       final int end = start + urlEntity.getDisplayURL().length();
-      res.add(new SpannableStringUtil.SpanItem(SpannableStringUtil.SpanItem.TYPE_URL, start, end, urlEntity.getExpandedURL()));
+      res.add(new SpanItem(SpanItem.TYPE_URL, start, end, urlEntity.getExpandedURL()));
     }
 
     final UserMentionEntity[] userMentionEntities = bindingStatus.getUserMentionEntities();
@@ -142,7 +142,7 @@ public class StatusListItem implements TwitterListItem {
       final String mention = "@" + mentionEntity.getScreenName();
       final int start = text.indexOf(mention);
       final int end = start + mention.length();
-      res.add(new SpannableStringUtil.SpanItem(SpannableStringUtil.SpanItem.TYPE_MENTION, start, end, mentionEntity.getId()));
+      res.add(new SpanItem(SpanItem.TYPE_MENTION, start, end, mentionEntity.getId()));
     }
 
     final HashtagEntity[] hashtagEntities = bindingStatus.getHashtagEntities();
@@ -150,7 +150,7 @@ public class StatusListItem implements TwitterListItem {
       final String hashtag = "#" + hashtagEntity.getText();
       final int start = text.indexOf(hashtag);
       final int end = start + hashtag.length();
-      res.add(new SpannableStringUtil.SpanItem(SpannableStringUtil.SpanItem.TYPE_HASHTAG, start, end, hashtag));
+      res.add(new SpanItem(SpanItem.TYPE_HASHTAG, start, end, hashtag));
     }
     return res;
   }
