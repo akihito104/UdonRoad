@@ -164,8 +164,8 @@ class TimelineContainerSwitcher {
   long getSelectedTweetId() {
     final FragmentManager fm = getSupportFragmentManager();
     final Fragment current = fm.findFragmentById(containerId);
-    if (current instanceof TimelineFragment) {
-      return ((TimelineFragment) current).getSelectedTweetId();
+    if (current instanceof ItemSelectable) {
+      return ((ItemSelectable) current).getSelectedItemId();
     } else if (current instanceof StatusDetailFragment) {
       return ((StatusDetailFragment) current).getStatusId();
     }

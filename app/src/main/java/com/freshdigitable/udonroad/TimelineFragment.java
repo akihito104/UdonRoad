@@ -424,6 +424,11 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     return tlAdapter != null && tlAdapter.isItemSelected();
   }
 
+  @Override
+  public long getSelectedItemId() {
+    return getSelectedTweetId();
+  }
+
   private OnUserIconClickedListener createUserIconClickedListener() {
     final FragmentActivity activity = getActivity();
     if (activity instanceof OnUserIconClickedListener) {

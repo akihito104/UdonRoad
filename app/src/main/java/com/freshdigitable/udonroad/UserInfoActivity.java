@@ -302,7 +302,7 @@ public class UserInfoActivity extends AppCompatActivity
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
-      final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+      final long selectedTweetId = timelineContainerSwitcher.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_reply) {
         showTwitterInputView(TYPE_REPLY, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_quote) {
