@@ -80,4 +80,12 @@
     <string name="user_following">following</string>
     <string name="user_muting">muting</string>
     <string name="user_blocking">blocking</string>
+
+    <string name="title_home">home</string>
+    <string name="title_conv">conversation</string>
+    <string name="title_detail">tweet</string>
+    <string name="title_search">search</string>
+    <string name="title_tweet">what\'s up?</string>
+    <string name="title_reply">reply</string>
+    <string name="title_comment">comment</string>
 </resources>

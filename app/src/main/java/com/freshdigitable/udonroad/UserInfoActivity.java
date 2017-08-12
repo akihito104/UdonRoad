@@ -146,7 +146,7 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onStop() {
     super.onStop();
-    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(null);
+    timelineContainerSwitcher.setOnContentChangedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
@@ -230,9 +230,9 @@ public class UserInfoActivity extends AppCompatActivity
         .commitNow();
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     if (type == TYPE_REPLY) {
-      binding.userInfoToolbar.setTitle("返信する");
+      binding.userInfoToolbar.setTitle(R.string.title_reply);
     } else if (type == TYPE_QUOTE) {
-      binding.userInfoToolbar.setTitle("コメントする");
+      binding.userInfoToolbar.setTitle(R.string.title_comment);
     }
     tweetInputFragment.stretchTweetInputView(type, statusId);
     binding.userInfoAppbarLayout.setExpanded(true);
@@ -281,11 +281,13 @@ public class UserInfoActivity extends AppCompatActivity
     subscription = userCache.observeById(getUserId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
-    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
-      if (isAppeared) {
+    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
+      if (type == TimelineContainerSwitcher.ContentType.MAIN) {
         userInfoTabs.setVisibility(View.VISIBLE);
+        UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
       } else {
         userInfoTabs.setVisibility(View.GONE);
+        binding.userInfoToolbarTitle.setText(title);
       }
     });
   }

@@ -27,8 +27,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.text.style.URLSpan;
 import android.util.Log;
@@ -111,12 +109,6 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    final ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-    if (actionBar != null) {
-      actionBar.setTitle("ツイート");
-    } else {
-      getActivity().setTitle("ツイート");
-    }
 
     final long statusId = getStatusId();
     statusCache.open();

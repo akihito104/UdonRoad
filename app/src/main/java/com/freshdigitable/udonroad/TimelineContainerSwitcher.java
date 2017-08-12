@@ -63,6 +63,7 @@ class TimelineContainerSwitcher {
     replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
     setDetailIsEnabled(false);
     ffab.transToToolbar();
+    listener.onContentChanged(ContentType.DETAIL, ContentType.DETAIL.getTitle(getContext()));
   }
 
   void showConversation(long statusId) {
@@ -72,6 +73,7 @@ class TimelineContainerSwitcher {
     final String name = CONVERSATION.nameWithSuffix(statusId, "");
     replaceTimelineContainer(name, conversationFragment);
     setDetailIsEnabled(true);
+    listener.onContentChanged(ContentType.CONV, ContentType.CONV.getTitle(getContext()));
   }
 
   void showSearchResult(String query) {
@@ -80,6 +82,7 @@ class TimelineContainerSwitcher {
     final String name = SEARCH.nameWithSuffix(-1, query);
     replaceTimelineContainer(name, fragment);
     setDetailIsEnabled(true);
+    listener.onContentChanged(ContentType.SEARCH, query);
   }
 
   private void replaceTimelineContainer(String name, Fragment fragment) {
@@ -95,13 +98,10 @@ class TimelineContainerSwitcher {
       if (current.getTag().startsWith("conv")) {
         tag = "conv";
       } else if (current.getTag().startsWith("search")) {
-        tag = "search";
+        tag = name;
       }else {
         throw new IllegalStateException("unknown fragment is shown now...");
       }
-    }
-    if (current == mainFragment) {
-      listener.onMainFragmentSwitched(false);
     }
     fm.beginTransaction()
         .replace(containerId, fragment, name)
@@ -136,16 +136,19 @@ class TimelineContainerSwitcher {
     final FragmentManager.BackStackEntry backStack = fm.getBackStackEntryAt(backStackEntryCount - 1);
     final String appearFragmentName = backStack.getName();
     if ("main".equals(appearFragmentName)) {
-      listener.onMainFragmentSwitched(true);
+      listener.onContentChanged(ContentType.MAIN, ContentType.MAIN.getTitle(getContext()));
       setDetailIsEnabled(true);
       ffab.transToFAB(((ItemSelectable) mainFragment).isItemSelected() ? View.VISIBLE : View.INVISIBLE);
     } else if ("detail".equals(appearFragmentName)) {
+      listener.onContentChanged(ContentType.DETAIL, ContentType.DETAIL.getTitle(getContext()));
       setDetailIsEnabled(false);
       ffab.transToToolbar();
     } else if ("conv".equals(appearFragmentName)) {
+      listener.onContentChanged(ContentType.CONV, ContentType.CONV.getTitle(getContext()));
       setDetailIsEnabled(true);
       ffab.transToFAB();
-    } else if ("search".equals(appearFragmentName)) {
+    } else if (appearFragmentName.startsWith("search")) {
+      listener.onContentChanged(ContentType.SEARCH, appearFragmentName.split("_")[1]);
       setDetailIsEnabled(true);
       ffab.transToFAB();
     }
@@ -161,6 +164,10 @@ class TimelineContainerSwitcher {
     return mainFragment.getActivity().getSupportFragmentManager();
   }
 
+  private Context getContext() {
+    return mainFragment.getContext();
+  }
+
   long getSelectedTweetId() {
     final FragmentManager fm = getSupportFragmentManager();
     final Fragment current = fm.findFragmentById(containerId);
@@ -172,14 +179,14 @@ class TimelineContainerSwitcher {
     throw new IllegalStateException("unknown fragment is shown now...");
   }
 
-  interface OnMainFragmentSwitchedListener {
-    void onMainFragmentSwitched(boolean isAppeared);
+  interface OnContentChangedListener {
+    void onContentChanged(ContentType type, String title);
   }
 
-  private static final OnMainFragmentSwitchedListener EMPTY_LISTENER = a -> {};
-  private OnMainFragmentSwitchedListener listener = EMPTY_LISTENER;
+  private static final OnContentChangedListener EMPTY_LISTENER = (type, title) -> {};
+  private OnContentChangedListener listener = EMPTY_LISTENER;
 
-  void setOnMainFragmentSwitchedListener(OnMainFragmentSwitchedListener listener) {
+  void setOnContentChangedListener(OnContentChangedListener listener) {
     this.listener = listener != null ? listener : EMPTY_LISTENER;
   }
 
@@ -199,5 +206,20 @@ class TimelineContainerSwitcher {
       }
     }
     return null;
+  }
+
+  enum ContentType {
+    MAIN(R.string.title_home), CONV(R.string.title_conv),
+    DETAIL(R.string.title_detail), SEARCH(R.string.title_search),;
+
+    final int titleRes;
+
+    ContentType(int titleRes) {
+      this.titleRes = titleRes;
+    }
+
+    String getTitle(Context context) {
+      return context.getString(titleRes);
+    }
   }
 }
