@@ -25,6 +25,7 @@ import android.support.test.rule.ActivityTestRule;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
@@ -89,25 +90,31 @@ public class UserInfoActivityInstTest {
     @Test
     public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
         throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       PerformUtil.selectItemViewAt(0);
       PerformUtil.reply();
       // verify
+      AssertionUtil.checkUserInfoActivityTitle(R.string.title_reply);
       onView(withId(R.id.tw_intext)).check(matches(withText("")));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
       onView(withId(R.id.action_group_user)).check(doesNotExist());
       onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
       // tear down
       PerformUtil.clickCancelWriteOnMenu();
+      AssertionUtil.checkUserInfoActivityTitle("");
     }
 
     @Test
     public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
         throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       PerformUtil.selectItemViewAt(0);
       PerformUtil.reply();
+      AssertionUtil.checkUserInfoActivityTitle(R.string.title_reply);
       onView(withId(R.id.tw_intext)).check(matches(withText("")));
       PerformUtil.clickCancelWriteOnMenu();
       // verify
+      AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
       onView(withId(R.id.action_write)).check(doesNotExist());
@@ -116,6 +123,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void checkFollowingIsAppeared() {
+      AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
@@ -129,6 +137,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void clickUnfollowInOptionsMenu_then_FollowingIsDisappeared() throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       when(twitter.destroyFriendship(anyLong())).thenReturn(getLoginUser());
 
       onView(withId(R.id.user_following)).check(matches(isDisplayed()));
@@ -155,6 +164,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void checkFollowingIsNotAppeared() {
+      AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
@@ -168,6 +178,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void clickMuteInOptionsMenu_then_MutingIsAppear() throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       when(twitter.createMute(anyLong())).thenReturn(getLoginUser());
 
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
@@ -182,6 +193,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void clickFollowInOptionsMenu_then_FollowingIsAppear() throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       when(twitter.createFriendship(anyLong())).thenReturn(getLoginUser());
 
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
@@ -196,6 +208,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void clickBlockInOptionsMenu_then_BlockingIsAppeared() throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       when(twitter.createBlock(anyLong())).thenReturn(getLoginUser());
 
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
@@ -223,6 +236,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void checkBlockingIsAppeared() {
+      AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_blocking)));
       onView(withId(R.id.user_muted)).check(matches(not(isDisplayed())));
 
@@ -236,6 +250,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void clickUnblockInOptionsMenu_then_BlockingIsDisappeared() throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       when(twitter.destroyBlock(anyLong())).thenReturn(getLoginUser());
 
       onView(withId(R.id.user_following)).check(matches(isDisplayed()));
@@ -262,6 +277,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void checkMutingIsAppeared() {
+      AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.user_following)).check(matches(not(isDisplayed())));
       onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
 
@@ -275,6 +291,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void clickUnmuteInOptionsMenu_then_MutingIsDisappear() throws Exception {
+      AssertionUtil.checkUserInfoActivityTitle("");
       when(twitter.destroyMute(anyLong())).thenReturn(getLoginUser());
 
       onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
@@ -301,6 +318,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void checkFollowingAndMutingAreAppeared() {
+      AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
       onView(withId(R.id.user_muted)).check(matches(withText(R.string.user_muting)));
 
@@ -326,6 +344,7 @@ public class UserInfoActivityInstTest {
 
     @Test
     public void checkBlockRTisAppearedInOptionMenu() {
+      AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.user_following)).check(matches(withText(R.string.user_following)));
 
       onView(withId(R.id.action_group_user)).perform(click());

@@ -219,6 +219,8 @@ public class UserInfoActivity extends AppCompatActivity
         String.format(resources.getString(R.string.tweet_screenName), user.getScreenName()));
   }
 
+  int titleVisibility;
+
   private void showTwitterInputView(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
 
@@ -228,6 +230,7 @@ public class UserInfoActivity extends AppCompatActivity
         .hide(userInfoAppbarFragment)
         .add(R.id.userInfo_appbar_container, tweetInputFragment)
         .commitNow();
+    titleVisibility = binding.userInfoToolbarTitle.getVisibility();
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     if (type == TYPE_REPLY) {
       binding.userInfoToolbar.setTitle(R.string.title_reply);
@@ -242,14 +245,14 @@ public class UserInfoActivity extends AppCompatActivity
     if (tweetInputFragment == null) {
       return;
     }
-    binding.userInfoAppbarLayout.setExpanded(false);
     binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
     getSupportFragmentManager().beginTransaction()
         .remove(tweetInputFragment)
         .show(userInfoAppbarFragment)
         .commit();
     binding.userInfoToolbar.setTitle("");
-    binding.userInfoToolbarTitle.setVisibility(View.VISIBLE);
+    binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
+    binding.userInfoToolbarTitle.setVisibility(titleVisibility);
     tweetInputFragment = null;
   }
 

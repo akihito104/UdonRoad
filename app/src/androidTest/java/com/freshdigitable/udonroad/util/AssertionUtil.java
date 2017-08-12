@@ -16,18 +16,30 @@
 
 package com.freshdigitable.udonroad.util;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
+import android.support.test.espresso.core.deps.guava.collect.Iterables;
+import android.support.test.espresso.matcher.BoundedMatcher;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.freshdigitable.udonroad.R;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 
 import twitter4j.Status;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.assertion.ViewAssertions.selectedDescendantsMatch;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withParent;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static android.support.test.espresso.util.TreeIterables.breadthFirstViewTraversal;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getFavIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getFavIconOfQuoted;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getHasReplyIcon;
@@ -82,6 +94,57 @@ public class AssertionUtil {
     if (expectedVisibility == View.VISIBLE) {
       onView(root).check(selectedDescendantsMatch(icon, withText(Integer.toString(expectedCount))));
     }
+  }
+
+  public static void checkMainActivityTitle(@StringRes int titleRes) {
+    final Matcher<View> titleMatcher = withText(titleRes);
+    onView(withId(R.id.main_toolbar)).check(matches(getToolbarMatcher(titleMatcher)));
+  }
+
+  @NonNull
+  private static Matcher<View> getToolbarMatcher(Matcher<View> titleMatcher) {
+    return new BoundedMatcher<View, Toolbar>(Toolbar.class) {
+      @Override
+      public void describeTo(Description description) {
+        titleMatcher.describeTo(description);
+      }
+
+      @Override
+      protected boolean matchesSafely(Toolbar item) {
+        return Iterables.filter(breadthFirstViewTraversal(item),
+            view -> view != null && titleMatcher.matches(view)).iterator().hasNext();
+      }
+    };
+  }
+
+  private static void checkUserInfoActivityTitle(Matcher<View> matcher) {
+    final Matcher<View> toolbarTitle = withId(R.id.userInfo_toolbar_title);
+    final Matcher<View> toolbarMarcher = withId(R.id.userInfo_toolbar);
+    onView(matcher).check(matches(new BaseMatcher<View>() {
+      @Override
+      public void describeTo(Description description) {
+        toolbarTitle.describeTo(description);
+        toolbarMarcher.describeTo(description);
+      }
+
+      @Override
+      public boolean matches(Object item) {
+        return toolbarTitle.matches(item) || withParent(toolbarMarcher).matches(item);
+      }
+    }));
+  }
+
+  public static void checkUserInfoActivityTitle(@StringRes int titleRes) {
+    checkUserInfoActivityTitle(withText(titleRes));
+  }
+
+  public static void checkUserInfoActivityTitle(@NonNull String title) {
+    if (TextUtils.isEmpty(title)) {
+      onView(withId(R.id.userInfo_toolbar)).check(matches(getToolbarMatcher(withText(""))));
+      onView(withId(R.id.userInfo_toolbar_title)).check(matches(not(isDisplayed())));
+      return;
+    }
+    checkUserInfoActivityTitle(withText(title));
   }
 
   private AssertionUtil() {}

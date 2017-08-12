@@ -38,7 +38,7 @@ import static android.support.test.espresso.intent.Intents.intended;
 import static android.support.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -97,7 +97,7 @@ public class OAuthActivityInstTest {
           () -> findResumeActivityByClass(MainActivity.class) != null);
       try {
         Espresso.registerIdlingResources(idlingResource);
-        onView(withText("Home")).check(matches(isDisplayed()));
+        checkMainActivityTitle(R.string.title_home);
       } finally {
         Espresso.unregisterIdlingResources(idlingResource);
       }

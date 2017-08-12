@@ -56,24 +56,30 @@ public class ConversationInstTest extends TimelineInstTestBase {
   public void favInConversationTimeline_and_returnHomeTimeline() throws Exception {
     setupCreateFavorite(0,1);
     AssertionUtil.checkHasReplyTo(hasReply);
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
 
     PerformUtil.selectItemView(hasReply);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
 
     onView(withId(R.id.iffabMenu_main_conv)).perform(click());
 
     final IdlingResource timelineIdlingResource = getTimelineIdlingResource("conv", 2);
     Espresso.registerIdlingResources(timelineIdlingResource);
     AssertionUtil.checkHasReplyTo(hasReply);
+    AssertionUtil.checkMainActivityTitle(R.string.title_conv);
     Espresso.unregisterIdlingResources(timelineIdlingResource);
     PerformUtil.selectItemView(replied);
     PerformUtil.favo();
     Espresso.pressBack();
     AssertionUtil.checkFavCount(replied, 1);
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
-    Espresso.pressBack();
 
     Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
 
     onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
