@@ -169,7 +169,7 @@ class TimelineContainerSwitcher {
     return null;
   }
 
-  private enum ContentType {
+  enum ContentType {
     MAIN(R.string.title_home, "main") {
       @Override
       String createTag(long id, String query) {

@@ -244,10 +244,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
-  public long getSelectedTweetId() {
-    return tlAdapter.getSelectedItemId();
-  }
-
   private int firstVisibleItemPosOnStop = -1;
   private int firstVisibleItemTopOnStop;
 
@@ -334,7 +330,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     if (activity instanceof FabHandleable) {
       ((FabHandleable) activity).showFab();
       removeOnItemSelectedListener();
-      iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedTweetId());
+      iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedItemId());
       ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);
     }
   }
@@ -415,7 +411,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public long getSelectedItemId() {
-    return getSelectedTweetId();
+    return tlAdapter.getSelectedItemId();
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

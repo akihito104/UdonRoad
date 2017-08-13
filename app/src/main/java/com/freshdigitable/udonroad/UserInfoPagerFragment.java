@@ -205,7 +205,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     if (!currentPage.isStatus()) {
       return -1;
     }
-    return getCurrentFragment().getSelectedTweetId();
+    return getCurrentFragment().getSelectedItemId();
   }
 
   @NonNull

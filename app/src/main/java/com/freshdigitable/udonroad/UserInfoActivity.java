@@ -219,7 +219,7 @@ public class UserInfoActivity extends AppCompatActivity
         String.format(resources.getString(R.string.tweet_screenName), user.getScreenName()));
   }
 
-  int titleVisibility;
+  private int titleVisibility;
 
   private void showTwitterInputView(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
