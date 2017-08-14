@@ -81,7 +81,7 @@ class TimelineContainerSwitcher {
         .addToBackStack(tag != null ? tag : ContentType.MAIN.createTag(-1, null))
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
-    type.onShow(this, name);
+    type.onShow(this, name, true);
   }
 
   boolean popBackStackTimelineContainer() {
@@ -94,7 +94,7 @@ class TimelineContainerSwitcher {
     fm.popBackStack();
     final FragmentManager.BackStackEntry backStack = fm.getBackStackEntryAt(backStackEntryCount - 1);
     final String appearFragmentName = backStack.getName();
-    ContentType.findByTag(appearFragmentName).onShow(this, appearFragmentName);
+    ContentType.findByTag(appearFragmentName).onShow(this, appearFragmentName, false);
     return true;
   }
 
@@ -177,10 +177,10 @@ class TimelineContainerSwitcher {
       }
 
       @Override
-      void onShow(TimelineContainerSwitcher switcher, String tag) {
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
         switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
         switcher.setDetailIsEnabled(true);
-        switcher.ffab.transToFAB(((ItemSelectable) switcher.mainFragment).isItemSelected() ? View.VISIBLE : View.INVISIBLE);
+        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
       }
     },
     CONV(R.string.title_conv, StoreType.CONVERSATION.prefix()) {
@@ -190,10 +190,10 @@ class TimelineContainerSwitcher {
       }
 
       @Override
-      void onShow(TimelineContainerSwitcher switcher, String tag) {
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
         switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
         switcher.setDetailIsEnabled(true);
-        switcher.ffab.transToFAB();
+        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
       }
     },
     DETAIL(R.string.title_detail, "detail") {
@@ -203,7 +203,7 @@ class TimelineContainerSwitcher {
       }
 
       @Override
-      void onShow(TimelineContainerSwitcher switcher, String tag) {
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
         switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
         switcher.setDetailIsEnabled(false);
         switcher.ffab.transToToolbar();
@@ -216,10 +216,10 @@ class TimelineContainerSwitcher {
       }
 
       @Override
-      void onShow(TimelineContainerSwitcher switcher, String tag) {
-        switcher.listener.onContentChanged(this, tag.split("_")[1]);
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, tag.substring(tagPrefix.length()));
         switcher.setDetailIsEnabled(true);
-        switcher.ffab.transToFAB();
+        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
       }
     },;
 
@@ -237,7 +237,7 @@ class TimelineContainerSwitcher {
 
     abstract String createTag(long id, String query);
 
-    abstract void onShow(TimelineContainerSwitcher switcher, String tag);
+    abstract void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew);
 
     static ContentType findByTag(String tag) {
       for (ContentType type : ContentType.values()) {
