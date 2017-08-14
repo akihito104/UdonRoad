@@ -21,14 +21,16 @@ import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
-import static com.freshdigitable.udonroad.StoreType.CONVERSATION;
+import twitter4j.Status;
 
 /**
  * Created by akihit on 2017/07/07.
@@ -50,43 +52,59 @@ class TimelineContainerSwitcher {
 
   void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
-    replaceTimelineContainer("detail_" + Long.toString(statusId), statusDetail);
-    setDetailIsEnabled(false);
-    ffab.transToToolbar();
+    statusDetail.setOnSpanClickListener((v, item) -> {
+      if (item.getType() == SpanItem.TYPE_HASHTAG) {
+        showSearchResult(item.getQuery());
+      }
+    });
+    replaceTimelineContainer(ContentType.DETAIL, statusId, null, statusDetail);
   }
 
   void showConversation(long statusId) {
-    ffab.transToFAB(View.INVISIBLE);
     final TimelineFragment<?> conversationFragment
-        = TimelineFragment.getInstance(CONVERSATION, statusId);
-    final String name = StoreType.CONVERSATION.prefix() + Long.toString(statusId);
-    replaceTimelineContainer(name, conversationFragment);
-    setDetailIsEnabled(true);
+        = TimelineFragment.getInstance(StoreType.CONVERSATION, statusId);
+    replaceTimelineContainer(ContentType.CONV, statusId, null, conversationFragment);
   }
 
-  private void replaceTimelineContainer(String name, Fragment fragment) {
-    final FragmentManager fm = getSupportFragmentManager();
-    final Fragment current = fm.findFragmentById(containerId);
-    final String tag;
-    if (current == mainFragment) {
-      tag = "main";
-    } else if (current instanceof StatusDetailFragment) {
-      tag = "detail";
-    } else {
-      tag = "conv";
-    }
-    if (current == mainFragment) {
-      listener.onMainFragmentSwitched(false);
-    }
-    fm.beginTransaction()
+  void showSearchResult(String query) {
+    final TimelineFragment<Status> fragment = TimelineFragment.getInstance(StoreType.SEARCH, query);
+    replaceTimelineContainer(ContentType.SEARCH, -1, query, fragment);
+  }
+
+  private void replaceTimelineContainer(ContentType type, long id, String query, Fragment fragment) {
+    final Fragment current = getCurrentFragment();
+    Log.d("TLContainerSwitcher", "replaceTimelineContainer: " + current.getTag());
+    final String tag = current.getTag();
+    final String name = type.createTag(id, query);
+    getSupportFragmentManager().beginTransaction()
         .replace(containerId, fragment, name)
-        .addToBackStack(tag)
+        .addToBackStack(tag != null ? tag : ContentType.MAIN.createTag(-1, null))
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
+    type.onShow(this, name, true);
+  }
+
+  boolean popBackStackTimelineContainer() {
+    final FragmentManager fm = getSupportFragmentManager();
+    final int backStackEntryCount = fm.getBackStackEntryCount();
+    if (backStackEntryCount <= 0) {
+      return false;
+    }
+
+    fm.popBackStack();
+    final FragmentManager.BackStackEntry backStack = fm.getBackStackEntryAt(backStackEntryCount - 1);
+    final String appearFragmentName = backStack.getName();
+    ContentType.findByTag(appearFragmentName).onShow(this, appearFragmentName, false);
+    return true;
+  }
+
+  private void setDetailIsEnabled(boolean enabled) {
+    final Menu menu = ffab.getMenu();
+    menu.findItem(R.id.iffabMenu_main_detail).setEnabled(enabled);
   }
 
   boolean clearSelectedCursorIfNeeded() {
-    final Fragment fragment = getSupportFragmentManager().findFragmentById(containerId);
+    final Fragment fragment = getCurrentFragment();
     return fragment instanceof ItemSelectable
         && clearSelectedCursorIfNeeded((ItemSelectable) fragment);
   }
@@ -99,48 +117,37 @@ class TimelineContainerSwitcher {
     return false;
   }
 
-  boolean popBackStackTimelineContainer() {
-    final FragmentManager fm = getSupportFragmentManager();
-    final int backStackEntryCount = fm.getBackStackEntryCount();
-    if (backStackEntryCount <= 0) {
-      return false;
+  long getSelectedTweetId() {
+    final Fragment current = getCurrentFragment();
+    if (current instanceof ItemSelectable) {
+      return ((ItemSelectable) current).getSelectedItemId();
+    } else if (current instanceof StatusDetailFragment) {
+      return ((StatusDetailFragment) current).getStatusId();
     }
-
-    fm.popBackStack();
-
-    final FragmentManager.BackStackEntry backStack = fm.getBackStackEntryAt(backStackEntryCount - 1);
-    final String appearFragmentName = backStack.getName();
-    if ("main".equals(appearFragmentName)) {
-      listener.onMainFragmentSwitched(true);
-      setDetailIsEnabled(true);
-      ffab.transToFAB(((ItemSelectable) mainFragment).isItemSelected() ? View.VISIBLE : View.INVISIBLE);
-    } else if ("detail".equals(appearFragmentName)) {
-      setDetailIsEnabled(false);
-      ffab.transToToolbar();
-    } else if ("conv".equals(appearFragmentName)) {
-      setDetailIsEnabled(true);
-      ffab.transToFAB();
-    }
-    return true;
-  }
-
-  private void setDetailIsEnabled(boolean enabled) {
-    final Menu menu = ffab.getMenu();
-    menu.findItem(R.id.iffabMenu_main_detail).setEnabled(enabled);
+    throw new IllegalStateException("unknown fragment is shown now...");
   }
 
   private FragmentManager getSupportFragmentManager() {
     return mainFragment.getActivity().getSupportFragmentManager();
   }
 
-  interface OnMainFragmentSwitchedListener {
-    void onMainFragmentSwitched(boolean isAppeared);
+  private Context getContext() {
+    return mainFragment.getContext();
   }
 
-  private static final OnMainFragmentSwitchedListener EMPTY_LISTENER = a -> {};
-  private OnMainFragmentSwitchedListener listener = EMPTY_LISTENER;
+  private Fragment getCurrentFragment() {
+    final FragmentManager fm = getSupportFragmentManager();
+    return fm.findFragmentById(containerId);
+  }
 
-  void setOnMainFragmentSwitchedListener(OnMainFragmentSwitchedListener listener) {
+  interface OnContentChangedListener {
+    void onContentChanged(ContentType type, String title);
+  }
+
+  private static final OnContentChangedListener EMPTY_LISTENER = (type, title) -> {};
+  private OnContentChangedListener listener = EMPTY_LISTENER;
+
+  void setOnContentChangedListener(OnContentChangedListener listener) {
     this.listener = listener != null ? listener : EMPTY_LISTENER;
   }
 
@@ -160,5 +167,85 @@ class TimelineContainerSwitcher {
       }
     }
     return null;
+  }
+
+  enum ContentType {
+    MAIN(R.string.title_home, "main") {
+      @Override
+      String createTag(long id, String query) {
+        return tagPrefix;
+      }
+
+      @Override
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
+        switcher.setDetailIsEnabled(true);
+        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
+      }
+    },
+    CONV(R.string.title_conv, StoreType.CONVERSATION.prefix()) {
+      @Override
+      String createTag(long id, String query) {
+        return StoreType.CONVERSATION.nameWithSuffix(id, "");
+      }
+
+      @Override
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
+        switcher.setDetailIsEnabled(true);
+        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
+      }
+    },
+    DETAIL(R.string.title_detail, "detail") {
+      @Override
+      String createTag(long id, String query) {
+        return tagPrefix + "_" + Long.toString(id);
+      }
+
+      @Override
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
+        switcher.setDetailIsEnabled(false);
+        switcher.ffab.transToToolbar();
+      }
+    },
+    SEARCH(R.string.title_search, StoreType.SEARCH.prefix()) {
+      @Override
+      String createTag(long id, String query) {
+        return StoreType.SEARCH.nameWithSuffix(-1, query);
+      }
+
+      @Override
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, tag.substring(tagPrefix.length()));
+        switcher.setDetailIsEnabled(true);
+        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
+      }
+    },;
+
+    final int titleRes;
+    final String tagPrefix;
+
+    ContentType(int titleRes, String tagPrefix) {
+      this.titleRes = titleRes;
+      this.tagPrefix = tagPrefix;
+    }
+
+    String getTitle(Context context) {
+      return context.getString(titleRes);
+    }
+
+    abstract String createTag(long id, String query);
+
+    abstract void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew);
+
+    static ContentType findByTag(String tag) {
+      for (ContentType type : ContentType.values()) {
+        if (tag.startsWith(type.tagPrefix)) {
+          return type;
+        }
+      }
+      throw new IllegalStateException("unknown fragment type...");
+    }
   }
 }

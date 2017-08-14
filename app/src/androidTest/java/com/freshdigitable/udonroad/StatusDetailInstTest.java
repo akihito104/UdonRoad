@@ -65,8 +65,10 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
 
   @Test
   public void showStatusDetailForSimpleStatus() {
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
     PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
   }
@@ -78,6 +80,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
 
     PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
     onView(withId(R.id.iffabMenu_main_rt)).perform(click());
@@ -91,6 +94,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
 
     PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
     onView(withId(R.id.iffabMenu_main_fav)).perform(click());
@@ -102,18 +106,21 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForSimpleStatus_then_clickUserIcon() {
     PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
     onView(withId(R.id.d_icon)).perform(click());
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
   }
 
   @Test
   public void showStatusDetailForQuotingStatus() {
     PerformUtil.selectItemView(target);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(target.getText())));
   }
@@ -122,6 +129,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForQuotedStatus() {
     PerformUtil.selectQuotedItemView(quoted);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(quoted.getText())));
   }
@@ -130,6 +138,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   public void showStatusDetailForQuotedStatus_then_clickUserIcon() {
     PerformUtil.selectQuotedItemView(quoted);
     PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(quoted.getText())));
     onView(withId(R.id.d_icon)).perform(click());

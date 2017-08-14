@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
 
+import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 
 import org.junit.Test;
@@ -47,12 +48,15 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
 
   @Test
   public void showStatusDetail() throws Exception {
+    AssertionUtil.checkUserInfoActivityTitle("");
     onView(withText("TWEET\n20")).check(matches(isDisplayed()));
     PerformUtil.selectItemViewAt(0);
     PerformUtil.showDetail();
+    AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
     onView(withId(R.id.userInfo_tabs)).check(matches(not(isDisplayed())));
     onView(withId(R.id.action_heading)).check(doesNotExist());
     Espresso.pressBack();
+    AssertionUtil.checkUserInfoActivityTitle("");
     onView(withId(R.id.userInfo_tabs)).check(matches(isDisplayed()));
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
   }

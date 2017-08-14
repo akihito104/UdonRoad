@@ -28,6 +28,7 @@ import java.util.ListIterator;
 
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
@@ -74,6 +75,7 @@ public class TwitterResponseMock {
     when(status.getURLEntities()).thenReturn(new URLEntity[0]);
     when(status.getMediaEntities()).thenReturn(new MediaEntity[0]);
     when(status.getUserMentionEntities()).thenReturn(new UserMentionEntity[0]);
+    when(status.getHashtagEntities()).thenReturn(new HashtagEntity[0]);
     when(status.getUser()).thenReturn(user);
     return status;
   }

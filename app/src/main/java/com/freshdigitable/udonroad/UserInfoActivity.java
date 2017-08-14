@@ -146,7 +146,7 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onStop() {
     super.onStop();
-    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(null);
+    timelineContainerSwitcher.setOnContentChangedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
@@ -219,6 +219,8 @@ public class UserInfoActivity extends AppCompatActivity
         String.format(resources.getString(R.string.tweet_screenName), user.getScreenName()));
   }
 
+  private int titleVisibility;
+
   private void showTwitterInputView(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
 
@@ -228,11 +230,12 @@ public class UserInfoActivity extends AppCompatActivity
         .hide(userInfoAppbarFragment)
         .add(R.id.userInfo_appbar_container, tweetInputFragment)
         .commitNow();
+    titleVisibility = binding.userInfoToolbarTitle.getVisibility();
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     if (type == TYPE_REPLY) {
-      binding.userInfoToolbar.setTitle("返信する");
+      binding.userInfoToolbar.setTitle(R.string.title_reply);
     } else if (type == TYPE_QUOTE) {
-      binding.userInfoToolbar.setTitle("コメントする");
+      binding.userInfoToolbar.setTitle(R.string.title_comment);
     }
     tweetInputFragment.stretchTweetInputView(type, statusId);
     binding.userInfoAppbarLayout.setExpanded(true);
@@ -242,14 +245,14 @@ public class UserInfoActivity extends AppCompatActivity
     if (tweetInputFragment == null) {
       return;
     }
-    binding.userInfoAppbarLayout.setExpanded(false);
     binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
     getSupportFragmentManager().beginTransaction()
         .remove(tweetInputFragment)
         .show(userInfoAppbarFragment)
         .commit();
     binding.userInfoToolbar.setTitle("");
-    binding.userInfoToolbarTitle.setVisibility(View.VISIBLE);
+    binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
+    binding.userInfoToolbarTitle.setVisibility(titleVisibility);
     tweetInputFragment = null;
   }
 
@@ -281,11 +284,13 @@ public class UserInfoActivity extends AppCompatActivity
     subscription = userCache.observeById(getUserId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
-    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
-      if (isAppeared) {
+    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
+      if (type == TimelineContainerSwitcher.ContentType.MAIN) {
         userInfoTabs.setVisibility(View.VISIBLE);
+        UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
       } else {
         userInfoTabs.setVisibility(View.GONE);
+        binding.userInfoToolbarTitle.setText(title);
       }
     });
   }
@@ -302,7 +307,7 @@ public class UserInfoActivity extends AppCompatActivity
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
-      final long selectedTweetId = viewPager.getCurrentSelectedStatusId();
+      final long selectedTweetId = timelineContainerSwitcher.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_reply) {
         showTwitterInputView(TYPE_REPLY, selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_quote) {

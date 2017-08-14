@@ -168,6 +168,11 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     return getCurrentFragment().isItemSelected();
   }
 
+  @Override
+  public long getSelectedItemId() {
+    return getCurrentSelectedStatusId();
+  }
+
   private static class PagerAdapter extends FragmentPagerAdapter {
     private PagerAdapter(FragmentManager fm) {
       super(fm);
@@ -195,12 +200,12 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     }
   }
 
-  long getCurrentSelectedStatusId() {
+  private long getCurrentSelectedStatusId() {
     final UserPageInfo currentPage = getCurrentPage();
     if (!currentPage.isStatus()) {
       return -1;
     }
-    return getCurrentFragment().getSelectedTweetId();
+    return getCurrentFragment().getSelectedItemId();
   }
 
   @NonNull

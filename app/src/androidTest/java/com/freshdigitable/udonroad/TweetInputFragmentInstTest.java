@@ -20,6 +20,7 @@ import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
+import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -86,6 +87,8 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     sendReplyToMe();
 
     PerformUtil.clickWriteOnMenu();
+
+    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
     onView(withId(R.id.tw_replyTo)).check(matches(not(isDisplayed())));
   }
 
@@ -97,6 +100,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemView(target);
     PerformUtil.reply();
 
+    AssertionUtil.checkMainActivityTitle(R.string.title_reply);
     onView(withId(R.id.tw_intext))
         .check(matches(withText("@" + userB.getScreenName() + " ")));
     PerformUtil.clickCancelWriteOnMenu();
@@ -112,6 +116,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemView(target);
     PerformUtil.reply();
 
+    AssertionUtil.checkMainActivityTitle(R.string.title_reply);
     onView(withId(R.id.tw_intext))
         .check(matches(withText(containsString("@" + userB.getScreenName()))));
     onView(withId(R.id.tw_intext))
@@ -119,13 +124,16 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     onView(withId(R.id.tw_intext))
         .check(matches(withText(not(containsString("@" + getLoginUser().getScreenName())))));
     PerformUtil.clickCancelWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
   }
 
   @Test
   public void pressBackAfterTweetInputIsAppeared_then_hideTweetInput() {
     PerformUtil.clickWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
     pressBack();
     pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
     onActionWrite().check(matches(isDisplayed()));
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
@@ -135,6 +143,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
   public void clickSendIcon_then_openTweetInputViewAndShowFab() {
     // open
     PerformUtil.clickWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
     onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
     onView(withId(R.id.main_send_tweet)).check(matches(isDisplayed()));
     onActionCancel().check(matches(isDisplayed()));
@@ -142,6 +151,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
 
     // close
     PerformUtil.clickCancelWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
     onActionWrite().check(matches(isDisplayed()));
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
@@ -151,6 +161,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     final Status replied = findByStatusId(20000);
     PerformUtil.selectItemView(replied);
     PerformUtil.reply();
+    AssertionUtil.checkMainActivityTitle(R.string.title_reply);
     onView(withId(R.id.tw_replyTo)).check(matches(isDisplayed()));
     final String inputText = "reply tweet";
     onView(withId(R.id.tw_intext)).perform(typeText(inputText))
@@ -159,6 +170,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     onView(withId(R.id.main_tweet_input_view)).check(matches(not(isDisplayed())));
     onActionWrite().check(matches(isDisplayed()));
     onActionCancel().check(doesNotExist());
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
   }
 
   private static ViewInteraction onActionCancel() {

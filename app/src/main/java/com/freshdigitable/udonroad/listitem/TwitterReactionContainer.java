@@ -104,7 +104,7 @@ public class TwitterReactionContainer extends ReactionContainer {
     ReactionIcon.fromType(s.getType()).update(v, s);
   }
 
-  enum ReactionIcon {
+  public enum ReactionIcon {
     RETWEET(R.drawable.ic_retweet) {
       @Override
       View create(Context context) {
@@ -179,7 +179,7 @@ public class TwitterReactionContainer extends ReactionContainer {
       }
     };
 
-    final int type;
+    public final int type;
 
     ReactionIcon(int type) {
       this.type = type;

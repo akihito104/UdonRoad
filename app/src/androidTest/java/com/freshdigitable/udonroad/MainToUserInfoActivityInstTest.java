@@ -17,16 +17,12 @@
 package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
-import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 
 import com.freshdigitable.udonroad.util.PerformUtil;
 
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +39,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFro
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static org.mockito.Mockito.mock;
@@ -72,29 +69,14 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
     when(twitter.getUserTimeline(loginUser.getId())).thenReturn(defaultResponseList);
     // exec.
     onView(withId(R.id.main_toolbar)).check(matches(isAssignableFrom(Toolbar.class)));
-    onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
+    checkMainActivityTitle(R.string.title_home);
     PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     onView(ofStatusView(withText(findByStatusId(20000).getText())))
         .check(matches(isDisplayed()));
     // tear down
     Espresso.pressBack();
-    onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
-  }
-
-  private Matcher<View> withToolbarTitle(final String title) {
-    final Matcher<View> titleMatcher = withText(title);
-    return new BoundedMatcher<View, Toolbar>(Toolbar.class) {
-      @Override
-      public void describeTo(Description description) {
-        titleMatcher.describeTo(description);
-      }
-
-      @Override
-      protected boolean matchesSafely(Toolbar item) {
-        return item.getTitle().equals(title);
-      }
-    };
+    checkMainActivityTitle(R.string.title_home);
   }
 
   @Test
@@ -110,7 +92,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
 
     // tear down
     Espresso.pressBack();
-    onView(withId(R.id.main_toolbar)).check(matches(withToolbarTitle("Home")));
+    checkMainActivityTitle(R.string.title_home);
   }
 
   @Test

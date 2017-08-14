@@ -41,7 +41,6 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   private final TwitterApi twitterApi;
   private final WritableSortedCache<User> sortedCache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;
-  private StoreType storeType;
   private String storeName;
 
   @Inject
@@ -54,16 +53,9 @@ public class UserListRequestWorker implements ListRequestWorker<User> {
   }
 
   @Override
-  public void setStoreName(StoreType type, String suffix) {
-    if (!type.isForUser()) {
-      throw new IllegalArgumentException();
-    }
-    this.storeType = type;
-    this.storeName = type.nameWithSuffix(suffix);
-  }
+  public ListFetchStrategy getFetchStrategy(StoreType storeType, long userId, String query) {
+    this.storeName = storeType.nameWithSuffix(userId, query);
 
-  @Override
-  public ListFetchStrategy getFetchStrategy(final long userId) {
     if (storeType == StoreType.USER_FOLLOWER) {
       return new ListFetchStrategy() {
         @Override

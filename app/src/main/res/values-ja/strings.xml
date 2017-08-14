@@ -92,4 +92,11 @@
     <string name="desc_swipe_to_right">右へスワイプ</string>
     <string name="desc_swipe_to_top">上へスワイプ</string>
     <string name="msg_no_next_page">最後まで読みました</string>
+    <string name="title_home">ホーム</string>
+    <string name="title_conv">会話</string>
+    <string name="title_detail">ツイート</string>
+    <string name="title_search">検索結果</string>
+    <string name="title_tweet">いまどうしてる?</string>
+    <string name="title_reply">返信する</string>
+    <string name="title_comment">コメントする</string>
 </resources>

@@ -34,7 +34,8 @@ public enum StoreType {
   CONFIG("config"),
   APP_SETTINGS("appSettings"),
   POOL("cache"),
-  USER_MEDIA("user_media");
+  USER_MEDIA("user_media"),
+  SEARCH("search");
 
   public final String storeName;
 
@@ -46,14 +47,15 @@ public enum StoreType {
     return storeName + "_";
   }
 
-  public String nameWithSuffix(String suffix) {
+  public String nameWithSuffix(long id, String query) {
+    final String suffix = id > 0 ? Long.toString(id) : query;
     return TextUtils.isEmpty(suffix) ?
         this.storeName
         : prefix() + suffix;
   }
 
   public boolean isForStatus() {
-    for (StoreType type : Arrays.asList(HOME, USER_HOME, USER_FAV, CONVERSATION, USER_MEDIA)) {
+    for (StoreType type : Arrays.asList(HOME, USER_HOME, USER_FAV, CONVERSATION, USER_MEDIA, SEARCH)) {
       if (this == type) {
         return true;
       }

@@ -24,4 +24,6 @@ interface ItemSelectable {
   boolean isItemSelected();
 
   void clearSelectedItem();
+
+  long getSelectedItemId();
 }

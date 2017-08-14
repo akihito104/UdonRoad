@@ -28,6 +28,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
+import android.text.style.URLSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,19 +38,24 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
+import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusDetailView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem.TextType;
 import com.freshdigitable.udonroad.listitem.StatusListItem.TimeTextType;
 import com.freshdigitable.udonroad.listitem.StatusViewImageHelper;
+import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -131,13 +137,29 @@ public class StatusDetailFragment extends Fragment {
     statusView.getThumbnailContainer().setOnMediaClickListener(
         (view, index) -> MediaViewActivity.start(view.getContext(), item, index));
 
-    binding.statusView.bind(item);
-    subscription = statusCache.observeById(statusId).subscribe(s -> {
-          final StatusListItem listItem = new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE);
-          binding.statusView.update(listItem);
-          updateFabMenuItem(s);
-        },
-        e -> Log.e(TAG, "onStart: ", e));
+    statusView.bind(item);
+    updateFabMenuItem(item);
+    final List<SpanItem> spanItems = item.createSpanItems();
+    if (!spanItems.isEmpty()) {
+      statusView.setClickableItems(spanItems, (v, si) -> {
+        if (si.getType() == SpanItem.TYPE_URL) {
+          new URLSpan(si.getQuery()).onClick(v);
+        } else if (si.getType() == SpanItem.TYPE_MENTION) {
+          UserInfoActivity.start(v.getContext(), si.getId());
+        } else if (si.getType() == SpanItem.TYPE_HASHTAG) {
+          if (spanClickListener != null) {
+            spanClickListener.onClicked(v, si);
+          }
+        }
+      });
+    }
+    subscription = statusCache.observeById(statusId)
+        .map(s -> new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE))
+        .subscribe(listItem -> {
+              statusView.update(listItem);
+              updateFabMenuItem(listItem);
+            },
+            e -> Log.e(TAG, "onStart: ", e));
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
@@ -191,23 +213,19 @@ public class StatusDetailFragment extends Fragment {
     binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
   }
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    final Status status = statusCache.find(getStatusId());
-    if (status == null) {
+  private void updateFabMenuItem(final StatusListItem status) {
+    final FragmentActivity activity = getActivity();
+    if (!(activity instanceof FabHandleable)) {
       return;
     }
-    updateFabMenuItem(status);
-  }
-
-  private void updateFabMenuItem(final Status status) {
-    final FragmentActivity activity = getActivity();
-    if (activity instanceof FabHandleable) {
-      final FabHandleable fabHandleable = (FabHandleable) activity;
-      final Status bindingStatus = Utils.getBindingStatus(status);
-      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_rt, bindingStatus.isRetweeted());
-      fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_fav, bindingStatus.isFavorited());
+    final FabHandleable fabHandleable = (FabHandleable) activity;
+    for (ListItem.Stat stat : status.getStats()) {
+      final int type = stat.getType();
+      if (type == ReactionIcon.RETWEET.type) {
+        fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_rt, stat.isMarked());
+      } else if (type == ReactionIcon.FAV.type) {
+        fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_fav, stat.isMarked());
+      }
     }
   }
 
@@ -287,7 +305,13 @@ public class StatusDetailFragment extends Fragment {
     return super.onCreateAnimation(transit, enter, nextAnim);
   }
 
-  private long getStatusId() {
+  long getStatusId() {
     return (long) getArguments().get("statusId");
+  }
+
+  private OnSpanClickListener spanClickListener;
+
+  public void setOnSpanClickListener(OnSpanClickListener listener) {
+    this.spanClickListener = listener;
   }
 }

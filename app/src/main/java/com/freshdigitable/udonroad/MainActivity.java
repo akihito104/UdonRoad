@@ -193,12 +193,13 @@ public class MainActivity extends AppCompatActivity
             e -> Log.e(TAG, "setupNavigationDrawer: ", e));
 
     setupActionMap();
-    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(isAppeared -> {
-      if (isAppeared) {
+    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
+      if (type == TimelineContainerSwitcher.ContentType.MAIN) {
         tlFragment.startScroll();
       } else {
         tlFragment.stopScroll();
       }
+      binding.mainToolbar.setTitle(title);
     });
   }
 
@@ -209,7 +210,7 @@ public class MainActivity extends AppCompatActivity
       subscription.dispose();
     }
     appSetting.close();
-    timelineContainerSwitcher.setOnMainFragmentSwitchedListener(null);
+    timelineContainerSwitcher.setOnContentChangedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
     if (subscription != null && !subscription.isDisposed()) {
       subscription.dispose();
@@ -265,6 +266,8 @@ public class MainActivity extends AppCompatActivity
         || super.onOptionsItemSelected(item);
   }
 
+  private CharSequence prevTitle;
+
   private void sendStatusSelected(@TweetType int type, long statusId) {
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
@@ -273,12 +276,13 @@ public class MainActivity extends AppCompatActivity
     if (type != TYPE_DEFAULT) {
       tweetInputFragment.stretchTweetInputView(type, statusId);
     }
+    prevTitle = binding.mainToolbar.getTitle();
     if (type == TYPE_REPLY) {
-      binding.mainToolbar.setTitle("返信する");
+      binding.mainToolbar.setTitle(R.string.title_reply);
     } else if (type == TYPE_QUOTE) {
-      binding.mainToolbar.setTitle("コメントする");
+      binding.mainToolbar.setTitle(R.string.title_comment);
     } else {
-      binding.mainToolbar.setTitle("いまどうしてる？");
+      binding.mainToolbar.setTitle(R.string.title_tweet);
     }
   }
 
@@ -287,7 +291,7 @@ public class MainActivity extends AppCompatActivity
     if (tlFragment.isItemSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
-    binding.mainToolbar.setTitle("Home");
+    binding.mainToolbar.setTitle(prevTitle);
   }
 
   private void setupTweetInputView() {
@@ -306,7 +310,7 @@ public class MainActivity extends AppCompatActivity
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
-      final long selectedTweetId = tlFragment.getSelectedTweetId();
+      final long selectedTweetId = timelineContainerSwitcher.getSelectedTweetId();
       if (itemId == R.id.iffabMenu_main_detail) {
         timelineContainerSwitcher.showStatusDetail(selectedTweetId);
       } else if (itemId == R.id.iffabMenu_main_reply) {

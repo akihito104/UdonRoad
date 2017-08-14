@@ -37,10 +37,12 @@ public class RealmStoreManager implements StoreManager {
 
   private static final List<StoreType> deletableCaches
       = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION, StoreType.POOL,
-      StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME);
+      StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
+      StoreType.SEARCH);
   private static final List<StoreType> timelineStore
       = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION,
-      StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME);
+      StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
+      StoreType.SEARCH);
 
   @Override
   public void init(Context context) {
@@ -99,10 +101,9 @@ public class RealmStoreManager implements StoreManager {
   }
 
   private static String[] listStorage() {
-    final Realm realm = Realm.getDefaultInstance();
-    final String[] list = realm.getConfiguration().getRealmDirectory()
+    // default file location
+    final String[] list = new RealmConfiguration.Builder().build().getRealmDirectory()
         .list((file, s) -> s.matches("^.*\\.management$"));
-    realm.close();
     for (int i = 0; i < list.length; i++) {
       list[i] = list[i].replace(".management", "");
     }

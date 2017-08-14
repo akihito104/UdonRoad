@@ -31,9 +31,7 @@ import io.reactivex.functions.Consumer;
  */
 
 public interface ListRequestWorker<T> {
-  void setStoreName(StoreType type, String suffix);
-
-  ListFetchStrategy getFetchStrategy(long id);
+  ListFetchStrategy getFetchStrategy(StoreType type, long idForQuery, String query);
 
   OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId);
 

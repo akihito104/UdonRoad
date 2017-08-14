@@ -21,19 +21,24 @@ import android.content.res.Resources;
 import android.text.Html;
 import android.text.format.DateUtils;
 
+import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.SpannableStringUtil;
 import com.freshdigitable.udonroad.Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 import twitter4j.util.TimeSpanConverter;
 
 /**
@@ -53,7 +58,7 @@ public class StatusListItem implements TwitterListItem {
     this(item, TextType.DEFAULT, TimeTextType.RELATIVE);
   }
 
-  public StatusListItem(Status item, TextType textType) {
+  private StatusListItem(Status item, TextType textType) {
     this(item, textType, TimeTextType.RELATIVE);
   }
 
@@ -106,7 +111,7 @@ public class StatusListItem implements TwitterListItem {
     }, DETAIL {
       @Override
       CharSequence getText(Status bindingStatus) {
-        return SpannableStringUtil.create(bindingStatus);
+        return DEFAULT.getText(bindingStatus);
       }
     };
 
@@ -118,6 +123,39 @@ public class StatusListItem implements TwitterListItem {
       }
       return text;
     }
+  }
+
+  public List<SpanItem> createSpanItems() {
+    final String text = textType.getText(bindingStatus).toString();
+    final ArrayList<SpanItem> res = new ArrayList<>();
+
+    final URLEntity[] urlEntities = bindingStatus.getURLEntities();
+    for (URLEntity urlEntity : urlEntities) {
+      final int start = text.indexOf(urlEntity.getDisplayURL());
+      if (start < 0) {
+        continue;
+      }
+      final int end = start + urlEntity.getDisplayURL().length();
+      res.add(new SpanItem(SpanItem.TYPE_URL, start, end, urlEntity.getExpandedURL()));
+    }
+
+    final UserMentionEntity[] userMentionEntities = bindingStatus.getUserMentionEntities();
+    for (UserMentionEntity mention : userMentionEntities) {
+      final Matcher matcher = Pattern.compile("[@＠]" + mention.getScreenName()).matcher(text);
+      while (matcher.find()) {
+        res.add(new SpanItem(SpanItem.TYPE_MENTION, matcher.start(), matcher.end(), mention.getId()));
+      }
+    }
+
+    final HashtagEntity[] hashtagEntities = bindingStatus.getHashtagEntities();
+    for (HashtagEntity hashtagEntity : hashtagEntities) {
+      final String hashtag = "#" + hashtagEntity.getText();
+      final Matcher matcher = Pattern.compile("[#＃]" + hashtagEntity.getText()).matcher(text);
+      while (matcher.find()) {
+        res.add(new SpanItem(SpanItem.TYPE_HASHTAG, matcher.start(), matcher.end(), hashtag));
+      }
+    }
+    return res;
   }
 
   @Override
