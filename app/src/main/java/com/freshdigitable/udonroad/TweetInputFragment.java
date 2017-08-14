@@ -467,20 +467,29 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onActivityResult: " + requestCode);
     if (requestCode == 40) {
       if (resultCode == RESULT_OK) {
-        if (cameraPicUri != null) {
+        final List<Uri> uris = parseMediaData(data);
+        if (uris.isEmpty()) {
           addMedia(cameraPicUri);
-        } else if (data != null && data.getData() != null) {
-          addMedia(data.getData());
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-          final List<Uri> m = parseClipData(data);
-          addAllMedia(m);
+        } else {
+          addAllMedia(uris);
+          removeFromContentResolver(getContext(), cameraPicUri);
         }
-      } else if (cameraPicUri != null) {
-        getContext().getContentResolver().delete(cameraPicUri, null, null);
+      } else {
+        removeFromContentResolver(getContext(), cameraPicUri);
       }
       cameraPicUri = null;
     }
     super.onActivityResult(requestCode, resultCode, data);
+  }
+
+  private List<Uri> parseMediaData(Intent data) {
+    if (data != null && data.getData() != null) {
+      return Collections.singletonList(data.getData());
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+      return parseClipData(data);
+    }
+    return Collections.emptyList();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -525,5 +534,12 @@ public class TweetInputFragment extends Fragment {
     Uri cameraPicUri = context.getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, contentValues);
     intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraPicUri);
     return intent;
+  }
+
+  private static void removeFromContentResolver(@NonNull Context context, Uri cameraPicUri) {
+    if (cameraPicUri == null) {
+      return;
+    }
+    context.getContentResolver().delete(cameraPicUri, null, null);
   }
 }
