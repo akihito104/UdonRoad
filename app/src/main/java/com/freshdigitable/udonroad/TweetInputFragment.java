@@ -20,6 +20,7 @@ import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Build;
@@ -31,6 +32,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -72,6 +74,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
@@ -83,6 +86,8 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 public class TweetInputFragment extends Fragment {
   private static final String TAG = TweetInputFragment.class.getSimpleName();
   private static final String LOADINGTAG_TWEET_INPUT_ICON = "TweetInputIcon";
+  private static final int REQUEST_CODE_MEDIA_CHOOSER = 40;
+  private static final int REQUEST_CODE_WRITE_EXTERNAL_PERMISSION = 50;
   private FragmentTweetInputBinding binding;
   @Inject
   StatusRequestWorker statusRequestWorker;
@@ -179,14 +184,11 @@ public class TweetInputFragment extends Fragment {
       final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-      final Intent pickMediaIntent = getPickMediaIntent();
-      final Intent cameraIntent = getCameraIntent(getContext());
-      cameraPicUri = cameraIntent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
-      final Intent chooser = Intent.createChooser(pickMediaIntent, "添付する画像…");
-      chooser.putExtra(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
-          Intent.EXTRA_ALTERNATE_INTENTS : Intent.EXTRA_INITIAL_INTENTS,
-          new Intent[]{cameraIntent});
-      startActivityForResult(chooser, 40);
+      if (isPermissionNeed(v.getContext())) {
+        requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_PERMISSION);
+        return;
+      }
+      showMediaChooser();
     });
     inputText.addTextWatcher(textWatcher);
     tweetSendFab.setOnClickListener(createSendClickListener());
@@ -415,6 +417,9 @@ public class TweetInputFragment extends Fragment {
   private final List<Uri> media = new ArrayList<>(4);
 
   private void addMedia(Uri uri) {
+    if (uri == null) {
+      return;
+    }
     addAllMedia(Collections.singletonList(uri));
   }
 
@@ -447,7 +452,7 @@ public class TweetInputFragment extends Fragment {
       rc.centerCrop().into(imageView);
 
       imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
-        final MenuItem delete = contextMenu.add(0, 1, 0, "削除する");
+        final MenuItem delete = contextMenu.add(0, 1, 0, R.string.media_upload_delete);
         delete.setOnMenuItemClickListener(menuItem -> {
           removeMedia(uri);
           return true;
@@ -465,7 +470,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     Log.d(TAG, "onActivityResult: " + requestCode);
-    if (requestCode == 40) {
+    if (requestCode == REQUEST_CODE_MEDIA_CHOOSER) {
       if (resultCode == RESULT_OK) {
         final List<Uri> uris = parseMediaData(data);
         if (uris.isEmpty()) {
@@ -525,6 +530,9 @@ public class TweetInputFragment extends Fragment {
 
   @NonNull
   private static Intent getCameraIntent(Context context) {
+    if (isPermissionNeed(context)) {
+      return new Intent();
+    }
     final ContentValues contentValues = new ContentValues();
     contentValues.put(Media.MIME_TYPE, "image/jpeg");
     contentValues.put(Media.TITLE, System.currentTimeMillis() + ".jpg");
@@ -541,5 +549,29 @@ public class TweetInputFragment extends Fragment {
       return;
     }
     context.getContentResolver().delete(cameraPicUri, null, null);
+  }
+
+  private static boolean isPermissionNeed(Context context) {
+    return ActivityCompat.checkSelfPermission(context, WRITE_EXTERNAL_STORAGE)
+        != PackageManager.PERMISSION_GRANTED;
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    if (requestCode == REQUEST_CODE_WRITE_EXTERNAL_PERMISSION) {
+      showMediaChooser();
+    }
+  }
+
+  private void showMediaChooser() {
+    final Intent pickMediaIntent = getPickMediaIntent();
+    final Intent cameraIntent = getCameraIntent(getContext());
+    cameraPicUri = cameraIntent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
+    final Intent chooser = Intent.createChooser(pickMediaIntent, getString(R.string.media_chooser_title));
+    chooser.putExtra(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+            Intent.EXTRA_ALTERNATE_INTENTS : Intent.EXTRA_INITIAL_INTENTS,
+        new Intent[]{cameraIntent});
+    startActivityForResult(chooser, REQUEST_CODE_MEDIA_CHOOSER);
   }
 }

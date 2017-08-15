@@ -99,4 +99,6 @@
     <string name="title_tweet">いまどうしてる?</string>
     <string name="title_reply">返信する</string>
     <string name="title_comment">コメントする</string>
+    <string name="media_chooser_title">添付する画像…</string>
+    <string name="media_upload_delete">削除する</string>
 </resources>
