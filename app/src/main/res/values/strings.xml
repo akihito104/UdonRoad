@@ -88,4 +88,7 @@
     <string name="title_tweet">what\'s happening?</string>
     <string name="title_reply">reply</string>
     <string name="title_comment">comment</string>
+
+    <string name="media_chooser_title">choose to upload…</string>
+    <string name="media_upload_delete">delete</string>
 </resources>

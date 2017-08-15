@@ -87,7 +87,7 @@ public class TweetInputFragment extends Fragment {
   private static final String TAG = TweetInputFragment.class.getSimpleName();
   private static final String LOADINGTAG_TWEET_INPUT_ICON = "TweetInputIcon";
   private static final int REQUEST_CODE_MEDIA_CHOOSER = 40;
-  private static final int REQUEST_CODE_WRITE_EXTERN_PERMISSION = 50;
+  private static final int REQUEST_CODE_WRITE_EXTERNAL_PERMISSION = 50;
   private FragmentTweetInputBinding binding;
   @Inject
   StatusRequestWorker statusRequestWorker;
@@ -185,10 +185,10 @@ public class TweetInputFragment extends Fragment {
       imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
       if (isPermissionNeed(v.getContext())) {
-        requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERN_PERMISSION);
+        requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_PERMISSION);
         return;
       }
-      showMediaChooser(v.getContext());
+      showMediaChooser();
     });
     inputText.addTextWatcher(textWatcher);
     tweetSendFab.setOnClickListener(createSendClickListener());
@@ -452,7 +452,7 @@ public class TweetInputFragment extends Fragment {
       rc.centerCrop().into(imageView);
 
       imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
-        final MenuItem delete = contextMenu.add(0, 1, 0, "削除する");
+        final MenuItem delete = contextMenu.add(0, 1, 0, R.string.media_upload_delete);
         delete.setOnMenuItemClickListener(menuItem -> {
           removeMedia(uri);
           return true;
@@ -559,16 +559,16 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    if (requestCode == REQUEST_CODE_WRITE_EXTERN_PERMISSION) {
-      showMediaChooser(getContext());
+    if (requestCode == REQUEST_CODE_WRITE_EXTERNAL_PERMISSION) {
+      showMediaChooser();
     }
   }
 
-  private void showMediaChooser(Context context) {
+  private void showMediaChooser() {
     final Intent pickMediaIntent = getPickMediaIntent();
-    final Intent cameraIntent = getCameraIntent(context);
+    final Intent cameraIntent = getCameraIntent(getContext());
     cameraPicUri = cameraIntent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
-    final Intent chooser = Intent.createChooser(pickMediaIntent, "添付する画像…");
+    final Intent chooser = Intent.createChooser(pickMediaIntent, getString(R.string.media_chooser_title));
     chooser.putExtra(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
             Intent.EXTRA_ALTERNATE_INTENTS : Intent.EXTRA_INITIAL_INTENTS,
         new Intent[]{cameraIntent});
