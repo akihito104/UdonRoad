@@ -108,9 +108,9 @@ dependencies {
     androidTestImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVer"
 }
 
-//check.dependsOn(checkLicenses)
+check.dependsOn(checkLicenses)
 
-//project.afterEvaluate {
-//    generateDebugAssets.dependsOn (generateLicensePage)
-//    generateReleaseAssets.dependsOn (generateLicensePage)
-//}
+project.afterEvaluate {
+    generateDebugAssets.dependsOn (generateLicensePage)
+    generateReleaseAssets.dependsOn (generateLicensePage)
+}
