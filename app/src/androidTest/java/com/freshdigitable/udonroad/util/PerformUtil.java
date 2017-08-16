@@ -25,10 +25,11 @@ import android.support.test.espresso.action.GeneralSwipeAction;
 import android.support.test.espresso.action.Press;
 import android.support.test.espresso.action.Swipe;
 import android.support.test.espresso.action.Tap;
+import android.support.test.espresso.contrib.DrawerActions;
 import android.view.View;
 
-import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
 
 import twitter4j.Status;
@@ -113,6 +114,10 @@ public class PerformUtil {
 
   public static ViewInteraction clickUserIconAt(int index) {
     return onView(asUserIcon(R.id.tl_icon, ofStatusViewAt(R.id.timeline, index))).perform(click());
+  }
+
+  public static void openDrawerNavigation() {
+    onView(withId(R.id.nav_drawer_layout)).perform(DrawerActions.open());
   }
 
   private static ViewAction clickForStatusView() {

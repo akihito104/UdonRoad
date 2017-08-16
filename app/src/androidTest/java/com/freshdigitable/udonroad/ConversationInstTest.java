@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
-import android.support.test.espresso.contrib.DrawerActions;
 import android.support.test.espresso.contrib.DrawerMatchers;
 import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.rule.ActivityTestRule;
@@ -42,6 +41,7 @@ import static android.support.test.espresso.assertion.ViewAssertions.doesNotExis
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
@@ -113,7 +113,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
     AssertionUtil.checkFavCount(replied, 1);
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
 
-    onView(withId(R.id.nav_drawer_layout)).perform(DrawerActions.open());
+    openDrawerNavigation();
     onView(withId(R.id.nav_drawer)).perform(NavigationViewActions.navigateTo(R.id.drawer_menu_home));
 
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
