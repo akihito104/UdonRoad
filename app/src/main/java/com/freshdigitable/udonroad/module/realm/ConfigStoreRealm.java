@@ -255,11 +255,7 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Override
   public Observable<Relationship> observeRelationshipById(long targetUserId) {
-    final RealmResults<RelationshipRealm> relationship = configStore.where(RelationshipRealm.class)
-        .equalTo("id", targetUserId)
-        .findAll();
-    return relationship.isEmpty() ?
-        EmptyRealmObjectObservable.create(relationship).cast(Relationship.class)
-        : RealmObjectObservable.create(relationship.first()).cast(Relationship.class);
+    return CacheUtil.observeById(configStore, targetUserId, RelationshipRealm.class)
+        .cast(Relationship.class);
   }
 }
