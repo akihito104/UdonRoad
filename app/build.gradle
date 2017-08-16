@@ -100,6 +100,7 @@ dependencies {
     androidTestImplementation "com.android.support.test:runner:$supportTestVer"
     androidTestImplementation "com.android.support.test:rules:$supportTestVer"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoVer"
+    androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$espressoVer"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$espressoVer"
     androidTestAnnotationProcessor "com.google.dagger:dagger-compiler:$daggerVer"
 

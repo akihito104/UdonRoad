@@ -50,6 +50,16 @@ class TimelineContainerSwitcher {
     this.containerId = container.getId();
   }
 
+  void showMain() {
+    final Fragment currentFragment = getCurrentFragment();
+    if (currentFragment == mainFragment) {
+      return;
+    }
+    getSupportFragmentManager().popBackStack(
+        ContentType.MAIN.createTag(0, ""), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    ContentType.MAIN.onShow(this, "", false);
+  }
+
   void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
     statusDetail.setOnSpanClickListener((v, item) -> {

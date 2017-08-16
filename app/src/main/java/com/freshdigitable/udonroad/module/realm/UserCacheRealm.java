@@ -93,10 +93,7 @@ public class UserCacheRealm implements TypedCache<User> {
   @NonNull
   @Override
   public Observable<User> observeById(final long userId) {
-    final UserRealm user = pool.findById(userId, UserRealm.class);
-    return user != null ?
-        RealmObjectObservable.create(user).cast(User.class)
-        : Observable.empty();
+    return pool.observeById(userId, UserRealm.class).cast(User.class);
   }
 
   @Override

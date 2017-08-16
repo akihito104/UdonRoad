@@ -22,6 +22,7 @@ import android.util.Log;
 import com.freshdigitable.udonroad.datastore.BaseCache;
 
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
@@ -83,6 +84,10 @@ final class PoolRealm implements BaseCache {
 
   <T extends RealmModel> T findById(long id, Class<T> clz) {
     return CacheUtil.findById(cache, id, clz);
+  }
+
+  <T extends RealmModel> Observable<T> observeById(long id, Class<T> clz) {
+    return CacheUtil.observeById(cache, id, clz);
   }
 
   Completable observeUpsertImpl(Realm.Transaction transaction) {

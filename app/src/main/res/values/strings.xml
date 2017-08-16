@@ -91,4 +91,7 @@
 
     <string name="media_chooser_title">choose to upload…</string>
     <string name="media_upload_delete">delete</string>
+    <string name="drawer_menu_home">home</string>
+    <string name="drawer_menu_license">OSS license</string>
+    <string name="lists">lists</string>
 </resources>

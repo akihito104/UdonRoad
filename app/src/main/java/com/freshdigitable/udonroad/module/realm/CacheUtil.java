@@ -19,8 +19,10 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.NonNull;
 
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmModel;
+import io.realm.RealmResults;
 
 /**
  * CacheUtil is utility class for the package.
@@ -40,6 +42,15 @@ class CacheUtil {
     return realm.where(clz)
         .equalTo("id", id)
         .findFirst();
+  }
+
+  static <T extends RealmModel> Observable<T> observeById(Realm realm, long id, Class<T> clz) {
+    final RealmResults<T> elem = realm.where(clz)
+        .equalTo("id", id)
+        .findAll();
+    return elem.isEmpty() ?
+        EmptyRealmObjectObservable.create(elem)
+        : RealmObjectObservable.create(elem.first());
   }
 
   private CacheUtil() {}

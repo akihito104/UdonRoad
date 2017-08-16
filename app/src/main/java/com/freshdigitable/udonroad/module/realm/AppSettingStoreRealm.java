@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmResults;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
@@ -100,13 +99,8 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public Observable<User> observeCurrentUser() {
-    final long currentUserId = getCurrentUserId();
-    final RealmResults<UserRealm> currentUser = realm.where(UserRealm.class)
-        .equalTo("id", currentUserId)
-        .findAll();
-    return currentUser.isEmpty() ?
-        EmptyRealmObjectObservable.create(currentUser).cast(User.class)
-        : RealmObjectObservable.create(currentUser.first()).cast(User.class);
+    return CacheUtil.observeById(realm, getCurrentUserId(), UserRealm.class)
+        .cast(User.class);
   }
 
   @Override

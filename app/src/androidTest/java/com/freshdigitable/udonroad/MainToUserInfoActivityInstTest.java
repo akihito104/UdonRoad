@@ -34,6 +34,7 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -106,6 +107,16 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
 
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(findByStatusId(20000).getText()))));
+  }
+
+  @Test
+  public void openDrawerAndClickUserIcon_then_launchUserInfo() {
+    PerformUtil.openDrawerNavigation();
+    onView(withId(R.id.nav_header_icon)).perform(click());
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+
+    Espresso.pressBack();
+    checkMainActivityTitle(R.string.title_home);
   }
 
   @Override

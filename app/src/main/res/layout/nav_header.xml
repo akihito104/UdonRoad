@@ -14,36 +14,38 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:paddingTop="@dimen/nav_drawer_header_margin_content"
-              android:paddingBottom="@dimen/nav_drawer_header_margin_content"
-              android:paddingStart="@dimen/nav_drawer_header_margin_side"
-              android:paddingEnd="@dimen/nav_drawer_header_margin_side"
-              android:orientation="vertical"
-              android:background="@color/primary_dark"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
     >
-    <com.freshdigitable.udonroad.RoundedCornerImageView
-        android:id="@+id/nav_header_icon"
-        android:layout_width="@dimen/nav_drawer_header_icon"
-        android:layout_height="@dimen/nav_drawer_header_icon"
-        android:contentDescription="@string/desc_icon"
-        android:padding="2dp"
-        android:background="@drawable/s_rounded_mask_default"
-        app:backgroundTint="@color/layer_white_transparent"
-        />
-    <com.freshdigitable.udonroad.CombinedScreenNameTextView
-        android:id="@+id/nav_header_account"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/nav_drawer_header_subtitle_height"
-        android:gravity="center_vertical"
-        android:maxLines="2"
-        android:textSize="@dimen/nav_drawer_header_text"
-        android:textColor="@color/text_primary_inverse"
-        tools:text="name\n\@screen_name"
-        />
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/nav_drawer_header_margin_content"
+        android:paddingBottom="@dimen/nav_drawer_header_margin_content"
+        android:paddingStart="@dimen/nav_drawer_header_margin_side"
+        android:paddingEnd="@dimen/nav_drawer_header_margin_side"
+        android:orientation="vertical"
+        android:background="@color/primary_dark"
+        >
+        <com.freshdigitable.udonroad.RoundedCornerImageView
+            android:id="@+id/nav_header_icon"
+            android:layout_width="@dimen/nav_drawer_header_icon"
+            android:layout_height="@dimen/nav_drawer_header_icon"
+            android:contentDescription="@string/desc_icon"
+            android:padding="2dp"
+            android:background="@drawable/s_rounded_mask_default"
+            app:backgroundTint="@color/layer_white_transparent"
+            />
+        <com.freshdigitable.udonroad.CombinedScreenNameTextView
+            android:id="@+id/nav_header_account"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/nav_drawer_header_subtitle_height"
+            android:gravity="center_vertical"
+            android:maxLines="2"
+            android:textSize="@dimen/nav_drawer_header_text"
+            android:textColor="@color/text_primary_inverse"
+            tools:text="name\n\@screen_name"
+            />
+    </LinearLayout>
+</layout>

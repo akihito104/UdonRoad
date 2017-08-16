@@ -139,7 +139,6 @@ public class UserInfoActivity extends AppCompatActivity
     final User user = userCache.find(getUserId());
     UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
     setSupportActionBar(binding.userInfoToolbar);
-    setupTabs(binding.userInfoTabs, user);
     setupActionMap();
   }
 
@@ -178,7 +177,8 @@ public class UserInfoActivity extends AppCompatActivity
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.userInfo_timeline_container, viewPager)
         .commitNow();
-    binding.userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    final User user = userCache.find(getUserId());
+    setupTabs(binding.userInfoTabs, user);
   }
 
   public static Intent createIntent(Context context, User user) {
@@ -280,7 +280,6 @@ public class UserInfoActivity extends AppCompatActivity
     if (viewPager.getViewPager() != null) {
       userInfoTabs.setupWithViewPager(viewPager.getViewPager());
     }
-    updateTabs(userInfoTabs, user);
     subscription = userCache.observeById(getUserId())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
