@@ -52,6 +52,7 @@ class RealmObjectObservable<T extends RealmModel> extends Observable<T> {
     };
     observer.onSubscribe(new ChangeListenerDisposable<>(elem, changeListener));
     RealmObject.addChangeListener(elem, changeListener);
+    observer.onNext(elem);
   }
 
   private static class ChangeListenerDisposable<T extends RealmModel> implements Disposable {

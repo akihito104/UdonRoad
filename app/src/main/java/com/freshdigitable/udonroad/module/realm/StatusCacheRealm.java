@@ -312,7 +312,7 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       if (quotedStatus != null) {
         final StatusRealm qs = (StatusRealm) quotedStatus;
         observables.add(observeStatus(qs));
-        observables.add(RealmObjectObservable.create((StatusReactionRealm) qs.getStatusReaction()));
+        observables.add(ConfigStoreRealm.observe((StatusReactionRealm) qs.getStatusReaction()));
       }
     }
 
@@ -322,10 +322,11 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
 
     @Override
     protected void subscribeActual(Observer<? super StatusRealm> observer) {
+      observer.onSubscribe(disposables);
       for (Observable<? extends RealmModel> o : observables) {
         o.subscribeWith(new StatusObserver<>(statusRealm, observer, disposables));
       }
-      observer.onSubscribe(disposables);
+      observer.onNext(statusRealm);
     }
 
     private static class StatusObserver<T extends RealmModel> implements Observer<T> {

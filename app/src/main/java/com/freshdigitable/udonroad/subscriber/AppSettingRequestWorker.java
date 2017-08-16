@@ -20,12 +20,14 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import javax.inject.Inject;
 
 import io.reactivex.functions.Consumer;
+import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
 /**
@@ -36,12 +38,15 @@ public class AppSettingRequestWorker implements RequestWorker {
   private static final String TAG = AppSettingRequestWorker.class.getSimpleName();
   private final TwitterApi twitterApi;
   private final AppSettingStore appSettings;
+  private final TypedCache<User> userCache;
 
   @Inject
   public AppSettingRequestWorker(@NonNull TwitterApi twitterApi,
-                                 @NonNull AppSettingStore appSettings) {
+                                 @NonNull AppSettingStore appSettings,
+                                 @NonNull TypedCache<User> userCache) {
     this.twitterApi = twitterApi;
     this.appSettings = appSettings;
+    this.userCache = userCache;
   }
 
   public boolean setup() {
@@ -71,7 +76,12 @@ public class AppSettingRequestWorker implements RequestWorker {
       return;
     }
     Util.fetchToStore(twitterApi.verifyCredentials(),
-        appSettings, AppSettingStore::addAuthenticatedUser,
+        appSettings, (appSettingStore, authenticatedUser) -> {
+          appSettingStore.addAuthenticatedUser(authenticatedUser);
+          userCache.open();
+          userCache.upsert(authenticatedUser);
+          userCache.close();
+        },
         t -> {}, onErrorAction);
   }
 

@@ -23,21 +23,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.IdRes;
-import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
+import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity
   @Inject
   AppSettingStore appSetting;
   private TimelineContainerSwitcher timelineContainerSwitcher;
+  private NavHeaderBinding navHeaderBinding;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -89,6 +90,8 @@ public class MainActivity extends AppCompatActivity
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+    navHeaderBinding = DataBindingUtil.inflate(LayoutInflater.from(getApplicationContext()), R.layout.nav_header, null, false);
+    binding.navDrawer.addHeaderView(navHeaderBinding.getRoot());
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -158,24 +161,13 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.syncState();
   }
 
-  private void setupNavigationDrawerHeader(@Nullable User user) {
-    if (user == null) {
-      return;
-    }
-
-    final CombinedScreenNameTextView account
-        = binding.navDrawer.findViewById(R.id.nav_header_account);
-    if (account != null) {
-      account.setNames(user);
-    }
-    final ImageView icon
-        = binding.navDrawer.findViewById(R.id.nav_header_icon);
-    if (icon != null) {
-      Picasso.with(getApplicationContext())
-          .load(user.getProfileImageURLHttps())
-          .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
-          .into(icon);
-    }
+  private void setupNavigationDrawerHeader(User user) {
+    navHeaderBinding.navHeaderAccount.setNames(user);
+    Picasso.with(getApplicationContext())
+        .load(user.getProfileImageURLHttps())
+        .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
+        .into(navHeaderBinding.navHeaderIcon);
+    navHeaderBinding.navHeaderIcon.setOnClickListener(v -> UserInfoActivity.start(this, user, v));
   }
 
   @Override
@@ -206,15 +198,13 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onStop() {
     super.onStop();
+    navHeaderBinding.navHeaderIcon.setOnClickListener(null);
     if (subscription != null && !subscription.isDisposed()) {
       subscription.dispose();
     }
     appSetting.close();
     timelineContainerSwitcher.setOnContentChangedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
-    }
   }
 
   @Override
