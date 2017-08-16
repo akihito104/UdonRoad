@@ -17,15 +17,12 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/menu_home"
-        android:title="ホーム"/>
+        android:id="@+id/drawer_menu_home"
+        android:title="@string/drawer_menu_home"/>
     <item
-        android:id="@+id/menu_mention"
-        android:title="メンション"/>
+        android:id="@+id/drawer_menu_lists"
+        android:title="@string/lists"/>
     <item
-        android:id="@+id/menu_fav"
-        android:title="favs"/>
-    <item
-        android:id="@+id/menu_license"
-        android:title="ライセンス情報"/>
+        android:id="@+id/drawer_menu_license"
+        android:title="@string/drawer_menu_license"/>
 </menu>

@@ -124,18 +124,18 @@ public class MainActivity extends AppCompatActivity
     appSettingRequestWorker.verifyCredentials();
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
       int itemId = item.getItemId();
-      if (itemId == R.id.menu_home) {
+      if (itemId == R.id.drawer_menu_home) {
         Log.d(TAG, "home is selected");
+        timelineContainerSwitcher.showMain();
         binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.menu_mention) {
-        Log.d(TAG, "mention is selected");
+      } else if (itemId == R.id.drawer_menu_lists) {
+        // todo
         binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.menu_fav) {
-        Log.d(TAG, "fav is selected");
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.menu_license) {
-        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      } else {
+        if (itemId == R.id.drawer_menu_license) {
+          startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+        }
       }
       return false;
     });

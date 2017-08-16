@@ -18,6 +18,9 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
+import android.support.test.espresso.contrib.DrawerActions;
+import android.support.test.espresso.contrib.DrawerMatchers;
+import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
 
@@ -36,6 +39,7 @@ import twitter4j.TwitterException;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
+import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
@@ -80,6 +84,40 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     Espresso.pressBack();
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
+
+    onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
+    AssertionUtil.checkFavCountDoesNotExist(hasReply);
+    Espresso.pressBack();
+  }
+
+  @Test
+  public void favInConversationTimeline_and_returnHomeTimelineWithDrawerMenu() throws Exception {
+    setupCreateFavorite(0,1);
+    AssertionUtil.checkHasReplyTo(hasReply);
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+
+    PerformUtil.selectItemView(hasReply);
+    PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+
+    onView(withId(R.id.iffabMenu_main_conv)).perform(click());
+
+    final IdlingResource timelineIdlingResource = getTimelineIdlingResource("conv", 2);
+    Espresso.registerIdlingResources(timelineIdlingResource);
+    AssertionUtil.checkHasReplyTo(hasReply);
+    AssertionUtil.checkMainActivityTitle(R.string.title_conv);
+    Espresso.unregisterIdlingResources(timelineIdlingResource);
+    PerformUtil.selectItemView(replied);
+    PerformUtil.favo();
+    Espresso.pressBack();
+    AssertionUtil.checkFavCount(replied, 1);
+    AssertionUtil.checkFavCountDoesNotExist(hasReply);
+
+    onView(withId(R.id.nav_drawer_layout)).perform(DrawerActions.open());
+    onView(withId(R.id.nav_drawer)).perform(NavigationViewActions.navigateTo(R.id.drawer_menu_home));
+
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+    onView(withId(R.id.nav_drawer_layout)).check(matches(DrawerMatchers.isClosed()));
 
     onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);

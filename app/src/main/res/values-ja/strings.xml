@@ -101,4 +101,7 @@
     <string name="title_comment">コメントする</string>
     <string name="media_chooser_title">添付する画像…</string>
     <string name="media_upload_delete">削除する</string>
+    <string name="drawer_menu_home">ホーム</string>
+    <string name="drawer_menu_license">OSSライセンス情報</string>
+    <string name="lists">リスト</string>
 </resources>
