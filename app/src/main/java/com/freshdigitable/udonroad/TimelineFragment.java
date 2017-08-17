@@ -50,6 +50,7 @@ import javax.inject.Inject;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * TimelineFragment provides RecyclerView to show timeline.
@@ -447,6 +448,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       fragment = new StatusListFragment();
     } else if (storeType.isForUser()) {
       fragment = new UserListFragment();
+    } else if (storeType == StoreType.LISTS) {
+      fragment = new ListsListFragment();
     } else {
       throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
     }
@@ -538,6 +541,15 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
       super.tlAdapter = new TimelineAdapter.UserListAdapter(super.sortedCache);
+    }
+  }
+
+  public static class ListsListFragment extends TimelineFragment<UserList> {
+    @Override
+    public void onAttach(Context context) {
+      InjectionUtil.getComponent(this).inject(this);
+      super.onAttach(context);
+      super.tlAdapter = new TimelineAdapter.ListListAdapter(super.sortedCache);
     }
   }
 

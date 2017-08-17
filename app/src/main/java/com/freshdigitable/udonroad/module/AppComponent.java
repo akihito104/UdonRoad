@@ -69,4 +69,6 @@ public interface AppComponent {
   void inject(TimelineFragment.UserListFragment timelineFragment);
 
   void inject(MainApplication mainApplication);
+
+  void inject(TimelineFragment.ListsListFragment listsListFragment);
 }

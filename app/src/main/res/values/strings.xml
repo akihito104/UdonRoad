@@ -94,4 +94,5 @@
     <string name="drawer_menu_home">home</string>
     <string name="drawer_menu_license">OSS license</string>
     <string name="lists">lists</string>
+    <string name="title_owned_list">lists</string>
 </resources>

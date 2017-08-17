@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
+import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
@@ -36,6 +37,7 @@ import java.lang.ref.WeakReference;
 import io.reactivex.Observable;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * TimelineAdapter is a adapter for RecyclerView.
@@ -272,6 +274,22 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     @Override
     ListItem wrapListItem(User item) {
       return new UserListItem(item);
+    }
+  }
+
+  public static class ListListAdapter extends TimelineAdapter<UserList> {
+    ListListAdapter(SortedCache<UserList> timelineStore) {
+      super(timelineStore);
+    }
+
+    @Override
+    ListItem wrapListItem(UserList item) {
+      return new ListsListItem(item);
+    }
+
+    @Override
+    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      return new UserItemViewHolder(parent);
     }
   }
 }

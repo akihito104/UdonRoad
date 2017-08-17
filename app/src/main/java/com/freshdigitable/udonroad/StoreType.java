@@ -35,7 +35,8 @@ public enum StoreType {
   APP_SETTINGS("appSettings"),
   POOL("cache"),
   USER_MEDIA("user_media"),
-  SEARCH("search");
+  SEARCH("search"),
+  LISTS("lists");
 
   public final String storeName;
 

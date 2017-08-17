@@ -81,6 +81,11 @@ class TimelineContainerSwitcher {
     replaceTimelineContainer(ContentType.SEARCH, -1, query, fragment);
   }
 
+  void showOwnedLists(long currentUserId) {
+    final TimelineFragment<?> fragment = TimelineFragment.getInstance(StoreType.LISTS, currentUserId);
+    replaceTimelineContainer(ContentType.LISTS, currentUserId, null, fragment);
+  }
+
   private void replaceTimelineContainer(ContentType type, long id, String query, Fragment fragment) {
     final Fragment current = getCurrentFragment();
     Log.d("TLContainerSwitcher", "replaceTimelineContainer: " + current.getTag());
@@ -231,7 +236,19 @@ class TimelineContainerSwitcher {
         switcher.setDetailIsEnabled(true);
         switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
       }
-    },;
+    }, LISTS(R.string.title_owned_list, StoreType.LISTS.prefix()) {
+      @Override
+      String createTag(long id, String query) {
+        return StoreType.LISTS.nameWithSuffix(id, query);
+      }
+
+      @Override
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
+        switcher.setDetailIsEnabled(false);
+        switcher.ffab.hide();
+      }
+    };
 
     final int titleRes;
     final String tagPrefix;

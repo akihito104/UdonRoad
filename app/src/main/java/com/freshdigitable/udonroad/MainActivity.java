@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity
         timelineContainerSwitcher.showMain();
         binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       } else if (itemId == R.id.drawer_menu_lists) {
-        // todo
+        timelineContainerSwitcher.showOwnedLists(appSetting.getCurrentUserId());
         binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       } else {
         if (itemId == R.id.drawer_menu_license) {

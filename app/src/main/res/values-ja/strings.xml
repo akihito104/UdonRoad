@@ -104,4 +104,5 @@
     <string name="drawer_menu_home">ホーム</string>
     <string name="drawer_menu_license">OSSライセンス情報</string>
     <string name="lists">リスト</string>
+    <string name="title_owned_list">保存済みリスト</string>
 </resources>

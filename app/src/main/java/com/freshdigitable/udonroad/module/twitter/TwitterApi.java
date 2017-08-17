@@ -47,6 +47,7 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.UploadedMedia;
 import twitter4j.User;
+import twitter4j.UserList;
 import twitter4j.auth.AccessToken;
 
 /**
@@ -267,6 +268,16 @@ public class TwitterApi {
 
   public Single<List<Status>> fetchSearch(Query query) {
     return observeThrowableFetch(() -> twitter.search(query)).map(QueryResultList::new);
+  }
+
+  public Single<PagableResponseList<UserList>> fetchUserListsOwnerships(
+      long ownerId, int count, long cursor) {
+    return observeThrowableFetch(() ->
+        twitter.getUserListsOwnerships(ownerId, count, cursor));
+  }
+
+  public Single<List<Status>> fetchUserListsStatuses(long listId, Paging paging) {
+    return observeThrowableFetch(() -> twitter.getUserListStatuses(listId, paging));
   }
 
   private static <T> Single<T> observeThrowableFetch(final Callable<T> fetch) {
