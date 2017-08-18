@@ -120,7 +120,12 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   private static final SelectedItem EMPTY = new SelectedItem();
   private SelectedItem selectedItemHolder = EMPTY;
 
+  private OnItemViewClickListener itemClickListener;
+
   private final OnItemViewClickListener itemViewClickListener = (vh, itemId, clickedItem) -> {
+    if (itemClickListener != null) {
+      itemClickListener.onItemViewClicked(vh, itemId, clickedItem);
+    }
     if (isItemSelected()
         && itemId == selectedItemHolder.id) {
       if (clickedItem instanceof ThumbnailView) {
@@ -183,6 +188,10 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   interface OnSelectedItemChangeListener {
     void onItemSelected(long itemId);
     void onItemUnselected();
+  }
+
+  void setOnItemViewClickListener(OnItemViewClickListener listener) {
+    this.itemClickListener = listener;
   }
 
   @Override

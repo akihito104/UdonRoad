@@ -34,6 +34,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -67,7 +68,8 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable {
+    implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable,
+    TimelineFragment.OnItemClickedListener {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -187,7 +189,7 @@ public class MainActivity extends AppCompatActivity
 
     setupActionMap();
     timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
-      if (type == TimelineContainerSwitcher.ContentType.MAIN) {
+      if (type == ContentType.MAIN) {
         tlFragment.startScroll();
       } else {
         tlFragment.stopScroll();
@@ -358,5 +360,12 @@ public class MainActivity extends AppCompatActivity
   @Override
   public View getRootView() {
     return binding.mainTimelineContainer;
+  }
+
+  @Override
+  public void onItemClicked(ContentType type, long id, String query) {
+    if (type == ContentType.LISTS) {
+      timelineContainerSwitcher.showListTimeline(id, query);
+    }
   }
 }

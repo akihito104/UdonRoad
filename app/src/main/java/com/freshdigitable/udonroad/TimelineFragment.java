@@ -35,6 +35,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
+import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
@@ -424,6 +425,10 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
+  interface OnItemClickedListener {
+    void onItemClicked(ContentType type, long id, String query);
+  }
+
   private static final String ARGS_STORE_NAME = "store_name";
   private static final String ARGS_ENTITY_ID = "entity_id";
   private static final String ARGS_QUERY = "query";
@@ -542,6 +547,23 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       super.onAttach(context);
       super.tlAdapter = new TimelineAdapter.UserListAdapter(super.sortedCache);
     }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      final OnUserIconClickedListener userIconClickedListener = super.createUserIconClickedListener();
+      super.tlAdapter.setOnItemViewClickListener((viewHolder, itemId, clickedView) -> {
+        final int pos = sortedCache.getPositionById(itemId);
+        final User user = sortedCache.get(pos);
+        userIconClickedListener.onUserIconClicked(viewHolder.getUserIcon(), user);
+      });
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      super.tlAdapter.setOnItemViewClickListener(null);
+    }
   }
 
   public static class ListsListFragment extends TimelineFragment<UserList> {
@@ -550,6 +572,27 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
       super.tlAdapter = new TimelineAdapter.ListListAdapter(super.sortedCache);
+    }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      super.tlAdapter.setOnItemViewClickListener((viewHolder, itemId, clickedView) -> {
+        final FragmentActivity activity = getActivity();
+        if (!(activity instanceof TimelineFragment.OnItemClickedListener)) {
+          return;
+        }
+        final OnItemClickedListener listener = (OnItemClickedListener) activity;
+        final int pos = sortedCache.getPositionById(itemId);
+        final UserList userList = sortedCache.get(pos);
+        listener.onItemClicked(ContentType.LISTS, itemId, userList.getName());
+      });
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      super.tlAdapter.setOnItemViewClickListener(null);
     }
   }
 

@@ -178,6 +178,18 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
               .resultType(Query.RECENT);
         }
       };
+    } else if (storeType == StoreType.LIST_TL) {
+      return new ListFetchStrategy() {
+        @Override
+        public void fetch() {
+          fetchToStore(twitterApi.fetchUserListsStatuses(id, new Paging(1, 20)));
+        }
+
+        @Override
+        public void fetchNext() {
+          fetchToStore(twitterApi.fetchUserListsStatuses(id, getNextPage()));
+        }
+      };
     }
     throw new IllegalStateException();
   }

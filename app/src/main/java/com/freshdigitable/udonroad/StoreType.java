@@ -36,7 +36,8 @@ public enum StoreType {
   POOL("cache"),
   USER_MEDIA("user_media"),
   SEARCH("search"),
-  LISTS("lists");
+  LISTS("lists"),
+  LIST_TL("listTl");
 
   public final String storeName;
 
@@ -56,7 +57,7 @@ public enum StoreType {
   }
 
   public boolean isForStatus() {
-    for (StoreType type : Arrays.asList(HOME, USER_HOME, USER_FAV, CONVERSATION, USER_MEDIA, SEARCH)) {
+    for (StoreType type : Arrays.asList(HOME, USER_HOME, USER_FAV, CONVERSATION, USER_MEDIA, SEARCH, LIST_TL)) {
       if (this == type) {
         return true;
       }
