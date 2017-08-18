@@ -41,6 +41,7 @@ import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
@@ -162,7 +163,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupNavigationDrawerHeader(User user) {
-    navHeaderBinding.navHeaderAccount.setNames(user);
+    navHeaderBinding.navHeaderAccount.setNames(new TwitterCombinedName(user));
     Picasso.with(getApplicationContext())
         .load(user.getProfileImageURLHttps())
         .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)

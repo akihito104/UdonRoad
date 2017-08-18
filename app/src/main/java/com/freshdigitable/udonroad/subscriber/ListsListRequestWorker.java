@@ -49,7 +49,7 @@ public class ListsListRequestWorker implements ListRequestWorker<UserList> {
   @Override
   public ListFetchStrategy getFetchStrategy(StoreType type, long idForQuery, String query) {
     if (type == StoreType.LISTS) {
-      String storeName = type.nameWithSuffix(idForQuery, "");
+      final String storeName = type.nameWithSuffix(idForQuery, "");
       return new ListFetchStrategy() {
         @Override
         public void fetch() {

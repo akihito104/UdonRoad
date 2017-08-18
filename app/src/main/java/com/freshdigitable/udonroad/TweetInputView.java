@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
 import twitter4j.User;
@@ -100,7 +101,7 @@ public class TweetInputView extends RelativeLayout {
   }
 
   public void setUserInfo(User user) {
-    name.setNames(user);
+    name.setNames(new TwitterCombinedName(user));
   }
 
   public Editable getText() {

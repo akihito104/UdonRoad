@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.listitem;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView.CombinedName;
+
 import java.util.List;
 
 import twitter4j.User;
@@ -30,6 +32,8 @@ public interface ListItem {
   CharSequence getText();
 
   User getUser(); // XXX
+
+  CombinedName getCombinedName();
 
   List<Stat> getStats();
 

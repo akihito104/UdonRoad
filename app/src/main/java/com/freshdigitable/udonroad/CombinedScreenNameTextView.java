@@ -27,12 +27,11 @@ import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.style.DynamicDrawableSpan;
 import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.util.AttributeSet;
-
-import twitter4j.User;
 
 /**
  * CombinedScreenNameTextView combines screen name and account with specified format.
@@ -60,30 +59,26 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     setTransformationMethod(null);
   }
 
-  private String name = "";
-  private String screenName = "";
+  private CombinedName oldName;
 
-  public void setNames(User user) {
-    final String name = user.getName();
-    final String screenName = user.getScreenName();
-    if (this.name.equals(name)
-        && this.screenName.equals(screenName)) {
+  public void setNames(@NonNull CombinedName combinedName) {
+    if (combinedName.equals(oldName)) {
       return;
     }
-    final String formatted = name
-        + (TextViewCompat.getMaxLines(this) == 2 ? "\n" : " ")
-        + "@" + screenName;
-    final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(formatted);
-    spannableStringBuilder.setSpan(STYLE_BOLD, 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    if (user.isVerified()) {
+    final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(combinedName.getName());
+    spannableStringBuilder.setSpan(STYLE_BOLD, 0, combinedName.getName().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    if (!TextUtils.isEmpty(combinedName.getScreenName())) {
+      spannableStringBuilder.append(TextViewCompat.getMaxLines(this) == 2 ? "\n" : " ")
+          .append("@").append(combinedName.getScreenName());
+    }
+    if (combinedName.isVerified()) {
       appendIconToEnd(spannableStringBuilder, verifiedIcon);
     }
-    if (user.isProtected()) {
+    if (combinedName.isPrivate()) {
       appendIconToEnd(spannableStringBuilder, protectedIcon);
     }
     setText(spannableStringBuilder);
-    this.name = name;
-    this.screenName = screenName;
+    oldName = combinedName;
   }
 
   private void appendIconToEnd(SpannableStringBuilder ssb, ImageSpan iconSpan) {
@@ -106,4 +101,14 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
   }
 
   private static final StyleSpan STYLE_BOLD = new StyleSpan(Typeface.BOLD);
+
+  public interface CombinedName {
+    String getName();
+
+    String getScreenName();
+
+    boolean isPrivate();
+
+    boolean isVerified();
+  }
 }

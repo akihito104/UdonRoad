@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.listitem;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView.CombinedName;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -51,5 +53,10 @@ public class ListsListItem implements ListItem {
   @Override
   public List<Stat> getStats() {
     return Collections.emptyList();
+  }
+
+  @Override
+  public CombinedName getCombinedName() {
+    return new TwitterCombinedName(userList);
   }
 }
