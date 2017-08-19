@@ -105,7 +105,7 @@ public class StatusDetailView extends RelativeLayout implements StatusItemView {
       text.setSpan(new ClickableSpan() {
         @Override
         public void onClick(View view) {
-          listener.onClicked(view, span);
+          listener.onSpanClicked(view, span);
         }
       }, span.getStart(), span.getEnd(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }

@@ -22,7 +22,7 @@ import android.view.View;
  * Created by akihit on 2017/08/10.
  */
 public interface OnSpanClickListener {
-  void onClicked(View v, SpanItem item);
+  void onSpanClicked(View v, SpanItem item);
 
   class SpanItem {
     public static final int TYPE_URL = 0;

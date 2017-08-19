@@ -125,7 +125,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
           Log.d(TAG, "onPageSelected: " + position);
           TimelineFragment fragment = pagerAdapter.getItem(position);
           if (fragment.isItemSelected()) {
-            ((FabHandleable) activity).showFab();
+            ((FabHandleable) activity).showFab(FabHandleable.TYPE_FAB);
           } else {
             ((FabHandleable) activity).hideFab();
           }

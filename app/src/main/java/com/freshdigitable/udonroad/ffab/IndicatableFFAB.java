@@ -82,8 +82,16 @@ public class IndicatableFFAB extends FlickableFAB {
   }
 
   public void transToFAB(int afterVisibility) {
-    presenter.transToFAB(afterVisibility);
-    mode = MODE_FAB;
+    if (mode == MODE_FAB) {
+      if (afterVisibility == VISIBLE) {
+        show();
+      } else {
+        hide();
+      }
+    } else {
+      presenter.transToFAB(afterVisibility);
+      mode = MODE_FAB;
+    }
   }
 
   public interface OnIffabItemSelectedListener {

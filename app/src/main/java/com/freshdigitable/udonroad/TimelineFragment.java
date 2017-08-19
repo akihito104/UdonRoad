@@ -242,6 +242,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     if (isVisible()) {
       if (tlAdapter.isItemSelected()) {
         showFab();
+      } else {
+        hideFab();
       }
     }
   }
@@ -330,7 +332,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private void showFab() {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
-      ((FabHandleable) activity).showFab();
+      ((FabHandleable) activity).showFab(FabHandleable.TYPE_FAB);
       removeOnItemSelectedListener();
       iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedItemId());
       ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);

@@ -69,7 +69,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  */
 public class MainActivity extends AppCompatActivity
     implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable,
-    TimelineFragment.OnItemClickedListener {
+    TimelineFragment.OnItemClickedListener, OnSpanClickListener {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -93,13 +93,15 @@ public class MainActivity extends AppCompatActivity
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-    navHeaderBinding = DataBindingUtil.inflate(LayoutInflater.from(getApplicationContext()), R.layout.nav_header, null, false);
+    navHeaderBinding = DataBindingUtil.inflate(
+        LayoutInflater.from(getApplicationContext()), R.layout.nav_header, null, false);
     binding.navDrawer.addHeaderView(navHeaderBinding.getRoot());
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setupHomeTimeline();
-    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.mainTimelineContainer, tlFragment, binding.ffab);
+    timelineContainerSwitcher = new TimelineContainerSwitcher(
+        binding.mainTimelineContainer, tlFragment, binding.ffab);
     setupTweetInputView();
     setupNavigationDrawer();
 
@@ -322,8 +324,15 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void showFab() {
-    binding.ffab.show();
+  public void showFab(int type) {
+    if (type == TYPE_FAB) {
+      binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
+          View.VISIBLE : View.INVISIBLE);
+    } else if (type == TYPE_TOOLBAR) {
+      binding.ffab.transToToolbar();
+    } else {
+      binding.ffab.show();
+    }
   }
 
   @Override
@@ -366,6 +375,13 @@ public class MainActivity extends AppCompatActivity
   public void onItemClicked(ContentType type, long id, String query) {
     if (type == ContentType.LISTS) {
       timelineContainerSwitcher.showListTimeline(id, query);
+    }
+  }
+
+  @Override
+  public void onSpanClicked(View v, SpanItem item) {
+    if (item.getType() == SpanItem.TYPE_HASHTAG) {
+      timelineContainerSwitcher.showSearchResult(item.getQuery());
     }
   }
 }

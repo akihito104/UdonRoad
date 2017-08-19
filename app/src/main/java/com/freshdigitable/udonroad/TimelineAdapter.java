@@ -125,6 +125,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   private final OnItemViewClickListener itemViewClickListener = (vh, itemId, clickedItem) -> {
     if (itemClickListener != null) {
       itemClickListener.onItemViewClicked(vh, itemId, clickedItem);
+      return;
     }
     if (isItemSelected()
         && itemId == selectedItemHolder.id) {
@@ -255,7 +256,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public static class StatusTimelineAdapter extends TimelineAdapter<Status> {
-    public StatusTimelineAdapter(SortedCache<Status> timelineStore) {
+    StatusTimelineAdapter(SortedCache<Status> timelineStore) {
       super(timelineStore);
     }
 
@@ -271,7 +272,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public static class UserListAdapter extends TimelineAdapter<User> {
-    public UserListAdapter(SortedCache<User> timelineStore) {
+    UserListAdapter(SortedCache<User> timelineStore) {
       super(timelineStore);
     }
 

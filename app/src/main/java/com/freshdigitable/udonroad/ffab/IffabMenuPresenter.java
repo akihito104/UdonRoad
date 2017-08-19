@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.ffab;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Build;
@@ -336,6 +338,13 @@ class IffabMenuPresenter {
         .translationY(bbt.getHeight())
         .setInterpolator(new DecelerateInterpolator())
         .setDuration(200)
+        .setListener(new AnimatorListenerAdapter() {
+          @Override
+          public void onAnimationEnd(Animator animation) {
+            bbt.setVisibility(View.INVISIBLE);
+            bbt.setTranslationY(0);
+          }
+        })
         .start();
   }
 
@@ -346,10 +355,21 @@ class IffabMenuPresenter {
   }
 
   void showToolbar() {
+    if (bbt.getVisibility() == View.VISIBLE) {
+      return;
+    }
+    bbt.setTranslationY(bbt.getHeight());
     bbt.animate()
         .translationY(0)
         .setInterpolator(new AccelerateInterpolator())
         .setDuration(200)
+        .setListener(new AnimatorListenerAdapter() {
+          @Override
+          public void onAnimationEnd(Animator animation) {
+            bbt.setVisibility(View.VISIBLE);
+            bbt.setTranslationY(0);
+          }
+        })
         .start();
   }
 
