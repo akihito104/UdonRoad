@@ -455,7 +455,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       fragment = new StatusListFragment();
     } else if (storeType.isForUser()) {
       fragment = new UserListFragment();
-    } else if (storeType == StoreType.LISTS) {
+    } else if (storeType.isForLists()) {
       fragment = new ListsListFragment();
     } else {
       throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");

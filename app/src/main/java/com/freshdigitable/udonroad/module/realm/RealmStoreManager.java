@@ -38,11 +38,11 @@ public class RealmStoreManager implements StoreManager {
   private static final List<StoreType> deletableCaches
       = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION, StoreType.POOL,
       StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
-      StoreType.SEARCH, StoreType.LISTS);
+      StoreType.SEARCH, StoreType.OWNED_LIST, StoreType.USER_LIST);
   private static final List<StoreType> timelineStore
       = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION,
       StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
-      StoreType.SEARCH, StoreType.LISTS);
+      StoreType.SEARCH, StoreType.OWNED_LIST, StoreType.USER_LIST);
 
   @Override
   public void init(Context context) {

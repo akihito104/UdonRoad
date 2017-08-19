@@ -239,6 +239,13 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
         return name() + "\n" + user.getFavouritesCount();
       }
     },
+    LISTED(StoreType.USER_LIST) {
+      @Override
+      public String createTitle(User user) {
+        final int listedCount = user.getListedCount();
+        return name() + (listedCount > 0 ? "\n" + listedCount : "0");
+      }
+    },
     MEDIA(StoreType.USER_MEDIA) {
       @Override
       public String createTitle(User user) {

@@ -73,28 +73,8 @@ public class UserListRealm implements UserList, RealmModel {
   }
 
   @Override
-  public String getSlug() {
-    throw new RuntimeException("not implemented yet...");
-  }
-
-  @Override
   public String getDescription() {
     return description;
-  }
-
-  @Override
-  public int getSubscriberCount() {
-    throw new RuntimeException("not implemented yet...");
-  }
-
-  @Override
-  public int getMemberCount() {
-    throw new RuntimeException("not implemented yet...");
-  }
-
-  @Override
-  public URI getURI() {
-    throw new RuntimeException("not implemented yet...");
   }
 
   @Override
@@ -120,6 +100,31 @@ public class UserListRealm implements UserList, RealmModel {
   }
 
   @Override
+  public int compareTo(@NonNull UserList userList) {
+    return (int) (userList.getId() - id);
+  }
+
+  @Override
+  public String getSlug() {
+    throw new RuntimeException("not implemented yet...");
+  }
+
+  @Override
+  public int getSubscriberCount() {
+    throw new RuntimeException("not implemented yet...");
+  }
+
+  @Override
+  public int getMemberCount() {
+    throw new RuntimeException("not implemented yet...");
+  }
+
+  @Override
+  public URI getURI() {
+    throw new RuntimeException("not implemented yet...");
+  }
+
+  @Override
   public boolean isFollowing() {
     throw new RuntimeException("not implemented yet...");
   }
@@ -127,11 +132,6 @@ public class UserListRealm implements UserList, RealmModel {
   @Override
   public Date getCreatedAt() {
     throw new RuntimeException("not implemented yet...");
-  }
-
-  @Override
-  public int compareTo(@NonNull UserList userList) {
-    return (int) (userList.getId() - id);
   }
 
   @Override

@@ -280,6 +280,12 @@ public class TwitterApi {
     return observeThrowableFetch(() -> twitter.getUserListStatuses(listId, paging));
   }
 
+  public Single<PagableResponseList<UserList>> getUserListMemberships(
+      long ownerUserId, int count, long cursor) {
+    return observeThrowableFetch(() ->
+        twitter.getUserListMemberships(ownerUserId, count, cursor));
+  }
+
   private static <T> Single<T> observeThrowableFetch(final Callable<T> fetch) {
     return Single.<T>create(subscriber -> {
       try {

@@ -63,6 +63,7 @@
     <string name="msg_followed_by_someone">followed by \@%1$s</string>
     <string name="msg_retweeted_by_someone">your tweet was retweeted by \@%1$s</string>
     <string name="msg_no_next_page">there is no item any more…</string>
+    <string name="msg_fetch_user_list_failed">failed to fetch user lists…</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>

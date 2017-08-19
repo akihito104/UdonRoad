@@ -69,7 +69,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  */
 public class UserInfoActivity extends AppCompatActivity
     implements TweetSendable, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
-    OnSpanClickListener {
+    OnSpanClickListener, TimelineFragment.OnItemClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -375,6 +375,13 @@ public class UserInfoActivity extends AppCompatActivity
   public void onSpanClicked(View v, SpanItem item) {
     if (item.getType() == SpanItem.TYPE_HASHTAG) {
       timelineContainerSwitcher.showSearchResult(item.getQuery());
+    }
+  }
+
+  @Override
+  public void onItemClicked(ContentType type, long id, String query) {
+    if (type == ContentType.LISTS) {
+      timelineContainerSwitcher.showListTimeline(id, query);
     }
   }
 }

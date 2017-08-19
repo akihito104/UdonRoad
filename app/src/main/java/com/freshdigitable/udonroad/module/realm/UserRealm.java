@@ -50,6 +50,7 @@ public class UserRealm extends RealmObject implements User {
   private int followersCount;
   private int friendsCount;
   private int favoritesCount;
+  private int listedCount;
   private String profileLinkColor;
   private RealmList<URLEntityRealm> descriptionURLEntities;
   private String location;
@@ -73,6 +74,7 @@ public class UserRealm extends RealmObject implements User {
     this.followersCount = user.getFollowersCount();
     this.friendsCount = user.getFriendsCount();
     this.favoritesCount = user.getFavouritesCount();
+    this.listedCount = user.getListedCount();
     this.profileLinkColor = user.getProfileLinkColor();
     this.descriptionURLEntities = URLEntityRealm.createList(user.getDescriptionURLEntities());
     this.url = user.getURL();
@@ -335,7 +337,7 @@ public class UserRealm extends RealmObject implements User {
 
   @Override
   public int getListedCount() {
-    throw new RuntimeException("not implement yet.");
+    return listedCount;
   }
 
   @Override

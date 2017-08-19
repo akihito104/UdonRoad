@@ -36,7 +36,8 @@ public enum StoreType {
   POOL("cache"),
   USER_MEDIA("user_media"),
   SEARCH("search"),
-  LISTS("lists"),
+  OWNED_LIST("owned_lists"),
+  USER_LIST("user_lists"),
   LIST_TL("listTl");
 
   public final String storeName;
@@ -67,6 +68,15 @@ public enum StoreType {
 
   public boolean isForUser() {
     for (StoreType type : Arrays.asList(USER_FOLLOWER, USER_FRIEND)) {
+      if (this == type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean isForLists() {
+    for (StoreType type : Arrays.asList(USER_LIST, OWNED_LIST)) {
       if (this == type) {
         return true;
       }
