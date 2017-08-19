@@ -60,7 +60,7 @@ public class UserItemView extends RelativeLayout implements ItemView {
     if (item == null) {
       return;
     }
-    names.setNames(item.getUser());
+    names.setNames(item.getCombinedName());
     description.setText(item.getText());
     reactionContainer.update(item.getStats());
   }

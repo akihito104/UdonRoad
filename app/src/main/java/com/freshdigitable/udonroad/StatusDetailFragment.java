@@ -140,6 +140,9 @@ public class StatusDetailFragment extends Fragment {
     statusView.bind(item);
     updateFabMenuItem(item);
     final List<SpanItem> spanItems = item.createSpanItems();
+    final FragmentActivity activity = getActivity();
+    final OnSpanClickListener spanClickListener = activity instanceof OnSpanClickListener ?
+        (OnSpanClickListener) activity : (v, i) -> {};
     if (!spanItems.isEmpty()) {
       statusView.setClickableItems(spanItems, (v, si) -> {
         if (si.getType() == SpanItem.TYPE_URL) {
@@ -147,9 +150,7 @@ public class StatusDetailFragment extends Fragment {
         } else if (si.getType() == SpanItem.TYPE_MENTION) {
           UserInfoActivity.start(v.getContext(), si.getId());
         } else if (si.getType() == SpanItem.TYPE_HASHTAG) {
-          if (spanClickListener != null) {
-            spanClickListener.onClicked(v, si);
-          }
+          spanClickListener.onSpanClicked(v, si);
         }
       });
     }
@@ -276,6 +277,7 @@ public class StatusDetailFragment extends Fragment {
       final FabHandleable fabHandleable = (FabHandleable) getActivity();
       onIffabItemSelectedListener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
       fabHandleable.addOnItemSelectedListener(onIffabItemSelectedListener);
+      fabHandleable.showFab(FabHandleable.TYPE_TOOLBAR);
     }
   }
 
@@ -307,11 +309,5 @@ public class StatusDetailFragment extends Fragment {
 
   long getStatusId() {
     return (long) getArguments().get("statusId");
-  }
-
-  private OnSpanClickListener spanClickListener;
-
-  public void setOnSpanClickListener(OnSpanClickListener listener) {
-    this.spanClickListener = listener;
   }
 }

@@ -28,15 +28,18 @@ import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
+import com.freshdigitable.udonroad.module.realm.ListsSortedCache;
 import com.freshdigitable.udonroad.module.realm.RealmStoreManager;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
 import com.freshdigitable.udonroad.module.realm.UserCacheRealm;
 import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
+import com.freshdigitable.udonroad.module.realm.WritableListsSortedCache;
 import com.freshdigitable.udonroad.module.realm.WritableTimelineRealm;
 import com.freshdigitable.udonroad.module.realm.WritableUserSortedCacheRealm;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
+import com.freshdigitable.udonroad.subscriber.ListsListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
@@ -49,6 +52,7 @@ import dagger.Provides;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * DataStoreModule defines injected modules for data store.
@@ -143,5 +147,24 @@ public class DataStoreModule {
                                                        WritableSortedCache<User> sortedCache,
                                                        PublishProcessor<UserFeedbackEvent> userFeedback) {
     return new UserListRequestWorker(twitterApi, sortedCache, userFeedback);
+  }
+
+  @Provides
+  WritableSortedCache<UserList> provideWritableSortedCacheUserList(TypedCache<User> userCache) {
+    return new WritableListsSortedCache(userCache);
+  }
+
+  @Provides
+  ListRequestWorker<UserList> provideListRequestWorkerUserList(
+      TwitterApi twitteApi,
+      WritableSortedCache<UserList> cache,
+      PublishProcessor<UserFeedbackEvent> userFeedback) {
+    return new ListsListRequestWorker(twitteApi, cache, userFeedback);
+  }
+
+  @Provides
+  SortedCache<UserList> provideSortedCacheUserList(UpdateSubjectFactory factory,
+                                                   TypedCache<User> userCache) {
+    return new ListsSortedCache(factory, userCache);
   }
 }

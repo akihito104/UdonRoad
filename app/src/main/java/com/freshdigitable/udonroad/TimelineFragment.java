@@ -35,6 +35,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
+import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
@@ -50,6 +51,7 @@ import javax.inject.Inject;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * TimelineFragment provides RecyclerView to show timeline.
@@ -240,6 +242,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     if (isVisible()) {
       if (tlAdapter.isItemSelected()) {
         showFab();
+      } else {
+        hideFab();
       }
     }
   }
@@ -328,7 +332,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private void showFab() {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
-      ((FabHandleable) activity).showFab();
+      ((FabHandleable) activity).showFab(FabHandleable.TYPE_FAB);
       removeOnItemSelectedListener();
       iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedItemId());
       ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);
@@ -423,6 +427,10 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
+  interface OnItemClickedListener {
+    void onItemClicked(ContentType type, long id, String query);
+  }
+
   private static final String ARGS_STORE_NAME = "store_name";
   private static final String ARGS_ENTITY_ID = "entity_id";
   private static final String ARGS_QUERY = "query";
@@ -447,6 +455,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       fragment = new StatusListFragment();
     } else if (storeType.isForUser()) {
       fragment = new UserListFragment();
+    } else if (storeType.isForLists()) {
+      fragment = new ListsListFragment();
     } else {
       throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
     }
@@ -538,6 +548,53 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
       super.tlAdapter = new TimelineAdapter.UserListAdapter(super.sortedCache);
+    }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      final OnUserIconClickedListener userIconClickedListener = super.createUserIconClickedListener();
+      super.tlAdapter.setOnItemViewClickListener((viewHolder, itemId, clickedView) -> {
+        final int pos = sortedCache.getPositionById(itemId);
+        final User user = sortedCache.get(pos);
+        userIconClickedListener.onUserIconClicked(viewHolder.getUserIcon(), user);
+      });
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      super.tlAdapter.setOnItemViewClickListener(null);
+    }
+  }
+
+  public static class ListsListFragment extends TimelineFragment<UserList> {
+    @Override
+    public void onAttach(Context context) {
+      InjectionUtil.getComponent(this).inject(this);
+      super.onAttach(context);
+      super.tlAdapter = new TimelineAdapter.ListListAdapter(super.sortedCache);
+    }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      super.tlAdapter.setOnItemViewClickListener((viewHolder, itemId, clickedView) -> {
+        final FragmentActivity activity = getActivity();
+        if (!(activity instanceof TimelineFragment.OnItemClickedListener)) {
+          return;
+        }
+        final OnItemClickedListener listener = (OnItemClickedListener) activity;
+        final int pos = sortedCache.getPositionById(itemId);
+        final UserList userList = sortedCache.get(pos);
+        listener.onItemClicked(ContentType.LISTS, itemId, userList.getName());
+      });
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      super.tlAdapter.setOnItemViewClickListener(null);
     }
   }
 

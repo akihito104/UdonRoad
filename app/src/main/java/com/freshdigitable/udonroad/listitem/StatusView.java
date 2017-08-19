@@ -89,7 +89,7 @@ public class StatusView extends RelativeLayout implements StatusItemView {
         ContextCompat.getColor(getContext(), R.color.twitter_action_retweeted)
         : Color.GRAY);
     rtUser.setVisibility(item.isRetweet() ? VISIBLE : GONE);
-    names.setNames(item.getUser());
+    names.setNames(item.getCombinedName());
     tweet.setText(item.getText());
     reactionContainer.update(item.getStats());
     createdAt.setText(item.getCreatedTime(getContext()));
@@ -141,7 +141,7 @@ public class StatusView extends RelativeLayout implements StatusItemView {
 
   public void update(TwitterListItem item) {
     reactionContainer.update(item.getStats());
-    names.setNames(item.getUser());
+    names.setNames(item.getCombinedName());
     if (quotedStatus != null) {
       quotedStatus.update(item.getQuotedItem());
     }

@@ -39,6 +39,7 @@ import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
@@ -67,7 +68,8 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetSendable, FabHandleable, SnackbarCapable, OnUserIconClickedListener {
+    implements TweetSendable, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
+    OnSpanClickListener, TimelineFragment.OnItemClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -284,7 +286,7 @@ public class UserInfoActivity extends AppCompatActivity
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
     timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
-      if (type == TimelineContainerSwitcher.ContentType.MAIN) {
+      if (type == ContentType.MAIN) {
         userInfoTabs.setVisibility(View.VISIBLE);
         UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
       } else {
@@ -323,8 +325,13 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
-  public void showFab() {
-    if (viewPager.getCurrentPage().isStatus()) {
+  public void showFab(int type) {
+    if (type == TYPE_FAB) {
+      binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
+          View.VISIBLE : View.INVISIBLE);
+    } else if (type == TYPE_TOOLBAR) {
+      binding.ffab.transToToolbar();
+    } else {
       binding.ffab.show();
     }
   }
@@ -362,5 +369,19 @@ public class UserInfoActivity extends AppCompatActivity
       return;
     }
     start(this, user, view);
+  }
+
+  @Override
+  public void onSpanClicked(View v, SpanItem item) {
+    if (item.getType() == SpanItem.TYPE_HASHTAG) {
+      timelineContainerSwitcher.showSearchResult(item.getQuery());
+    }
+  }
+
+  @Override
+  public void onItemClicked(ContentType type, long id, String query) {
+    if (type == ContentType.LISTS) {
+      timelineContainerSwitcher.showListTimeline(id, query);
+    }
   }
 }

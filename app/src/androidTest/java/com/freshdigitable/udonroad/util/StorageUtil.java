@@ -36,10 +36,9 @@ public class StorageUtil {
   }
 
   private static String[] listStorage() {
-    final Realm realm = Realm.getDefaultInstance();
-    final String[] list = realm.getConfiguration().getRealmDirectory()
+    final RealmConfiguration conf = new RealmConfiguration.Builder().build();
+    final String[] list = conf.getRealmDirectory()
         .list(new PatternFilenameFilter("^.*\\.management$"));
-    realm.close();
     for (int i = 0; i < list.length; i++) {
       list[i] = list[i].replace(".management", "");
     }

@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
+import android.support.test.espresso.ViewAssertion;
 import android.support.test.espresso.contrib.DrawerMatchers;
 import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.rule.ActivityTestRule;
@@ -39,12 +40,14 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Mockito.when;
 
 /**
@@ -72,6 +75,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
     Espresso.registerIdlingResources(timelineIdlingResource);
     AssertionUtil.checkHasReplyTo(hasReply);
     AssertionUtil.checkMainActivityTitle(R.string.title_conv);
+    checkFFAB(matches(not(isDisplayed())));
     Espresso.unregisterIdlingResources(timelineIdlingResource);
     PerformUtil.selectItemView(replied);
     PerformUtil.favo();
@@ -81,9 +85,11 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     Espresso.pressBack();
     AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    onView(withId(R.id.iffabMenu_main_conv)).check(matches(isDisplayed()));
 
     Espresso.pressBack();
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
+    checkFFAB(matches(isDisplayed()));
 
     onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
@@ -99,6 +105,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
     PerformUtil.selectItemView(hasReply);
     PerformUtil.showDetail();
     AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    checkFFAB(matches(not(isDisplayed())));
 
     onView(withId(R.id.iffabMenu_main_conv)).perform(click());
 
@@ -106,6 +113,8 @@ public class ConversationInstTest extends TimelineInstTestBase {
     Espresso.registerIdlingResources(timelineIdlingResource);
     AssertionUtil.checkHasReplyTo(hasReply);
     AssertionUtil.checkMainActivityTitle(R.string.title_conv);
+    onView(withId(R.id.iffabMenu_main_conv)).check(matches(not(isDisplayed())));
+    checkFFAB(matches(not(isDisplayed())));
     Espresso.unregisterIdlingResources(timelineIdlingResource);
     PerformUtil.selectItemView(replied);
     PerformUtil.favo();
@@ -118,10 +127,15 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
     onView(withId(R.id.nav_drawer_layout)).check(matches(DrawerMatchers.isClosed()));
+    checkFFAB(matches(isDisplayed()));
 
     onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
     Espresso.pressBack();
+  }
+
+  private static void checkFFAB(ViewAssertion matches) {
+    onView(withId(R.id.ffab)).check(matches);
   }
 
   @Override

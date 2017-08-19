@@ -83,7 +83,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
 
   @Override
   public int getPositionById(long id) {
-    final ListedUserIDs status = ordered.where().equalTo("id", id).findFirst();
+    final ListedUserIDs status = ordered.where().equalTo("userId", id).findFirst();
     return ordered.indexOf(status);
   }
 

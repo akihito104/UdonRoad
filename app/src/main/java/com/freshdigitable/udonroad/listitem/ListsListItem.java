@@ -18,30 +18,45 @@ package com.freshdigitable.udonroad.listitem;
 
 import com.freshdigitable.udonroad.CombinedScreenNameTextView.CombinedName;
 
+import java.util.Collections;
 import java.util.List;
 
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
- * Created by akihit on 2017/06/13.
+ * Created by akihit on 2017/08/17.
  */
 
-public interface ListItem {
-  long getId();
+public class ListsListItem implements ListItem {
+  private final UserList userList;
 
-  CharSequence getText();
+  public ListsListItem(UserList item) {
+    this.userList = item;
+  }
 
-  User getUser(); // XXX
+  @Override
+  public long getId() {
+    return userList.getId();
+  }
 
-  CombinedName getCombinedName();
+  @Override
+  public CharSequence getText() {
+    return userList.getDescription();
+  }
 
-  List<Stat> getStats();
+  @Override
+  public User getUser() {
+    return userList.getUser();
+  }
 
-  interface Stat {
-    int getType();
+  @Override
+  public List<Stat> getStats() {
+    return Collections.emptyList();
+  }
 
-    int getCount();
-
-    boolean isMarked();
+  @Override
+  public CombinedName getCombinedName() {
+    return new TwitterCombinedName(userList);
   }
 }

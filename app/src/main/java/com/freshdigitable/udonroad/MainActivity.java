@@ -34,6 +34,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -41,6 +42,7 @@ import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
@@ -66,7 +68,8 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable {
+    implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable,
+    TimelineFragment.OnItemClickedListener, OnSpanClickListener {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -90,13 +93,15 @@ public class MainActivity extends AppCompatActivity
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-    navHeaderBinding = DataBindingUtil.inflate(LayoutInflater.from(getApplicationContext()), R.layout.nav_header, null, false);
+    navHeaderBinding = DataBindingUtil.inflate(
+        LayoutInflater.from(getApplicationContext()), R.layout.nav_header, null, false);
     binding.navDrawer.addHeaderView(navHeaderBinding.getRoot());
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setupHomeTimeline();
-    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.mainTimelineContainer, tlFragment, binding.ffab);
+    timelineContainerSwitcher = new TimelineContainerSwitcher(
+        binding.mainTimelineContainer, tlFragment, binding.ffab);
     setupTweetInputView();
     setupNavigationDrawer();
 
@@ -129,7 +134,7 @@ public class MainActivity extends AppCompatActivity
         timelineContainerSwitcher.showMain();
         binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       } else if (itemId == R.id.drawer_menu_lists) {
-        // todo
+        timelineContainerSwitcher.showOwnedLists(appSetting.getCurrentUserId());
         binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       } else {
         if (itemId == R.id.drawer_menu_license) {
@@ -162,7 +167,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupNavigationDrawerHeader(User user) {
-    navHeaderBinding.navHeaderAccount.setNames(user);
+    navHeaderBinding.navHeaderAccount.setNames(new TwitterCombinedName(user));
     Picasso.with(getApplicationContext())
         .load(user.getProfileImageURLHttps())
         .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
@@ -186,7 +191,7 @@ public class MainActivity extends AppCompatActivity
 
     setupActionMap();
     timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
-      if (type == TimelineContainerSwitcher.ContentType.MAIN) {
+      if (type == ContentType.MAIN) {
         tlFragment.startScroll();
       } else {
         tlFragment.stopScroll();
@@ -319,8 +324,15 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void showFab() {
-    binding.ffab.show();
+  public void showFab(int type) {
+    if (type == TYPE_FAB) {
+      binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
+          View.VISIBLE : View.INVISIBLE);
+    } else if (type == TYPE_TOOLBAR) {
+      binding.ffab.transToToolbar();
+    } else {
+      binding.ffab.show();
+    }
   }
 
   @Override
@@ -357,5 +369,19 @@ public class MainActivity extends AppCompatActivity
   @Override
   public View getRootView() {
     return binding.mainTimelineContainer;
+  }
+
+  @Override
+  public void onItemClicked(ContentType type, long id, String query) {
+    if (type == ContentType.LISTS) {
+      timelineContainerSwitcher.showListTimeline(id, query);
+    }
+  }
+
+  @Override
+  public void onSpanClicked(View v, SpanItem item) {
+    if (item.getType() == SpanItem.TYPE_HASHTAG) {
+      timelineContainerSwitcher.showSearchResult(item.getQuery());
+    }
   }
 }

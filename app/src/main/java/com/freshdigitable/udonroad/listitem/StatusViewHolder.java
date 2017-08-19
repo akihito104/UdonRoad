@@ -43,7 +43,7 @@ public class StatusViewHolder extends ItemViewHolder {
   }
 
   @Override
-  ImageView getUserIcon() {
+  public ImageView getUserIcon() {
     return getView().getIcon();
   }
 

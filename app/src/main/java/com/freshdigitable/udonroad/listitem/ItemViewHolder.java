@@ -46,7 +46,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
         v -> userIconClickedListener.onUserIconClicked(v, item.getUser()));
   }
 
-  abstract ImageView getUserIcon();
+  public abstract ImageView getUserIcon();
 
   public void subscribe(Observable<ListItem> observable) {
     subscription = observable

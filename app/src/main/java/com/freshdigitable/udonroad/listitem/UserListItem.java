@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView.CombinedName;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -151,5 +153,10 @@ public class UserListItem implements TwitterListItem {
   @Override
   public int getMediaCount() {
     return 0;
+  }
+
+  @Override
+  public CombinedName getCombinedName() {
+    return new TwitterCombinedName(item);
   }
 }

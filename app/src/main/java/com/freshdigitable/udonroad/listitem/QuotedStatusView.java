@@ -80,7 +80,7 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
     if (item == null) {
       return;
     }
-    names.setNames(item.getUser());
+    names.setNames(item.getCombinedName());
     tweet.setText(item.getText());
     reactionContainer.update(item.getStats());
     timeStrategy = item.getTimeStrategy();
@@ -96,7 +96,7 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
       return;
     }
     reactionContainer.update(item.getStats());
-    names.setNames(item.getUser());
+    names.setNames(item.getCombinedName());
   }
 
   @Override

@@ -51,7 +51,7 @@ public class UserItemViewHolder extends ItemViewHolder {
   }
 
   @Override
-  ImageView getUserIcon() {
+  public ImageView getUserIcon() {
     return getView().getIcon();
   }
 

@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
 import twitter4j.Status;
@@ -62,11 +61,6 @@ class TimelineContainerSwitcher {
 
   void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
-    statusDetail.setOnSpanClickListener((v, item) -> {
-      if (item.getType() == SpanItem.TYPE_HASHTAG) {
-        showSearchResult(item.getQuery());
-      }
-    });
     replaceTimelineContainer(ContentType.DETAIL, statusId, null, statusDetail);
   }
 
@@ -79,6 +73,16 @@ class TimelineContainerSwitcher {
   void showSearchResult(String query) {
     final TimelineFragment<Status> fragment = TimelineFragment.getInstance(StoreType.SEARCH, query);
     replaceTimelineContainer(ContentType.SEARCH, -1, query, fragment);
+  }
+
+  void showOwnedLists(long currentUserId) {
+    final TimelineFragment<?> fragment = TimelineFragment.getInstance(StoreType.OWNED_LIST, currentUserId);
+    replaceTimelineContainer(ContentType.LISTS, currentUserId, null, fragment);
+  }
+
+  void showListTimeline(long listId, String query) {
+    final TimelineFragment<?> fragment = TimelineFragment.getInstance(StoreType.LIST_TL, listId);
+    replaceTimelineContainer(ContentType.LIST_TL, listId, query, fragment);
   }
 
   private void replaceTimelineContainer(ContentType type, long id, String query, Fragment fragment) {
@@ -150,6 +154,16 @@ class TimelineContainerSwitcher {
     return fm.findFragmentById(containerId);
   }
 
+  boolean isItemSelected() {
+    final Fragment current = getCurrentFragment();
+    if (current instanceof ItemSelectable) {
+      return ((ItemSelectable) current).isItemSelected();
+    } else if (current instanceof StatusDetailFragment){
+      return true;
+    }
+    return false;
+  }
+
   interface OnContentChangedListener {
     void onContentChanged(ContentType type, String title);
   }
@@ -190,7 +204,6 @@ class TimelineContainerSwitcher {
       void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
         switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
         switcher.setDetailIsEnabled(true);
-        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
       }
     },
     CONV(R.string.title_conv, StoreType.CONVERSATION.prefix()) {
@@ -203,7 +216,6 @@ class TimelineContainerSwitcher {
       void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
         switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
         switcher.setDetailIsEnabled(true);
-        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
       }
     },
     DETAIL(R.string.title_detail, "detail") {
@@ -216,7 +228,6 @@ class TimelineContainerSwitcher {
       void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
         switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
         switcher.setDetailIsEnabled(false);
-        switcher.ffab.transToToolbar();
       }
     },
     SEARCH(R.string.title_search, StoreType.SEARCH.prefix()) {
@@ -229,7 +240,28 @@ class TimelineContainerSwitcher {
       void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
         switcher.listener.onContentChanged(this, tag.substring(tagPrefix.length()));
         switcher.setDetailIsEnabled(true);
-        switcher.ffab.transToFAB(isNew ? View.INVISIBLE : View.VISIBLE);
+      }
+    }, LISTS(R.string.title_owned_list, StoreType.OWNED_LIST.prefix()) {
+      @Override
+      String createTag(long id, String query) {
+        return StoreType.OWNED_LIST.nameWithSuffix(id, query);
+      }
+
+      @Override
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, getTitle(switcher.getContext()));
+        switcher.setDetailIsEnabled(false);
+      }
+    }, LIST_TL(0, StoreType.LIST_TL.prefix()) {
+      @Override
+      String createTag(long id, String query) {
+        return tagPrefix + "_" + query;
+      }
+
+      @Override
+      void onShow(TimelineContainerSwitcher switcher, String tag, boolean isNew) {
+        switcher.listener.onContentChanged(this, tag.substring(tagPrefix.length() + 1));
+        switcher.setDetailIsEnabled(true);
       }
     },;
 

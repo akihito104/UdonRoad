@@ -21,6 +21,7 @@ import android.content.res.Resources;
 import android.text.Html;
 import android.text.format.DateUtils;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
@@ -340,5 +341,10 @@ public class StatusListItem implements TwitterListItem {
   @Override
   public int getMediaCount() {
     return bindingStatus.getMediaEntities().length;
+  }
+
+  @Override
+  public CombinedScreenNameTextView.CombinedName getCombinedName() {
+    return new TwitterCombinedName(getUser());
   }
 }

@@ -125,7 +125,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
           Log.d(TAG, "onPageSelected: " + position);
           TimelineFragment fragment = pagerAdapter.getItem(position);
           if (fragment.isItemSelected()) {
-            ((FabHandleable) activity).showFab();
+            ((FabHandleable) activity).showFab(FabHandleable.TYPE_FAB);
           } else {
             ((FabHandleable) activity).hideFab();
           }
@@ -237,6 +237,13 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
       @Override
       public String createTitle(User user) {
         return name() + "\n" + user.getFavouritesCount();
+      }
+    },
+    LISTED(StoreType.USER_LIST) {
+      @Override
+      public String createTitle(User user) {
+        final int listedCount = user.getListedCount();
+        return name() + (listedCount > 0 ? "\n" + listedCount : "0");
       }
     },
     MEDIA(StoreType.USER_MEDIA) {
