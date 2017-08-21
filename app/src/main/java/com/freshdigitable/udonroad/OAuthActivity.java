@@ -24,18 +24,17 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
@@ -46,56 +45,43 @@ import twitter4j.auth.RequestToken;
  */
 public class OAuthActivity extends AppCompatActivity {
   private static final String TAG = OAuthActivity.class.getName();
-  private String callbackUrl;
 
   @Inject
-  Twitter twitter;
+  TwitterApi twitterApi;
   @Inject
   AppSettingStore appSettings;
   private View oauthButton;
+  private EditText pin;
+  private Button sendPin;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_login);
     InjectionUtil.getComponent(this).inject(this);
-
-    callbackUrl = getString(R.string.callback_url);
     oauthButton = findViewById(R.id.button_oauth);
-    oauthButton.setOnClickListener(v -> startAuthorization());
-  }
-
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    oauthButton.setOnClickListener(null);
+    pin = findViewById(R.id.oauth_pin);
+    sendPin = findViewById(R.id.oauth_send_pin);
   }
 
   @Override
   protected void onStart() {
     super.onStart();
-    appSettings.open();
+    oauthButton.setOnClickListener(v -> startAuthorization());
+    sendPin.setOnClickListener(v -> startAuthentication(pin.getText().toString()));
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    appSettings.close();
+    oauthButton.setOnClickListener(null);
+    sendPin.setOnClickListener(null);
   }
 
   private RequestToken requestToken;
 
   private void startAuthorization() {
-    Single.<String>create(subscriber -> {
-      try {
-        requestToken = twitter.getOAuthRequestToken(callbackUrl);
-        String authUrl = requestToken.getAuthorizationURL();
-        subscriber.onSuccess(authUrl);
-      } catch (TwitterException e) {
-        subscriber.onError(e);
-      }
-    })
-        .subscribeOn(Schedulers.io())
+    twitterApi.fetchOAuthRequestToken()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             this::startAuthAction,
@@ -105,37 +91,14 @@ public class OAuthActivity extends AppCompatActivity {
             });
   }
 
-  private void startAuthAction(String url) {
-    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+  private void startAuthAction(RequestToken token) {
+    requestToken = token;
+    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(token.getAuthorizationURL()));
     startActivity(intent);
   }
 
-  @Override
-  protected void onNewIntent(Intent intent) {
-    if (intent == null) {
-      return;
-    }
-    Uri uri = intent.getData();
-    if (uri == null) {
-      return;
-    }
-    if (!uri.toString().startsWith(callbackUrl)) {
-      return;
-    }
-
-    startAuthentication(uri.getQueryParameter("oauth_verifier"));
-  }
-
   private void startAuthentication(final String verifier) {
-    Single.<AccessToken>create(subscriber -> {
-      try {
-        AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
-        subscriber.onSuccess(accessToken);
-      } catch (TwitterException e) {
-        subscriber.onError(e);
-      }
-    })
-        .subscribeOn(Schedulers.io())
+    twitterApi.fetchOAuthAccessToken(requestToken, verifier)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(
             this::checkOAuth,
@@ -146,8 +109,10 @@ public class OAuthActivity extends AppCompatActivity {
   }
 
   private void checkOAuth(AccessToken accessToken) {
+    appSettings.open();
     appSettings.storeAccessToken(accessToken);
     appSettings.setCurrentUserId(accessToken.getUserId());
+    appSettings.close();
     Toast.makeText(this, "authentication is success!", Toast.LENGTH_LONG).show();
     Intent intent = new Intent(this, getRedirect());
     startActivity(intent);

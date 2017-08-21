@@ -26,4 +26,18 @@
         android:text="@string/oauth"
         android:id="@+id/button_oauth"
         android:layout_gravity="center_horizontal"/>
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/oauth_pin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="pin:"
+        />
+    <Button
+        android:id="@+id/oauth_send_pin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send pin"
+        />
+
 </LinearLayout>
