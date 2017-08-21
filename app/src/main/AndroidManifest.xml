@@ -14,61 +14,50 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:resizeableActivity="true"
-    >
+        >
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
-        >
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".OAuthActivity"
             android:launchMode="singleTask"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
-        >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data
-                    android:host="twitter"
-                    android:scheme="udonr" />
-            </intent-filter>
-        </activity>
+            />
 
         <activity
             android:name=".media.MediaViewActivity"
             android:theme="@style/Theme.AppTheme.TranslucentStatusBar"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
-        />
+            />
 
         <activity
             android:name=".UserInfoActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
-        />
+            />
 
         <activity
             android:name=".ReplyActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
-        />
+            />
 
         <activity
             android:name=".LicenseActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
-        />
+            />
     </application>
 
 </manifest>

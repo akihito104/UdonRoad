@@ -1,6 +1,7 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.CallSuper;
@@ -33,9 +34,13 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.intent.Intents.intended;
+import static android.support.test.espresso.intent.Intents.intending;
 import static android.support.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasData;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
@@ -76,22 +81,23 @@ public class OAuthActivityInstTest {
   }
 
   public static class WhenResume extends Base {
+    private static final String VALID_PIN = "0000000";
     @Rule
     public final IntentsTestRule<OAuthActivity> rule
         = new IntentsTestRule<>(OAuthActivity.class, false, false);
+    private String authorizationUrl;
 
     @Test
     public void resumeWithValidToken() throws Exception {
       final Intent launch = OAuthActivity.createIntent(InstrumentationRegistry.getTargetContext(), MainActivity.class);
       rule.launchActivity(launch);
-      showHome();
 
-      final String callbackUrl = InstrumentationRegistry.getTargetContext().getString(R.string.callback_url);
-      final Uri data = Uri.parse(callbackUrl + "?oauth_verifier=valid.token");
-      assertThat(data.getQueryParameter("oauth_verifier"), is("valid.token"));
-      final Intent fromBrowser = new Intent(Intent.ACTION_VIEW, data);
-      fromBrowser.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-      rule.getActivity().startActivity(fromBrowser);
+      intending(hasData(Uri.parse(authorizationUrl)))
+          .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
+      onView(withId(R.id.button_oauth)).perform(click());
+
+      onView(withId(R.id.oauth_pin)).perform(typeText(VALID_PIN));
+      onView(withId(R.id.oauth_send_pin)).perform(click());
 
       final IdlingResource idlingResource = IdlingResourceUtil.getSimpleIdlingResource("launchMain",
           () -> findResumeActivityByClass(MainActivity.class) != null);
@@ -118,11 +124,15 @@ public class OAuthActivityInstTest {
     @Before
     public void setup() throws Exception {
       super.setup();
+      final RequestToken requestToken = new RequestToken("req.token", "req.token.secret");
+      authorizationUrl = requestToken.getAuthorizationURL();
+      when(twitter.getOAuthRequestToken(eq("oob"))).thenReturn(requestToken);
+
       final AccessToken accessToken = mock(AccessToken.class);
       when(accessToken.getUserId()).thenReturn(100L);
       when(accessToken.getToken()).thenReturn("valid.token");
       when(accessToken.getTokenSecret()).thenReturn("valid.secret");
-      when(twitter.getOAuthAccessToken(ArgumentMatchers.<RequestToken>any(), eq("valid.token")))
+      when(twitter.getOAuthAccessToken(ArgumentMatchers.<RequestToken>any(), eq(VALID_PIN)))
           .thenReturn(accessToken);
     }
 
@@ -134,14 +144,6 @@ public class OAuthActivityInstTest {
         activity.finish();
       });
       Thread.sleep(1000);
-    }
-
-    private static void showHome() throws InterruptedException {
-      Intent home = new Intent();
-      home.setAction(Intent.ACTION_MAIN);
-      home.addCategory(Intent.CATEGORY_HOME);
-      home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      InstrumentationRegistry.getTargetContext().startActivity(home);
     }
   }
 
