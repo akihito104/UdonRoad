@@ -18,7 +18,7 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -143,7 +143,7 @@ public class TwitterReactionContainer extends ReactionContainer {
         final ImageView view = new AppCompatImageView(context);
         view.setId(type);
         view.setLayoutParams(createLayoutParams(context));
-        view.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_forum));
+        view.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_forum));
         return view;
       }
 

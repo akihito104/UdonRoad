@@ -21,7 +21,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -64,7 +64,7 @@ public class StatusViewImageHelper {
   static <T extends View & ItemView> void loadUserIcon(User user, final long tagId, final T itemView) {
     getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
         .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
-        .placeholder(R.drawable.ic_person_outline_black)
+        .placeholder(AppCompatResources.getDrawable(itemView.getContext(), R.drawable.ic_person_outline_black))
         .into(itemView.getIcon());
   }
 
@@ -83,7 +83,7 @@ public class StatusViewImageHelper {
 
     final RetweetUserView rtUser = itemView.getRtUser();
     final String screenName = retweetUser.getScreenName();
-    rtUser.bindUser(ContextCompat.getDrawable(context, R.drawable.ic_person_outline_black), screenName);
+    rtUser.bindUser(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black), screenName);
     final Target target = new Target() {
       @Override
       public void onPrepareLoad(Drawable placeHolderDrawable) {
@@ -109,7 +109,7 @@ public class StatusViewImageHelper {
           public void onSuccess() {
             getRequest(context, miniProfileImageURLHttps, tag)
                 .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-                .placeholder(R.drawable.ic_person_outline_black)
+                .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black))
                 .into(target);
           }
 
@@ -135,7 +135,7 @@ public class StatusViewImageHelper {
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
       if (item.isPossiblySensitive()) {
-        mediaView.setImageDrawable(ContextCompat.getDrawable(mediaView.getContext(), R.drawable.ic_whatshot));
+        mediaView.setImageDrawable(AppCompatResources.getDrawable(mediaView.getContext(), R.drawable.ic_whatshot));
       } else {
         final RequestCreator rc = getRequest(thumbnailContainer.getContext(),
             mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
@@ -170,7 +170,7 @@ public class StatusViewImageHelper {
     getRequest(quotedStatusView.getContext(), quotedStatus.getUser().getMiniProfileImageURLHttps(),
         item.getId())
         .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-        .placeholder(R.drawable.ic_person_outline_black)
+        .placeholder(AppCompatResources.getDrawable(quotedStatusView.getContext(), R.drawable.ic_person_outline_black))
         .into(quotedStatusView.getIcon());
     loadMediaView((TwitterListItem) quotedStatus, quotedStatusView);
   }

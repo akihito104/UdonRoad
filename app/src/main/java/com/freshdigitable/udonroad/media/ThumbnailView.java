@@ -20,7 +20,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
@@ -49,7 +49,7 @@ public class ThumbnailView extends AppCompatImageView {
     setVisibility(GONE);
 
     if (playIcon == null) {
-      final Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.ld_play_icon);
+      final Drawable drawable = AppCompatResources.getDrawable(getContext(), R.drawable.ld_play_icon);
       playIcon = Bitmap.createBitmap(
           drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
       Canvas canvas = new Canvas(playIcon);

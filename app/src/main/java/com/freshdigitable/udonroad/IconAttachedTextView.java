@@ -23,6 +23,7 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 
@@ -56,7 +57,7 @@ public class IconAttachedTextView extends AppCompatTextView {
   }
 
   public void setIcon(@DrawableRes int icon) {
-    setIcon(ContextCompat.getDrawable(getContext(), icon), NO_ID);
+    setIcon(AppCompatResources.getDrawable(getContext(), icon), NO_ID);
   }
 
   public void setIcon(Drawable icon, int iconColor) {

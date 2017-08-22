@@ -23,8 +23,8 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.view.ActionProvider;
 import android.view.ContextMenu;
 import android.view.MenuItem;
@@ -130,7 +130,7 @@ class IffabMenuItem implements MenuItem {
   @Override
   public Drawable getIcon() {
     if (this.icon == null && this.iconRes > 0) {
-      final Drawable icon = ContextCompat.getDrawable(menu.getContext(), this.iconRes);
+      final Drawable icon = AppCompatResources.getDrawable(menu.getContext(), this.iconRes);
       setIcon(icon);
     }
     return this.icon;
