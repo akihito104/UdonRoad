@@ -106,4 +106,8 @@
     <string name="lists">リスト</string>
     <string name="title_owned_list">保存済みリスト</string>
     <string name="msg_fetch_user_list_failed">リストを取得できませんでした…</string>
+    <string name="oauth_login">Twitterへログイン</string>
+    <string name="oauth_hint_input_pin">PINコードを入力してください</string>
+    <string name="oauth_send_pin">送信</string>
+    <string name="title_oauth">ようこそ</string>
 </resources>

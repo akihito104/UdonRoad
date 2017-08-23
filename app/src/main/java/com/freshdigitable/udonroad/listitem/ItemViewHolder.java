@@ -34,7 +34,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
 
-  ItemViewHolder(View view) {
+  public ItemViewHolder(View view) {
     super(view);
   }
 
@@ -55,7 +55,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
             th -> Log.e("ItemViewHolder", "update: ", th));
   }
 
-  abstract void onUpdate(ListItem item);
+  public abstract void onUpdate(ListItem item);
 
   public void unsubscribe() {
     if (subscription != null && !subscription.isDisposed()) {

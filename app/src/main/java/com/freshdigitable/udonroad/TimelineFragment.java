@@ -64,7 +64,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
   public static final String BUNDLE_STOP_SCROLL = "stop_scroll";
   private FragmentTimelineBinding binding;
-  private TimelineAdapter<T> tlAdapter;
+  TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Disposable updateEventSubscription;
   @Inject
@@ -435,7 +435,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private static final String ARGS_ENTITY_ID = "entity_id";
   private static final String ARGS_QUERY = "query";
 
-  private static Bundle createArgs(StoreType storeType, long entityId, String query) {
+  static Bundle createArgs(StoreType storeType, long entityId, String query) {
     final Bundle args = new Bundle();
     args.putSerializable(ARGS_STORE_NAME, storeType);
     if (entityId > 0) {

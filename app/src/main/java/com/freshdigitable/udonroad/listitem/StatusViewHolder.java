@@ -48,7 +48,7 @@ public class StatusViewHolder extends ItemViewHolder {
   }
 
   @Override
-  void onUpdate(ListItem item) {
+  public void onUpdate(ListItem item) {
     getView().update((TwitterListItem) item);
   }
 

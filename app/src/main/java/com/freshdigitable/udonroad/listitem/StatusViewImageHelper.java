@@ -62,6 +62,9 @@ public class StatusViewImageHelper {
   }
 
   static <T extends View & ItemView> void loadUserIcon(User user, final long tagId, final T itemView) {
+    if (user == null) {
+      return;
+    }
     getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
         .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
         .placeholder(AppCompatResources.getDrawable(itemView.getContext(), R.drawable.ic_person_outline_black))
@@ -167,11 +170,14 @@ public class StatusViewImageHelper {
     if (quotedStatus == null) {
       return;
     }
-    getRequest(quotedStatusView.getContext(), quotedStatus.getUser().getMiniProfileImageURLHttps(),
-        item.getId())
-        .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-        .placeholder(AppCompatResources.getDrawable(quotedStatusView.getContext(), R.drawable.ic_person_outline_black))
-        .into(quotedStatusView.getIcon());
+    final User user = quotedStatus.getUser();
+    if (user != null) {
+      getRequest(quotedStatusView.getContext(), user.getMiniProfileImageURLHttps(),
+          item.getId())
+          .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+          .placeholder(AppCompatResources.getDrawable(quotedStatusView.getContext(), R.drawable.ic_person_outline_black))
+          .into(quotedStatusView.getIcon());
+    }
     loadMediaView((TwitterListItem) quotedStatus, quotedStatusView);
   }
 

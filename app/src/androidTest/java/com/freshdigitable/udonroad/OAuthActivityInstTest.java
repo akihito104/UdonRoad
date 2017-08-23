@@ -66,7 +66,7 @@ public class OAuthActivityInstTest {
     @Test
     public void launchMainActivityWithNoAccessToken_then_OAuthActivityIsLaunched() {
       rule.launchActivity(new Intent());
-      onView(withId(R.id.button_oauth)).check(matches(isDisplayed()));
+      onView(withId(R.id.oauth_start)).check(matches(isDisplayed()));
     }
 
     @Override
@@ -94,7 +94,7 @@ public class OAuthActivityInstTest {
 
       intending(hasData(Uri.parse(authorizationUrl)))
           .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
-      onView(withId(R.id.button_oauth)).perform(click());
+      onView(withId(R.id.oauth_start)).perform(click());
 
       onView(withId(R.id.oauth_pin)).perform(typeText(VALID_PIN));
       onView(withId(R.id.oauth_send_pin)).perform(click());

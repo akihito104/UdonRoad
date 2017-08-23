@@ -48,9 +48,9 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
-  private final SortedCache<T> timelineStore;
+  final SortedCache<T> timelineStore;
 
-  private TimelineAdapter(SortedCache<T> timelineStore) {
+  TimelineAdapter(SortedCache<T> timelineStore) {
     this.timelineStore = timelineStore;
     setHasStableIds(true);
   }
