@@ -15,15 +15,43 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/oauth_appBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/oauth_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/title_oauth"
+            app:titleTextColor="@color/text_primary_inverse"
+            />
+    </android.support.design.widget.AppBarLayout>
 
-    <Button
+    <FrameLayout
+        android:id="@+id/oauth_timeline_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        />
+
+    <com.freshdigitable.udonroad.ffab.IndicatableFFAB
+        android:id="@+id/ffab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/oauth"
-        android:id="@+id/button_oauth"
-        android:layout_gravity="center_horizontal"/>
-</LinearLayout>
+        android:layout_marginBottom="@dimen/iffab_margin_bottom"
+        android:layout_gravity="center_horizontal|bottom"
+        android:visibility="invisible"
+        app:menu="@menu/iffab_main"
+        tools:visibility="visible"
+        />
+
+</android.support.design.widget.CoordinatorLayout>

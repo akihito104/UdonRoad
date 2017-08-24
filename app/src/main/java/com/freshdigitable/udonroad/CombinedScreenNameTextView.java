@@ -21,9 +21,9 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.TextViewCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatTextView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -92,7 +92,7 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
   @NonNull
   private ImageSpan createIcon(@DrawableRes int icon) {
     // drawable is cached and if it is tinted, all icons would be tinted. so it must be mutate().
-    final Drawable iconDrawable = ContextCompat.getDrawable(getContext(), icon).mutate();
+    final Drawable iconDrawable = AppCompatResources.getDrawable(getContext(), icon).mutate();
     final int width
         = iconDrawable.getIntrinsicWidth() * getLineHeight() / iconDrawable.getIntrinsicHeight();
     iconDrawable.setBounds(0, 0, width, getLineHeight());

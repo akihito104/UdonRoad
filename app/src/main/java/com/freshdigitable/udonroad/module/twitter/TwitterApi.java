@@ -49,6 +49,7 @@ import twitter4j.UploadedMedia;
 import twitter4j.User;
 import twitter4j.UserList;
 import twitter4j.auth.AccessToken;
+import twitter4j.auth.RequestToken;
 
 /**
  * Wrapper for Twitter API
@@ -67,6 +68,14 @@ public class TwitterApi {
 
   public void setOAuthAccessToken(AccessToken accessToken) {
     twitter.setOAuthAccessToken(accessToken);
+  }
+
+  public Single<RequestToken> fetchOAuthRequestToken() {
+    return observeThrowableFetch(() -> twitter.getOAuthRequestToken("oob"));
+  }
+
+  public Single<AccessToken> fetchOAuthAccessToken(RequestToken requestToken, String verifier) {
+    return observeThrowableFetch(() -> twitter.getOAuthAccessToken(requestToken, verifier));
   }
 
   public Single<Long> getId() {

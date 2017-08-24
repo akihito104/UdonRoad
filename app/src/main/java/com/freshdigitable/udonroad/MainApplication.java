@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
+import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.View;
 
@@ -69,6 +70,7 @@ public class MainApplication extends Application {
     appComponent = createAppComponent();
     appComponent.inject(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
+    AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
   }
 
   @VisibleForTesting

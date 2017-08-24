@@ -38,7 +38,8 @@ public enum StoreType {
   SEARCH("search"),
   OWNED_LIST("owned_lists"),
   USER_LIST("user_lists"),
-  LIST_TL("listTl");
+  LIST_TL("listTl"),
+  DEMO("demo");
 
   public final String storeName;
 

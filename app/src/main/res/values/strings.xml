@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">UdonRoad</string>
-    <string name="callback_url" translatable="false">udonr://twitter</string>
+    <string name="app_name">aoeliyakei</string>
     <string name="tweet_name_screenName" translatable="false">&lt;b>%1$s&lt;/b> \@%2$s</string>
     <string name="tweet_name_screenName_lines" translatable="false">&lt;b>%1$s&lt;/b>&lt;br>\@%2$s</string>
     <string name="tweet_screenName" translatable="false">\@%1$s</string>
@@ -12,7 +11,7 @@
     <string name="timeline_at" translatable="false">\@</string>
     <string name="update_status" translatable="false">Tweet</string>
     <string name="desc_icon" translatable="false">user icon</string>
-    <string name="oauth" translatable="false">OAuth</string>
+    <string name="oauth_login">Login Twitter</string>
     <string name="drawer_open">open nav drawer</string>
     <string name="drawer_close">close nav drawer</string>
     <string name="detail_rt_create">RT</string>
@@ -64,6 +63,15 @@
     <string name="msg_retweeted_by_someone">your tweet was retweeted by \@%1$s</string>
     <string name="msg_no_next_page">there is no item any more…</string>
     <string name="msg_fetch_user_list_failed">failed to fetch user lists…</string>
+    <string name="msg_oauth_fav">you can like the tweet.</string>
+    <string name="msg_oauth_rt">you can retweet the tweet.</string>
+    <string name="msg_oauth_favRt">you can like and RT with one fling!</string>
+    <string name="msg_oauth_detail">you can see detail of the tweet.</string>
+    <string name="msg_oauth_conv">you can read replied tweets.</string>
+    <string name="msg_oauth_reply">you can reply to the tweet.</string>
+    <string name="msg_oauth_quote">you can quote the tweets.</string>
+    <string name="msg_oauth_success">authentication is success!</string>
+    <string name="msg_oauth_failed">authentication is failed…</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>
@@ -89,6 +97,7 @@
     <string name="title_tweet">what\'s happening?</string>
     <string name="title_reply">reply</string>
     <string name="title_comment">comment</string>
+    <string name="title_oauth">welcome</string>
 
     <string name="media_chooser_title">choose to upload…</string>
     <string name="media_upload_delete">delete</string>
@@ -96,4 +105,10 @@
     <string name="drawer_menu_license">OSS license</string>
     <string name="lists">lists</string>
     <string name="title_owned_list">lists</string>
+    <string name="oauth_hint_input_pin">input PIN code</string>
+    <string name="oauth_send_pin">Send pin</string>
+    <string name="oauth_demo_tweet">welcome to aoeliyakei! this is dummy tweet. you can select me and do action with circle button appearing below.</string>
+    <string name="oauth_demo_quoted">you can select only quoted tweet.</string>
+    <string name="oauth_explain">login Twitter via below button and activate \'aoeliyakei\'. And then, copy PIN code and return to this app.</string>
+    <string name="oauth_pin_direction">input PIN code and send it.</string>
 </resources>
