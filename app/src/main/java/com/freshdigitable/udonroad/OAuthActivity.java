@@ -31,7 +31,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
@@ -47,6 +46,7 @@ import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +58,7 @@ import javax.inject.Inject;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.processors.PublishProcessor;
 import twitter4j.MediaEntity;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
@@ -68,7 +69,7 @@ import twitter4j.auth.RequestToken;
  *
  * Created by akihit on 15/10/22.
  */
-public class OAuthActivity extends AppCompatActivity {
+public class OAuthActivity extends AppCompatActivity implements FabHandleable, SnackbarCapable {
   private static final String TAG = OAuthActivity.class.getName();
 
   @Inject
@@ -77,6 +78,10 @@ public class OAuthActivity extends AppCompatActivity {
   AppSettingStore appSettings;
   @Inject
   UpdateSubjectFactory updateSubjectFactory;
+  private UpdateSubject updateSubject;
+  @Inject
+  PublishProcessor<UserFeedbackEvent> userFeedback;
+  private IndicatableFFAB ffab;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -84,15 +89,16 @@ public class OAuthActivity extends AppCompatActivity {
     setContentView(R.layout.activity_login);
     InjectionUtil.getComponent(this).inject(this);
 
+    ffab = findViewById(R.id.ffab);
+
     final Toolbar toolbar = findViewById(R.id.oauth_toolbar);
-    toolbar.setTitle(R.string.title_oauth);
     setSupportActionBar(toolbar);
 
     final DemoTimelineFragment demoTimelineFragment = new DemoTimelineFragment();
     final Bundle args = TimelineFragment.createArgs(StoreType.DEMO, -1, "");
     demoTimelineFragment.setArguments(args);
     final List<ListItem> items = new ArrayList<>();
-    final UpdateSubject updateSubject = updateSubjectFactory.getInstance("demo");
+    updateSubject = updateSubjectFactory.getInstance("demo");
     demoTimelineFragment.sortedCache = new DemoSortedCache(items, updateSubject);
     demoTimelineFragment.requestWorker = new ListRequestWorker<ListItem>() {
       @Override
@@ -102,7 +108,24 @@ public class OAuthActivity extends AppCompatActivity {
 
       @Override
       public IndicatableFFAB.OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
-        return null;
+        return item -> {
+          final int itemId = item.getItemId();
+          if (itemId == R.id.iffabMenu_main_fav) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
+          } else if (itemId == R.id.iffabMenu_main_rt) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
+          } else if (itemId == R.id.iffabMenu_main_favRt) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
+          } else if (itemId == R.id.iffabMenu_main_detail) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
+          } else if (itemId == R.id.iffabMenu_main_conv) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
+          } else if (itemId == R.id.iffabMenu_main_reply) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
+          } else if (itemId == R.id.iffabMenu_main_quote) {
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
+          }
+        };
       }
     };
     getSupportFragmentManager().beginTransaction()
@@ -113,11 +136,25 @@ public class OAuthActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
+    ffab.setOnIffabItemSelectedListener(item -> {
+      for (IndicatableFFAB.OnIffabItemSelectedListener listener : ffabListener) {
+        listener.onItemSelected(item);
+      }
+    });
   }
 
   @Override
   protected void onStop() {
     super.onStop();
+    ffab.setOnIffabItemSelectedListener(null);
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    if (updateSubject != null && !updateSubject.hasCompleted()) {
+      updateSubject.onComplete();
+    }
   }
 
   private RequestToken requestToken;
@@ -125,12 +162,9 @@ public class OAuthActivity extends AppCompatActivity {
   private void startAuthorization() {
     twitterApi.fetchOAuthRequestToken()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            this::startAuthAction,
-            e -> {
-              Log.e(TAG, "Authorization error: ", e);
-              Toast.makeText(this, "authorization is failed...", Toast.LENGTH_LONG).show();
-            });
+        .doOnError(err -> Log.e(TAG, "authentication error: ", err))
+        .subscribe(this::startAuthAction,
+            e -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_failed)));
   }
 
   private void startAuthAction(RequestToken token) {
@@ -142,12 +176,9 @@ public class OAuthActivity extends AppCompatActivity {
   private void startAuthentication(final String verifier) {
     twitterApi.fetchOAuthAccessToken(requestToken, verifier)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(
-            this::checkOAuth,
-            e -> {
-              Log.e(TAG, "authentication error: ", e);
-              Toast.makeText(this, "authentication is failed...", Toast.LENGTH_LONG).show();
-            });
+        .doOnError(err -> Log.e(TAG, "authentication error: ", err))
+        .subscribe(this::checkOAuth,
+            e -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_failed)));
   }
 
   private void checkOAuth(AccessToken accessToken) {
@@ -155,7 +186,7 @@ public class OAuthActivity extends AppCompatActivity {
     appSettings.storeAccessToken(accessToken);
     appSettings.setCurrentUserId(accessToken.getUserId());
     appSettings.close();
-    Toast.makeText(this, "authentication is success!", Toast.LENGTH_LONG).show();
+    userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_success));
     Intent intent = new Intent(this, getRedirect());
     startActivity(intent);
     finish();
@@ -177,12 +208,50 @@ public class OAuthActivity extends AppCompatActivity {
   }
 
   private Class<?> getRedirect() {
-    return (Class<?>) getIntent().getExtras().getSerializable(EXTRAS_REDIRECT);
+    final Bundle extras = getIntent().getExtras();
+    return extras != null ? (Class<?>) extras.getSerializable(EXTRAS_REDIRECT)
+        : MainActivity.class;
   }
 
   public static void start(Activity redirect) {
     final Intent intent = createIntent(redirect);
     redirect.startActivity(intent);
+  }
+
+  @Override
+  public void showFab(int type) {
+    if (type == TYPE_FAB) {
+      ffab.transToFAB();
+    } else if (type == TYPE_TOOLBAR) {
+      ffab.transToToolbar();
+    } else {
+      ffab.show();
+    }
+  }
+
+  @Override
+  public void hideFab() {
+    ffab.hide();
+  }
+
+  @Override
+  public void setCheckedFabMenuItem(int itemId, boolean checked) {}
+
+  private List<IndicatableFFAB.OnIffabItemSelectedListener> ffabListener = new ArrayList<>();
+
+  @Override
+  public void addOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {
+    ffabListener.add(listener);
+  }
+
+  @Override
+  public void removeOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {
+    ffabListener.remove(listener);
+  }
+
+  @Override
+  public View getRootView() {
+    return findViewById(R.id.oauth_timeline_container);
   }
 
   public static class DemoTimelineFragment extends TimelineFragment<ListItem> {
@@ -199,6 +268,13 @@ public class OAuthActivity extends AppCompatActivity {
           ((OAuthActivity) getActivity()).startAuthorization();
       ((DemoTimelineAdapter) tlAdapter).sendPinClickListener = (v, pin) ->
           ((OAuthActivity) getActivity()).startAuthentication(pin);
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      ((DemoTimelineAdapter) tlAdapter).loginClickListener = null;
+      ((DemoTimelineAdapter) tlAdapter).sendPinClickListener = null;
     }
   }
 
@@ -350,19 +426,13 @@ public class OAuthActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onUpdate(ListItem item) {
-
-    }
+    public void onUpdate(ListItem item) {}
 
     @Override
-    public void onSelected(long itemId) {
-
-    }
+    public void onSelected(long itemId) {}
 
     @Override
-    public void onUnselected(long itemId) {
-
-    }
+    public void onUnselected(long itemId) {}
   }
 
 
@@ -394,99 +464,106 @@ public class OAuthActivity extends AppCompatActivity {
             return null;
           }
         },
-        new TwitterListItem() {
+        getDemoTweet(10, "aoeliyakeiへようこそ！これはデモ用のダミーツイートです。タップして選択状態にしたり、丸いボタンをフリックしてツイートにリアクションをしてみましょう。",
+            getDemoTweet(11, "引用ツイートだけを選択してリアクションすることもできます。", null)));
+  }
+
+  @NonNull
+  private static TwitterListItem getDemoTweet(long id, String text, TwitterListItem quoted) {
+    return new TwitterListItem() {
+      @Override
+      public long getId() {
+        return id;
+      }
+
+      @Override
+      public CharSequence getText() {
+        return text;
+      }
+
+      @Nullable
+      @Override
+      public TwitterListItem getQuotedItem() {
+        return quoted;
+      }
+
+      @Override
+      public CombinedScreenNameTextView.CombinedName getCombinedName() {
+        return new CombinedScreenNameTextView.CombinedName() {
           @Override
-          public boolean isRetweet() {
-            return false;
+          public String getName() {
+            return "アオエリヤケイ";
           }
 
           @Override
-          public String getCreatedTime(Context context) {
-            return "now";
-          }
-
-          @Override
-          public String getSource() {
+          public String getScreenName() {
             return "aoeliyakei";
           }
 
           @Override
-          public int getMediaCount() {
-            return 0;
-          }
-
-          @Override
-          public User getRetweetUser() {
-            return null;
-          }
-
-          @Nullable
-          @Override
-          public TwitterListItem getQuotedItem() {
-            return null;
-          }
-
-          @Nullable
-          @Override
-          public TimeTextStrategy getTimeStrategy() {
-            return null;
-          }
-
-          @Override
-          public MediaEntity[] getMediaEntities() {
-            return new MediaEntity[0];
-          }
-
-          @Override
-          public boolean isPossiblySensitive() {
+          public boolean isPrivate() {
             return false;
           }
 
           @Override
-          public long getId() {
-            return 10;
+          public boolean isVerified() {
+            return false;
           }
+        };
+      }
 
-          @Override
-          public CharSequence getText() {
-            return "aoeliyakeiへようこそ！これはデモ用のダミーツイートです。タップして選択状態にしたり、丸いボタンをフリックしてツイートにリアクションをしてみましょう。";
-          }
+      @Override
+      public List<Stat> getStats() {
+        return Collections.emptyList();
+      }
 
-          @Override
-          public User getUser() {
-            return null;
-          }
+      @Override
+      public boolean isRetweet() {
+        return false;
+      }
 
-          @Override
-          public CombinedScreenNameTextView.CombinedName getCombinedName() {
-            return new CombinedScreenNameTextView.CombinedName() {
-              @Override
-              public String getName() {
-                return "アオエリヤケイ";
-              }
+      @Override
+      public String getCreatedTime(Context context) {
+        return "now";
+      }
 
-              @Override
-              public String getScreenName() {
-                return "aoeliyakei";
-              }
+      @Override
+      public String getSource() {
+        return "aoeliyakei";
+      }
 
-              @Override
-              public boolean isPrivate() {
-                return false;
-              }
+      @Override
+      public int getMediaCount() {
+        return 0;
+      }
 
-              @Override
-              public boolean isVerified() {
-                return false;
-              }
-            };
-          }
+      @Override
+      public User getRetweetUser() {
+        return null;
+      }
 
-          @Override
-          public List<Stat> getStats() {
-            return Collections.emptyList();
-          }
-        });
+      @Nullable
+      @Override
+      public TimeTextStrategy getTimeStrategy() {
+        return null;
+      }
+
+      @Override
+      public MediaEntity[] getMediaEntities() {
+        return new MediaEntity[0];
+      }
+
+      @Override
+      public boolean isPossiblySensitive() {
+        return false;
+      }
+
+
+      @Override
+      public User getUser() {
+        return null;
+      }
+    };
   }
 }
 

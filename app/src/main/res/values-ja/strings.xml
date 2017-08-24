@@ -110,4 +110,13 @@
     <string name="oauth_hint_input_pin">PINコードを入力してください</string>
     <string name="oauth_send_pin">送信</string>
     <string name="title_oauth">ようこそ</string>
+    <string name="msg_oauth_fav">これはふぁぼです</string>
+    <string name="msg_oauth_rt">これはRTです</string>
+    <string name="msg_oauth_favRt">ふぁぼとRTが一度にできます</string>
+    <string name="msg_oauth_detail">ツイートの詳細を表示します</string>
+    <string name="msg_oauth_conv">ツイートの返信元を表示します</string>
+    <string name="msg_oauth_reply">このツイートに返信します</string>
+    <string name="msg_oauth_quote">このツイートを引用します</string>
+    <string name="msg_oauth_success">認証に成功しました！</string>
+    <string name="msg_oauth_failed">認証に失敗しました…</string>
 </resources>

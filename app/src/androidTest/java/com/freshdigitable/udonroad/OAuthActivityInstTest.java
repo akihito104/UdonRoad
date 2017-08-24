@@ -14,6 +14,7 @@ import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
+import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
 
@@ -43,8 +44,8 @@ import static android.support.test.espresso.intent.matcher.IntentMatchers.hasCom
 import static android.support.test.espresso.intent.matcher.IntentMatchers.hasData;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -73,8 +74,9 @@ public class OAuthActivityInstTest {
     void tearDownActivity() throws Exception {
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
         final Activity oAuthActivity = findResumeActivityByClass(OAuthActivity.class);
-        assertThat(oAuthActivity, is(notNullValue()));
-        oAuthActivity.finish();
+        if (oAuthActivity != null) {
+          oAuthActivity.finish();
+        }
       });
       Thread.sleep(800);
     }
@@ -89,9 +91,6 @@ public class OAuthActivityInstTest {
 
     @Test
     public void resumeWithValidToken() throws Exception {
-      final Intent launch = OAuthActivity.createIntent(InstrumentationRegistry.getTargetContext(), MainActivity.class);
-      rule.launchActivity(launch);
-
       intending(hasData(Uri.parse(authorizationUrl)))
           .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
       onView(withId(R.id.oauth_start)).perform(click());
@@ -121,6 +120,14 @@ public class OAuthActivityInstTest {
       });
     }
 
+    @Test
+    public void favDemoTweet() {
+      PerformUtil.selectItemViewAt(1);
+      onView(withId(R.id.ffab)).check(matches(isDisplayed()));
+      PerformUtil.favo();
+      onView(withText(R.string.msg_oauth_fav)).check(matches(isDisplayed()));
+    }
+
     @Before
     public void setup() throws Exception {
       super.setup();
@@ -134,14 +141,18 @@ public class OAuthActivityInstTest {
       when(accessToken.getTokenSecret()).thenReturn("valid.secret");
       when(twitter.getOAuthAccessToken(ArgumentMatchers.<RequestToken>any(), eq(VALID_PIN)))
           .thenReturn(accessToken);
+
+      final Intent launch = OAuthActivity.createIntent(InstrumentationRegistry.getTargetContext(), MainActivity.class);
+      rule.launchActivity(launch);
     }
 
     @Override
     void tearDownActivity() throws Exception {
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
         final Activity activity = findResumeActivityByClass(MainActivity.class);
-        assertThat(activity, is(notNullValue()));
-        activity.finish();
+        if (activity != null) {
+          activity.finish();
+        }
       });
       Thread.sleep(1000);
     }

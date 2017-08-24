@@ -63,6 +63,15 @@
     <string name="msg_retweeted_by_someone">your tweet was retweeted by \@%1$s</string>
     <string name="msg_no_next_page">there is no item any more…</string>
     <string name="msg_fetch_user_list_failed">failed to fetch user lists…</string>
+    <string name="msg_oauth_fav">you can like the tweet.</string>
+    <string name="msg_oauth_rt">you can retweet the tweet.</string>
+    <string name="msg_oauth_favRt">you can like and RT with one fling!</string>
+    <string name="msg_oauth_detail">you can see detail of the tweet.</string>
+    <string name="msg_oauth_conv">you can read replied tweets.</string>
+    <string name="msg_oauth_reply">you can reply to the tweet.</string>
+    <string name="msg_oauth_quote">you can quote the tweets.</string>
+    <string name="msg_oauth_success">authentication is success!</string>
+    <string name="msg_oauth_failed">authentication is failed…</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>
