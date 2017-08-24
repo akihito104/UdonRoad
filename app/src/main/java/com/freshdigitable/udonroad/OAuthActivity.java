@@ -98,6 +98,7 @@ public class OAuthActivity extends AppCompatActivity implements FabHandleable, S
     final Bundle args = TimelineFragment.createArgs(StoreType.DEMO, -1, "");
     demoTimelineFragment.setArguments(args);
     final List<ListItem> items = new ArrayList<>();
+    items.addAll(createItems(getApplicationContext()));
     updateSubject = updateSubjectFactory.getInstance("demo");
     demoTimelineFragment.sortedCache = new DemoSortedCache(items, updateSubject);
     demoTimelineFragment.requestWorker = new ListRequestWorker<ListItem>() {
@@ -286,9 +287,7 @@ public class OAuthActivity extends AppCompatActivity implements FabHandleable, S
     }
 
     @Override
-    public void fetch() {
-      items.addAll(createItems());
-    }
+    public void fetch() {}
 
     @Override
     public void fetchNext() {}
@@ -436,7 +435,7 @@ public class OAuthActivity extends AppCompatActivity implements FabHandleable, S
   }
 
 
-  private static List<ListItem> createItems() {
+  private static List<ListItem> createItems(Context context) {
     return Arrays.asList(
         new ListItem() {
           @Override
@@ -464,8 +463,8 @@ public class OAuthActivity extends AppCompatActivity implements FabHandleable, S
             return null;
           }
         },
-        getDemoTweet(10, "aoeliyakeiへようこそ！これはデモ用のダミーツイートです。タップして選択状態にしたり、丸いボタンをフリックしてツイートにリアクションをしてみましょう。",
-            getDemoTweet(11, "引用ツイートだけを選択してリアクションすることもできます。", null)));
+        getDemoTweet(10, context.getString(R.string.oauth_demo_tweet),
+            getDemoTweet(11, context.getString(R.string.oauth_demo_quoted), null)));
   }
 
   @NonNull

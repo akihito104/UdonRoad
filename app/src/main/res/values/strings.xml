@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">UdonRoad</string>
+    <string name="app_name">aoeliyakei</string>
     <string name="tweet_name_screenName" translatable="false">&lt;b>%1$s&lt;/b> \@%2$s</string>
     <string name="tweet_name_screenName_lines" translatable="false">&lt;b>%1$s&lt;/b>&lt;br>\@%2$s</string>
     <string name="tweet_screenName" translatable="false">\@%1$s</string>
@@ -107,4 +107,8 @@
     <string name="title_owned_list">lists</string>
     <string name="oauth_hint_input_pin">input PIN code</string>
     <string name="oauth_send_pin">Send pin</string>
+    <string name="oauth_demo_tweet">welcome to aoeliyakei! this is dummy tweet. you can select me and do action with circle button appearing below.</string>
+    <string name="oauth_demo_quoted">you can select only quoted tweet.</string>
+    <string name="oauth_explain">login Twitter via below button and activate \'aoeliyakei\'. And then, copy PIN code and return to this app.</string>
+    <string name="oauth_pin_direction">input PIN code and send it.</string>
 </resources>

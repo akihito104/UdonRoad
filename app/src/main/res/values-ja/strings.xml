@@ -24,7 +24,7 @@
     <string name="detail_quote">引用してRT</string>
     <string name="action_send_status">ツイートする</string>
     <string name="action_totop">先頭へ</string>
-    <string name="app_name">UdonRoad</string>
+    <string name="app_name">aoeliyakei</string>
     <string name="msg_rt_create_failed">RTできませんでした…</string>
     <string name="msg_rt_create_success">RTしました</string>
     <string name="msg_rt_delete_success">RTを消しました</string>
@@ -119,4 +119,8 @@
     <string name="msg_oauth_quote">このツイートを引用します</string>
     <string name="msg_oauth_success">認証に成功しました！</string>
     <string name="msg_oauth_failed">認証に失敗しました…</string>
+    <string name="oauth_demo_tweet">aoeliyakeiへようこそ!これはデモ用のダミーツイートです。タップして選択状態にしたり、丸いボタンをフリックしてツイートにリアクションをしてみましょう。</string>
+    <string name="oauth_demo_quoted">引用ツイートだけを選択してリアクションすることもできます。</string>
+    <string name="oauth_explain">下のボタンからTwitterへログインし、\'aoeliyakei\'でツイートできるように権限を付与してください。そうすると数桁の数字(PINコード)が表示されるので、それをコピーしてこのアプリに戻ってきてください。</string>
+    <string name="oauth_pin_direction">表示されたPINコードを入力して送信してください。</string>
 </resources>
