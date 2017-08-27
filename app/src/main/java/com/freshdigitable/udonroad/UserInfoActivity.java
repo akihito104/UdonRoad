@@ -148,7 +148,8 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onResume() {
     super.onResume();
-    if (Build.VERSION.SDK_INT == 22) {
+    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1
+        || Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP) {
       onEnterAnimationComplete();
     }
   }
