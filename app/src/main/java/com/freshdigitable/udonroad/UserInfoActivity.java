@@ -30,6 +30,7 @@ import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -145,6 +146,14 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onResume() {
+    super.onResume();
+    if (Build.VERSION.SDK_INT == 22) {
+      onEnterAnimationComplete();
+    }
+  }
+
+  @Override
   protected void onStop() {
     super.onStop();
     timelineContainerSwitcher.setOnContentChangedListener(null);
@@ -153,7 +162,9 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
     binding.userInfoTabs.setupWithViewPager(null);
-    subscription.dispose();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
+    }
     userCache.close();
   }
 
@@ -174,13 +185,43 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void onEnterAnimationComplete() {
-    super.onEnterAnimationComplete();
     userInfoAppbarFragment.onEnterAnimationComplete();
-    getSupportFragmentManager().beginTransaction()
-        .replace(R.id.userInfo_timeline_container, viewPager)
-        .commitNow();
+    if (!isViewPagerAttached()) {
+      getSupportFragmentManager().beginTransaction()
+          .replace(R.id.userInfo_timeline_container, viewPager)
+          .commitNow();
+    }
     final User user = userCache.find(getUserId());
     setupTabs(binding.userInfoTabs, user);
+  }
+
+  private boolean isViewPagerAttached() {
+    for (Fragment f : getSupportFragmentManager().getFragments()) {
+      if (f instanceof UserInfoPagerFragment) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
+    if (viewPager.getViewPager() != null && userInfoTabs.getTabCount() < 1) {
+      userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    }
+    if (subscription == null || subscription.isDisposed()) {
+      subscription = userCache.observeById(getUserId())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
+    }
+    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
+      if (type == ContentType.MAIN) {
+        userInfoTabs.setVisibility(View.VISIBLE);
+        UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
+      } else {
+        userInfoTabs.setVisibility(View.GONE);
+        binding.userInfoToolbarTitle.setText(title);
+      }
+    });
   }
 
   public static Intent createIntent(Context context, User user) {
@@ -276,24 +317,6 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public void onTweetComplete(Status updated) {
     closeTwitterInputView();
-  }
-
-  private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
-    if (viewPager.getViewPager() != null) {
-      userInfoTabs.setupWithViewPager(viewPager.getViewPager());
-    }
-    subscription = userCache.observeById(getUserId())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
-    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
-      if (type == ContentType.MAIN) {
-        userInfoTabs.setVisibility(View.VISIBLE);
-        UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
-      } else {
-        userInfoTabs.setVisibility(View.GONE);
-        binding.userInfoToolbarTitle.setText(title);
-      }
-    });
   }
 
   private void updateTabs(@NonNull TabLayout userInfoTabs, User user) {

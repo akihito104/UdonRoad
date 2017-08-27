@@ -287,7 +287,7 @@ class TimelineContainerSwitcher {
           return type;
         }
       }
-      throw new IllegalStateException("unknown fragment type...");
+      throw new IllegalStateException("unknown fragment type...: " + tag);
     }
   }
 }

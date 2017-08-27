@@ -16,18 +16,27 @@
 
 package com.freshdigitable.udonroad;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import android.support.test.runner.lifecycle.Stage;
+import android.support.v4.app.Fragment;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
+import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Collection;
+import java.util.List;
 
 import twitter4j.Relationship;
 import twitter4j.Status;
@@ -130,7 +139,30 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   public void receiveStatusWhenUserInfoIsAppeared_then_timelineIsNotScrolled() throws Exception {
     final Status top = findByStatusId(20000);
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
+
+    final IdlingResource ir = IdlingResourceUtil.getSimpleIdlingResource("userInfo", () -> {
+      final Collection<Activity> activities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
+      for (Activity a : activities) {
+        if (!(a instanceof UserInfoActivity)) {
+          continue;
+        }
+        final List<Fragment> fragments = ((UserInfoActivity) a).getSupportFragmentManager().getFragments();
+        for (Fragment f : fragments) {
+          if (f instanceof UserInfoPagerFragment) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
     PerformUtil.clickUserIconAt(0);
+    try {
+      Espresso.registerIdlingResources(ir);
+      onView(withText("TWEET\n20")).check(matches(isDisplayed()));
+    } finally {
+      Espresso.unregisterIdlingResources(ir);
+    }
+
     final Status received22 = createStatus(22000);
     receiveStatuses(received22);
     Espresso.pressBack();
