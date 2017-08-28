@@ -16,6 +16,9 @@
 
 package com.freshdigitable.udonroad.util;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.CoordinatesProvider;
@@ -145,7 +148,21 @@ public class PerformUtil {
     }, Press.FINGER));
   }
 
-  public PerformUtil() {
+  public static void launchHomeAndBackToApp(Activity base) throws InterruptedException {
+    Intent home = new Intent();
+    home.setAction(Intent.ACTION_MAIN);
+    home.addCategory(Intent.CATEGORY_HOME);
+    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+    Intent relaunch = new Intent(base, base.getClass());
+    relaunch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+    InstrumentationRegistry.getTargetContext().startActivity(home);
+    Thread.sleep(500);
+    base.startActivity(relaunch);
+  }
+
+  private PerformUtil() {
     throw new AssertionError();
   }
 }

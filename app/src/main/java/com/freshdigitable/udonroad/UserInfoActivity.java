@@ -30,7 +30,6 @@ import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -186,7 +185,7 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public void onEnterAnimationComplete() {
     userInfoAppbarFragment.onEnterAnimationComplete();
-    if (!isViewPagerAttached()) {
+    if (isTimelineContainerEmpty()) {
       getSupportFragmentManager().beginTransaction()
           .replace(R.id.userInfo_timeline_container, viewPager)
           .commitNow();
@@ -195,13 +194,8 @@ public class UserInfoActivity extends AppCompatActivity
     setupTabs(binding.userInfoTabs, user);
   }
 
-  private boolean isViewPagerAttached() {
-    for (Fragment f : getSupportFragmentManager().getFragments()) {
-      if (f instanceof UserInfoPagerFragment) {
-        return true;
-      }
-    }
-    return false;
+  private boolean isTimelineContainerEmpty() {
+    return binding.userInfoTimelineContainer.getChildCount() < 1;
   }
 
   private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {

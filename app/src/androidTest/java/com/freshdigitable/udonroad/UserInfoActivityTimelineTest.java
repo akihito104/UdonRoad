@@ -60,4 +60,25 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
     onView(withId(R.id.userInfo_tabs)).check(matches(isDisplayed()));
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
   }
+
+  @Test
+  public void jumpAnotherAppFromStatusDetail_and_returnToStatusDetail() throws Exception {
+    AssertionUtil.checkUserInfoActivityTitle("");
+    onView(withText("TWEET\n20")).check(matches(isDisplayed()));
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.showDetail();
+    AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
+    onView(withId(R.id.userInfo_tabs)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.action_heading)).check(doesNotExist());
+
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
+//    AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
+    onView(withId(R.id.userInfo_tabs)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.action_heading)).check(doesNotExist());
+
+    Espresso.pressBack();
+    AssertionUtil.checkUserInfoActivityTitle("");
+    onView(withId(R.id.userInfo_tabs)).check(matches(isDisplayed()));
+    onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
+  }
 }

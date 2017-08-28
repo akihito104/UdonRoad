@@ -17,8 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
@@ -84,7 +82,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
   @Test
   public void receiveStatusesAfterRelaunch_then_latestTweetAppears() throws Exception {
-    launchHomeAndBackToApp();
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
     Thread.sleep(200);
 
     final Status received = createStatus(22000);
@@ -95,7 +93,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
   @Test
   public void headingAfterRelaunch_then_latestTweetAppears() throws Exception {
-    launchHomeAndBackToApp();
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
 
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
@@ -110,7 +108,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Test
   public void createFavAfterRelaunch_then_success() throws Exception {
     // setup
-    launchHomeAndBackToApp();
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
     setupCreateFavorite(0, 1);
     // exec.
     PerformUtil.selectItemViewAt(0);
@@ -180,20 +178,6 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
         .check(matches(ofStatusView(withText(received22.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 2))
         .check(matches(ofStatusView(withText(top.getText()))));
-  }
-
-  private void launchHomeAndBackToApp() throws InterruptedException {
-    Intent home = new Intent();
-    home.setAction(Intent.ACTION_MAIN);
-    home.addCategory(Intent.CATEGORY_HOME);
-    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-    Intent relaunch = new Intent(rule.getActivity(), rule.getActivity().getClass());
-    relaunch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-
-    InstrumentationRegistry.getTargetContext().startActivity(home);
-    Thread.sleep(500);
-    rule.getActivity().startActivity(relaunch);
   }
 
   @Override
