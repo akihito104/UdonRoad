@@ -22,6 +22,7 @@ import android.support.test.espresso.ViewAssertion;
 import android.support.test.espresso.contrib.DrawerMatchers;
 import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.app.AppCompatActivity;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
@@ -29,6 +30,7 @@ import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 
@@ -53,7 +55,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by akihit on 2017/06/21.
  */
-
+@RunWith(AndroidJUnit4.class)
 public class ConversationInstTest extends TimelineInstTestBase {
 
   private Status replied;
@@ -78,6 +80,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
     checkFFAB(matches(not(isDisplayed())));
     Espresso.unregisterIdlingResources(timelineIdlingResource);
     PerformUtil.selectItemView(replied);
+    checkFFAB(matches(isDisplayed()));
     PerformUtil.favo();
     Espresso.pressBack();
     AssertionUtil.checkFavCount(replied, 1);
@@ -89,11 +92,9 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     Espresso.pressBack();
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
-    checkFFAB(matches(isDisplayed()));
-
     onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
-    Espresso.pressBack();
+    checkFFAB(matches(isDisplayed()));
   }
 
   @Test
@@ -117,6 +118,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
     checkFFAB(matches(not(isDisplayed())));
     Espresso.unregisterIdlingResources(timelineIdlingResource);
     PerformUtil.selectItemView(replied);
+    checkFFAB(matches(isDisplayed()));
     PerformUtil.favo();
     Espresso.pressBack();
     AssertionUtil.checkFavCount(replied, 1);
@@ -131,7 +133,6 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
-    Espresso.pressBack();
   }
 
   private static void checkFFAB(ViewAssertion matches) {

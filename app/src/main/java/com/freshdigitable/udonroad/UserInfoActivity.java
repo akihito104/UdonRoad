@@ -148,8 +148,7 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onResume() {
     super.onResume();
-    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1
-        || Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP) {
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
       onEnterAnimationComplete();
     }
   }
@@ -350,6 +349,9 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void showFab(int type) {
+    if (viewPager.getSelectedItemId() < 1) {
+      return;
+    }
     if (type == TYPE_FAB) {
       binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
           View.VISIBLE : View.INVISIBLE);
@@ -362,6 +364,9 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void hideFab() {
+    if (viewPager.getSelectedItemId() > 0) {
+      return;
+    }
     binding.ffab.hide();
   }
 

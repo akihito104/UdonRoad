@@ -89,8 +89,8 @@ public class IndicatableFFAB extends FlickableFAB {
         hide();
       }
     } else {
-      presenter.transToFAB(afterVisibility);
       mode = MODE_FAB;
+      presenter.transToFAB(afterVisibility);
     }
   }
 
