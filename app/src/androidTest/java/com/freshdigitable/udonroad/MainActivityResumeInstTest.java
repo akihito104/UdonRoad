@@ -16,18 +16,25 @@
 
 package com.freshdigitable.udonroad;
 
-import android.content.Intent;
-import android.support.test.InstrumentationRegistry;
+import android.app.Activity;
 import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import android.support.test.runner.lifecycle.Stage;
+import android.support.v4.app.Fragment;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
+import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Collection;
+import java.util.List;
 
 import twitter4j.Relationship;
 import twitter4j.Status;
@@ -75,7 +82,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
   @Test
   public void receiveStatusesAfterRelaunch_then_latestTweetAppears() throws Exception {
-    launchHomeAndBackToApp();
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
     Thread.sleep(200);
 
     final Status received = createStatus(22000);
@@ -86,7 +93,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
   @Test
   public void headingAfterRelaunch_then_latestTweetAppears() throws Exception {
-    launchHomeAndBackToApp();
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
 
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
@@ -101,7 +108,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Test
   public void createFavAfterRelaunch_then_success() throws Exception {
     // setup
-    launchHomeAndBackToApp();
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
     setupCreateFavorite(0, 1);
     // exec.
     PerformUtil.selectItemViewAt(0);
@@ -130,7 +137,30 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   public void receiveStatusWhenUserInfoIsAppeared_then_timelineIsNotScrolled() throws Exception {
     final Status top = findByStatusId(20000);
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
+
+    final IdlingResource ir = IdlingResourceUtil.getSimpleIdlingResource("userInfo", () -> {
+      final Collection<Activity> activities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
+      for (Activity a : activities) {
+        if (!(a instanceof UserInfoActivity)) {
+          continue;
+        }
+        final List<Fragment> fragments = ((UserInfoActivity) a).getSupportFragmentManager().getFragments();
+        for (Fragment f : fragments) {
+          if (f instanceof UserInfoPagerFragment) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
     PerformUtil.clickUserIconAt(0);
+    try {
+      Espresso.registerIdlingResources(ir);
+      onView(withText("TWEET\n20")).check(matches(isDisplayed()));
+    } finally {
+      Espresso.unregisterIdlingResources(ir);
+    }
+
     final Status received22 = createStatus(22000);
     receiveStatuses(received22);
     Espresso.pressBack();
@@ -148,20 +178,6 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
         .check(matches(ofStatusView(withText(received22.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 2))
         .check(matches(ofStatusView(withText(top.getText()))));
-  }
-
-  private void launchHomeAndBackToApp() throws InterruptedException {
-    Intent home = new Intent();
-    home.setAction(Intent.ACTION_MAIN);
-    home.addCategory(Intent.CATEGORY_HOME);
-    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-    Intent relaunch = new Intent(rule.getActivity(), rule.getActivity().getClass());
-    relaunch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-
-    InstrumentationRegistry.getTargetContext().startActivity(home);
-    Thread.sleep(500);
-    rule.getActivity().startActivity(relaunch);
   }
 
   @Override

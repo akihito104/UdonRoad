@@ -145,6 +145,14 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onResume() {
+    super.onResume();
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+      onEnterAnimationComplete();
+    }
+  }
+
+  @Override
   protected void onStop() {
     super.onStop();
     timelineContainerSwitcher.setOnContentChangedListener(null);
@@ -153,7 +161,9 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     binding.userInfoTabs.removeAllTabs();
     binding.userInfoTabs.setupWithViewPager(null);
-    subscription.dispose();
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
+    }
     userCache.close();
   }
 
@@ -174,13 +184,38 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void onEnterAnimationComplete() {
-    super.onEnterAnimationComplete();
     userInfoAppbarFragment.onEnterAnimationComplete();
-    getSupportFragmentManager().beginTransaction()
-        .replace(R.id.userInfo_timeline_container, viewPager)
-        .commitNow();
+    if (isTimelineContainerEmpty()) {
+      getSupportFragmentManager().beginTransaction()
+          .replace(R.id.userInfo_timeline_container, viewPager)
+          .commitNow();
+    }
     final User user = userCache.find(getUserId());
     setupTabs(binding.userInfoTabs, user);
+  }
+
+  private boolean isTimelineContainerEmpty() {
+    return binding.userInfoTimelineContainer.getChildCount() < 1;
+  }
+
+  private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
+    if (viewPager.getViewPager() != null && userInfoTabs.getTabCount() < 1) {
+      userInfoTabs.setupWithViewPager(viewPager.getViewPager());
+    }
+    if (subscription == null || subscription.isDisposed()) {
+      subscription = userCache.observeById(getUserId())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
+    }
+    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
+      if (type == ContentType.MAIN) {
+        userInfoTabs.setVisibility(View.VISIBLE);
+        UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
+      } else {
+        userInfoTabs.setVisibility(View.GONE);
+        binding.userInfoToolbarTitle.setText(title);
+      }
+    });
   }
 
   public static Intent createIntent(Context context, User user) {
@@ -278,24 +313,6 @@ public class UserInfoActivity extends AppCompatActivity
     closeTwitterInputView();
   }
 
-  private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
-    if (viewPager.getViewPager() != null) {
-      userInfoTabs.setupWithViewPager(viewPager.getViewPager());
-    }
-    subscription = userCache.observeById(getUserId())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
-    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
-      if (type == ContentType.MAIN) {
-        userInfoTabs.setVisibility(View.VISIBLE);
-        UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
-      } else {
-        userInfoTabs.setVisibility(View.GONE);
-        binding.userInfoToolbarTitle.setText(title);
-      }
-    });
-  }
-
   private void updateTabs(@NonNull TabLayout userInfoTabs, User user) {
     for (UserPageInfo p : UserPageInfo.values()) {
       final TabLayout.Tab tab = userInfoTabs.getTabAt(p.ordinal());
@@ -326,6 +343,9 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void showFab(int type) {
+    if (viewPager.getSelectedItemId() < 1) {
+      return;
+    }
     if (type == TYPE_FAB) {
       binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
           View.VISIBLE : View.INVISIBLE);
@@ -338,6 +358,9 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void hideFab() {
+    if (viewPager.getSelectedItemId() > 0) {
+      return;
+    }
     binding.ffab.hide();
   }
 

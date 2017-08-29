@@ -25,7 +25,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
@@ -273,13 +272,8 @@ class IffabMenuPresenter {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       TransformAnimator.transToToolbar(ffab, bbt);
     } else {
-      ffab.hide(new FloatingActionButton.OnVisibilityChangedListener() {
-        @Override
-        public void onHidden(FloatingActionButton fab) {
-          super.onHidden(fab);
-          bbt.setVisibility(View.VISIBLE);
-        }
-      });
+      ffab.hide();
+      bbt.setVisibility(View.VISIBLE);
     }
   }
 
@@ -346,12 +340,6 @@ class IffabMenuPresenter {
           }
         })
         .start();
-  }
-
-  boolean isToolbarDroppedDown() {
-    return bbt != null
-        && bbt.getVisibility() == View.VISIBLE
-        && bbt.getTranslationY() != 0;
   }
 
   void showToolbar() {

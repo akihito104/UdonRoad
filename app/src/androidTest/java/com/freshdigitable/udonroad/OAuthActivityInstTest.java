@@ -46,6 +46,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -126,6 +127,20 @@ public class OAuthActivityInstTest {
       onView(withId(R.id.ffab)).check(matches(isDisplayed()));
       PerformUtil.favo();
       onView(withText(R.string.msg_oauth_fav)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void favDemoQuotedTweet() {
+      PerformUtil.selectQuotedItemView(ofQuotedStatusView(withText(R.string.oauth_demo_quoted)));
+      onView(withId(R.id.ffab)).check(matches(isDisplayed()));
+      PerformUtil.favo();
+      onView(withText(R.string.msg_oauth_fav)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void clickUserIcon() {
+      PerformUtil.clickUserIconAt(1);
+      onView(withText(R.string.msg_oauth_user_icon)).check(matches(isDisplayed()));
     }
 
     @Before

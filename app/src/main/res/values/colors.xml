@@ -18,12 +18,12 @@
 <resources>
     <!-- https://www.materialpalette.com/blue-grey/amber -->
     <color name="primary">#607D8B</color>
-    <color name="primary_dark">#455A64</color>
+    <color name="primary_dark">#34515e</color>
     <color name="accent">#FFC107</color>
-    <color name="primary_light">#CFD8DC</color>
+    <color name="primary_light">#8eacbb</color>
     <color name="icon">#FFFFFF</color>
     <color name="text_primary">#000000</color>
-    <color name="text_secondary">#757575</color>
+    <color name="text_primary_light">#88000000</color>
     <color name="text_primary_inverse">#FFFFFF</color>
     <color name="text_secondary_inverse">#CCFFFFFF</color>
     <color name="divider">#BDBDBD</color>

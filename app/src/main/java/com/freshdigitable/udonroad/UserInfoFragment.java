@@ -94,8 +94,6 @@ public class UserInfoFragment extends Fragment {
     final long userId = getUserId();
     userCache.open();
     configStore.open();
-    final User user = userCache.find(userId);
-    showUserInfo(user);
     subscription = new CompositeDisposable();
     subscription.add(userCache.observeById(userId)
         .observeOn(AndroidSchedulers.mainThread())

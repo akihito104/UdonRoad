@@ -16,6 +16,9 @@
 
 package com.freshdigitable.udonroad.util;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.CoordinatesProvider;
@@ -31,6 +34,8 @@ import android.view.View;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
+
+import org.hamcrest.Matcher;
 
 import twitter4j.Status;
 
@@ -58,6 +63,10 @@ public class PerformUtil {
 
   public static ViewInteraction selectQuotedItemView(Status target) {
     return onView(ofQuotedStatusView(withText(target.getText()))).perform(clickForStatusView());
+  }
+
+  public static void selectQuotedItemView(Matcher<View> viewMatcher) {
+    onView(viewMatcher).perform(clickForStatusView());
   }
 
   public static ViewInteraction selectItemViewAt(int index) {
@@ -145,7 +154,21 @@ public class PerformUtil {
     }, Press.FINGER));
   }
 
-  public PerformUtil() {
+  public static void launchHomeAndBackToApp(Activity base) throws InterruptedException {
+    Intent home = new Intent();
+    home.setAction(Intent.ACTION_MAIN);
+    home.addCategory(Intent.CATEGORY_HOME);
+    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+    Intent relaunch = new Intent(base, base.getClass());
+    relaunch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+    InstrumentationRegistry.getTargetContext().startActivity(home);
+    Thread.sleep(500);
+    base.startActivity(relaunch);
+  }
+
+  private PerformUtil() {
     throw new AssertionError();
   }
 }

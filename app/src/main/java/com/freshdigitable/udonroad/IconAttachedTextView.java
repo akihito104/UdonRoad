@@ -48,7 +48,9 @@ public class IconAttachedTextView extends AppCompatTextView {
     final TypedArray a = context.obtainStyledAttributes(attrs,
         R.styleable.IconAttachedTextView, defStyleAttr, R.style.Widget_IconAttachedTextView);
     try {
-      Drawable icon = a.getDrawable(R.styleable.IconAttachedTextView_icon);
+      int iconRes = a.getResourceId(R.styleable.IconAttachedTextView_icon, -1);
+      final Drawable icon = iconRes > 0 ? AppCompatResources.getDrawable(context, iconRes)
+          : a.getDrawable(R.styleable.IconAttachedTextView_icon);
       final int iconColor = a.getColor(R.styleable.IconAttachedTextView_tintIcon, NO_ID);
       setIcon(icon, iconColor);
     } finally {

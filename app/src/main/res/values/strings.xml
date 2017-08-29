@@ -70,6 +70,7 @@
     <string name="msg_oauth_conv">you can read replied tweets.</string>
     <string name="msg_oauth_reply">you can reply to the tweet.</string>
     <string name="msg_oauth_quote">you can quote the tweets.</string>
+    <string name="msg_oauth_user_icon">you can see the user information.</string>
     <string name="msg_oauth_success">authentication is success!</string>
     <string name="msg_oauth_failed">authentication is failed…</string>
 

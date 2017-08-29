@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.test.espresso.Espresso;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v7.app.AppCompatActivity;
@@ -131,7 +132,7 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
   public void pressBackAfterTweetInputIsAppeared_then_hideTweetInput() {
     PerformUtil.clickWriteOnMenu();
     AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
-    pressBack();
+    Espresso.closeSoftKeyboard();
     pressBack();
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
     onActionWrite().check(matches(isDisplayed()));
