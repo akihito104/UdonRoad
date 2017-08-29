@@ -23,6 +23,7 @@
 # app generated
 /build
 /captures
+app/release/*
 
 # app secrets
 token.xml

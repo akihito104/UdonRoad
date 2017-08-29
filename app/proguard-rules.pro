@@ -24,4 +24,10 @@
 -dontwarn com.squareup.okhttp.**
 
 # okhttp
--dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.ParametersAreNonnullByDefault
+
+# twitter4j
+-dontwarn twitter4j.**
+-keep class twitter4j.** { *; }
