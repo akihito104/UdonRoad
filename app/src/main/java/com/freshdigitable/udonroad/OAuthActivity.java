@@ -19,11 +19,13 @@ package com.freshdigitable.udonroad;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -40,6 +42,9 @@ import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
+import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.QuotedStatusView;
+import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -69,7 +74,8 @@ import twitter4j.auth.RequestToken;
  *
  * Created by akihit on 15/10/22.
  */
-public class OAuthActivity extends AppCompatActivity implements FabHandleable, SnackbarCapable {
+public class OAuthActivity extends AppCompatActivity
+    implements FabHandleable, SnackbarCapable, OnUserIconClickedListener {
   private static final String TAG = OAuthActivity.class.getName();
 
   @Inject
@@ -255,6 +261,11 @@ public class OAuthActivity extends AppCompatActivity implements FabHandleable, S
     return findViewById(R.id.oauth_timeline_container);
   }
 
+  @Override
+  public void onUserIconClicked(View view, User user) {
+    this.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_user_icon));
+  }
+
   public static class DemoTimelineFragment extends TimelineFragment<ListItem> {
     @Override
     public void onAttach(Context context) {
@@ -370,6 +381,13 @@ public class OAuthActivity extends AppCompatActivity implements FabHandleable, S
     public void onBindViewHolder(ItemViewHolder holder, int position) {
       if (holder instanceof StatusViewHolder) {
         holder.bind(super.timelineStore.get(position));
+        final ImageView userIcon = holder.getUserIcon();
+        final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
+        userIcon.setImageDrawable(icon);
+        final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
+        if (quotedStatusView != null) {
+          quotedStatusView.getIcon().setImageDrawable(icon);
+        }
       }
     }
 

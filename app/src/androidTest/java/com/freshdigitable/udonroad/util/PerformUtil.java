@@ -35,6 +35,8 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
 
+import org.hamcrest.Matcher;
+
 import twitter4j.Status;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -61,6 +63,10 @@ public class PerformUtil {
 
   public static ViewInteraction selectQuotedItemView(Status target) {
     return onView(ofQuotedStatusView(withText(target.getText()))).perform(clickForStatusView());
+  }
+
+  public static void selectQuotedItemView(Matcher<View> viewMatcher) {
+    onView(viewMatcher).perform(clickForStatusView());
   }
 
   public static ViewInteraction selectItemViewAt(int index) {
