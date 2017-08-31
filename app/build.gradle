@@ -11,7 +11,9 @@ android {
     buildToolsVersion '26.0.1'
 
     defaultConfig {
+        // change for your app
         applicationId "com.freshdigitable.udonroad"
+        manifestPlaceholders = [appName: "@string/app_name", appIcon: "@mipmap/ic_launcher"]
         minSdkVersion 15
         targetSdkVersion 26
         versionCode 1
@@ -21,6 +23,8 @@ android {
     }
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
+            manifestPlaceholders = [appName: "@string/app_name_debug", appIcon: "@mipmap/ic_launcher_debug"]
             debuggable true
 // https://code.google.com/p/android/issues/detail?id=206259
 //            shrinkResources true
