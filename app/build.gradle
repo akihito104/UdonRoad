@@ -11,6 +11,7 @@ android {
     buildToolsVersion '26.0.1'
 
     defaultConfig {
+        // change for your app
         applicationId "com.freshdigitable.udonroad"
         minSdkVersion 15
         targetSdkVersion 26
@@ -21,12 +22,15 @@ android {
     }
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
+            manifestPlaceholders = [appName: "@string/app_name_debug", appIcon: "@mipmap/ic_launcher_debug"]
             debuggable true
 // https://code.google.com/p/android/issues/detail?id=206259
 //            shrinkResources true
             zipAlignEnabled true
         }
         release {
+            manifestPlaceholders = [appName: "@string/app_name", appIcon: "@mipmap/ic_launcher"]
             debuggable false
             shrinkResources true
             zipAlignEnabled true
