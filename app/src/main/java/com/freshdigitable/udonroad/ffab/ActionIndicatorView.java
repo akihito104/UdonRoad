@@ -66,6 +66,17 @@ class ActionIndicatorView extends FrameLayout {
     icons.put(Direction.LEFT, iconLeft);
   }
 
+  @Override
+  protected LayoutParams generateDefaultLayoutParams() {
+    final int iconSize = getResources().getDimensionPixelSize(R.dimen.small_user_icon);
+    final int grid = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    final int height = iconSize * 3 + grid * 2;
+    final LayoutParams lp = super.generateDefaultLayoutParams();
+    lp.width = height * 10 / 9;
+    lp.height = height;
+    return lp;
+  }
+
   public void setDrawable(Direction direction, Drawable drawable) {
     tintIcon(drawable, this.indicatorIconTint);
     drawables.put(direction, drawable);
