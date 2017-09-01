@@ -222,19 +222,18 @@ class IffabMenuPresenter {
   }
 
   private void layoutActionItemView() {
-    final int fabWidth = ffab.getWidth();
-    final int fabHeight = ffab.getHeight() * 9 / 10;
-    final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
-    if (layoutParams instanceof FrameLayout.LayoutParams) {
-      final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(fabWidth, fabHeight);
-      mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
-      setIndicatorMarginFromEdge(mlp, mlp.gravity);
-      ((ViewGroup) ffab.getParent()).addView(indicator, mlp);
-    } else if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
-      final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(fabWidth, fabHeight);
-      mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
-      setIndicatorMarginFromEdge(mlp, mlp.gravity);
-      ((ViewGroup) ffab.getParent()).addView(indicator, mlp);
+    final ViewGroup.LayoutParams baseLp = indicator.generateDefaultLayoutParams();
+    final ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
+    if (mlp instanceof FrameLayout.LayoutParams) {
+      final FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(baseLp);
+      lp.gravity = ((FrameLayout.LayoutParams) mlp).gravity;
+      setIndicatorMarginFromEdge(lp, lp.gravity);
+      ((ViewGroup) ffab.getParent()).addView(indicator, lp);
+    } else if (mlp instanceof CoordinatorLayout.LayoutParams) {
+      final CoordinatorLayout.LayoutParams lp = new CoordinatorLayout.LayoutParams(baseLp);
+      lp.gravity = ((CoordinatorLayout.LayoutParams) mlp).gravity;
+      setIndicatorMarginFromEdge(lp, lp.gravity);
+      ((ViewGroup) ffab.getParent()).addView(indicator, lp);
     }
   }
 
