@@ -29,6 +29,8 @@ import com.freshdigitable.udonroad.R;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import twitter4j.MediaEntity;
+
 /**
  * PhotoMediaFragment shows general image file such a photo.
  *
@@ -39,7 +41,6 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   private static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
   private ProgressBar progressBar;
-  private String loadingTag;
 
   @Nullable
   @Override
@@ -57,10 +58,8 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onStart();
     imageView.setOnClickListener(super.getOnClickListener());
     imageView.setOnTouchListener(super.getTouchListener());
-    loadingTag = "media:" + mediaEntity.getId();
     Picasso.with(getContext())
-        .load(mediaEntity.getMediaURLHttps() + ":medium")
-        .tag(loadingTag)
+        .load(getUrl())
         .into(imageView, new Callback() {
           @Override
           public void onSuccess() {
@@ -77,9 +76,24 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   @Override
   public void onStop() {
     super.onStop();
-    Picasso.with(getContext()).cancelTag(loadingTag);
+    Picasso.with(getContext()).cancelRequest(imageView);
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
     imageView.setImageDrawable(null);
+  }
+
+  private static final String ARGS_URL = "url";
+
+  static PhotoMediaFragment getInstance(MediaEntity mediaEntity) {
+    final Bundle args = new Bundle();
+    final String url = mediaEntity.getMediaURLHttps()+":medium";
+    args.putString(ARGS_URL, url);
+    final PhotoMediaFragment fragment = new PhotoMediaFragment();
+    fragment.setArguments(args);
+    return fragment;
+  }
+
+  String getUrl() {
+    return getArguments().getString(ARGS_URL);
   }
 }
