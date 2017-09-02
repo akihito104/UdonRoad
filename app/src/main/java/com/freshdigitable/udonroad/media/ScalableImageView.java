@@ -46,8 +46,46 @@ public class ScalableImageView extends AppCompatImageView {
 
   public ScalableImageView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    scaleGestureDetector = new ScaleGestureDetector(getContext(), scaleListener);
-    gestureDetector = new GestureDetectorCompat(getContext(), scrollListener);
+    scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+          scale = detector.getScaleFactor();
+          focusX = detector.getFocusX();
+          focusY = detector.getFocusY();
+          return true;
+        }
+      });
+    gestureDetector = new GestureDetectorCompat(getContext(), new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+          if (e2.getEventTime() - e1.getEventTime() < 200
+              && shouldGoNextPage(distanceX)) {
+            return false;
+          }
+          transX = -distanceX;
+          transY = -distanceY;
+          return true;
+        }
+
+        private boolean shouldGoNextPage(final float distX) {
+          if (Math.abs(distX) < 0.1) {
+            return false;
+          }
+          if (getDrawable() == null) {
+            return true;
+          }
+          if (getHeight() == getDrawable().getIntrinsicHeight() * imageMat[Matrix.MSCALE_Y]) {
+            return true;
+          }
+          if (distX > 0) {
+            final float maxTransX = getWidth() - getDrawable().getIntrinsicWidth() * imageMat[Matrix.MSCALE_X];
+            return maxTransX <= 0
+                && Math.abs(maxTransX - imageMat[Matrix.MTRANS_X]) < 0.01;
+          } else {
+            return Math.abs(imageMat[Matrix.MTRANS_X]) < 0.01;
+          }
+        }
+      });
     gestureDetector.setIsLongpressEnabled(false);
     setScaleType(ScaleType.MATRIX);
   }
@@ -75,7 +113,7 @@ public class ScalableImageView extends AppCompatImageView {
 
   @Override
   protected void onDraw(Canvas canvas) {
-    if (!transformMatrix.isIdentity()) {
+    if (getDrawable() != null && !transformMatrix.isIdentity()) {
       final Matrix matrix = getImageMatrix();
       matrix.postConcat(transformMatrix);
       matrix.getValues(imageMat);
@@ -109,48 +147,6 @@ public class ScalableImageView extends AppCompatImageView {
   private float focusY;
   private float transX;
   private float transY;
-
-  private final GestureDetector.SimpleOnGestureListener scrollListener = new GestureDetector.SimpleOnGestureListener() {
-    @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-      if (e2.getEventTime() - e1.getEventTime() < 200
-          && shouldGoNextPage(distanceX)) {
-        return false;
-      }
-      transX = -distanceX;
-      transY = -distanceY;
-      return true;
-    }
-
-    private boolean shouldGoNextPage(final float distX) {
-      if (Math.abs(distX) < 0.1) {
-        return false;
-      }
-      if (getDrawable() == null) {
-        return true;
-      }
-      if (getHeight() == getDrawable().getIntrinsicHeight() * imageMat[Matrix.MSCALE_Y]) {
-        return true;
-      }
-      if (distX > 0) {
-        final float maxTransX = getWidth() - getDrawable().getIntrinsicWidth() * imageMat[Matrix.MSCALE_X];
-        return maxTransX <= 0
-            && Math.abs(maxTransX - imageMat[Matrix.MTRANS_X]) < 0.01;
-      } else {
-        return Math.abs(imageMat[Matrix.MTRANS_X]) < 0.01;
-      }
-    }
-  };
-
-  private final ScaleGestureDetector.OnScaleGestureListener scaleListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-    @Override
-    public boolean onScale(ScaleGestureDetector detector) {
-      scale = detector.getScaleFactor();
-      focusX = detector.getFocusX();
-      focusY = detector.getFocusY();
-      return true;
-    }
-  };
 
   private final RectF viewRect = new RectF();
   private final RectF drawableRect = new RectF();
