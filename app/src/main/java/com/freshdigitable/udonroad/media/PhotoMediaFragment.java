@@ -86,7 +86,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
 
   static PhotoMediaFragment getInstance(MediaEntity mediaEntity) {
     final Bundle args = new Bundle();
-    final String url = mediaEntity.getMediaURLHttps()+":medium";
+    final String url = mediaEntity.getMediaURLHttps() + ":medium";
     args.putString(ARGS_URL, url);
     final PhotoMediaFragment fragment = new PhotoMediaFragment();
     fragment.setArguments(args);
