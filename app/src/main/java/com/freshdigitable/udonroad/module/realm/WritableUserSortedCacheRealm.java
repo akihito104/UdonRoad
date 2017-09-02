@@ -75,7 +75,7 @@ public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
     final RealmResults<ListedUserIDs> users = sortedCache.where(ListedUserIDs.class)
         .findAllSorted("order");
     int order = users.size() > 0 ?
-        users.last().order
+        users.last().order + 1
         : 0;
     final List<ListedUserIDs> inserts = new ArrayList<>();
     for (User user: entities) {
