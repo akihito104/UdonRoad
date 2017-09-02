@@ -43,7 +43,6 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
-import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
@@ -268,28 +267,13 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   public static abstract class MediaFragment extends Fragment {
     private static MediaFragment create(MediaEntity mediaEntity) {
-      final MediaFragment fragment;
       final String type = mediaEntity.getType();
       if ("photo".equals(type)) {
-        fragment = new PhotoMediaFragment();
+        return PhotoMediaFragment.getInstance(mediaEntity);
       } else {
         // video and animated_gif are distributed as a mp4
-        fragment = new SurfaceMediaView();
+        return SurfaceMediaView.getInstance(mediaEntity);
       }
-      final Bundle args = new Bundle();
-      args.putLong("media_id", mediaEntity.getId());
-      fragment.setArguments(args);
-      return fragment;
-    }
-
-    MediaEntity mediaEntity;
-    @Inject
-    MediaCache mediaCache;
-
-    @Override
-    public void onAttach(Context context) {
-      super.onAttach(context);
-      InjectionUtil.getComponent(this).inject(this);
     }
 
     @Nullable
@@ -300,20 +284,6 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
         container.setBackgroundColor(Color.BLACK);
       }
       return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    @Override
-    public void onStart() {
-      super.onStart();
-      mediaCache.open();
-      final long mediaId = getArguments().getLong("media_id");
-      mediaEntity = mediaCache.getMediaEntity(mediaId);
-    }
-
-    @Override
-    public void onStop() {
-      super.onStop();
-      mediaCache.close();
     }
 
     View.OnClickListener getOnClickListener() {

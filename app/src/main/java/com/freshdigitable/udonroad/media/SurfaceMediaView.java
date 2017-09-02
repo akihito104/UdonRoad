@@ -138,10 +138,11 @@ public class SurfaceMediaView extends MediaFragment {
   }
 
   private void setupMediaPlayer() throws IOException {
-    final Uri mediaUri = Uri.parse(selectVideo());
+    final Uri mediaUri = Uri.parse(getUrl());
     mediaPlayer.setDataSource(getContext(), mediaUri);
 
     mediaPlayer.setOnPreparedListener(mp -> {
+      binding.mediaWheel.setVisibility(View.GONE);
       final int duration = mp.getDuration();
       binding.mediaProgressBar.setMax(duration);
       mp.start();
@@ -182,8 +183,23 @@ public class SurfaceMediaView extends MediaFragment {
         }, throwable -> Log.e(TAG, "call: ", throwable));
   }
 
-  private String selectVideo() {
-    final List<MediaEntity.Variant> playableMedia = findPlayableMedia();
+  private static final String ARGS_URL = "url";
+
+  static SurfaceMediaView getInstance(MediaEntity mediaEntity) {
+    final Bundle args = new Bundle();
+    final String url = selectVideo(mediaEntity);
+    args.putString(ARGS_URL, url);
+    final SurfaceMediaView fragment = new SurfaceMediaView();
+    fragment.setArguments(args);
+    return fragment;
+  }
+
+  private String getUrl() {
+    return getArguments().getString(ARGS_URL);
+  }
+
+  private static String selectVideo(MediaEntity mediaEntity) {
+    final List<MediaEntity.Variant> playableMedia = findPlayableMedia(mediaEntity);
     if (playableMedia.size() == 0) {
       return null;
     } else if (playableMedia.size() == 1) {
@@ -194,7 +210,7 @@ public class SurfaceMediaView extends MediaFragment {
     return playableMedia.get(1).getUrl();
   }
 
-  private List<MediaEntity.Variant> findPlayableMedia() {
+  private static List<MediaEntity.Variant> findPlayableMedia(MediaEntity mediaEntity) {
     final MediaEntity.Variant[] videoVariants = mediaEntity.getVideoVariants();
     List<MediaEntity.Variant> res = new ArrayList<>(videoVariants.length);
     for (MediaEntity.Variant v : videoVariants) {

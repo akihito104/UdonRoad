@@ -28,7 +28,6 @@ import com.freshdigitable.udonroad.UserInfoFragment;
 import com.freshdigitable.udonroad.UserInfoPagerFragment;
 import com.freshdigitable.udonroad.UserStreamUtil;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
-import com.freshdigitable.udonroad.media.MediaViewActivity.MediaFragment;
 
 import javax.inject.Singleton;
 
@@ -61,8 +60,6 @@ public interface AppComponent {
   void inject(TweetInputFragment tweetInputFragment);
 
   void inject(UserInfoPagerFragment userInfoPagerFragment);
-
-  void inject(MediaFragment mediaFragment);
 
   void inject(TimelineFragment.StatusListFragment timelineFragment);
 
