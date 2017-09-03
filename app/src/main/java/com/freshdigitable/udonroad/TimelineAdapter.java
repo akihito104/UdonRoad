@@ -64,8 +64,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
 
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
-    final ListItem item = wrapListItem(timelineStore.get(position));
-    holder.bind(item);
+    subscribe(holder);
 
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound();
@@ -92,12 +91,18 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   @Override
   public void onViewAttachedToWindow(ItemViewHolder holder) {
     super.onViewAttachedToWindow(holder);
-    final Observable<ListItem> observable
-        = timelineStore.observeById(holder.getItemId())
-        .map(this::wrapListItem);
-    holder.subscribe(observable);
+    subscribe(holder);
     holder.setItemViewClickListener(itemViewClickListener);
     holder.setUserIconClickedListener(userIconClickedListener);
+  }
+
+  private void subscribe(ItemViewHolder holder) {
+    if (!holder.isSubscribed()) {
+      final Observable<ListItem> observable
+          = timelineStore.observeById(holder.getItemId())
+          .map(this::wrapListItem);
+      holder.subscribe(observable);
+    }
   }
 
   @Override

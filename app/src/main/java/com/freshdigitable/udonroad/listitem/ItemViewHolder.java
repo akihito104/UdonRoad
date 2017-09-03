@@ -33,6 +33,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   private Disposable subscription;
   OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
+  private boolean bound;
 
   public ItemViewHolder(View view) {
     super(view);
@@ -49,18 +50,33 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   public abstract ImageView getUserIcon();
 
   public void subscribe(Observable<ListItem> observable) {
+    if (isSubscribed()) {
+      return;
+    }
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(this::onUpdate,
+        .subscribe(item -> {
+              if (!bound) {
+                bind(item);
+                bound = true;
+              } else {
+                onUpdate(item);
+              }
+            },
             th -> Log.e("ItemViewHolder", "update: ", th));
   }
 
   public abstract void onUpdate(ListItem item);
 
   public void unsubscribe() {
-    if (subscription != null && !subscription.isDisposed()) {
+    if (isSubscribed()) {
       subscription.dispose();
+      bound = false;
     }
+  }
+
+  public boolean isSubscribed() {
+    return subscription != null && !subscription.isDisposed();
   }
 
   @CallSuper
