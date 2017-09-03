@@ -345,6 +345,12 @@ public class OAuthActivity extends AppCompatActivity
       return Observable.empty();
     }
 
+    @NonNull
+    @Override
+    public Observable<? extends ListItem> observeById(ListItem element) {
+      return Observable.empty();
+    }
+
     @Override
     public void open(String name) {}
 

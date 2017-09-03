@@ -64,7 +64,10 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
 
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
-    subscribe(holder);
+    final T elem = timelineStore.get(position);
+    holder.bind(wrapListItem(elem));
+    final Observable<ListItem> observable = timelineStore.observeById(elem).map(this::wrapListItem);
+    holder.subscribe(observable);
 
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound();

@@ -252,8 +252,14 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @Override
   public Observable<? extends Status> observeById(long statusId) {
     final StatusRealm status = find(statusId);
-    return status != null ?
-        StatusChangeObservable.create(status)
+    return observeById(status);
+  }
+
+  @NonNull
+  @Override
+  public Observable<? extends Status> observeById(Status status) {
+    return status != null && status instanceof StatusRealm ?
+        StatusChangeObservable.create((StatusRealm) status)
             .filter(s -> RealmObject.isValid(s))
             .map(s -> {
               final Status quotedStatus = s.getQuotedStatus();
@@ -326,7 +332,6 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       for (Observable<? extends RealmModel> o : observables) {
         o.subscribeWith(new StatusObserver<>(statusRealm, observer, disposables));
       }
-      observer.onNext(statusRealm);
     }
 
     private static class StatusObserver<T extends RealmModel> implements Observer<T> {

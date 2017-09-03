@@ -131,4 +131,10 @@ public class ListsSortedCache implements SortedCache<UserList> {
   public Observable<? extends UserList> observeById(long id) {
     return Observable.empty();
   }
+
+  @NonNull
+  @Override
+  public Observable<? extends UserList> observeById(UserList element) {
+    return Observable.empty();
+  }
 }

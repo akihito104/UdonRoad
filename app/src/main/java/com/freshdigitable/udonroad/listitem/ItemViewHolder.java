@@ -33,7 +33,6 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   private Disposable subscription;
   OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
-  private boolean bound;
 
   public ItemViewHolder(View view) {
     super(view);
@@ -55,14 +54,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
     }
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(item -> {
-              if (!bound) {
-                bind(item);
-                bound = true;
-              } else {
-                onUpdate(item);
-              }
-            },
+        .subscribe(this::onUpdate,
             th -> Log.e("ItemViewHolder", "update: ", th));
   }
 
@@ -71,7 +63,6 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   public void unsubscribe() {
     if (isSubscribed()) {
       subscription.dispose();
-      bound = false;
     }
   }
 
