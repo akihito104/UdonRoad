@@ -18,7 +18,7 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.text.Html;
+import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
 import com.freshdigitable.udonroad.CombinedScreenNameTextView;
@@ -325,12 +325,20 @@ public class StatusListItem implements TwitterListItem {
         ? new StatusListItem(quotedStatus, TextType.QUOTED) : null;
   }
 
+  private static final Pattern SOURCE_PATTERN = Pattern.compile("<a href=\".*\".*>(.*)</a>");
+  private static final String SOURCE_NOT_PROVIDED = "none provided";
+
   @Override
   public String getSource() {
     final String source = bindingStatus.getSource();
-    return source != null
-        ? Html.fromHtml(source).toString()
-        : "none provided";
+    return source != null ? parseToClientName(source)
+        : SOURCE_NOT_PROVIDED;
+  }
+
+  private static String parseToClientName(@NonNull String source) {
+    final Matcher matcher = SOURCE_PATTERN.matcher(source);
+    return matcher.find() ? matcher.group(1)
+        : SOURCE_NOT_PROVIDED;
   }
 
   @Override
