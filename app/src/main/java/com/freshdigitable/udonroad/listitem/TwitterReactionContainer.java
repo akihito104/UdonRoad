@@ -113,12 +113,18 @@ public class TwitterReactionContainer extends ReactionContainer {
 
       @Override
       void update(View v, Stat s) {
+        if (s.getCount() <= 0 && !s.isMarked()) {
+          v.setVisibility(GONE);
+          return;
+        }
         final IconAttachedTextView rtCount = (IconAttachedTextView) v;
-        rtCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-        rtCount.tintIcon(s.isMarked()
-            ? R.color.twitter_action_retweeted
+        rtCount.setVisibility(VISIBLE);
+        rtCount.tintIcon(s.isMarked() ? R.color.twitter_action_retweeted
             : R.color.twitter_action_normal);
-        rtCount.setText(String.valueOf(s.getCount()));
+        final String text = String.valueOf(s.getCount());
+        if (!text.equals(rtCount.getText())) {
+          rtCount.setText(text);
+        }
       }
     },
     FAV(R.drawable.ic_like) {
@@ -129,12 +135,18 @@ public class TwitterReactionContainer extends ReactionContainer {
 
       @Override
       void update(View v, Stat s) {
+        if (s.getCount() <= 0 && !s.isMarked()) {
+          v.setVisibility(GONE);
+          return;
+        }
         final IconAttachedTextView favCount = (IconAttachedTextView) v;
-        favCount.setVisibility(s.getCount() > 0 || s.isMarked() ? VISIBLE : GONE);
-        favCount.tintIcon(s.isMarked()
-            ? R.color.twitter_action_faved
+        favCount.setVisibility(VISIBLE);
+        favCount.tintIcon(s.isMarked() ? R.color.twitter_action_faved
             : R.color.twitter_action_normal);
-        favCount.setText(String.valueOf(s.getCount()));
+        final String text = String.valueOf(s.getCount());
+        if (!text.equals(favCount.getText())) {
+          favCount.setText(text);
+        }
       }
     },
     IN_REPLY_TO(R.drawable.ic_forum) {

@@ -190,9 +190,6 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   }
 
   public URLEntity[] getURLEntities() {
-    if (urlEntities == null) {
-      return new URLEntity[0];
-    }
     return urlEntities.toArray(new URLEntity[urlEntities.size()]);
   }
 

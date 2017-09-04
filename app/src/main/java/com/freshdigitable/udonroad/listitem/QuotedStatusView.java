@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
@@ -30,6 +29,8 @@ import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
+
+import static com.freshdigitable.udonroad.listitem.StatusItemView.createVia;
 
 /**
  * QuotedStatusView is for quoted tweet in StatusView and StatusDetailFragment.<br>
@@ -84,9 +85,9 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
     tweet.setText(item.getText());
     reactionContainer.update(item.getStats());
     timeStrategy = item.getTimeStrategy();
-    createdAt.setText(item.getCreatedTime(getContext()));
+    StatusItemView.updateTextView(createdAt, item.getCreatedTime(getContext()));
     thumbnailContainer.bindMediaEntities(item.getMediaCount());
-    clientName.setText(formatString(R.string.tweet_via, item.getSource()));
+    StatusItemView.updateTextView(clientName, createVia(item.getSource()));
   }
 
   @Override
@@ -104,7 +105,7 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
     if (timeStrategy == null) {
       return;
     }
-    createdAt.setText(timeStrategy.getCreatedTime(getContext()));
+    StatusItemView.updateTextView(createdAt, timeStrategy.getCreatedTime(getContext()));
   }
 
   public void reset() {
@@ -136,11 +137,6 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
   @Override
   public ImageView getIcon() {
     return icon;
-  }
-
-  private String formatString(@StringRes int id, Object... items) {
-    final String format = getResources().getString(id);
-    return String.format(format, items);
   }
 
   @Override
