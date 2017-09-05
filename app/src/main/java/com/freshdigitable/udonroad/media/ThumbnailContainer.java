@@ -123,7 +123,6 @@ public class ThumbnailContainer extends LinearLayout {
     setVisibility(GONE);
     for (int i = 0; i < thumbCount; i++) {
       final ImageView mi = (ImageView) getChildAt(i);
-      mi.setImageDrawable(null);
       mi.setOnClickListener(null);
       mi.setVisibility(GONE);
     }

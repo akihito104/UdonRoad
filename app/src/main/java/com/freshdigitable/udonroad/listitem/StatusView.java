@@ -157,13 +157,10 @@ public class StatusView extends RelativeLayout implements StatusItemView {
   public void reset() {
     setBackgroundColor(Color.TRANSPARENT);
 
-    icon.setImageDrawable(null);
-    icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);
     timeStrategy = null;
 
-    rtUser.setText("");
     if (quotedStatus != null) {
       quotedStatus.reset();
     }
