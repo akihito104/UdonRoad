@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
@@ -59,10 +60,32 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
     setTransformationMethod(null);
   }
 
-  private CombinedName oldName;
+  @Override
+  public void setTextColor(int color) {
+    super.setTextColor(color);
+    if (verifiedIcon != null) {
+      DrawableCompat.setTint(verifiedIcon.getDrawable(), color);
+    }
+    if (protectedIcon != null) {
+      DrawableCompat.setTint(protectedIcon.getDrawable(), color);
+    }
+  }
+
+  @Override
+  public void setTextColor(ColorStateList colors) {
+    super.setTextColor(colors);
+    if (verifiedIcon != null) {
+      DrawableCompat.setTintList(verifiedIcon.getDrawable(), colors);
+    }
+    if (protectedIcon != null) {
+      DrawableCompat.setTintList(protectedIcon.getDrawable(), colors);
+    }
+  }
+
+  private CombinedName currentName;
 
   public void setNames(@NonNull CombinedName combinedName) {
-    if (combinedName.equals(oldName)) {
+    if (combinedName.equals(currentName)) {
       return;
     }
     final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(combinedName.getName());
@@ -78,11 +101,10 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
       appendIconToEnd(spannableStringBuilder, protectedIcon);
     }
     setText(spannableStringBuilder);
-    oldName = combinedName;
+    currentName = combinedName;
   }
 
   private void appendIconToEnd(SpannableStringBuilder ssb, ImageSpan iconSpan) {
-    DrawableCompat.setTint(iconSpan.getDrawable(), getCurrentTextColor());
     final int start = ssb.length();
     // SpannableStringBuilder.append(CharSequence,Object,int) is available in API 21+
     ssb.append(" ");
