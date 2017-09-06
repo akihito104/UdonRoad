@@ -56,9 +56,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   private int retweetCount;
   private int favoriteCount;
   private boolean retweet;
-  @Ignore
-  private User user;
-  private long userId;
+  private UserRealm user;
   private RealmList<URLEntityRealm> urlEntities;
   private RealmList<MediaEntityRealm> mediaEntities;
   private RealmList<UserMentionEntityRealm> userMentionEntities;
@@ -89,8 +87,6 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     this.inReplyToStatusId = status.getInReplyToStatusId();
     this.reaction = new StatusReactionImpl(status);
     this.possiblySensitive = status.isPossiblySensitive();
-    this.user = status.getUser();
-    this.userId = user.getId();
     this.urlEntities = URLEntityRealm.createList(status.getURLEntities());
 
     this.mediaEntities = new RealmList<>();
@@ -151,7 +147,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     return user;
   }
 
-  void setUser(User user) {
+  void setUser(UserRealm user) {
     this.user = user;
   }
 
@@ -215,10 +211,6 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
 
   long getRetweetedStatusId() {
     return retweetedStatusId;
-  }
-
-  long getUserId() {
-    return userId;
   }
 
   @Override
