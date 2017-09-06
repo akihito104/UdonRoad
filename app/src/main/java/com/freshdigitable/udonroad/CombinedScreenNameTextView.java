@@ -105,6 +105,7 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
   }
 
   private void appendIconToEnd(SpannableStringBuilder ssb, ImageSpan iconSpan) {
+    DrawableCompat.setTint(iconSpan.getDrawable(), getCurrentTextColor());
     final int start = ssb.length();
     // SpannableStringBuilder.append(CharSequence,Object,int) is available in API 21+
     ssb.append(" ");
