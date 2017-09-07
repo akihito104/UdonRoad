@@ -110,8 +110,7 @@ public class StatusView extends RelativeLayout implements StatusItemView {
     } else {
       if (quotedStatus == null) {
         quotedStatus = new QuotedStatusView(getContext());
-        final LayoutParams lp = createQuotedItemLayoutParams();
-        addView(quotedStatus, lp);
+        attachQuotedView(quotedStatus);
       }
       quotedStatus.setVisibility(VISIBLE);
       quotedStatus.bind(quotedItem);
@@ -203,5 +202,18 @@ public class StatusView extends RelativeLayout implements StatusItemView {
   @Override
   public ThumbnailContainer getThumbnailContainer() {
     return thumbnailContainer;
+  }
+
+  public void attachQuotedView(QuotedStatusView quotedView) {
+    final LayoutParams lp = createQuotedItemLayoutParams();
+    addView(quotedView, lp);
+    quotedStatus = quotedView;
+  }
+
+  public QuotedStatusView detachQuotedView() {
+    removeView(quotedStatus);
+    final QuotedStatusView res = this.quotedStatus;
+    quotedStatus = null;
+    return res;
   }
 }

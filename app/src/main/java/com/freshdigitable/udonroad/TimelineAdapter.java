@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
 import com.freshdigitable.udonroad.listitem.UserItemViewHolder;
@@ -33,6 +35,8 @@ import com.freshdigitable.udonroad.listitem.UserListItem;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.Observable;
 import twitter4j.Status;
@@ -271,6 +275,47 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     @Override
     public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
       return new StatusViewHolder(parent);
+    }
+
+    @Override
+    public void onBindViewHolder(final ItemViewHolder holder, int position) {
+      final Status elem = timelineStore.get(position);
+      final StatusListItem item = (StatusListItem) wrapListItem(elem);
+      if (item.getQuotedItem() != null) {
+        ((StatusViewHolder) holder).attachQuotedView(getQuotedView(holder.itemView.getContext()));
+      }
+      holder.bind(item);
+      final Observable<ListItem> observable = timelineStore.observeById(elem).map(this::wrapListItem);
+      holder.subscribe(observable);
+
+      if (position == getItemCount() - 1) {
+        super.lastItemBoundListener.onLastItemBound();
+      }
+
+      super.bindSelectedItemView(holder);
+    }
+
+    private final List<QuotedStatusView> quotedViewCache = new ArrayList<>();
+
+    private QuotedStatusView getQuotedView(Context context) {
+      if (quotedViewCache.isEmpty()) {
+        return new QuotedStatusView(context);
+      }
+      return quotedViewCache.remove(quotedViewCache.size() - 1);
+    }
+
+    @Override
+    public void onViewRecycled(ItemViewHolder holder) {
+      super.onViewRecycled(holder);
+      final QuotedStatusView v = ((StatusViewHolder) holder).detachQuotedView();
+      if (v != null) {
+        quotedViewCache.add(v);
+      }
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+      quotedViewCache.clear();
     }
 
     @Override

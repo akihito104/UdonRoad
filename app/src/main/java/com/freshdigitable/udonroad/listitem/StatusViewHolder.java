@@ -121,4 +121,12 @@ public class StatusViewHolder extends ItemViewHolder {
       thumbnailContainer.getChildAt(i).setOnClickListener(null);
     }
   }
+
+  public void attachQuotedView(QuotedStatusView quotedView) {
+    getView().attachQuotedView(quotedView);
+  }
+
+  public QuotedStatusView detachQuotedView() {
+    return getView().detachQuotedView();
+  }
 }
