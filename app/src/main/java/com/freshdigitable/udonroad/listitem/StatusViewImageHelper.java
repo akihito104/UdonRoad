@@ -23,7 +23,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
@@ -55,10 +54,6 @@ public class StatusViewImageHelper {
 
   public static <T extends View & StatusItemView> void unload(T itemView, long entityId) {
     Picasso.with(itemView.getContext()).cancelTag(entityId);
-    unloadRTUserIcon(itemView);
-    unloadUserIcon(itemView);
-    unloadMediaView(itemView);
-    unloadQuotedStatusImages(itemView.getQuotedStatusView());
   }
 
   static <T extends View & ItemView> void loadUserIcon(User user, final long tagId, final T itemView) {
@@ -69,10 +64,6 @@ public class StatusViewImageHelper {
         .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
         .placeholder(AppCompatResources.getDrawable(itemView.getContext(), R.drawable.ic_person_outline_black))
         .into(itemView.getIcon());
-  }
-
-  static void unloadUserIcon(ItemView itemView) {
-    unloadImage(itemView.getIcon());
   }
 
   private static <T extends View & StatusItemView> void loadRTUserIcon(TwitterListItem item, T itemView) {
@@ -122,10 +113,6 @@ public class StatusViewImageHelper {
         });
   }
 
-  private static void unloadRTUserIcon(StatusItemView itemView) {
-    itemView.getRtUser().setText("");
-  }
-
   private static void loadMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {
     final MediaEntity[] mediaEntities = item.getMediaEntities();
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
@@ -153,15 +140,6 @@ public class StatusViewImageHelper {
     }
   }
 
-  private static void unloadMediaView(ThumbnailCapable statusView) {
-    final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
-    final int thumbCount = thumbnailContainer.getThumbCount();
-    for (int i=0; i<thumbCount;i++) {
-      final ThumbnailView media = (ThumbnailView) thumbnailContainer.getChildAt(i);
-      unloadImage(media);
-    }
-  }
-
   private static void loadQuotedStatusImages(TwitterListItem item, @Nullable QuotedStatusView quotedStatusView) {
     if (quotedStatusView == null) {
       return;
@@ -179,18 +157,6 @@ public class StatusViewImageHelper {
           .into(quotedStatusView.getIcon());
     }
     loadMediaView((TwitterListItem) quotedStatus, quotedStatusView);
-  }
-
-  private static void unloadQuotedStatusImages(@Nullable QuotedStatusView quotedStatusView) {
-    if (quotedStatusView == null) {
-      return;
-    }
-    unloadImage(quotedStatusView.getIcon());
-    unloadMediaView(quotedStatusView);
-  }
-
-  private static void unloadImage(ImageView v) {
-    v.setImageDrawable(null);
   }
 
   private static RequestCreator getRequest(@NonNull Context context,

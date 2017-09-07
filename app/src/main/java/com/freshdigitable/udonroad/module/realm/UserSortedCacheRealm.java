@@ -114,6 +114,12 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     return pool.observeById(id);
   }
 
+  @NonNull
+  @Override
+  public Observable<? extends User> observeById(User element) {
+    return pool.observeById(element);
+  }
+
   private final OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>> realmChangeListener
       = new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
     @Override

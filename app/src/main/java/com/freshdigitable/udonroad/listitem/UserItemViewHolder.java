@@ -40,12 +40,6 @@ public class UserItemViewHolder extends ItemViewHolder {
     getView().update((TwitterListItem) item);
   }
 
-  @Override
-  public void recycle() {
-    super.recycle();
-    StatusViewImageHelper.unloadUserIcon(getView());
-  }
-
   public UserItemView getView() {
     return (UserItemView) itemView;
   }

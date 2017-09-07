@@ -21,7 +21,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
@@ -33,6 +32,8 @@ import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
+
+import static com.freshdigitable.udonroad.listitem.StatusItemView.createVia;
 
 /**
  * StatusView shows Status data in RecyclerView.
@@ -92,9 +93,9 @@ public class StatusView extends RelativeLayout implements StatusItemView {
     names.setNames(item.getCombinedName());
     tweet.setText(item.getText());
     reactionContainer.update(item.getStats());
-    createdAt.setText(item.getCreatedTime(getContext()));
+    StatusItemView.updateTextView(createdAt, item.getCreatedTime(getContext()));
     thumbnailContainer.bindMediaEntities(item.getMediaCount());
-    clientName.setText(formatString(R.string.tweet_via, item.getSource()));
+    StatusItemView.updateTextView(clientName, createVia(item.getSource()));
 
     final TwitterListItem quotedItem = item.getQuotedItem();
     bindQuotedStatus(quotedItem);
@@ -109,8 +110,7 @@ public class StatusView extends RelativeLayout implements StatusItemView {
     } else {
       if (quotedStatus == null) {
         quotedStatus = new QuotedStatusView(getContext());
-        final LayoutParams lp = createQuotedItemLayoutParams();
-        addView(quotedStatus, lp);
+        attachQuotedView(quotedStatus);
       }
       quotedStatus.setVisibility(VISIBLE);
       quotedStatus.bind(quotedItem);
@@ -133,7 +133,7 @@ public class StatusView extends RelativeLayout implements StatusItemView {
     if (timeStrategy == null) {
       return;
     }
-    createdAt.setText(timeStrategy.getCreatedTime(getContext()));
+    StatusItemView.updateTextView(createdAt, timeStrategy.getCreatedTime(getContext()));
     if (quotedStatus != null && quotedStatus.getVisibility() == VISIBLE) {
       quotedStatus.updateTime();
     }
@@ -156,13 +156,10 @@ public class StatusView extends RelativeLayout implements StatusItemView {
   public void reset() {
     setBackgroundColor(Color.TRANSPARENT);
 
-    icon.setImageDrawable(null);
-    icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);
     timeStrategy = null;
 
-    rtUser.setText("");
     if (quotedStatus != null) {
       quotedStatus.reset();
     }
@@ -207,8 +204,16 @@ public class StatusView extends RelativeLayout implements StatusItemView {
     return thumbnailContainer;
   }
 
-  private String formatString(@StringRes int id, Object... items) {
-    final String format = getResources().getString(id);
-    return String.format(format, items);
+  public void attachQuotedView(QuotedStatusView quotedView) {
+    final LayoutParams lp = createQuotedItemLayoutParams();
+    addView(quotedView, lp);
+    quotedStatus = quotedView;
+  }
+
+  public QuotedStatusView detachQuotedView() {
+    removeView(quotedStatus);
+    final QuotedStatusView res = this.quotedStatus;
+    quotedStatus = null;
+    return res;
   }
 }

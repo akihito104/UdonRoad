@@ -53,5 +53,9 @@ class CacheUtil {
         : RealmObjectObservable.create(elem.first());
   }
 
+  static <T extends RealmModel> Observable<T> observeById(T elem) {
+    return RealmObjectObservable.create(elem);
+  }
+
   private CacheUtil() {}
 }

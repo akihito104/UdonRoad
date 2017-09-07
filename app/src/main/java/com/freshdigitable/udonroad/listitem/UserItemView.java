@@ -66,8 +66,6 @@ public class UserItemView extends RelativeLayout implements ItemView {
   }
 
   public void reset() {
-    icon.setImageDrawable(null);
-    icon.setImageResource(android.R.color.transparent);
     icon.setOnClickListener(null);
     setOnClickListener(null);
   }

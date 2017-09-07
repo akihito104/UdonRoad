@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.listitem;
 
+import android.widget.TextView;
+
 import com.freshdigitable.udonroad.RetweetUserView;
 
 /**
@@ -30,4 +32,14 @@ public interface StatusItemView extends ItemView, ThumbnailCapable {
   void update(TwitterListItem item);
 
   void updateTime();
+
+  static String createVia(String clientName) {
+    return String.format("via %1$s", clientName);
+  }
+
+  static void updateTextView(TextView textView, String text) {
+    if (!text.equals(textView.getText())) {
+      textView.setText(text);
+    }
+  }
 }

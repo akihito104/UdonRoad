@@ -130,13 +130,26 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       for (Status s : updates) {
         final StatusRealm update = CacheUtil.findById(realm, s.getId(), StatusRealm.class);
         if (update == null) {
-          inserts.add(new StatusRealm(s));
+          final StatusRealm sr = new StatusRealm(s);
+          final UserRealm ur = getUserRealm(realm, s.getUser());
+          sr.setUser(ur);
+          inserts.add(sr);
         } else {
           update.merge(s);
+          ((UserRealm) update.getUser()).merge(s.getUser(), realm);
         }
       }
       realm.insertOrUpdate(inserts);
     };
+  }
+
+  private static UserRealm getUserRealm(Realm realm, User user) {
+    final UserRealm ur = CacheUtil.findById(realm, user.getId(), UserRealm.class);
+    if (ur == null) {
+      return new UserRealm(user);
+    }
+    ur.merge(user, realm);
+    return ur;
   }
 
   @NonNull
@@ -252,8 +265,14 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @Override
   public Observable<? extends Status> observeById(long statusId) {
     final StatusRealm status = find(statusId);
-    return status != null ?
-        StatusChangeObservable.create(status)
+    return observeById(status);
+  }
+
+  @NonNull
+  @Override
+  public Observable<? extends Status> observeById(Status status) {
+    return status != null && status instanceof StatusRealm ?
+        StatusChangeObservable.create((StatusRealm) status)
             .filter(s -> RealmObject.isValid(s))
             .map(s -> {
               final Status quotedStatus = s.getQuotedStatus();
@@ -276,7 +295,6 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
     if (status == null) {
       return null;
     }
-    status.setUser(userTypedCache.find(status.getUserId()));
     status.setStatusReaction(configStore.find(id));
     return status;
   }
@@ -326,7 +344,6 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       for (Observable<? extends RealmModel> o : observables) {
         o.subscribeWith(new StatusObserver<>(statusRealm, observer, disposables));
       }
-      observer.onNext(statusRealm);
     }
 
     private static class StatusObserver<T extends RealmModel> implements Observer<T> {

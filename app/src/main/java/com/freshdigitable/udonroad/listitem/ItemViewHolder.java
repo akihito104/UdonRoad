@@ -49,6 +49,9 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   public abstract ImageView getUserIcon();
 
   public void subscribe(Observable<ListItem> observable) {
+    if (isSubscribed()) {
+      return;
+    }
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(this::onUpdate,
@@ -58,9 +61,13 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   public abstract void onUpdate(ListItem item);
 
   public void unsubscribe() {
-    if (subscription != null && !subscription.isDisposed()) {
+    if (isSubscribed()) {
       subscription.dispose();
     }
+  }
+
+  public boolean isSubscribed() {
+    return subscription != null && !subscription.isDisposed();
   }
 
   @CallSuper

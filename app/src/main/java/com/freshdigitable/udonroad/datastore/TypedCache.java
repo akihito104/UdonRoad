@@ -32,4 +32,7 @@ public interface TypedCache<T> extends WritableCache<T>, ObservableWriteOperatio
 
   @NonNull
   Observable<? extends T> observeById(long id);
+
+  @NonNull
+  Observable<? extends T> observeById(T element);
 }

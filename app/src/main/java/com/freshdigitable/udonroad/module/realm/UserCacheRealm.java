@@ -96,6 +96,12 @@ public class UserCacheRealm implements TypedCache<User> {
     return pool.observeById(userId, UserRealm.class).cast(User.class);
   }
 
+  @NonNull
+  @Override
+  public Observable<? extends User> observeById(User element) {
+    return pool.observeById((UserRealm) element);
+  }
+
   @Override
   public Completable observeUpsert(Collection<User> entities) {
     if (entities == null || entities.isEmpty()) {

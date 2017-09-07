@@ -39,4 +39,7 @@ public interface SortedCache<T> extends NamingBaseCache {
 
   @NonNull
   Observable<? extends T> observeById(long id);
+
+  @NonNull
+  Observable<? extends T> observeById(T element);
 }
