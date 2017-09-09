@@ -84,6 +84,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
+    if (!isAuthenticatedUser(authenticatedUser.getId())) {
+      throw new IllegalArgumentException("unregistered userId: " + authenticatedUser.getId());
+    }
     final UserRealm user = realm.where(UserRealm.class)
         .equalTo("id", authenticatedUser.getId())
         .findFirst();
@@ -189,8 +192,21 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void setCurrentUserId(long userId) {
+    if (!isAuthenticatedUser(userId)) {
+      throw new IllegalArgumentException("unregistered userId: " + userId);
+    }
     prefs.edit()
         .putLong(CURRENT_USER_ID, userId)
         .apply();
+  }
+
+  private boolean isAuthenticatedUser(long userId) {
+    final Set<String> userIds = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<>());
+    for (String id : userIds) {
+      if (id.equals(Long.toString(userId))) {
+        return true;
+      }
+    }
+    return false;
   }
 }
