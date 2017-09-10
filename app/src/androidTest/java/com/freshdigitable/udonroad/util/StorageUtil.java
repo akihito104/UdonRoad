@@ -2,6 +2,7 @@ package com.freshdigitable.udonroad.util;
 
 import android.support.test.espresso.core.deps.guava.io.PatternFilenameFilter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,38 +19,46 @@ import static org.junit.Assert.assertTrue;
 
 public class StorageUtil {
   public static void initStorage() {
-    for (String l : listStorage()) {
-      final RealmConfiguration config = new RealmConfiguration.Builder()
-          .name(l)
-          .deleteRealmIfMigrationNeeded()
-          .build();
-      final int globalInstanceCount = Realm.getGlobalInstanceCount(config);
-      if (globalInstanceCount > 0) {
-        final Realm realm = Realm.getInstance(config);
-        realm.executeTransaction(r -> r.deleteAll());
-        realm.close();
-      } else {
-        final boolean b = Realm.deleteRealm(config);
-        assertTrue(b);
+    for (File d : listDir()) {
+      for (String l : listStorage(d)) {
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+            .directory(d)
+            .name(l)
+            .deleteRealmIfMigrationNeeded()
+            .build();
+        final int globalInstanceCount = Realm.getGlobalInstanceCount(config);
+        if (globalInstanceCount > 0) {
+          final Realm realm = Realm.getInstance(config);
+          realm.executeTransaction(r -> r.deleteAll());
+          realm.close();
+        } else {
+          final boolean b = Realm.deleteRealm(config);
+          assertTrue(b);
+        }
       }
     }
   }
 
-  private static String[] listStorage() {
-    final RealmConfiguration conf = new RealmConfiguration.Builder().build();
-    final String[] list = conf.getRealmDirectory()
-        .list(new PatternFilenameFilter("^.*\\.management$"));
+  private static String[] listStorage(File dir) {
+    final String[] list = dir.list(new PatternFilenameFilter("^.*\\.management$"));
     for (int i = 0; i < list.length; i++) {
       list[i] = list[i].replace(".management", "");
     }
     return list;
   }
 
+  private static File[] listDir() {
+    final File realmDirectory = new RealmConfiguration.Builder().build().getRealmDirectory();
+    return realmDirectory.listFiles(f -> f.isDirectory() && f.getName().startsWith("user_"));
+  }
+
   public static void checkAllRealmInstanceCleared() {  // XXX
     final ArrayList<InstanceCount> realms = new ArrayList<>();
-    for (String l : listStorage()) {
-      final InstanceCount ic = checkRealmInstanceCount(l);
-      realms.add(ic);
+    for (File d : listDir()) {
+      for (String l : listStorage(d)) {
+        final InstanceCount ic = checkRealmInstanceCount(d, l);
+        realms.add(ic);
+      }
     }
     final String countResult = parseCountResult(realms);
     for (InstanceCount r : realms) {
@@ -66,9 +75,13 @@ public class StorageUtil {
     return stringBuilder.toString();
   }
 
-  private static InstanceCount checkRealmInstanceCount(String name) {  // XXX
-    final RealmConfiguration conf = new RealmConfiguration.Builder().name(name).build();
-    return new InstanceCount(name, Realm.getLocalInstanceCount(conf), Realm.getGlobalInstanceCount(conf));
+  private static InstanceCount checkRealmInstanceCount(File dir, String name) {  // XXX
+    final RealmConfiguration conf = new RealmConfiguration.Builder()
+        .directory(dir)
+        .name(name)
+        .build();
+    return new InstanceCount(dir.getName() + ")" + name,
+        Realm.getLocalInstanceCount(conf), Realm.getGlobalInstanceCount(conf));
   }
 
   private static class InstanceCount {

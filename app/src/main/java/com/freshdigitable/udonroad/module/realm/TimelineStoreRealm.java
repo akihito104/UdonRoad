@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
@@ -50,7 +51,7 @@ public class TimelineStoreRealm implements SortedCache<Status> {
   private final OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>> addChangeListener
       = new OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>>() {
     @Override
-    public void onChange(RealmResults<StatusIDs> elem, OrderedCollectionChangeSet changeSet) {
+    public void onChange(@NonNull RealmResults<StatusIDs> elem, @NonNull OrderedCollectionChangeSet changeSet) {
       setItemCount(elem.size());
       if (updateSubject.hasSubscribers()) {
         for (OrderedCollectionChangeSet.Range range : changeSet.getInsertionRanges()) {
@@ -69,10 +70,10 @@ public class TimelineStoreRealm implements SortedCache<Status> {
   private final NamingBaseCacheRealm sortedCache;
 
   public TimelineStoreRealm(UpdateSubjectFactory factory,
-                            TypedCache<Status> statusCacheRealm) {
+                            TypedCache<Status> statusCacheRealm, AppSettingStore appSetting) {
     this.factory = factory;
     this.pool = statusCacheRealm;
-    sortedCache = new NamingBaseCacheRealm();
+    sortedCache = new NamingBaseCacheRealm(appSetting);
   }
 
   @Override

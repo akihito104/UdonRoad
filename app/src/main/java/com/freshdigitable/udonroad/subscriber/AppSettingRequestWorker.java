@@ -56,6 +56,9 @@ public class AppSettingRequestWorker implements RequestWorker {
     appSettings.open();
     final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
     twitterApi.setOAuthAccessToken(accessToken);
+    if (!appSettings.getCurrentUserDir().exists()) {
+      appSettings.getCurrentUserDir().mkdir();
+    }
     final boolean twitterAPIConfigFetchable = appSettings.isTwitterAPIConfigFetchable();
     appSettings.close();
     if (twitterAPIConfigFetchable) {

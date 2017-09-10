@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,13 +44,15 @@ public class AppSettingStoreRealm implements AppSettingStore {
   private Realm realm;
   private final RealmConfiguration config;
   private final SharedPreferences prefs;
+  private final File filesDir;
 
-  public AppSettingStoreRealm(SharedPreferences prefs) {
+  public AppSettingStoreRealm(SharedPreferences prefs, File filesDir) {
     config = new RealmConfiguration.Builder()
         .name(StoreType.APP_SETTINGS.storeName)
         .deleteRealmIfMigrationNeeded()
         .build();
     this.prefs = prefs;
+    this.filesDir = filesDir;
   }
 
   @Override
@@ -156,6 +159,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
   private static final String CURRENT_USER_ID = "currentUserId";
   private static final String ACCESS_TOKEN_PREFIX = "accessToken_";
   private static final String TOKEN_SECRET_PREFIX = "tokenSecret_";
+  static final String USER_DIR_PREFIX = "user_";
 
   @Override
   public void storeAccessToken(AccessToken token) {
@@ -163,6 +167,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
     final Set<String> authenticatedUsers
         = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<>());
     authenticatedUsers.add(Long.toString(userId));
+
+    final File dir = new File(filesDir, USER_DIR_PREFIX + userId);
+    dir.mkdir();
 
     prefs.edit()
         .putStringSet(AUTHENTICATED_USERS, authenticatedUsers)
@@ -188,6 +195,11 @@ public class AppSettingStoreRealm implements AppSettingStore {
   @Override
   public long getCurrentUserId() {
     return prefs.getLong(CURRENT_USER_ID, -1);
+  }
+
+  @Override
+  public File getCurrentUserDir() {
+    return new File(filesDir, USER_DIR_PREFIX + getCurrentUserId());
   }
 
   @Override

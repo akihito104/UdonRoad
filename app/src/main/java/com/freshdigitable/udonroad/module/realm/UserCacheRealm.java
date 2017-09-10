@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
@@ -39,8 +40,8 @@ import twitter4j.User;
 public class UserCacheRealm implements TypedCache<User> {
   private final PoolRealm pool;
 
-  public UserCacheRealm() {
-    this(new PoolRealm());
+  public UserCacheRealm(AppSettingStore appSettingStore) {
+    this(new PoolRealm(appSettingStore));
   }
 
   UserCacheRealm(PoolRealm pool) {

@@ -28,7 +28,7 @@ import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
-import com.freshdigitable.udonroad.module.realm.ListsSortedCache;
+import com.freshdigitable.udonroad.module.realm.ListsSortedCacheRealm;
 import com.freshdigitable.udonroad.module.realm.RealmStoreManager;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.module.realm.TimelineStoreRealm;
@@ -70,8 +70,33 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore) {
-    return new StatusCacheRealm(configStore);
+  public SharedPreferences provideSharedPreferences() {
+    return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
+  }
+
+  @Singleton
+  @Provides
+  AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences) {
+    return new AppSettingStoreRealm(sharedPreferences, context.getFilesDir());
+  }
+
+  @Singleton
+  @Provides
+  ConfigStore provideConfigStore(AppSettingStore appSetting) {
+    return new ConfigStoreRealm(appSetting);
+  }
+
+  @Provides
+  SortedCache<UserList> provideSortedCacheUserList(UpdateSubjectFactory factory,
+                                                   TypedCache<User> userCache,
+                                                   AppSettingStore appSetting) {
+    return new ListsSortedCacheRealm(factory, userCache, appSetting);
+  }
+
+  @Singleton
+  @Provides
+  TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore, AppSettingStore appSetting) {
+    return new StatusCacheRealm(configStore, appSetting);
   }
 
   @Singleton
@@ -82,50 +107,45 @@ public class DataStoreModule {
 
   @Singleton
   @Provides
-  TypedCache<User> provideTypedCacheUser() {
-    return new UserCacheRealm();
+  TypedCache<User> provideTypedCacheUser(AppSettingStore appSetting) {
+    return new UserCacheRealm(appSetting);
+  }
+
+  @Provides
+  SortedCache<Status> provideSortedCacheStatus(
+      UpdateSubjectFactory factory, TypedCache<Status> statusCacheRealm, AppSettingStore appSetting) {
+    return new TimelineStoreRealm(factory, statusCacheRealm, appSetting);
+  }
+
+  @Provides
+  WritableSortedCache<Status> provideWritableSortedCacheStatus(TypedCache<Status> statusCache,
+                                                               ConfigStore configStore,
+                                                               AppSettingStore appSetting) {
+    return new WritableTimelineRealm(statusCache, configStore, appSetting);
+  }
+
+  @Provides
+  SortedCache<User> provideSortedCacheUser(
+      UpdateSubjectFactory factory, TypedCache<User> userCacheRealm, AppSettingStore appSetting) {
+    return new UserSortedCacheRealm(factory, userCacheRealm, appSetting);
+  }
+
+  @Provides
+  WritableSortedCache<User> provideWritableSortedCacheUser(
+      TypedCache<User> userCache, AppSettingStore appSetting) {
+    return new WritableUserSortedCacheRealm(userCache, appSetting);
+  }
+
+  @Provides
+  WritableSortedCache<UserList> provideWritableSortedCacheUserList(
+      TypedCache<User> userCache, AppSettingStore appSetting) {
+    return new WritableListsSortedCache(userCache, appSetting);
   }
 
   @Provides
   @Singleton
   UpdateSubjectFactory provideUpdateSubjectFactory() {
     return new UpdateSubjectFactory();
-  }
-
-  @Provides
-  SortedCache<Status> provideSortedCacheStatus(
-      UpdateSubjectFactory factory, TypedCache<Status> statusCacheRealm) {
-    return new TimelineStoreRealm(factory, statusCacheRealm);
-  }
-
-  @Provides
-  SortedCache<User> provideSortedCacheUser(
-      UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
-    return new UserSortedCacheRealm(factory, userCacheRealm);
-  }
-
-  @Singleton
-  @Provides
-  ConfigStore provideConfigStore() {
-    return new ConfigStoreRealm();
-  }
-
-  @Singleton
-  @Provides
-  public SharedPreferences provideSharedPreferences() {
-    return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
-  }
-
-  @Singleton
-  @Provides
-  AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences) {
-    return new AppSettingStoreRealm(sharedPreferences);
-  }
-
-  @Provides
-  WritableSortedCache<Status> provideWritableSortedCacheStatus(TypedCache<Status> statusCache,
-                                                               ConfigStore configStore) {
-    return new WritableTimelineRealm(statusCache, configStore);
   }
 
   @Provides
@@ -138,11 +158,6 @@ public class DataStoreModule {
   }
 
   @Provides
-  WritableSortedCache<User> provideWritableSortedCacheUser(TypedCache<User> userCache) {
-    return new WritableUserSortedCacheRealm(userCache);
-  }
-
-  @Provides
   ListRequestWorker<User> provideListRequestWorkerUser(TwitterApi twitterApi,
                                                        WritableSortedCache<User> sortedCache,
                                                        PublishProcessor<UserFeedbackEvent> userFeedback) {
@@ -150,21 +165,10 @@ public class DataStoreModule {
   }
 
   @Provides
-  WritableSortedCache<UserList> provideWritableSortedCacheUserList(TypedCache<User> userCache) {
-    return new WritableListsSortedCache(userCache);
-  }
-
-  @Provides
   ListRequestWorker<UserList> provideListRequestWorkerUserList(
-      TwitterApi twitteApi,
+      TwitterApi twitterApi,
       WritableSortedCache<UserList> cache,
       PublishProcessor<UserFeedbackEvent> userFeedback) {
-    return new ListsListRequestWorker(twitteApi, cache, userFeedback);
-  }
-
-  @Provides
-  SortedCache<UserList> provideSortedCacheUserList(UpdateSubjectFactory factory,
-                                                   TypedCache<User> userCache) {
-    return new ListsSortedCache(factory, userCache);
+    return new ListsListRequestWorker(twitterApi, cache, userFeedback);
   }
 }

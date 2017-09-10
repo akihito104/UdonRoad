@@ -22,6 +22,7 @@ import android.util.Log;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.StoreManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,34 +48,39 @@ public class RealmStoreManager implements StoreManager {
   @Override
   public void init(Context context) {
     Realm.init(context);
-    dropCaches();
+    for (File d : listDir()) {
+      dropCaches(d);
+    }
   }
 
   @Override
   public void cleanUp() {
-    maybeDropPool();
+    for (File dir : listDir()) {
+      maybeDropPool(dir);
+    }
   }
 
-  static void maybeDropPool() {
-    for (String name : listStorage()) {
+  static void maybeDropPool(File dir) {
+    for (String name : listStorage(dir)) {
       for (StoreType t : timelineStore) {
         if (name.startsWith(t.storeName)) {
           return;
         }
       }
     }
-    Log.d("RealmStoreManager", "maybeDropPool: cache");
-    dropCache(StoreType.POOL.storeName);
+    Log.d("RealmStoreManager", "maybeDropPool: cache> " + dir.getName());
+    dropCache(dir, StoreType.POOL.storeName);
   }
 
-  private static void dropCaches() {
-    for (String name : listDeletableCache()) {
-      dropCache(name);
+  private static void dropCaches(File dir) {
+    for (String name : listDeletableCache(dir)) {
+      dropCache(dir, name);
     }
   }
 
-  private static void dropCache(String name) {
+  private static void dropCache(File dir, String name) {
     final RealmConfiguration config = new RealmConfiguration.Builder()
+        .directory(dir)
         .name(name)
         .deleteRealmIfMigrationNeeded()
         .build();
@@ -88,9 +94,9 @@ public class RealmStoreManager implements StoreManager {
     }
   }
 
-  private static String[] listDeletableCache() {
+  private static String[] listDeletableCache(File dir) {
     List<String> res = new ArrayList<>();
-    for (String s : listStorage()) {
+    for (String s : listStorage(dir)) {
       for (StoreType t : deletableCaches) {
         if (s.startsWith(t.storeName)) {
           res.add(s);
@@ -100,13 +106,18 @@ public class RealmStoreManager implements StoreManager {
     return res.toArray(new String[res.size()]);
   }
 
-  private static String[] listStorage() {
+  private static String[] listStorage(File dir) {
     // default file location
-    final String[] list = new RealmConfiguration.Builder().build().getRealmDirectory()
-        .list((file, s) -> s.matches("^.*\\.management$"));
+    final String[] list = dir.list((file, s) -> s.matches("^.*\\.management$"));
     for (int i = 0; i < list.length; i++) {
       list[i] = list[i].replace(".management", "");
     }
     return list;
+  }
+
+  private static File[] listDir() {
+    final File realmDirectory = new RealmConfiguration.Builder().build().getRealmDirectory();
+    return realmDirectory.listFiles(file ->
+        file.isDirectory() && file.getName().startsWith(AppSettingStoreRealm.USER_DIR_PREFIX));
   }
 }

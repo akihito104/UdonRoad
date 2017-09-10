@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatus;
@@ -60,9 +61,9 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   private final ConfigStore configStore;
   private UserCacheRealm userTypedCache;
 
-  public StatusCacheRealm(ConfigStore configStore) {
+  public StatusCacheRealm(ConfigStore configStore, AppSettingStore appSetting) {
     this.configStore = configStore;
-    this.pool = new PoolRealm();
+    this.pool = new PoolRealm(appSetting);
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.util.Log;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
@@ -45,10 +46,11 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
   private final ConfigStore configStore;
   private final NamingBaseCacheRealm sortedCache;
 
-  public WritableTimelineRealm(TypedCache<Status> statusCacheRealm, ConfigStore configStore) {
+  public WritableTimelineRealm(
+      TypedCache<Status> statusCacheRealm, ConfigStore configStore, AppSettingStore appSetting) {
     this.pool = statusCacheRealm;
     this.configStore = configStore;
-    sortedCache = new NamingBaseCacheRealm();
+    sortedCache = new NamingBaseCacheRealm(appSetting);
   }
 
   @Override
