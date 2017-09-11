@@ -160,6 +160,8 @@ public abstract class TimelineInstTestBase {
 
   protected void verifyAfterLaunch() throws Exception {
     verify(twitter, times(1)).getHomeTimeline();
+    verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
+    verify(twitterStream, times(1)).setOAuthAccessToken(any(AccessToken.class));
     final UserStreamListener userStreamListener = getApp().getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));
@@ -170,6 +172,7 @@ public abstract class TimelineInstTestBase {
   public void tearDown() throws Exception {
     unregisterStreamIdlingResource();
     reset(twitter);
+    reset(twitterStream);
     final AppCompatActivity activity = getRule().getActivity();
     if (activity != null) {
       activity.finish();

@@ -110,7 +110,6 @@ public class UserStreamUtil {
       sortedStatusCache.open(storeName);
       appSettings.open();
       userId = appSettings.getCurrentUserId();
-      streamApi.setOAuthAccessToken(appSettings.getCurrentUserAccessToken());
       streamApi.connectUserStream(statusListener);
       isConnectedUserStream = true;
     }

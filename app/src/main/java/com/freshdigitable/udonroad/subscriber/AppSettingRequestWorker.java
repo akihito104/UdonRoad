@@ -28,7 +28,6 @@ import javax.inject.Inject;
 
 import io.reactivex.functions.Consumer;
 import twitter4j.User;
-import twitter4j.auth.AccessToken;
 
 /**
  * Created by akihit on 2017/07/17.
@@ -54,8 +53,6 @@ public class AppSettingRequestWorker implements RequestWorker {
       return false;
     }
     appSettings.open();
-    final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
-    twitterApi.setOAuthAccessToken(accessToken);
     if (!appSettings.getCurrentUserDir().exists()) {
       appSettings.getCurrentUserDir().mkdir();
     }

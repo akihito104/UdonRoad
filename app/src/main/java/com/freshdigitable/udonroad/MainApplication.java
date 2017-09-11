@@ -24,12 +24,14 @@ import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.View;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.leakcanary.LeakCanary;
@@ -38,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import twitter4j.auth.AccessToken;
 
 /**
  * MainApplication is custom Application class.
@@ -49,7 +53,12 @@ public class MainApplication extends Application {
   @Inject
   TwitterApi twitterApi;
   @Inject
-  AppSettingRequestWorker appSettings;
+  TwitterStreamApi twitterStreamApi;
+
+  @Inject
+  AppSettingRequestWorker appSettingWorker;
+  @Inject
+  AppSettingStore appSettings;
   @Inject
   UserStreamUtil userStreamUtil;
   @Inject
@@ -86,7 +95,27 @@ public class MainApplication extends Application {
   }
 
   private static boolean init(MainApplication application) {
-    return application.appSettings.setup();
+    application.appSettings.open();
+    final long currentUserId = application.appSettings.getCurrentUserId();
+    application.appSettings.close();
+    if (currentUserId > 0) {
+      login(application, currentUserId);
+      return application.appSettingWorker.setup();
+    } else {
+      return false;
+    }
+  }
+
+  private static void login(MainApplication app, long userId) {
+    app.appSettings.setCurrentUserId(userId);
+    final AccessToken accessToken = app.appSettings.getCurrentUserAccessToken();
+    app.twitterApi.setOAuthAccessToken(accessToken);
+    app.twitterStreamApi.setOAuthAccessToken(accessToken);
+  }
+
+  private static void logout(MainApplication app) {
+    app.twitterApi.setOAuthAccessToken(null);
+    app.twitterStreamApi.setOAuthAccessToken(null);
   }
 
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
@@ -155,6 +184,7 @@ public class MainApplication extends Application {
         getApplication(activity).userStreamUtil.disconnect();
       }
       if (activities.size() == 0) {
+        MainApplication.logout(getApplication(activity));
         getApplication(activity).userFeedback.unsubscribe();
         getApplication(activity).updateSubjectFactory.clear();
       }
