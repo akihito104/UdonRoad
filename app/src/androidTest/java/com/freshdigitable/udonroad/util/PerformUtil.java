@@ -129,6 +129,10 @@ public class PerformUtil {
     onView(withId(R.id.nav_drawer_layout)).perform(DrawerActions.open());
   }
 
+  public static void closeDrawerNavigation() {
+    onView(withId(R.id.nav_drawer_layout)).perform(DrawerActions.close());
+  }
+
   private static ViewAction clickForStatusView() {
     return actionWithAssertions(new GeneralClickAction(Tap.SINGLE, new CoordinatesProvider() {
       @Override

@@ -29,6 +29,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -136,11 +137,9 @@ public class MainActivity extends AppCompatActivity
       } else if (itemId == R.id.drawer_menu_lists) {
         timelineContainerSwitcher.showOwnedLists(appSetting.getCurrentUserId());
         binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else {
-        if (itemId == R.id.drawer_menu_license) {
-          startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
-          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-        }
+      } else if (itemId == R.id.drawer_menu_license) {
+        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       }
       return false;
     });
@@ -159,11 +158,26 @@ public class MainActivity extends AppCompatActivity
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
         tlFragment.startScroll();
+        if (!isNavDrawerMenuDefault()) {
+          setNavDrawerMenuDefault();
+        }
       }
     };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
+  }
+
+  private boolean isNavDrawerMenuDefault() {
+    return binding.navDrawer.getMenu().findItem(R.id.drawer_menu_home).isVisible();
+  }
+
+  private void setNavDrawerMenuDefault() {
+    final Menu menu = binding.navDrawer.getMenu();
+    menu.findItem(R.id.drawer_menu_home).setVisible(true);
+    menu.findItem(R.id.drawer_menu_lists).setVisible(true);
+    menu.findItem(R.id.drawer_menu_license).setVisible(true);
+    menu.findItem(R.id.drawer_menu_add_account).setVisible(false);
   }
 
   private void setupNavigationDrawerHeader(User user) {
@@ -173,6 +187,13 @@ public class MainActivity extends AppCompatActivity
         .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
         .into(navHeaderBinding.navHeaderIcon);
     navHeaderBinding.navHeaderIcon.setOnClickListener(v -> UserInfoActivity.start(this, user, v));
+    navHeaderBinding.navHeaderAccount.setOnClickListener(v -> {
+      final Menu menu = binding.navDrawer.getMenu();
+      menu.findItem(R.id.drawer_menu_home).setVisible(false);
+      menu.findItem(R.id.drawer_menu_lists).setVisible(false);
+      menu.findItem(R.id.drawer_menu_license).setVisible(false);
+      menu.findItem(R.id.drawer_menu_add_account).setVisible(true);
+    });
   }
 
   @Override
@@ -226,6 +247,10 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onBackPressed() {
     if (binding.navDrawerLayout.isDrawerOpen(binding.navDrawer)) {
+      if (!isNavDrawerMenuDefault()) {
+        setNavDrawerMenuDefault();
+        return;
+      }
       binding.navDrawerLayout.closeDrawer(binding.navDrawer);
       return;
     }

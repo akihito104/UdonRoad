@@ -49,10 +49,13 @@ import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTi
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,6 +95,7 @@ public class OAuthActivityInstTest {
 
     @Test
     public void resumeWithValidToken() throws Exception {
+      verify(twitter, times(0)).setOAuthAccessToken(any(AccessToken.class));
       intending(hasData(Uri.parse(authorizationUrl)))
           .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
       onView(withId(R.id.oauth_start)).perform(click());
@@ -119,6 +123,7 @@ public class OAuthActivityInstTest {
           appSetting.close();
         }
       });
+       verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
     }
 
     @Test

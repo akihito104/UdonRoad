@@ -105,6 +105,7 @@
     <string name="media_upload_delete">delete</string>
     <string name="drawer_menu_home">home</string>
     <string name="drawer_menu_license">OSS license</string>
+    <string name="drawer_menu_add_account">add registered account</string>
     <string name="lists">lists</string>
     <string name="title_owned_list">lists</string>
     <string name="oauth_hint_input_pin">input PIN code</string>
