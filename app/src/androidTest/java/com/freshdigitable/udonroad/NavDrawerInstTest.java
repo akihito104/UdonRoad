@@ -16,14 +16,18 @@
 
 package com.freshdigitable.udonroad;
 
+import android.app.Activity;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
+import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.test.runner.lifecycle.Stage;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -34,6 +38,7 @@ import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,6 +49,8 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.PerformUtil.closeDrawerNavigation;
 import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static org.hamcrest.CoreMatchers.not;
@@ -53,7 +60,8 @@ import static org.hamcrest.CoreMatchers.not;
  */
 @RunWith(AndroidJUnit4.class)
 public class NavDrawerInstTest extends TimelineInstTestBase {
-  private final ActivityTestRule<MainActivity> rule
+  @Rule
+  public final ActivityTestRule<MainActivity> rule
       = new ActivityTestRule<>(MainActivity.class, false, false);
 
   @Test
@@ -61,78 +69,102 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
     onView(withId(R.id.nav_header_account)).check(matches(not(isDisplayed())));
     openDrawerNavigation();
 
-    final IdlingResource ir = getOpenDrawerIdlingResource();
-    try {
-      Espresso.registerIdlingResources(ir);
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () -> {
       onView(withId(R.id.nav_header_account)).check(matches(isDisplayed()));
       onView(withId(R.id.nav_drawer)).check(matches(isDefaultNavMenu()));
-    } finally {
-      Espresso.unregisterIdlingResources(ir);
-    }
+    });
   }
 
   @Test
   public void clickAccountAndShownAddAccount() {
     openDrawerNavigation();
 
-    final IdlingResource ir = getOpenDrawerIdlingResource();
-    try {
-      Espresso.registerIdlingResources(ir);
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () -> {
       onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())).perform(click());
       onView(withId(R.id.nav_drawer)).check(matches(isSelectAccountMenu()));
-    } finally {
-      Espresso.unregisterIdlingResources(ir);
-    }
+    });
+  }
+
+  @Test
+  public void clickAddAccount_then_OAuthActivityIsShown() {
+    openDrawerNavigation();
+
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () -> {
+      onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())).perform(click());
+      onView(withId(R.id.nav_drawer)).check(matches(isSelectAccountMenu()));
+    });
+
+    onView(withId(R.id.nav_drawer)).perform(NavigationViewActions.navigateTo(R.id.drawer_menu_add_account));
+    runWithIdlingResource(
+        getActivityStageIdlingResource("launch OAuth", OAuthActivity.class, Stage.RESUMED), () ->
+            onView(withId(R.id.oauth_pin)).check(matches(isDisplayed())));
+
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+      final Activity activity = IdlingResourceUtil.findActivityByStage(OAuthActivity.class, Stage.RESUMED);
+      if (activity != null) {
+        activity.finish();
+      }
+    });
+  }
+
+  @Test
+  public void pressBackOnOAuth_then_MainActivityIsShown() {
+    openDrawerNavigation();
+
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () -> {
+      onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())).perform(click());
+      onView(withId(R.id.nav_drawer)).check(matches(isSelectAccountMenu()));
+    });
+
+    onView(withId(R.id.nav_drawer)).perform(NavigationViewActions.navigateTo(R.id.drawer_menu_add_account));
+    runWithIdlingResource(
+        getActivityStageIdlingResource("launch OAuth", OAuthActivity.class, Stage.RESUMED), () ->
+            onView(withId(R.id.oauth_pin)).check(matches(isDisplayed())));
+
+    Espresso.pressBack();
+    runWithIdlingResource(
+        getActivityStageIdlingResource("launch Main", MainActivity.class, Stage.RESUMED), () ->
+            onView(withId(R.id.main_toolbar)).check(matches(isDisplayed())));
+
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+      final Activity mainActivity = IdlingResourceUtil.findActivityByStage(MainActivity.class, Stage.RESUMED);
+      if (mainActivity != null) {
+        mainActivity.finish();
+      }
+    });
   }
 
   @Test
   public void closeAddAccountWithBackButton() {
     openDrawerNavigation();
 
-    final IdlingResource ir = getOpenDrawerIdlingResource();
-    try {
-      Espresso.registerIdlingResources(ir);
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () -> {
       onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())).perform(click());
       onView(withId(R.id.nav_drawer)).check(matches(isSelectAccountMenu()));
 
       Espresso.pressBack();
       onView(withId(R.id.nav_drawer)).check(matches(isDefaultNavMenu()));
-    } finally {
-      Espresso.unregisterIdlingResources(ir);
-    }
+    });
   }
 
   @Test
   public void clickAccountAndReopen_then_shownDefaultMenu() {
     openDrawerNavigation();
 
-    final IdlingResource ir = getOpenDrawerIdlingResource();
-    try {
-      Espresso.registerIdlingResources(ir);
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () -> {
       onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())).perform(click());
       onView(withId(R.id.nav_drawer)).check(matches(isSelectAccountMenu()));
-    } finally {
-      Espresso.unregisterIdlingResources(ir);
-    }
+    });
 
     closeDrawerNavigation();
 
-    final IdlingResource closeIR = getCloseDrawerIdlingResource();
-    try {
-      Espresso.registerIdlingResources(closeIR);
-      onView(withId(R.id.nav_header_account)).check(matches(not(isDisplayed())));
-    } finally {
-      Espresso.unregisterIdlingResources(closeIR);
-    }
+    runWithIdlingResource(getCloseDrawerIdlingResource(), () ->
+        onView(withId(R.id.nav_header_account)).check(matches(not(isDisplayed()))));
 
     openDrawerNavigation();
 
-    try {
-      Espresso.registerIdlingResources(ir);
-      onView(withId(R.id.nav_drawer)).check(matches(isDefaultNavMenu()));
-    } finally {
-      Espresso.unregisterIdlingResources(ir);
-    }
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () ->
+        onView(withId(R.id.nav_drawer)).check(matches(isDefaultNavMenu())));
   }
 
   @NonNull
@@ -156,12 +188,8 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
   private static Matcher<View> isDefaultNavMenu() {
     return new BoundedMatcher<View, NavigationView>(NavigationView.class) {
       @Override
-      protected boolean matchesSafely(NavigationView item) {
-        final Menu menu = item.getMenu();
-        return checkMenuItemVisibility(menu, R.id.drawer_menu_home, true)
-            && checkMenuItemVisibility(menu, R.id.drawer_menu_lists, true)
-            && checkMenuItemVisibility(menu, R.id.drawer_menu_license, true)
-            && checkMenuItemVisibility(menu, R.id.drawer_menu_add_account, false);
+      protected boolean matchesSafely(NavigationView view) {
+        return checkVisibleMenuGroup(view, R.id.drawer_menu_default);
       }
 
       @Override
@@ -173,11 +201,7 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
     return new BoundedMatcher<View, NavigationView>(NavigationView.class) {
       @Override
       protected boolean matchesSafely(NavigationView item) {
-        final Menu menu = item.getMenu();
-        return checkMenuItemVisibility(menu, R.id.drawer_menu_home, false)
-            && checkMenuItemVisibility(menu, R.id.drawer_menu_lists, false)
-            && checkMenuItemVisibility(menu, R.id.drawer_menu_license, false)
-            && checkMenuItemVisibility(menu, R.id.drawer_menu_add_account, true);
+        return checkVisibleMenuGroup(item, R.id.drawer_menu_accounts);
       }
 
       @Override
@@ -185,13 +209,19 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
     };
   }
 
-  private static boolean checkMenuItemVisibility(Menu menu, @IdRes int menuId, boolean visible) {
-    final MenuItem item = menu.findItem(menuId);
-    if (visible) {
-      return item != null && item.isVisible();
-    } else {
-      return item == null || !item.isVisible();
+  private static boolean checkVisibleMenuGroup(NavigationView view, @IdRes int visibleGroupId) {
+    final Menu menu = view.getMenu();
+    if (menu.size() < 1) {
+      return false;
     }
+    for (int i = 0; i < menu.size(); i++) {
+      final MenuItem item = menu.getItem(i);
+      final boolean visible = item.getGroupId() == visibleGroupId;
+      if (item.isVisible() != visible) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

@@ -130,16 +130,23 @@ public class MainActivity extends AppCompatActivity
     appSettingRequestWorker.verifyCredentials();
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
       int itemId = item.getItemId();
-      if (itemId == R.id.drawer_menu_home) {
-        Log.d(TAG, "home is selected");
-        timelineContainerSwitcher.showMain();
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.drawer_menu_lists) {
-        timelineContainerSwitcher.showOwnedLists(appSetting.getCurrentUserId());
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.drawer_menu_license) {
-        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+      if (item.getGroupId() == R.id.drawer_menu_default) {
+        if (itemId == R.id.drawer_menu_home) {
+          Log.d(TAG, "home is selected");
+          timelineContainerSwitcher.showMain();
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+        } else if (itemId == R.id.drawer_menu_lists) {
+          timelineContainerSwitcher.showOwnedLists(appSetting.getCurrentUserId());
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+        } else if (itemId == R.id.drawer_menu_license) {
+          startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+        }
+      } else if (item.getGroupId() == R.id.drawer_menu_accounts) {
+        if (item.getItemId() == R.id.drawer_menu_add_account) {
+          OAuthActivity.start(this);
+          finish();
+        }
       }
       return false;
     });
@@ -159,7 +166,7 @@ public class MainActivity extends AppCompatActivity
         super.onDrawerClosed(drawerView);
         tlFragment.startScroll();
         if (!isNavDrawerMenuDefault()) {
-          setNavDrawerMenuDefault();
+          setNavDrawerMenuByGroupId(R.id.drawer_menu_default);
         }
       }
     };
@@ -172,12 +179,12 @@ public class MainActivity extends AppCompatActivity
     return binding.navDrawer.getMenu().findItem(R.id.drawer_menu_home).isVisible();
   }
 
-  private void setNavDrawerMenuDefault() {
+  private void setNavDrawerMenuByGroupId(@IdRes int groupId) {
     final Menu menu = binding.navDrawer.getMenu();
-    menu.findItem(R.id.drawer_menu_home).setVisible(true);
-    menu.findItem(R.id.drawer_menu_lists).setVisible(true);
-    menu.findItem(R.id.drawer_menu_license).setVisible(true);
-    menu.findItem(R.id.drawer_menu_add_account).setVisible(false);
+    for (int i = 0; i < menu.size(); i++) {
+      final MenuItem item = menu.getItem(i);
+      item.setVisible(item.getGroupId() == groupId);
+    }
   }
 
   private void setupNavigationDrawerHeader(User user) {
@@ -188,11 +195,7 @@ public class MainActivity extends AppCompatActivity
         .into(navHeaderBinding.navHeaderIcon);
     navHeaderBinding.navHeaderIcon.setOnClickListener(v -> UserInfoActivity.start(this, user, v));
     navHeaderBinding.navHeaderAccount.setOnClickListener(v -> {
-      final Menu menu = binding.navDrawer.getMenu();
-      menu.findItem(R.id.drawer_menu_home).setVisible(false);
-      menu.findItem(R.id.drawer_menu_lists).setVisible(false);
-      menu.findItem(R.id.drawer_menu_license).setVisible(false);
-      menu.findItem(R.id.drawer_menu_add_account).setVisible(true);
+      setNavDrawerMenuByGroupId(R.id.drawer_menu_accounts);
     });
   }
 
@@ -248,7 +251,7 @@ public class MainActivity extends AppCompatActivity
   public void onBackPressed() {
     if (binding.navDrawerLayout.isDrawerOpen(binding.navDrawer)) {
       if (!isNavDrawerMenuDefault()) {
-        setNavDrawerMenuDefault();
+        setNavDrawerMenuByGroupId(R.id.drawer_menu_default);
         return;
       }
       binding.navDrawerLayout.closeDrawer(binding.navDrawer);

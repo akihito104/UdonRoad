@@ -6,10 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.CallSuper;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.Espresso;
-import android.support.test.espresso.IdlingResource;
 import android.support.test.espresso.intent.rule.IntentsTestRule;
-import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -25,8 +22,6 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
-
-import java.util.Collection;
 
 import javax.inject.Inject;
 
@@ -46,6 +41,8 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -103,14 +100,9 @@ public class OAuthActivityInstTest {
       onView(withId(R.id.oauth_pin)).perform(typeText(VALID_PIN));
       onView(withId(R.id.oauth_send_pin)).perform(click());
 
-      final IdlingResource idlingResource = IdlingResourceUtil.getSimpleIdlingResource("launchMain",
-          () -> findResumeActivityByClass(MainActivity.class) != null);
-      try {
-        Espresso.registerIdlingResources(idlingResource);
-        checkMainActivityTitle(R.string.title_home);
-      } finally {
-        Espresso.unregisterIdlingResources(idlingResource);
-      }
+      runWithIdlingResource(
+          getActivityStageIdlingResource("launchMain", MainActivity.class, Stage.RESUMED), () ->
+              checkMainActivityTitle(R.string.title_home));
 
       intended(hasComponent(MainActivity.class.getName()));
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
@@ -210,13 +202,6 @@ public class OAuthActivityInstTest {
   }
 
   private static Activity findResumeActivityByClass(Class<? extends Activity> clz) {
-    final Collection<Activity> resumeActivities
-        = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
-    for (Activity activity : resumeActivities) {
-      if (activity.getClass().isAssignableFrom(clz)) {
-        return activity;
-      }
-    }
-    return null;
+    return IdlingResourceUtil.findActivityByStage(clz, Stage.RESUMED);
   }
 }

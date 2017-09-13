@@ -16,9 +16,15 @@
 
 package com.freshdigitable.udonroad.util;
 
+import android.app.Activity;
+import android.support.annotation.NonNull;
+import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
+import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import android.support.test.runner.lifecycle.Stage;
 import android.util.Log;
 
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -26,6 +32,23 @@ import java.util.concurrent.Callable;
  */
 
 public class IdlingResourceUtil {
+
+  public static IdlingResource getActivityStageIdlingResource(
+      @NonNull String name, @NonNull Class<? extends Activity> clz, @NonNull Stage stage) {
+    return getSimpleIdlingResource(name, () -> findActivityByStage(clz, stage) != null);
+  }
+
+  public static Activity findActivityByStage(@NonNull Class<? extends Activity> clz, @NonNull Stage stage) {
+    final Collection<Activity> resumeActivities
+        = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(stage);
+    for (Activity activity : resumeActivities) {
+      if (activity.getClass().isAssignableFrom(clz)) {
+        return activity;
+      }
+    }
+    return null;
+  }
+
   public static IdlingResource getSimpleIdlingResource(String name, Callable<Boolean> isIdle) {
     return new IdlingResource() {
       @Override
@@ -54,6 +77,15 @@ public class IdlingResourceUtil {
         this.callback = callback;
       }
     };
+  }
+
+  public static void runWithIdlingResource(@NonNull IdlingResource ir, @NonNull Runnable runnable) {
+    try {
+      Espresso.registerIdlingResources(ir);
+      runnable.run();
+    } finally {
+      Espresso.unregisterIdlingResources(ir);
+    }
   }
 
   private IdlingResourceUtil() {}
