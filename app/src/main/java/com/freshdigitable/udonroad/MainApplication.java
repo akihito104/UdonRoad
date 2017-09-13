@@ -106,16 +106,29 @@ public class MainApplication extends Application {
     }
   }
 
+  private boolean loggedIn = false;
+
   private static void login(MainApplication app, long userId) {
     app.appSettings.setCurrentUserId(userId);
     final AccessToken accessToken = app.appSettings.getCurrentUserAccessToken();
+    if (accessToken == null) {
+      app.loggedIn = false;
+      return;
+    }
     app.twitterApi.setOAuthAccessToken(accessToken);
     app.twitterStreamApi.setOAuthAccessToken(accessToken);
+    app.loggedIn = true;
+  }
+
+  void logout() {
+    logout(this);
   }
 
   private static void logout(MainApplication app) {
+    app.userStreamUtil.disconnect();
     app.twitterApi.setOAuthAccessToken(null);
     app.twitterStreamApi.setOAuthAccessToken(null);
+    app.loggedIn = false;
   }
 
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
@@ -129,7 +142,7 @@ public class MainApplication extends Application {
       if (activities.size() == 0 || !isTokenSetup) {
         isTokenSetup = setupAccessToken(activity);
       }
-      if (!isTokenSetup) {
+      if (!getApplication(activity).loggedIn) {
         launchOAuthActivity(activity);
       }
       activities.add(activity.getClass().getSimpleName());
@@ -180,9 +193,6 @@ public class MainApplication extends Application {
     public void onActivityDestroyed(Activity activity) {
       activities.remove(activity.getClass().getSimpleName());
       Log.d(TAG, "onActivityDestroyed: count>" + activities.size());
-      if (activity instanceof MainActivity) {
-        getApplication(activity).userStreamUtil.disconnect();
-      }
       if (activities.size() == 0) {
         MainApplication.logout(getApplication(activity));
         getApplication(activity).userFeedback.unsubscribe();

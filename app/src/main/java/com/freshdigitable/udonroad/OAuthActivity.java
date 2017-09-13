@@ -88,6 +88,7 @@ public class OAuthActivity extends AppCompatActivity
   @Inject
   PublishProcessor<UserFeedbackEvent> userFeedback;
   private IndicatableFFAB ffab;
+  private Toolbar toolbar;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +98,7 @@ public class OAuthActivity extends AppCompatActivity
 
     ffab = findViewById(R.id.ffab);
 
-    final Toolbar toolbar = findViewById(R.id.oauth_toolbar);
+    toolbar = findViewById(R.id.oauth_toolbar);
     setSupportActionBar(toolbar);
 
     final DemoTimelineFragment demoTimelineFragment = new DemoTimelineFragment();
@@ -148,6 +149,12 @@ public class OAuthActivity extends AppCompatActivity
         listener.onItemSelected(item);
       }
     });
+    appSettings.open();
+    final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
+    if (users.size() > 0) {
+      toolbar.setTitle(R.string.title_add_account);
+    }
+    appSettings.close();
   }
 
   @Override
@@ -162,6 +169,17 @@ public class OAuthActivity extends AppCompatActivity
     if (updateSubject != null && !updateSubject.hasCompleted()) {
       updateSubject.onComplete();
     }
+  }
+
+  @Override
+  public void onBackPressed() {
+    appSettings.open();
+    final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
+    if (users.size() > 0) {
+      startActivity(new Intent(this, getRedirect()));
+    }
+    appSettings.close();
+    super.onBackPressed();
   }
 
   private RequestToken requestToken;
@@ -192,6 +210,7 @@ public class OAuthActivity extends AppCompatActivity
     appSettings.open();
     appSettings.storeAccessToken(accessToken);
     appSettings.setCurrentUserId(accessToken.getUserId());
+    ((MainApplication) getApplication()).logout();
     appSettings.close();
     userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_success));
     Intent intent = new Intent(this, getRedirect());

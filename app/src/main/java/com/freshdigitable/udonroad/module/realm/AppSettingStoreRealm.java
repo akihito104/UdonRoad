@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -101,6 +102,12 @@ public class AppSettingStoreRealm implements AppSettingStore {
         user.merge(authenticatedUser, r);
       }
     });
+  }
+
+  @Override
+  public List<? extends User> getAllAuthenticatedUsers() {
+    return realm.where(UserRealm.class)
+        .findAll();
   }
 
   @Override

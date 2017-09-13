@@ -49,6 +49,7 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.PerformUtil.closeDrawerNavigation;
@@ -96,8 +97,10 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
 
     onView(withId(R.id.nav_drawer)).perform(NavigationViewActions.navigateTo(R.id.drawer_menu_add_account));
     runWithIdlingResource(
-        getActivityStageIdlingResource("launch OAuth", OAuthActivity.class, Stage.RESUMED), () ->
-            onView(withId(R.id.oauth_pin)).check(matches(isDisplayed())));
+        getActivityStageIdlingResource("launch OAuth", OAuthActivity.class, Stage.RESUMED), () -> {
+          onView(withId(R.id.oauth_pin)).check(matches(isDisplayed()));
+          onView(withText(R.string.title_add_account)).check(matches(isDisplayed()));
+        });
 
     InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
       final Activity activity = IdlingResourceUtil.findActivityByStage(OAuthActivity.class, Stage.RESUMED);
