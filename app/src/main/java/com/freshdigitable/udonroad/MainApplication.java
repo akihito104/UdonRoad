@@ -137,6 +137,10 @@ public class MainApplication extends Application {
     app.loggedIn = false;
   }
 
+  void connectStream() {
+    userStreamUtil.connect(StoreType.HOME.storeName);
+  }
+
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
     private static final String TAG = ActivityLifecycleCallbacksImpl.class.getSimpleName();
     private final List<String> activities = new ArrayList<>();
@@ -169,7 +173,7 @@ public class MainApplication extends Application {
     @Override
     public void onActivityStarted(Activity activity) {
       if (activity instanceof MainActivity) {
-        getApplication(activity).userStreamUtil.connect(StoreType.HOME.storeName);
+        getApplication(activity).connectStream();
       }
       if (activity instanceof SnackbarCapable) {
         final View rootView = ((SnackbarCapable) activity).getRootView();

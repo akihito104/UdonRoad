@@ -169,6 +169,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 binding.mainToolbar.setTitle(title);
               });
+              ((MainApplication) getApplication()).connectStream();
               binding.navDrawerLayout.closeDrawer(binding.navDrawer);
             }
           }
