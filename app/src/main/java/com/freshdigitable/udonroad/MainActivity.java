@@ -19,13 +19,16 @@ package com.freshdigitable.udonroad;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.IdRes;
+import android.support.v4.widget.TextViewCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -45,7 +48,6 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListe
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -80,11 +82,11 @@ public class MainActivity extends AppCompatActivity
   @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject
-  AppSettingRequestWorker appSettingRequestWorker;
-  @Inject
   AppSettingStore appSetting;
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private NavHeaderBinding navHeaderBinding;
+
+  private Drawable upArrow, downArrow;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -96,6 +98,10 @@ public class MainActivity extends AppCompatActivity
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
     navHeaderBinding = DataBindingUtil.inflate(
         LayoutInflater.from(getApplicationContext()), R.layout.nav_header, null, false);
+    downArrow = AppCompatResources.getDrawable(this, R.drawable.ic_arrow_drop_down);
+    upArrow = AppCompatResources.getDrawable(this, R.drawable.ic_arrow_drop_up);
+    TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(navHeaderBinding.navHeaderAccount,
+        null, null, downArrow, null);
     binding.navDrawer.addHeaderView(navHeaderBinding.getRoot());
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -127,7 +133,6 @@ public class MainActivity extends AppCompatActivity
 
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
-    appSettingRequestWorker.verifyCredentials();
     binding.navDrawer.setNavigationItemSelectedListener(item -> {
       int itemId = item.getItemId();
       if (item.getGroupId() == R.id.drawer_menu_default) {
@@ -207,6 +212,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setNavDrawerMenuByGroupId(@IdRes int groupId) {
+    TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(navHeaderBinding.navHeaderAccount,
+        null, null, groupId == R.id.drawer_menu_default ? downArrow : upArrow, null);
     final Menu menu = binding.navDrawer.getMenu();
     for (int i = 0; i < menu.size(); i++) {
       final MenuItem item = menu.getItem(i);
@@ -222,15 +229,19 @@ public class MainActivity extends AppCompatActivity
         .into(navHeaderBinding.navHeaderIcon);
     navHeaderBinding.navHeaderIcon.setOnClickListener(v -> UserInfoActivity.start(this, user, v));
     navHeaderBinding.navHeaderAccount.setOnClickListener(v -> {
-      setNavDrawerMenuByGroupId(R.id.drawer_menu_accounts);
-      final Menu menu = binding.navDrawer.getMenu();
-      final String userScreenName = "@" + appSetting.getCurrentUserScreenName();
-      for (int i = 0; i < menu.size(); i++) {
-        final MenuItem item = menu.getItem(i);
-        if (item.getGroupId() == R.id.drawer_menu_accounts
-            && userScreenName.equals(item.getTitle().toString())) {
-          item.setVisible(false);
+      if (isNavDrawerMenuDefault()) {
+        setNavDrawerMenuByGroupId(R.id.drawer_menu_accounts);
+        final Menu menu = binding.navDrawer.getMenu();
+        final String userScreenName = "@" + appSetting.getCurrentUserScreenName();
+        for (int i = 0; i < menu.size(); i++) {
+          final MenuItem item = menu.getItem(i);
+          if (item.getGroupId() == R.id.drawer_menu_accounts
+              && userScreenName.equals(item.getTitle().toString())) {
+            item.setVisible(false);
+          }
         }
+      } else {
+        setNavDrawerMenuByGroupId(R.id.drawer_menu_default);
       }
     });
   }

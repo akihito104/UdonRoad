@@ -45,7 +45,6 @@
             android:maxLines="2"
             android:textSize="@dimen/nav_drawer_header_text"
             android:textColor="@color/text_primary_inverse"
-            android:drawableEnd="@drawable/ic_arrow_drop_down"
             tools:text="name\n\@screen_name"
             />
     </LinearLayout>

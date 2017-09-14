@@ -123,6 +123,7 @@ public class MainApplication extends Application {
     app.twitterApi.setOAuthAccessToken(accessToken);
     app.twitterStreamApi.setOAuthAccessToken(accessToken);
     app.loggedIn = true;
+    app.appSettingWorker.verifyCredentials();
   }
 
   void logout() {
