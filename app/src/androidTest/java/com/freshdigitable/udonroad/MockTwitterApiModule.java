@@ -62,6 +62,8 @@ public class MockTwitterApiModule extends TwitterApiModule {
         @Override
         public void connectUserStream(UserStreamListener listener) {
           userStreamListener = listener;
+          twitterStream.addListener(listener);
+          twitterStream.user();
         }
       };
     }

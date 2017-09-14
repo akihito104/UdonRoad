@@ -70,6 +70,8 @@ import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.allOf;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -145,6 +147,8 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
         getActivityStageIdlingResource("launch Main", MainActivity.class, Stage.RESUMED), () ->
             onView(withId(R.id.main_toolbar)).check(matches(isDisplayed())));
 
+    verify(twitterStream, times(1)).user();
+
     InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
       final Activity mainActivity = IdlingResourceUtil.findActivityByStage(MainActivity.class, Stage.RESUMED);
       if (mainActivity != null) {
@@ -197,6 +201,8 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
     onView(withId(R.id.nav_drawer)).perform(navigateWithTitle());
     runWithIdlingResource(getCloseDrawerIdlingResource(), () ->
         AssertionUtil.checkMainActivityTitle(R.string.title_home));
+
+    verify(twitterStream, times(2)).user();
 
     openDrawerNavigation();
     final User userASub = UserUtil.createUserAsub();
