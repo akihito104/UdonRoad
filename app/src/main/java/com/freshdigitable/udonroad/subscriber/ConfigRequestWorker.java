@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
@@ -82,10 +81,7 @@ public class ConfigRequestWorker implements RequestWorker {
           cache.replaceIgnoringUsers(u);
           cache.close();
           emitter.onComplete();
-        }, th -> {
-          Log.e(TAG, "call: ", th);
-          emitter.onError(th);
-        });
+        }, emitter::onError);
   }
 
   public void fetchRelationship(long userId) {

@@ -164,6 +164,14 @@ class TimelineContainerSwitcher {
     return false;
   }
 
+  void clear() {
+    setOnContentChangedListener(null);
+    showMain();
+    getSupportFragmentManager().beginTransaction()
+        .remove(mainFragment)
+        .commitNow();
+  }
+
   interface OnContentChangedListener {
     void onContentChanged(ContentType type, String title);
   }

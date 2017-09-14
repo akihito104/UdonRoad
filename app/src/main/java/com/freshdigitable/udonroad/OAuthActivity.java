@@ -151,7 +151,7 @@ public class OAuthActivity extends AppCompatActivity
     });
     appSettings.open();
     final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
-    if (users.size() > 0) {
+    if (!users.isEmpty()) {
       toolbar.setTitle(R.string.title_add_account);
     }
     appSettings.close();
@@ -175,7 +175,7 @@ public class OAuthActivity extends AppCompatActivity
   public void onBackPressed() {
     appSettings.open();
     final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
-    if (users.size() > 0) {
+    if (!users.isEmpty()) {
       startActivity(new Intent(this, getRedirect()));
     }
     appSettings.close();
@@ -185,6 +185,7 @@ public class OAuthActivity extends AppCompatActivity
   private RequestToken requestToken;
 
   private void startAuthorization() {
+    ((MainApplication) getApplication()).logout();
     twitterApi.fetchOAuthRequestToken()
         .observeOn(AndroidSchedulers.mainThread())
         .doOnError(err -> Log.e(TAG, "authentication error: ", err))

@@ -108,7 +108,12 @@ public class MainApplication extends Application {
 
   private boolean loggedIn = false;
 
+  void login(long userId) {
+    login(this, userId);
+  }
+
   private static void login(MainApplication app, long userId) {
+    Log.d("MainApplication", "login: " + userId);
     app.appSettings.setCurrentUserId(userId);
     final AccessToken accessToken = app.appSettings.getCurrentUserAccessToken();
     if (accessToken == null) {
@@ -125,6 +130,7 @@ public class MainApplication extends Application {
   }
 
   private static void logout(MainApplication app) {
+    Log.d("MainApplication", "logout: ");
     app.userStreamUtil.disconnect();
     app.twitterApi.setOAuthAccessToken(null);
     app.twitterStreamApi.setOAuthAccessToken(null);
@@ -133,14 +139,13 @@ public class MainApplication extends Application {
 
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
     private static final String TAG = ActivityLifecycleCallbacksImpl.class.getSimpleName();
-    private boolean isTokenSetup = false;
     private final List<String> activities = new ArrayList<>();
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
       Log.d(TAG, "onActivityCreated: count>" + activities.size());
-      if (activities.size() == 0 || !isTokenSetup) {
-        isTokenSetup = setupAccessToken(activity);
+      if (activities.size() == 0 || !getApplication(activity).loggedIn) {
+        setupAccessToken(activity);
       }
       if (!getApplication(activity).loggedIn) {
         launchOAuthActivity(activity);

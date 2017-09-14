@@ -210,6 +210,14 @@ public class AppSettingStoreRealm implements AppSettingStore {
   }
 
   @Override
+  public String getCurrentUserScreenName() {
+    final UserRealm user = realm.where(UserRealm.class)
+        .equalTo("id", getCurrentUserId())
+        .findFirst();
+    return user.getScreenName();
+  }
+
+  @Override
   public void setCurrentUserId(long userId) {
     if (!isAuthenticatedUser(userId)) {
       throw new IllegalArgumentException("unregistered userId: " + userId);

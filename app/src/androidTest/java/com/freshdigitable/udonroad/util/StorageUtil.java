@@ -49,7 +49,11 @@ public class StorageUtil {
 
   private static File[] listDir() {
     final File realmDirectory = new RealmConfiguration.Builder().build().getRealmDirectory();
-    return realmDirectory.listFiles(f -> f.isDirectory() && f.getName().startsWith("user_"));
+    final File[] dirs = realmDirectory.listFiles(f -> f.isDirectory() && f.getName().startsWith("user_"));
+    final File[] res = new File[dirs.length + 1];
+    System.arraycopy(dirs, 0, res, 0, dirs.length);
+    res[dirs.length] = realmDirectory;
+    return res;
   }
 
   public static void checkAllRealmInstanceCleared() {  // XXX

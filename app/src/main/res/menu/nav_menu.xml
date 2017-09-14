@@ -23,6 +23,7 @@
             android:id="@+id/drawer_menu_add_account"
             android:title="@string/drawer_menu_add_account"
             android:visible="false"
+            android:orderInCategory="1000"
             />
     </group>
     <group

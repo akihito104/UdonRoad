@@ -23,8 +23,13 @@ import android.support.design.widget.NavigationView;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
+import android.support.test.espresso.PerformException;
+import android.support.test.espresso.UiController;
+import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.espresso.matcher.BoundedMatcher;
+import android.support.test.espresso.matcher.ViewMatchers;
+import android.support.test.espresso.util.HumanReadables;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.test.runner.lifecycle.Stage;
@@ -34,7 +39,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
+import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -43,11 +50,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import twitter4j.TwitterException;
+import twitter4j.User;
+import twitter4j.auth.AccessToken;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.isDisplayingAtLeast;
+import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
@@ -55,6 +68,9 @@ import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingR
 import static com.freshdigitable.udonroad.util.PerformUtil.closeDrawerNavigation;
 import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.allOf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by akihit on 2017/09/11.
@@ -170,6 +186,64 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
         onView(withId(R.id.nav_drawer)).check(matches(isDefaultNavMenu())));
   }
 
+  @Test
+  public void clickAnotherAccount_then_timelineIsReplaced() throws Exception {
+    openDrawerNavigation();
+
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () -> {
+      onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())).perform(click());
+      onView(withId(R.id.nav_drawer)).check(matches(isSelectAccountMenu()));
+    });
+    onView(withId(R.id.nav_drawer)).perform(navigateWithTitle());
+    runWithIdlingResource(getCloseDrawerIdlingResource(), () ->
+        AssertionUtil.checkMainActivityTitle(R.string.title_home));
+
+    openDrawerNavigation();
+    final User userASub = UserUtil.createUserAsub();
+    runWithIdlingResource(getOpenDrawerIdlingResource(),() ->
+      onView(withText(userASub.getName() + "\n@" + userASub.getScreenName())).check(matches(isDisplayed()))
+    );
+
+    onView(withId(R.id.nav_header_account)).perform(click());
+    onView(withText("@" + UserUtil.createUserA().getScreenName()))
+        .check(matches(isDisplayed()));
+    onView(withText("@" + userASub.getScreenName())).check(doesNotExist());
+  }
+
+  @NonNull
+  private static ViewAction navigateWithTitle() {
+    return new ViewAction() {
+      @Override
+      public Matcher<View> getConstraints() {
+        return allOf(isAssignableFrom(NavigationView.class),
+            withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE),
+            isDisplayingAtLeast(90)
+        );
+      }
+
+      @Override
+      public String getDescription() {
+        return null;
+      }
+
+      @Override
+      public void perform(UiController uiController, View view) {
+        NavigationView navigationView = (NavigationView) view;
+        Menu menu = navigationView.getMenu();
+        for (int i = 0; i < menu.size(); i++) {
+          if (menu.getItem(i).getTitle().toString().endsWith(UserUtil.createUserAsub().getScreenName())) {
+            menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
+            return;
+          }
+        }
+        throw new PerformException.Builder()
+            .withActionDescription(this.getDescription())
+            .withViewDescription(HumanReadables.describe(view))
+            .build();
+      }
+    };
+  }
+
   @NonNull
   private IdlingResource getOpenDrawerIdlingResource() {
     return IdlingResourceUtil.getSimpleIdlingResource("open drawer", () -> {
@@ -228,8 +302,23 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
   }
 
   @Override
+  protected void setupConfig(User loginUser) throws Exception {
+    super.setupConfig(loginUser);
+    appSettings.open();
+    final User userAsub = UserUtil.createUserAsub();
+    final AccessToken accessToken = mock(AccessToken.class);
+    when(accessToken.getToken()).thenReturn("valid.token.userAsub");
+    when(accessToken.getTokenSecret()).thenReturn("valid.secret.userAsub");
+    final long userId = userAsub.getId();
+    when(accessToken.getUserId()).thenReturn(userId);
+    appSettings.storeAccessToken(accessToken);
+    appSettings.addAuthenticatedUser(userAsub);
+    appSettings.close();
+  }
+
+  @Override
   protected int setupTimeline() throws TwitterException {
-    return 0;
+    return setupDefaultTimeline();
   }
 
   @Override

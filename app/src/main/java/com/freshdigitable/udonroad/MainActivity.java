@@ -101,8 +101,6 @@ public class MainActivity extends AppCompatActivity
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setupHomeTimeline();
-    timelineContainerSwitcher = new TimelineContainerSwitcher(
-        binding.mainTimelineContainer, tlFragment, binding.ffab);
     setupTweetInputView();
     setupNavigationDrawer();
 
@@ -121,6 +119,8 @@ public class MainActivity extends AppCompatActivity
             .replace(R.id.main_timeline_container, tlFragment)
             .commit(),
         throwable -> Log.e(TAG, "config.setup: ", throwable));
+    timelineContainerSwitcher = new TimelineContainerSwitcher(
+        binding.mainTimelineContainer, tlFragment, binding.ffab);
   }
 
   private Disposable subscription;
@@ -146,6 +146,32 @@ public class MainActivity extends AppCompatActivity
         if (item.getItemId() == R.id.drawer_menu_add_account) {
           OAuthActivity.start(this);
           finish();
+        } else {
+          final List<? extends User> users = appSetting.getAllAuthenticatedUsers();
+          for (User user : users) {
+            if (item.getTitle().toString().endsWith(user.getScreenName())) {
+              ((MainApplication) getApplication()).logout();
+              subscription.dispose();
+              timelineContainerSwitcher.clear();
+              iffabItemSelectedListeners.clear();
+
+              ((MainApplication) getApplication()).login(user.getId());
+              subscription = appSetting.observeCurrentUser()
+                  .subscribe(this::setupNavigationDrawerHeader,
+                      e -> Log.e(TAG, "setupNavigationDrawer: ", e));
+              setupNavigationDrawerMenu();
+              setupHomeTimeline();
+              timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
+                if (type == ContentType.MAIN) {
+                  tlFragment.startScroll();
+                } else {
+                  tlFragment.stopScroll();
+                }
+                binding.mainToolbar.setTitle(title);
+              });
+              binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+            }
+          }
         }
       }
       return false;
@@ -196,6 +222,15 @@ public class MainActivity extends AppCompatActivity
     navHeaderBinding.navHeaderIcon.setOnClickListener(v -> UserInfoActivity.start(this, user, v));
     navHeaderBinding.navHeaderAccount.setOnClickListener(v -> {
       setNavDrawerMenuByGroupId(R.id.drawer_menu_accounts);
+      final Menu menu = binding.navDrawer.getMenu();
+      final String userScreenName = "@" + appSetting.getCurrentUserScreenName();
+      for (int i = 0; i < menu.size(); i++) {
+        final MenuItem item = menu.getItem(i);
+        if (item.getGroupId() == R.id.drawer_menu_accounts
+            && userScreenName.equals(item.getTitle().toString())) {
+          item.setVisible(false);
+        }
+      }
     });
   }
 
@@ -209,11 +244,13 @@ public class MainActivity extends AppCompatActivity
   protected void onStart() {
     super.onStart();
     appSetting.open();
+    setupActionMap();
     subscription = appSetting.observeCurrentUser()
         .subscribe(this::setupNavigationDrawerHeader,
             e -> Log.e(TAG, "setupNavigationDrawer: ", e));
 
-    setupActionMap();
+    setupNavigationDrawerMenu();
+
     timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
       if (type == ContentType.MAIN) {
         tlFragment.startScroll();
@@ -222,6 +259,33 @@ public class MainActivity extends AppCompatActivity
       }
       binding.mainToolbar.setTitle(title);
     });
+  }
+
+  private void setupNavigationDrawerMenu() {
+    final List<? extends User> users = appSetting.getAllAuthenticatedUsers();
+    final Menu menu = binding.navDrawer.getMenu();
+    for (int i = 0; i < users.size(); i++) {
+      final User user = users.get(i);
+      if (user.getId() == appSetting.getCurrentUserId()
+          || isAccountRegistered(menu, user.getScreenName())) {
+        continue;
+      }
+      final int id = i != R.id.drawer_menu_add_account ? i
+          : ((int) ((R.id.drawer_menu_add_account + 1L + i) % Integer.MAX_VALUE));
+      final MenuItem item = menu.add(R.id.drawer_menu_accounts, id, i, "@" + user.getScreenName());
+      item.setVisible(false);
+    }
+  }
+
+  private static boolean isAccountRegistered(Menu menu, String screenName) {
+    for (int i = 0; i < menu.size(); i++) {
+      final MenuItem item = menu.getItem(i);
+      if (item.getGroupId() == R.id.drawer_menu_accounts
+          && item.getTitle().toString().endsWith(screenName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
