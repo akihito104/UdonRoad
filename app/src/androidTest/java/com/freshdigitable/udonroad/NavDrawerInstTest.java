@@ -17,6 +17,9 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.app.Instrumentation;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -27,6 +30,7 @@ import android.support.test.espresso.PerformException;
 import android.support.test.espresso.UiController;
 import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.contrib.NavigationViewActions;
+import android.support.test.espresso.intent.rule.IntentsTestRule;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.espresso.util.HumanReadables;
@@ -41,34 +45,45 @@ import android.view.View;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
+import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
+
+import junit.framework.Assert;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
+import twitter4j.auth.RequestToken;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.intent.Intents.intending;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasData;
 import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayingAtLeast;
 import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.findActivityByStage;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.PerformUtil.closeDrawerNavigation;
 import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.allOf;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -80,8 +95,8 @@ import static org.mockito.Mockito.when;
 @RunWith(AndroidJUnit4.class)
 public class NavDrawerInstTest extends TimelineInstTestBase {
   @Rule
-  public final ActivityTestRule<MainActivity> rule
-      = new ActivityTestRule<>(MainActivity.class, false, false);
+  public final IntentsTestRule<MainActivity> rule
+      = new IntentsTestRule<>(MainActivity.class, false, false);
 
   @Test
   public void openDrawer() {
@@ -214,6 +229,117 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
     onView(withText("@" + UserUtil.createUserA().getScreenName()))
         .check(matches(isDisplayed()));
     onView(withText("@" + userASub.getScreenName())).check(doesNotExist());
+  }
+
+  @Test
+  public void addNewAccount_then_mainActivityIsShown() throws Exception {
+    openDrawerNavigation();
+    runWithIdlingResource(getOpenDrawerIdlingResource(),() -> {
+      onView(withId(R.id.nav_header_account)).perform(click());
+      onView(withId(R.id.nav_drawer)).perform(NavigationViewActions.navigateTo(R.id.drawer_menu_add_account));
+    });
+    runWithIdlingResource(getActivityStageIdlingResource("launch OAuth", OAuthActivity.class, Stage.RESUMED), () ->
+        onView(withId(R.id.oauth_pin)).check(matches(isDisplayed()))
+    );
+
+    final RequestToken requestToken = new RequestToken("req.token", "req.token.secret");
+    String authorizationUrl = requestToken.getAuthorizationURL();
+    when(twitter.getOAuthRequestToken(eq("oob"))).thenReturn(requestToken);
+
+    final AccessToken accessToken = mock(AccessToken.class);
+    when(accessToken.getUserId()).thenReturn(100L);
+    when(accessToken.getToken()).thenReturn("valid.token");
+    when(accessToken.getTokenSecret()).thenReturn("valid.secret");
+    when(twitter.getOAuthAccessToken(ArgumentMatchers.<RequestToken>any(), eq("000000")))
+        .thenReturn(accessToken);
+    final User user = UserUtil.builder(100L, "userAA").name("user AA").build();
+    when(twitter.getId()).thenReturn(100L);
+    when(twitter.showUser(100L)).thenReturn(user);
+
+    intending(hasData(Uri.parse(authorizationUrl)))
+        .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
+    onView(withId(R.id.oauth_start)).perform(click());
+    hideAndRelaunchOAuth();
+
+    onView(withId(R.id.oauth_pin)).perform(typeText("000000"));
+    onView(withId(R.id.oauth_send_pin)).perform(click());
+
+    runWithIdlingResource(
+        getActivityStageIdlingResource("launchMain", MainActivity.class, Stage.RESUMED), () ->
+            checkMainActivityTitle(R.string.title_home));
+
+    openDrawerNavigation();
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () ->
+        onView(withId(R.id.nav_header_account)).check(matches(withText("user AA\n@userAA"))));
+
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+      final Activity mainActivity = IdlingResourceUtil.findActivityByStage(MainActivity.class, Stage.RESUMED);
+      if (mainActivity != null) {
+        mainActivity.finish();
+      }
+    });
+  }
+
+  @Test
+  public void cancelToAddNewAccount_then_mainActivityIsShown() throws Exception {
+    openDrawerNavigation();
+    runWithIdlingResource(getOpenDrawerIdlingResource(),() -> {
+      onView(withId(R.id.nav_header_account)).perform(click());
+      onView(withId(R.id.nav_drawer)).perform(NavigationViewActions.navigateTo(R.id.drawer_menu_add_account));
+    });
+    runWithIdlingResource(getActivityStageIdlingResource("launch OAuth", OAuthActivity.class, Stage.RESUMED), () ->
+        onView(withId(R.id.oauth_pin)).check(matches(isDisplayed()))
+    );
+
+    final RequestToken requestToken = new RequestToken("req.token", "req.token.secret");
+    String authorizationUrl = requestToken.getAuthorizationURL();
+    when(twitter.getOAuthRequestToken(eq("oob"))).thenReturn(requestToken);
+
+    final AccessToken accessToken = mock(AccessToken.class);
+    when(accessToken.getUserId()).thenReturn(100L);
+    when(accessToken.getToken()).thenReturn("valid.token");
+    when(accessToken.getTokenSecret()).thenReturn("valid.secret");
+    when(twitter.getOAuthAccessToken(ArgumentMatchers.<RequestToken>any(), eq("000000")))
+        .thenReturn(accessToken);
+    final User user = UserUtil.builder(100L, "userAA").name("user AA").build();
+    when(twitter.showUser(100L)).thenReturn(user);
+
+    intending(hasData(Uri.parse(authorizationUrl)))
+        .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
+    onView(withId(R.id.oauth_start)).perform(click());
+    hideAndRelaunchOAuth();
+
+    Espresso.pressBack();
+    runWithIdlingResource(
+        getActivityStageIdlingResource("launchMain", MainActivity.class, Stage.RESUMED), () ->
+            checkMainActivityTitle(R.string.title_home));
+
+    openDrawerNavigation();
+    runWithIdlingResource(getOpenDrawerIdlingResource(), () ->
+        onView(withId(R.id.nav_header_account))
+            .check(matches(withText(getLoginUser().getName() + "\n@" + getLoginUser().getScreenName()))));
+
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+      final Activity mainActivity = IdlingResourceUtil.findActivityByStage(MainActivity.class, Stage.RESUMED);
+      if (mainActivity != null) {
+        mainActivity.finish();
+      }
+    });
+  }
+
+  private static void hideAndRelaunchOAuth() {
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+      final Activity activity = findActivityByStage(OAuthActivity.class, Stage.RESUMED);
+      if (activity == null) {
+        Assert.fail();
+      }
+      try {
+        PerformUtil.launchHomeAndBackToApp(activity);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        Assert.fail();
+      }
+    });
   }
 
   @NonNull
