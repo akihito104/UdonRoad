@@ -83,7 +83,7 @@ public class TwitterApi {
   }
 
   public Single<User> verifyCredentials() {
-    return observeThrowableFetch(() -> twitter.showUser(twitter.getId()));
+    return observeThrowableFetch(twitter::verifyCredentials);
   }
 
   public Single<TwitterAPIConfiguration> getTwitterAPIConfiguration() {

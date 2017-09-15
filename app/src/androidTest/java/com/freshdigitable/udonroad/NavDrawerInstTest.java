@@ -255,6 +255,7 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
     final User user = UserUtil.builder(100L, "userAA").name("user AA").build();
     when(twitter.getId()).thenReturn(100L);
     when(twitter.showUser(100L)).thenReturn(user);
+    when(twitter.verifyCredentials()).thenReturn(user);
 
     intending(hasData(Uri.parse(authorizationUrl)))
         .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
