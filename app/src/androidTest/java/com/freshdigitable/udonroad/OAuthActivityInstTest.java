@@ -26,6 +26,7 @@ import org.mockito.ArgumentMatchers;
 import javax.inject.Inject;
 
 import twitter4j.Twitter;
+import twitter4j.TwitterStream;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
@@ -175,6 +176,8 @@ public class OAuthActivityInstTest {
     AppSettingStore appSetting;
     @Inject
     Twitter twitter;
+    @Inject
+    TwitterStream twitterStream;
 
     @Before
     @CallSuper
@@ -194,6 +197,7 @@ public class OAuthActivityInstTest {
     @CallSuper
     public void tearDown() throws Exception {
       reset(twitter);
+      reset(twitterStream);
       tearDownActivity();
       StorageUtil.checkAllRealmInstanceCleared();
     }
