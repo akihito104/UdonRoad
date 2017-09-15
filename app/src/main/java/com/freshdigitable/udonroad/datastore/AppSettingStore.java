@@ -47,8 +47,6 @@ public interface AppSettingStore extends BaseCache {
 
   File getCurrentUserDir();
 
-  String getCurrentUserScreenName();
-
   void setCurrentUserId(long userId);
 
   Observable<User> observeCurrentUser();

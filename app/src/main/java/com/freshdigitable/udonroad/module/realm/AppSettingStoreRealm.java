@@ -175,9 +175,6 @@ public class AppSettingStoreRealm implements AppSettingStore {
         = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<>());
     authenticatedUsers.add(Long.toString(userId));
 
-    final File dir = new File(filesDir, USER_DIR_PREFIX + userId);
-    dir.mkdir();
-
     prefs.edit()
         .putStringSet(AUTHENTICATED_USERS, authenticatedUsers)
         .putString(ACCESS_TOKEN_PREFIX + userId, token.getToken())
@@ -207,14 +204,6 @@ public class AppSettingStoreRealm implements AppSettingStore {
   @Override
   public File getCurrentUserDir() {
     return new File(filesDir, USER_DIR_PREFIX + getCurrentUserId());
-  }
-
-  @Override
-  public String getCurrentUserScreenName() {
-    final UserRealm user = realm.where(UserRealm.class)
-        .equalTo("id", getCurrentUserId())
-        .findFirst();
-    return user.getScreenName();
   }
 
   @Override
