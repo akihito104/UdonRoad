@@ -31,6 +31,11 @@ public class UserUtil {
         .name("User A").build();
   }
 
+  public static User createUserAsub() {
+    return builder(Integer.MAX_VALUE + 2000L, "userAsub")
+        .name("User A (sub)").build();
+  }
+
   public static User createVerifiedUser() {
     return builder(3000,"verifiedUser")
         .name("Verified User")

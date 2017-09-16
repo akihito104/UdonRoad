@@ -75,9 +75,9 @@ class TimelineContainerSwitcher {
     replaceTimelineContainer(ContentType.SEARCH, -1, query, fragment);
   }
 
-  void showOwnedLists(long currentUserId) {
-    final TimelineFragment<?> fragment = TimelineFragment.getInstance(StoreType.OWNED_LIST, currentUserId);
-    replaceTimelineContainer(ContentType.LISTS, currentUserId, null, fragment);
+  void showOwnedLists() {
+    final TimelineFragment<?> fragment = TimelineFragment.getInstance(StoreType.OWNED_LIST, -1);
+    replaceTimelineContainer(ContentType.LISTS, -1, null, fragment);
   }
 
   void showListTimeline(long listId, String query) {
@@ -164,6 +164,14 @@ class TimelineContainerSwitcher {
     return false;
   }
 
+  void clear() {
+    setOnContentChangedListener(null);
+    showMain();
+    getSupportFragmentManager().beginTransaction()
+        .remove(mainFragment)
+        .commitNow();
+  }
+
   interface OnContentChangedListener {
     void onContentChanged(ContentType type, String title);
   }
@@ -241,10 +249,10 @@ class TimelineContainerSwitcher {
         switcher.listener.onContentChanged(this, tag.substring(tagPrefix.length()));
         switcher.setDetailIsEnabled(true);
       }
-    }, LISTS(R.string.title_owned_list, StoreType.OWNED_LIST.prefix()) {
+    }, LISTS(R.string.title_owned_list, StoreType.OWNED_LIST.storeName) {
       @Override
       String createTag(long id, String query) {
-        return StoreType.OWNED_LIST.nameWithSuffix(id, query);
+        return StoreType.OWNED_LIST.storeName;
       }
 
       @Override

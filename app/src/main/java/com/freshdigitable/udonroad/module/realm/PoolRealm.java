@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.CallSuper;
 import android.util.Log;
 
+import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.BaseCache;
 
 import io.reactivex.Completable;
@@ -35,18 +37,23 @@ import io.realm.RealmModel;
 final class PoolRealm implements BaseCache {
   private static final String TAG = PoolRealm.class.getSimpleName();
   private Realm cache;
-  private final RealmConfiguration config;
+  private RealmConfiguration config;
+  private final AppSettingStore appSettingStore;
 
-  PoolRealm() {
-    config = new RealmConfiguration.Builder()
-        .name("cache")
-        .deleteRealmIfMigrationNeeded()
-        .build();
+  PoolRealm(AppSettingStore appSettingStore) {
+    this.appSettingStore = appSettingStore;
   }
 
   @Override
   @CallSuper
   public void open() {
+    appSettingStore.open();
+    config = new RealmConfiguration.Builder()
+        .directory(appSettingStore.getCurrentUserDir())
+        .name(StoreType.POOL.storeName)
+        .deleteRealmIfMigrationNeeded()
+        .build();
+    appSettingStore.close();
     Log.d(TAG, "open: " + config.getRealmFileName());
     cache = Realm.getInstance(config);
   }

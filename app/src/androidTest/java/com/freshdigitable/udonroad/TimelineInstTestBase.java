@@ -104,13 +104,14 @@ public abstract class TimelineInstTestBase {
     final int initResListCount = setupTimeline();
 
     getRule().launchActivity(getIntent());
-    final IdlingResource idlingResource = getTimelineIdlingResource("launch", initResListCount);
-    try {
-      Espresso.registerIdlingResources(idlingResource);
-      verifyAfterLaunch();
-    } finally {
-      Espresso.unregisterIdlingResources(idlingResource);
-    }
+    IdlingResourceUtil.runWithIdlingResource(
+        getTimelineIdlingResource("launch", initResListCount), () -> {
+          try {
+            verifyAfterLaunch();
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   @NonNull
@@ -160,6 +161,8 @@ public abstract class TimelineInstTestBase {
 
   protected void verifyAfterLaunch() throws Exception {
     verify(twitter, times(1)).getHomeTimeline();
+    verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
+    verify(twitterStream, times(1)).setOAuthAccessToken(any(AccessToken.class));
     final UserStreamListener userStreamListener = getApp().getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));
@@ -170,6 +173,7 @@ public abstract class TimelineInstTestBase {
   public void tearDown() throws Exception {
     unregisterStreamIdlingResource();
     reset(twitter);
+    reset(twitterStream);
     final AppCompatActivity activity = getRule().getActivity();
     if (activity != null) {
       activity.finish();

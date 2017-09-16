@@ -167,7 +167,6 @@ public class TweetInputFragment extends Fragment {
   public void onStart() {
     Log.d(TAG, "onStart: ");
     super.onStart();
-    statusCache.open();
     appSettings.open();
 
     final TweetInputView inputText = binding.mainTweetInputView;
@@ -203,7 +202,6 @@ public class TweetInputFragment extends Fragment {
       subscription.dispose();
     }
     appSettings.close();
-    statusCache.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
     tweetSendFab.setOnClickListener(null);
@@ -256,12 +254,14 @@ public class TweetInputFragment extends Fragment {
   private ReplyEntity replyEntity;
 
   private void setupReplyEntity(long inReplyToStatusId) {
+    statusCache.open();
     final Status inReplyTo = statusCache.find(inReplyToStatusId);
     if (inReplyTo != null) {
       replyEntity = ReplyEntity.create(inReplyTo, appSettings.getCurrentUserId());
       binding.mainTweetInputView.addText(replyEntity.createReplyString());
       binding.mainTweetInputView.setInReplyTo();
     }
+    statusCache.close();
   }
 
   private void setupQuote(long quotedStatus) {
@@ -313,6 +313,7 @@ public class TweetInputFragment extends Fragment {
       return statusRequestWorker.observeUpdateStatus(sendingText);
     }
     StringBuilder s = new StringBuilder(sendingText);
+    statusCache.open();
     for (long q : quoteStatusIds) {
       final Status status = statusCache.find(q);
       if (status == null) {
@@ -321,6 +322,7 @@ public class TweetInputFragment extends Fragment {
       s.append(" https://twitter.com/")
           .append(status.getUser().getScreenName()).append("/status/").append(q);
     }
+    statusCache.close();
     final StatusUpdate statusUpdate = new StatusUpdate(s.toString());
     if (replyEntity != null) {
       statusUpdate.setInReplyToStatusId(replyEntity.inReplyToStatusId);

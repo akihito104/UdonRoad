@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
@@ -44,10 +45,11 @@ public class UserSortedCacheRealm implements SortedCache<User> {
   private final UpdateSubjectFactory factory;
   private UpdateSubject updateSubject;
 
-  public UserSortedCacheRealm(UpdateSubjectFactory factory, TypedCache<User> userCacheRealm) {
+  public UserSortedCacheRealm(
+      UpdateSubjectFactory factory, TypedCache<User> userCacheRealm, AppSettingStore appSetting) {
     this.factory = factory;
     this.pool = userCacheRealm;
-    this.sortedCache = new NamingBaseCacheRealm();
+    this.sortedCache = new NamingBaseCacheRealm(appSetting);
   }
 
   @Override
@@ -123,7 +125,7 @@ public class UserSortedCacheRealm implements SortedCache<User> {
   private final OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>> realmChangeListener
       = new OrderedRealmCollectionChangeListener<RealmResults<ListedUserIDs>>() {
     @Override
-    public void onChange(RealmResults<ListedUserIDs> element, OrderedCollectionChangeSet changeSet) {
+    public void onChange(@NonNull RealmResults<ListedUserIDs> element, @NonNull OrderedCollectionChangeSet changeSet) {
       if (updateSubject.hasSubscribers()) {
         final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
         for (OrderedCollectionChangeSet.Range i : insertions) {

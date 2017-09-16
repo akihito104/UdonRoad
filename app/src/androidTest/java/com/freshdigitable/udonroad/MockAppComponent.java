@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
@@ -38,4 +39,6 @@ public interface MockAppComponent extends AppComponent {
   void inject(UserInfoActivityInstTest.Base userInfoActivityInstTest);
 
   void inject(OAuthActivityInstTest.Base oAuthActivityInstTest);
+
+  void inject(AppSettingStoreTest appSettingStoreTest);
 }

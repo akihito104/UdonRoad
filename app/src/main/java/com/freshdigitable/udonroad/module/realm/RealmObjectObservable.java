@@ -31,7 +31,7 @@ import io.realm.RealmObject;
 class RealmObjectObservable<T extends RealmModel> extends Observable<T> {
   static <T extends RealmModel> Observable<T> create(T elem) {
     if (elem == null || !RealmObject.isValid(elem)) {
-      throw new IllegalStateException();
+      throw new IllegalStateException("unobservable element: " + elem);
     }
     return new RealmObjectObservable<>(elem);
   }

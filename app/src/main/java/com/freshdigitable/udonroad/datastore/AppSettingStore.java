@@ -16,6 +16,9 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import java.io.File;
+import java.util.List;
+
 import io.reactivex.Observable;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
@@ -28,6 +31,8 @@ import twitter4j.auth.AccessToken;
 public interface AppSettingStore extends BaseCache {
   void addAuthenticatedUser(User authenticatedUser);
 
+  List<? extends User> getAllAuthenticatedUsers();
+
   void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
 
   TwitterAPIConfiguration getTwitterAPIConfig();
@@ -39,6 +44,8 @@ public interface AppSettingStore extends BaseCache {
   AccessToken getCurrentUserAccessToken();
 
   long getCurrentUserId();
+
+  File getCurrentUserDir();
 
   void setCurrentUserId(long userId);
 

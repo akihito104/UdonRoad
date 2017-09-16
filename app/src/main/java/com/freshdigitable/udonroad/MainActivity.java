@@ -23,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -35,6 +36,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
+import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -42,18 +44,14 @@ import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -79,11 +77,9 @@ public class MainActivity extends AppCompatActivity
   @Inject
   ConfigRequestWorker configRequestWorker;
   @Inject
-  AppSettingRequestWorker appSettingRequestWorker;
-  @Inject
   AppSettingStore appSetting;
   private TimelineContainerSwitcher timelineContainerSwitcher;
-  private NavHeaderBinding navHeaderBinding;
+  private DrawerNavigator drawerNavigator;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -93,15 +89,10 @@ public class MainActivity extends AppCompatActivity
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-    navHeaderBinding = DataBindingUtil.inflate(
-        LayoutInflater.from(getApplicationContext()), R.layout.nav_header, null, false);
-    binding.navDrawer.addHeaderView(navHeaderBinding.getRoot());
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setupHomeTimeline();
-    timelineContainerSwitcher = new TimelineContainerSwitcher(
-        binding.mainTimelineContainer, tlFragment, binding.ffab);
     setupTweetInputView();
     setupNavigationDrawer();
 
@@ -120,30 +111,16 @@ public class MainActivity extends AppCompatActivity
             .replace(R.id.main_timeline_container, tlFragment)
             .commit(),
         throwable -> Log.e(TAG, "config.setup: ", throwable));
+    timelineContainerSwitcher = new TimelineContainerSwitcher(
+        binding.mainTimelineContainer, tlFragment, binding.ffab);
   }
-
-  private Disposable subscription;
 
   private void setupNavigationDrawer() {
     attachToolbar(binding.mainToolbar);
-    appSettingRequestWorker.verifyCredentials();
-    binding.navDrawer.setNavigationItemSelectedListener(item -> {
-      int itemId = item.getItemId();
-      if (itemId == R.id.drawer_menu_home) {
-        Log.d(TAG, "home is selected");
-        timelineContainerSwitcher.showMain();
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else if (itemId == R.id.drawer_menu_lists) {
-        timelineContainerSwitcher.showOwnedLists(appSetting.getCurrentUserId());
-        binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-      } else {
-        if (itemId == R.id.drawer_menu_license) {
-          startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
-          binding.navDrawerLayout.closeDrawer(binding.navDrawer);
-        }
-      }
-      return false;
-    });
+
+    final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
+        LayoutInflater.from(this), R.layout.nav_header, null, false);
+    drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -166,15 +143,6 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.syncState();
   }
 
-  private void setupNavigationDrawerHeader(User user) {
-    navHeaderBinding.navHeaderAccount.setNames(new TwitterCombinedName(user));
-    Picasso.with(getApplicationContext())
-        .load(user.getProfileImageURLHttps())
-        .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
-        .into(navHeaderBinding.navHeaderIcon);
-    navHeaderBinding.navHeaderIcon.setOnClickListener(v -> UserInfoActivity.start(this, user, v));
-  }
-
   @Override
   public void onPostCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
     super.onPostCreate(savedInstanceState, persistentState);
@@ -185,28 +153,59 @@ public class MainActivity extends AppCompatActivity
   protected void onStart() {
     super.onStart();
     appSetting.open();
-    subscription = appSetting.observeCurrentUser()
-        .subscribe(this::setupNavigationDrawerHeader,
-            e -> Log.e(TAG, "setupNavigationDrawer: ", e));
-
     setupActionMap();
-    timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
+    drawerNavigator.changeCurrentUser();
+    timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
+    drawerNavigator.setOnDefaultItemSelectedListener(item -> {
+      int itemId = item.getItemId();
+      if (itemId == R.id.drawer_menu_home) {
+        timelineContainerSwitcher.showMain();
+        drawerNavigator.closeDrawer();
+      } else if (itemId == R.id.drawer_menu_lists) {
+        timelineContainerSwitcher.showOwnedLists();
+        drawerNavigator.closeDrawer();
+      } else if (itemId == R.id.drawer_menu_license) {
+        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+        drawerNavigator.closeDrawer();
+      }
+    });
+    drawerNavigator.setOnAccountItemSelectedListener((item, user) -> {
+      if (item.getItemId() == R.id.drawer_menu_add_account) {
+        OAuthActivity.start(this);
+        finish();
+      } else {
+        ((MainApplication) getApplication()).logout();
+        timelineContainerSwitcher.clear();
+        iffabItemSelectedListeners.clear();
+
+        ((MainApplication) getApplication()).login(user.getId());
+        setupHomeTimeline();
+        drawerNavigator.changeCurrentUser();
+        timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
+        ((MainApplication) getApplication()).connectStream();
+        drawerNavigator.closeDrawer();
+      }
+    });
+  }
+
+  @NonNull
+  private OnContentChangedListener getOnContentChangedListener() {
+    return (type, title) -> {
       if (type == ContentType.MAIN) {
         tlFragment.startScroll();
       } else {
         tlFragment.stopScroll();
       }
       binding.mainToolbar.setTitle(title);
-    });
+    };
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    navHeaderBinding.navHeaderIcon.setOnClickListener(null);
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
-    }
+    drawerNavigator.unsubscribeCurrentUser();
+    drawerNavigator.setOnDefaultItemSelectedListener(null);
+    drawerNavigator.setOnAccountItemSelectedListener(null);
     appSetting.close();
     timelineContainerSwitcher.setOnContentChangedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
@@ -217,16 +216,21 @@ public class MainActivity extends AppCompatActivity
     super.onDestroy();
     if (binding != null) {
       iffabItemSelectedListeners.clear();
+      drawerNavigator.release();
+      binding.navDrawerLayout.removeDrawerListener(actionBarDrawerToggle);
       binding.ffab.clear();
-      binding.navDrawer.setNavigationItemSelectedListener(null);
       configRequestWorker.shrink();
     }
   }
 
   @Override
   public void onBackPressed() {
-    if (binding.navDrawerLayout.isDrawerOpen(binding.navDrawer)) {
-      binding.navDrawerLayout.closeDrawer(binding.navDrawer);
+    if (drawerNavigator.isDrawerOpen()) {
+      if (!drawerNavigator.isMenuDefault()) {
+        drawerNavigator.setMenuByGroupId(R.id.drawer_menu_default);
+        return;
+      }
+      drawerNavigator.closeDrawer();
       return;
     }
     if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {

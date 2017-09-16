@@ -67,15 +67,12 @@ public class StatusViewMatcher {
     };
   }
 
-  public static Matcher<View> ofStatusViewAt(@IdRes final int recyclerViewId, final int position) {
+  public static <T extends View> Matcher<View> ofItemViewAt(
+      @IdRes final int recyclerViewId, final int position, Class<T> clz) {
     final Matcher<View> recyclerViewMatcher = withId(recyclerViewId);
-    return new BoundedMatcher<View, StatusView>(StatusView.class) {
+    return new BoundedMatcher<View, T>(clz) {
       @Override
-      public void describeTo(Description description) {
-      }
-
-      @Override
-      protected boolean matchesSafely(StatusView item) {
+      protected boolean matchesSafely(T item) {
         final RecyclerView recyclerView = (RecyclerView) item.getParent();
         if (!recyclerViewMatcher.matches(recyclerView)) {
           return false;
@@ -83,7 +80,14 @@ public class StatusViewMatcher {
         final View target = recyclerView.getChildAt(position);
         return target == item;
       }
+
+      @Override
+      public void describeTo(Description description) {}
     };
+  }
+
+  public static Matcher<View> ofStatusViewAt(@IdRes final int recyclerViewId, final int position) {
+    return ofItemViewAt(recyclerViewId, position, StatusView.class);
   }
 
   public static Matcher<View> asUserIcon(@IdRes final int resId, final Matcher<View> root) {

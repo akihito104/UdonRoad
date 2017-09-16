@@ -18,8 +18,10 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 
@@ -52,22 +54,29 @@ public class ConfigStoreRealm implements ConfigStore {
   @SuppressWarnings("unused")
   private static final String TAG = ConfigStoreRealm.class.getSimpleName();
   private Realm configStore;
-  private final RealmConfiguration config;
+  private RealmConfiguration config;
+  private final AppSettingStore appSettingStore;
 
-  public ConfigStoreRealm() {
-    config = new RealmConfiguration.Builder()
-        .name(StoreType.CONFIG.storeName)
-        .deleteRealmIfMigrationNeeded()
-        .build();
+  public ConfigStoreRealm(AppSettingStore appSettingStore) {
+    this.appSettingStore = appSettingStore;
   }
 
   @Override
   public void open() {
+    appSettingStore.open();
+    config = new RealmConfiguration.Builder()
+        .directory(appSettingStore.getCurrentUserDir())
+        .name(StoreType.CONFIG.storeName)
+        .deleteRealmIfMigrationNeeded()
+        .build();
     configStore = Realm.getInstance(config);
+    appSettingStore.close();
+    Log.d(TAG, "open: " + config.getRealmDirectory());
   }
 
   @Override
   public void close() {
+    Log.d(TAG, "close: " + config.getRealmDirectory());
     configStore.close();
   }
 
@@ -171,8 +180,7 @@ public class ConfigStoreRealm implements ConfigStore {
   @NonNull
   @Override
   public Observable<? extends StatusReaction> observeById(long id) {
-    final StatusReactionRealm statusReaction = find(id);
-    return observeById(statusReaction);
+    return CacheUtil.observeById(configStore, id, StatusReactionRealm.class);
   }
 
   @NonNull

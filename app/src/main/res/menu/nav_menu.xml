@@ -16,13 +16,27 @@
   -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/drawer_menu_home"
-        android:title="@string/drawer_menu_home"/>
-    <item
-        android:id="@+id/drawer_menu_lists"
-        android:title="@string/lists"/>
-    <item
-        android:id="@+id/drawer_menu_license"
-        android:title="@string/drawer_menu_license"/>
+    <group
+        android:id="@+id/drawer_menu_accounts"
+        >
+        <item
+            android:id="@+id/drawer_menu_add_account"
+            android:title="@string/drawer_menu_add_account"
+            android:visible="false"
+            android:orderInCategory="1000"
+            />
+    </group>
+    <group
+        android:id="@+id/drawer_menu_default"
+        >
+        <item
+            android:id="@+id/drawer_menu_home"
+            android:title="@string/drawer_menu_home"/>
+        <item
+            android:id="@+id/drawer_menu_lists"
+            android:title="@string/lists"/>
+        <item
+            android:id="@+id/drawer_menu_license"
+            android:title="@string/drawer_menu_license"/>
+    </group>
 </menu>

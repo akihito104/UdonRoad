@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 
@@ -38,9 +39,9 @@ public class WritableListsSortedCache implements WritableSortedCache<UserList> {
   private final TypedCache<User> pool;
   private final NamingBaseCacheRealm sortedCache;
 
-  public WritableListsSortedCache(TypedCache<User> pool) {
+  public WritableListsSortedCache(TypedCache<User> pool, AppSettingStore appSetting) {
     this.pool = pool;
-    sortedCache = new NamingBaseCacheRealm();
+    sortedCache = new NamingBaseCacheRealm(appSetting);
   }
 
   @Override

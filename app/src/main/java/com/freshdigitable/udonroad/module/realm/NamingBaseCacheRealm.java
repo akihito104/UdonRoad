@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.module.realm;
 import android.support.annotation.CallSuper;
 import android.util.Log;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.NamingBaseCache;
 
 import io.realm.Realm;
@@ -36,20 +37,28 @@ class NamingBaseCacheRealm implements NamingBaseCache {
   private static final String TAG = NamingBaseCacheRealm.class.getSimpleName();
   private Realm realm;
   private RealmConfiguration config;
+  private AppSettingStore appSettingStore;
+
+  NamingBaseCacheRealm(AppSettingStore appSettingStore) {
+    this.appSettingStore = appSettingStore;
+  }
 
   @Override
   @CallSuper
   public void open(String storeName) {
+    appSettingStore.open();
     config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
     Log.d(TAG, "openRealm: " + config.getRealmFileName());
+    appSettingStore.close();
   }
 
   private RealmConfiguration getRealmConfiguration(String storeName) {
     return new RealmConfiguration.Builder()
-          .name(storeName)
-          .deleteRealmIfMigrationNeeded()
-          .build();
+        .directory(appSettingStore.getCurrentUserDir())
+        .name(storeName)
+        .deleteRealmIfMigrationNeeded()
+        .build();
   }
 
   @Override
@@ -70,7 +79,7 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     if (Realm.getGlobalInstanceCount(config) <= 0) {
       Log.d(TAG, "drop: " + config.getRealmFileName());
       Realm.deleteRealm(config);
-      RealmStoreManager.maybeDropPool();
+      RealmStoreManager.maybeDropPool(config.getRealmDirectory());
     }
   }
 

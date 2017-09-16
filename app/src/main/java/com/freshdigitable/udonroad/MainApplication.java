@@ -24,12 +24,14 @@ import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.View;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.leakcanary.LeakCanary;
@@ -38,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import twitter4j.auth.AccessToken;
 
 /**
  * MainApplication is custom Application class.
@@ -49,7 +53,12 @@ public class MainApplication extends Application {
   @Inject
   TwitterApi twitterApi;
   @Inject
-  AppSettingRequestWorker appSettings;
+  TwitterStreamApi twitterStreamApi;
+
+  @Inject
+  AppSettingRequestWorker appSettingWorker;
+  @Inject
+  AppSettingStore appSettings;
   @Inject
   UserStreamUtil userStreamUtil;
   @Inject
@@ -86,21 +95,64 @@ public class MainApplication extends Application {
   }
 
   private static boolean init(MainApplication application) {
-    return application.appSettings.setup();
+    application.appSettings.open();
+    final long currentUserId = application.appSettings.getCurrentUserId();
+    application.appSettings.close();
+    if (currentUserId > 0) {
+      login(application, currentUserId);
+      return application.appSettingWorker.setup();
+    } else {
+      return false;
+    }
+  }
+
+  private boolean loggedIn = false;
+
+  void login(long userId) {
+    login(this, userId);
+  }
+
+  private static void login(MainApplication app, long userId) {
+    Log.d("MainApplication", "login: " + userId);
+    app.appSettings.setCurrentUserId(userId);
+    final AccessToken accessToken = app.appSettings.getCurrentUserAccessToken();
+    if (accessToken == null) {
+      app.loggedIn = false;
+      return;
+    }
+    app.twitterApi.setOAuthAccessToken(accessToken);
+    app.twitterStreamApi.setOAuthAccessToken(accessToken);
+    app.loggedIn = true;
+    app.appSettingWorker.verifyCredentials();
+  }
+
+  void logout() {
+    logout(this);
+  }
+
+  private static void logout(MainApplication app) {
+    Log.d("MainApplication", "logout: ");
+    app.userStreamUtil.disconnect();
+    app.twitterApi.setOAuthAccessToken(null);
+    app.twitterStreamApi.setOAuthAccessToken(null);
+    app.loggedIn = false;
+  }
+
+  void connectStream() {
+    userStreamUtil.connect(StoreType.HOME.storeName);
   }
 
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {
     private static final String TAG = ActivityLifecycleCallbacksImpl.class.getSimpleName();
-    private boolean isTokenSetup = false;
     private final List<String> activities = new ArrayList<>();
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
       Log.d(TAG, "onActivityCreated: count>" + activities.size());
-      if (activities.size() == 0 || !isTokenSetup) {
-        isTokenSetup = setupAccessToken(activity);
+      if (activities.size() == 0 || !getApplication(activity).loggedIn) {
+        setupAccessToken(activity);
       }
-      if (!isTokenSetup) {
+      if (!getApplication(activity).loggedIn) {
         launchOAuthActivity(activity);
       }
       activities.add(activity.getClass().getSimpleName());
@@ -122,7 +174,7 @@ public class MainApplication extends Application {
     @Override
     public void onActivityStarted(Activity activity) {
       if (activity instanceof MainActivity) {
-        getApplication(activity).userStreamUtil.connect(StoreType.HOME.storeName);
+        getApplication(activity).connectStream();
       }
       if (activity instanceof SnackbarCapable) {
         final View rootView = ((SnackbarCapable) activity).getRootView();
@@ -151,10 +203,8 @@ public class MainApplication extends Application {
     public void onActivityDestroyed(Activity activity) {
       activities.remove(activity.getClass().getSimpleName());
       Log.d(TAG, "onActivityDestroyed: count>" + activities.size());
-      if (activity instanceof MainActivity) {
-        getApplication(activity).userStreamUtil.disconnect();
-      }
       if (activities.size() == 0) {
+        MainApplication.logout(getApplication(activity));
         getApplication(activity).userFeedback.unsubscribe();
         getApplication(activity).updateSubjectFactory.clear();
       }

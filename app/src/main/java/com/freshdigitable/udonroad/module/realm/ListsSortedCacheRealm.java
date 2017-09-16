@@ -18,14 +18,13 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.datastore.UpdateEvent.EventType;
 import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
-
-import javax.inject.Inject;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -39,18 +38,18 @@ import twitter4j.UserList;
  * Created by akihit on 2017/08/17.
  */
 
-public class ListsSortedCache implements SortedCache<UserList> {
+public class ListsSortedCacheRealm implements SortedCache<UserList> {
   private final TypedCache<User> pool;
   private final NamingBaseCacheRealm sortedCache;
   private RealmResults<UserListRealm> userLists;
   private final UpdateSubjectFactory factory;
   private UpdateSubject updateSubject;
 
-  @Inject
-  public ListsSortedCache(UpdateSubjectFactory factory, TypedCache<User> pool) {
+  public ListsSortedCacheRealm(
+      UpdateSubjectFactory factory, TypedCache<User> pool, AppSettingStore appSettingStore) {
     this.factory = factory;
     this.pool = pool;
-    sortedCache = new NamingBaseCacheRealm();
+    sortedCache = new NamingBaseCacheRealm(appSettingStore);
   }
 
 
@@ -67,7 +66,7 @@ public class ListsSortedCache implements SortedCache<UserList> {
   private final OrderedRealmCollectionChangeListener<RealmResults<UserListRealm>> realmChangeListener
       = new OrderedRealmCollectionChangeListener<RealmResults<UserListRealm>>() {
     @Override
-    public void onChange(RealmResults<UserListRealm> element, OrderedCollectionChangeSet changeSet) {
+    public void onChange(@NonNull RealmResults<UserListRealm> element, @NonNull OrderedCollectionChangeSet changeSet) {
       if (updateSubject.hasSubscribers()) {
         final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
         for (OrderedCollectionChangeSet.Range i : insertions) {

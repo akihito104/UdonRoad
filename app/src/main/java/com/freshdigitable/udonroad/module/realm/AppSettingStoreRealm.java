@@ -21,8 +21,10 @@ import android.content.SharedPreferences;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -43,13 +45,15 @@ public class AppSettingStoreRealm implements AppSettingStore {
   private Realm realm;
   private final RealmConfiguration config;
   private final SharedPreferences prefs;
+  private final File filesDir;
 
-  public AppSettingStoreRealm(SharedPreferences prefs) {
+  public AppSettingStoreRealm(SharedPreferences prefs, File filesDir) {
     config = new RealmConfiguration.Builder()
         .name(StoreType.APP_SETTINGS.storeName)
         .deleteRealmIfMigrationNeeded()
         .build();
     this.prefs = prefs;
+    this.filesDir = filesDir;
   }
 
   @Override
@@ -84,6 +88,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void addAuthenticatedUser(final User authenticatedUser) {
+    if (!isAuthenticatedUser(authenticatedUser.getId())) {
+      throw new IllegalArgumentException("unregistered userId: " + authenticatedUser.getId());
+    }
     final UserRealm user = realm.where(UserRealm.class)
         .equalTo("id", authenticatedUser.getId())
         .findFirst();
@@ -95,6 +102,12 @@ public class AppSettingStoreRealm implements AppSettingStore {
         user.merge(authenticatedUser, r);
       }
     });
+  }
+
+  @Override
+  public List<? extends User> getAllAuthenticatedUsers() {
+    return realm.where(UserRealm.class)
+        .findAll();
   }
 
   @Override
@@ -153,6 +166,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
   private static final String CURRENT_USER_ID = "currentUserId";
   private static final String ACCESS_TOKEN_PREFIX = "accessToken_";
   private static final String TOKEN_SECRET_PREFIX = "tokenSecret_";
+  static final String USER_DIR_PREFIX = "user_";
 
   @Override
   public void storeAccessToken(AccessToken token) {
@@ -188,9 +202,27 @@ public class AppSettingStoreRealm implements AppSettingStore {
   }
 
   @Override
+  public File getCurrentUserDir() {
+    return new File(filesDir, USER_DIR_PREFIX + getCurrentUserId());
+  }
+
+  @Override
   public void setCurrentUserId(long userId) {
+    if (!isAuthenticatedUser(userId)) {
+      throw new IllegalArgumentException("unregistered userId: " + userId);
+    }
     prefs.edit()
         .putLong(CURRENT_USER_ID, userId)
         .apply();
+  }
+
+  private boolean isAuthenticatedUser(long userId) {
+    final Set<String> userIds = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<>());
+    for (String id : userIds) {
+      if (id.equals(Long.toString(userId))) {
+        return true;
+      }
+    }
+    return false;
   }
 }

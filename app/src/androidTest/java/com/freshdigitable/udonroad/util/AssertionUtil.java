@@ -101,6 +101,11 @@ public class AssertionUtil {
     onView(withId(R.id.main_toolbar)).check(matches(getToolbarMatcher(titleMatcher)));
   }
 
+  public static void checkMainActivityTitle(String title) {
+    final Matcher<View> titleMatcher = withText(title);
+    onView(withId(R.id.main_toolbar)).check(matches(getToolbarMatcher(titleMatcher)));
+  }
+
   @NonNull
   private static Matcher<View> getToolbarMatcher(Matcher<View> titleMatcher) {
     return new BoundedMatcher<View, Toolbar>(Toolbar.class) {

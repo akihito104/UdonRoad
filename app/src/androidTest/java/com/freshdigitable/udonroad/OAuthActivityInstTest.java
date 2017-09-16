@@ -6,10 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.CallSuper;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.Espresso;
-import android.support.test.espresso.IdlingResource;
 import android.support.test.espresso.intent.rule.IntentsTestRule;
-import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -26,11 +23,10 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 
-import java.util.Collection;
-
 import javax.inject.Inject;
 
 import twitter4j.Twitter;
+import twitter4j.TwitterStream;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
@@ -46,13 +42,18 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,6 +93,7 @@ public class OAuthActivityInstTest {
 
     @Test
     public void resumeWithValidToken() throws Exception {
+      verify(twitter, times(0)).setOAuthAccessToken(any(AccessToken.class));
       intending(hasData(Uri.parse(authorizationUrl)))
           .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
       onView(withId(R.id.oauth_start)).perform(click());
@@ -99,14 +101,9 @@ public class OAuthActivityInstTest {
       onView(withId(R.id.oauth_pin)).perform(typeText(VALID_PIN));
       onView(withId(R.id.oauth_send_pin)).perform(click());
 
-      final IdlingResource idlingResource = IdlingResourceUtil.getSimpleIdlingResource("launchMain",
-          () -> findResumeActivityByClass(MainActivity.class) != null);
-      try {
-        Espresso.registerIdlingResources(idlingResource);
-        checkMainActivityTitle(R.string.title_home);
-      } finally {
-        Espresso.unregisterIdlingResources(idlingResource);
-      }
+      runWithIdlingResource(
+          getActivityStageIdlingResource("launchMain", MainActivity.class, Stage.RESUMED), () ->
+              checkMainActivityTitle(R.string.title_home));
 
       intended(hasComponent(MainActivity.class.getName()));
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
@@ -119,6 +116,7 @@ public class OAuthActivityInstTest {
           appSetting.close();
         }
       });
+       verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
     }
 
     @Test
@@ -178,6 +176,8 @@ public class OAuthActivityInstTest {
     AppSettingStore appSetting;
     @Inject
     Twitter twitter;
+    @Inject
+    TwitterStream twitterStream;
 
     @Before
     @CallSuper
@@ -197,6 +197,7 @@ public class OAuthActivityInstTest {
     @CallSuper
     public void tearDown() throws Exception {
       reset(twitter);
+      reset(twitterStream);
       tearDownActivity();
       StorageUtil.checkAllRealmInstanceCleared();
     }
@@ -205,13 +206,6 @@ public class OAuthActivityInstTest {
   }
 
   private static Activity findResumeActivityByClass(Class<? extends Activity> clz) {
-    final Collection<Activity> resumeActivities
-        = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
-    for (Activity activity : resumeActivities) {
-      if (activity.getClass().isAssignableFrom(clz)) {
-        return activity;
-      }
-    }
-    return null;
+    return IdlingResourceUtil.findActivityByStage(clz, Stage.RESUMED);
   }
 }

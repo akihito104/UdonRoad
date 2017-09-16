@@ -124,4 +124,6 @@
     <string name="oauth_explain">下のボタンからTwitterへログインし、\'aoeliyakei\'でツイートできるように権限を付与してください。そうすると数桁の数字(PINコード)が表示されるので、それをコピーしてこのアプリに戻ってきてください。</string>
     <string name="oauth_pin_direction">表示されたPINコードを入力して送信してください。</string>
     <string name="msg_oauth_user_icon">ユーザーの情報をみることができます</string>
+    <string name="drawer_menu_add_account">登録済みアカウントの追加…</string>
+    <string name="title_add_account">登録済みアカウントの追加</string>
 </resources>
