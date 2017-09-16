@@ -65,14 +65,14 @@ android {
 
 def supportLibVer = '26.1.0'
 def t4jVer = '4.0.6'
-def rxVer = '2.1.0'
+def rxVer = '2.1.3'
 def rxAndroidVer = '2.0.1'
 def daggerVer = "2.11"
 def supportTestVer = "0.6-alpha"
 def espressoVer = "2.2.2"
 def dexmakerVer = '2.2.0'
 def leakcanaryVer= '1.5.1'
-def okhttpVer = '3.8.1'
+def okhttpVer = '3.9.0'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
