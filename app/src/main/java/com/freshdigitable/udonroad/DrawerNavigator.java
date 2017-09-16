@@ -20,13 +20,17 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.DrawerLayout.DrawerListener;
+import android.support.v4.widget.DrawerLayout.SimpleDrawerListener;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.content.res.AppCompatResources;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -49,6 +53,14 @@ class DrawerNavigator {
   private final NavHeaderBinding navHeaderBinding;
   private final Drawable upArrow, downArrow;
   private final AppSettingStore appSettings;
+  private final DrawerListener drawerListener = new SimpleDrawerListener() {
+    @Override
+    public void onDrawerClosed(View drawerView) {
+      if (!isMenuDefault()) {
+        setMenuByGroupId(R.id.drawer_menu_default);
+      }
+    }
+  };
 
   DrawerNavigator(@NonNull DrawerLayout drawerLayout, @NonNull NavigationView navigationView,
                   @NonNull NavHeaderBinding navHeaderBinding, @NonNull AppSettingStore appSetting) {
@@ -64,6 +76,27 @@ class DrawerNavigator {
     TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(this.navHeaderBinding.navHeaderAccount,
         null, null, downArrow, null);
     this.navigationView.addHeaderView(this.navHeaderBinding.getRoot());
+    this.navigationView.setNavigationItemSelectedListener(item -> {
+      if (item.getGroupId() == R.id.drawer_menu_default) {
+        defaultItemSelectedListener.onDefaultItemSelected(item);
+      } else if (item.getGroupId() == R.id.drawer_menu_accounts) {
+        final User user = findUserByAccount(item.getTitle().toString());
+        accountItemSelectedListener.onAccountItemSelected(item, user);
+      }
+      return false;
+    });
+    this.drawerLayout.addDrawerListener(drawerListener);
+  }
+
+  @Nullable
+  private User findUserByAccount(String account) {
+    final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
+    for (User user : users) {
+      if (account.equals("@" + user.getScreenName())) {
+        return user;
+      }
+    }
+    return null;
   }
 
   boolean isMenuDefault() {
@@ -102,10 +135,10 @@ class DrawerNavigator {
         .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
         .into(navHeaderBinding.navHeaderIcon);
 
-    navHeaderBinding.navHeaderIcon.setOnClickListener(v -> {
-      final long userId = currentUser.getId();
-      UserInfoActivity.start(v.getContext(), userId);
-    });
+    final long userId = currentUser.getId();
+    navHeaderBinding.navHeaderIcon.setOnClickListener(v ->
+      UserInfoActivity.start(v.getContext(), userId)
+    );
 
     navHeaderBinding.navHeaderAccount.setNames(new TwitterCombinedName(currentUser));
 
@@ -167,6 +200,29 @@ class DrawerNavigator {
     Picasso.with(navHeaderIcon.getContext()).cancelRequest(navHeaderIcon);
     navHeaderIcon.setOnClickListener(null);
     navHeaderBinding.navHeaderAccount.setOnClickListener(null);
+    setOnDefaultItemSelectedListener(null);
+    setOnAccountItemSelectedListener(null);
     navigationView.setNavigationItemSelectedListener(null);
+    drawerLayout.removeDrawerListener(drawerListener);
+  }
+
+  interface OnDefaultItemSelectedListener {
+    void onDefaultItemSelected(MenuItem item);
+  }
+
+  private OnDefaultItemSelectedListener defaultItemSelectedListener = item -> {};
+
+  void setOnDefaultItemSelectedListener(OnDefaultItemSelectedListener listener) {
+    this.defaultItemSelectedListener = listener != null ? listener : item -> {};
+  }
+
+  interface OnAccountItemSelectedListener {
+    void onAccountItemSelected(MenuItem item, User user);
+  }
+
+  private OnAccountItemSelectedListener accountItemSelectedListener = (item, user) -> {};
+
+  void setOnAccountItemSelectedListener(OnAccountItemSelectedListener listener) {
+    this.accountItemSelectedListener = listener != null ? listener : (item, user) -> {};
   }
 }

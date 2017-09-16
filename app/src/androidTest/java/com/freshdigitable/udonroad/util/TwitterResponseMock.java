@@ -30,13 +30,16 @@ import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
+import twitter4j.PagableResponseList;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterAPIConfiguration;
+import twitter4j.TwitterResponse;
 import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserList;
 import twitter4j.UserMentionEntity;
 import twitter4j.UserStreamListener;
 
@@ -274,5 +277,177 @@ public class TwitterResponseMock {
     when(mock.getShortURLLength()).thenReturn(23);
     when(mock.getShortURLLengthHttps()).thenReturn(23);
     return mock;
+  }
+
+  public static PagableResponseList<UserList> createUserListResponse(int size) {
+    final User userA = UserUtil.createUserA();
+    final ArrayList<UserList> res = new ArrayList<>(size);
+    for (int i = 0; i < size; i++) {
+      final UserList userList = mock(UserList.class);
+      when(userList.getId()).thenReturn((long) (Integer.MAX_VALUE + i));
+      final String name = "list" + i;
+      when(userList.getName()).thenReturn(name);
+      when(userList.getDescription()).thenReturn("list description");
+      when(userList.getFullName()).thenReturn("@user/" + name);
+      when(userList.getUser()).thenReturn(userA);
+      when(userList.isPublic()).thenReturn(true);
+      res.add(userList);
+    }
+    return createPagableResponseList(res);
+  }
+
+  private static <T extends TwitterResponse> PagableResponseList<T> createPagableResponseList(List<T> list) {
+    return new PagableResponseList<T>() {
+      @Override
+      public boolean hasPrevious() {
+        return false;
+      }
+
+      @Override
+      public long getPreviousCursor() {
+        return 0;
+      }
+
+      @Override
+      public boolean hasNext() {
+        return false;
+      }
+
+      @Override
+      public long getNextCursor() {
+        return 0;
+      }
+
+      @Override
+      public RateLimitStatus getRateLimitStatus() {
+        return null;
+      }
+
+      @Override
+      public int size() {
+        return list.size();
+      }
+
+      @Override
+      public boolean isEmpty() {
+        return list.isEmpty();
+      }
+
+      @Override
+      public boolean contains(Object o) {
+        return list.contains(o);
+      }
+
+      @NonNull
+      @Override
+      public Iterator<T> iterator() {
+        return list.iterator();
+      }
+
+      @NonNull
+      @Override
+      public Object[] toArray() {
+        return list.toArray();
+      }
+
+      @NonNull
+      @Override
+      public <T1> T1[] toArray(@NonNull T1[] t1s) {
+        return list.toArray(t1s);
+      }
+
+      @Override
+      public boolean containsAll(@NonNull Collection<?> collection) {
+        return list.containsAll(collection);
+      }
+
+      @Override
+      public T get(int i) {
+        return list.get(i);
+      }
+
+      @Override
+      public int indexOf(Object o) {
+        return list.indexOf(o);
+      }
+
+      @Override
+      public int lastIndexOf(Object o) {
+        return list.lastIndexOf(o);
+      }
+
+      @NonNull
+      @Override
+      public ListIterator<T> listIterator() {
+        return list.listIterator();
+      }
+
+      @NonNull
+      @Override
+      public ListIterator<T> listIterator(int i) {
+        return list.listIterator(i);
+      }
+
+      @NonNull
+      @Override
+      public List<T> subList(int i, int i1) {
+        return list.subList(i, i1);
+      }
+
+      @Override
+      public int getAccessLevel() {
+        return 0;
+      }
+
+      @Override
+      public boolean add(T t) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public boolean remove(Object o) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public boolean addAll(@NonNull Collection<? extends T> collection) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public boolean addAll(int i, @NonNull Collection<? extends T> collection) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public boolean removeAll(@NonNull Collection<?> collection) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public boolean retainAll(@NonNull Collection<?> collection) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public void clear() {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public T set(int i, T t) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public void add(int i, T t) {
+        throw new AssertionError("not supported.");
+      }
+
+      @Override
+      public T remove(int i) {
+        throw new AssertionError("not supported.");
+      }
+    };
   }
 }

@@ -22,7 +22,11 @@ import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import android.support.test.runner.lifecycle.Stage;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.View;
+
+import com.freshdigitable.udonroad.R;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
@@ -47,6 +51,24 @@ public class IdlingResourceUtil {
       }
     }
     return null;
+  }
+
+  @NonNull
+  public static IdlingResource getOpenDrawerIdlingResource(Activity activity) {
+    return IdlingResourceUtil.getSimpleIdlingResource("open drawer", () -> {
+      final DrawerLayout drawerLayout = activity.findViewById(R.id.nav_drawer_layout);
+      final View drawer = activity.findViewById(R.id.nav_drawer);
+      return drawerLayout.isDrawerOpen(drawer);
+    });
+  }
+
+  @NonNull
+  public static IdlingResource getCloseDrawerIdlingResource(Activity activity) {
+    return IdlingResourceUtil.getSimpleIdlingResource("close drawer", () -> {
+      final DrawerLayout drawerLayout = activity.findViewById(R.id.nav_drawer_layout);
+      final View drawer = activity.findViewById(R.id.nav_drawer);
+      return !drawerLayout.isDrawerOpen(drawer);
+    });
   }
 
   public static IdlingResource getSimpleIdlingResource(String name, Callable<Boolean> isIdle) {

@@ -36,6 +36,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
+import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedListener;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
@@ -120,44 +121,6 @@ public class MainActivity extends AppCompatActivity
     final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
         LayoutInflater.from(this), R.layout.nav_header, null, false);
     drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
-    binding.navDrawer.setNavigationItemSelectedListener(item -> {
-      int itemId = item.getItemId();
-      if (item.getGroupId() == R.id.drawer_menu_default) {
-        if (itemId == R.id.drawer_menu_home) {
-          timelineContainerSwitcher.showMain();
-          drawerNavigator.closeDrawer();
-        } else if (itemId == R.id.drawer_menu_lists) {
-          timelineContainerSwitcher.showOwnedLists(appSetting.getCurrentUserId());
-          drawerNavigator.closeDrawer();
-        } else if (itemId == R.id.drawer_menu_license) {
-          startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
-          drawerNavigator.closeDrawer();
-        }
-      } else if (item.getGroupId() == R.id.drawer_menu_accounts) {
-        if (item.getItemId() == R.id.drawer_menu_add_account) {
-          OAuthActivity.start(this);
-          finish();
-        } else {
-          final List<? extends User> users = appSetting.getAllAuthenticatedUsers();
-          for (User user : users) {
-            if (item.getTitle().toString().endsWith(user.getScreenName())) {
-              ((MainApplication) getApplication()).logout();
-              timelineContainerSwitcher.clear();
-              iffabItemSelectedListeners.clear();
-
-              ((MainApplication) getApplication()).login(user.getId());
-              setupHomeTimeline();
-              drawerNavigator.changeCurrentUser();
-              timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
-              ((MainApplication) getApplication()).connectStream();
-              drawerNavigator.closeDrawer();
-              break;
-            }
-          }
-        }
-      }
-      return false;
-    });
   }
 
   private void attachToolbar(Toolbar toolbar) {
@@ -173,9 +136,6 @@ public class MainActivity extends AppCompatActivity
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
         tlFragment.startScroll();
-        if (!drawerNavigator.isMenuDefault()) {
-          drawerNavigator.setMenuByGroupId(R.id.drawer_menu_default);
-        }
       }
     };
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
@@ -196,10 +156,40 @@ public class MainActivity extends AppCompatActivity
     setupActionMap();
     drawerNavigator.changeCurrentUser();
     timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
+    drawerNavigator.setOnDefaultItemSelectedListener(item -> {
+      int itemId = item.getItemId();
+      if (itemId == R.id.drawer_menu_home) {
+        timelineContainerSwitcher.showMain();
+        drawerNavigator.closeDrawer();
+      } else if (itemId == R.id.drawer_menu_lists) {
+        timelineContainerSwitcher.showOwnedLists();
+        drawerNavigator.closeDrawer();
+      } else if (itemId == R.id.drawer_menu_license) {
+        startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
+        drawerNavigator.closeDrawer();
+      }
+    });
+    drawerNavigator.setOnAccountItemSelectedListener((item, user) -> {
+      if (item.getItemId() == R.id.drawer_menu_add_account) {
+        OAuthActivity.start(this);
+        finish();
+      } else {
+        ((MainApplication) getApplication()).logout();
+        timelineContainerSwitcher.clear();
+        iffabItemSelectedListeners.clear();
+
+        ((MainApplication) getApplication()).login(user.getId());
+        setupHomeTimeline();
+        drawerNavigator.changeCurrentUser();
+        timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
+        ((MainApplication) getApplication()).connectStream();
+        drawerNavigator.closeDrawer();
+      }
+    });
   }
 
   @NonNull
-  private TimelineContainerSwitcher.OnContentChangedListener getOnContentChangedListener() {
+  private OnContentChangedListener getOnContentChangedListener() {
     return (type, title) -> {
       if (type == ContentType.MAIN) {
         tlFragment.startScroll();
@@ -214,6 +204,8 @@ public class MainActivity extends AppCompatActivity
   protected void onStop() {
     super.onStop();
     drawerNavigator.unsubscribeCurrentUser();
+    drawerNavigator.setOnDefaultItemSelectedListener(null);
+    drawerNavigator.setOnAccountItemSelectedListener(null);
     appSetting.close();
     timelineContainerSwitcher.setOnContentChangedListener(null);
     binding.ffab.setOnIffabItemSelectedListener(null);
@@ -225,6 +217,7 @@ public class MainActivity extends AppCompatActivity
     if (binding != null) {
       iffabItemSelectedListeners.clear();
       drawerNavigator.release();
+      binding.navDrawerLayout.removeDrawerListener(actionBarDrawerToggle);
       binding.ffab.clear();
       configRequestWorker.shrink();
     }

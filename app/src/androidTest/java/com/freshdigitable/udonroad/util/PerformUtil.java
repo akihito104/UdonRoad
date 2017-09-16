@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
-import android.support.test.espresso.action.CoordinatesProvider;
 import android.support.test.espresso.action.GeneralClickAction;
 import android.support.test.espresso.action.GeneralLocation;
 import android.support.test.espresso.action.GeneralSwipeAction;
@@ -34,6 +33,7 @@ import android.view.View;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
+import com.freshdigitable.udonroad.listitem.UserItemView;
 
 import org.hamcrest.Matcher;
 
@@ -49,6 +49,7 @@ import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofItemViewAt;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
@@ -71,6 +72,10 @@ public class PerformUtil {
 
   public static ViewInteraction selectItemViewAt(int index) {
     return onView(ofStatusViewAt(R.id.timeline, index)).perform(clickForStatusView());
+  }
+
+  public static <T extends View> ViewInteraction selectItemViewAt(int index, Class<T> clz) {
+    return onView(ofItemViewAt(R.id.timeline, index, clz)).perform(clickForStatusView());
   }
 
   public static ViewInteraction reply() {
@@ -134,28 +139,25 @@ public class PerformUtil {
   }
 
   private static ViewAction clickForStatusView() {
-    return actionWithAssertions(new GeneralClickAction(Tap.SINGLE, new CoordinatesProvider() {
-      @Override
-      public float[] calculateCoordinates(View view) {
-        if (view instanceof StatusView) {
-          final View v = view.findViewById(R.id.tl_tweet);
-          return calcCenterCoord(v);
-        } else if (view instanceof QuotedStatusView) {
-          final View v = view.findViewById(R.id.q_tweet);
-          return calcCenterCoord(v);
-        }
-        return calcCenterCoord(view);
+    return actionWithAssertions(new GeneralClickAction(Tap.SINGLE, view -> {
+      if (view instanceof StatusView || view instanceof UserItemView) {
+        final View v = view.findViewById(R.id.tl_tweet);
+        return calcCenterCoord(v);
+      } else if (view instanceof QuotedStatusView) {
+        final View v = view.findViewById(R.id.q_tweet);
+        return calcCenterCoord(v);
       }
-
-      private float[] calcCenterCoord(View v) {
-        int[] pos = new int[2];
-        v.getLocationOnScreen(pos);
-        return new float[]{
-            pos[0] + v.getWidth() / 2.0f,
-            pos[1] + v.getHeight() / 2.0f,
-        };
-      }
+      return calcCenterCoord(view);
     }, Press.FINGER));
+  }
+
+  private static float[] calcCenterCoord(View v) {
+    int[] pos = new int[2];
+    v.getLocationOnScreen(pos);
+    return new float[]{
+        pos[0] + v.getWidth() / 2.0f,
+        pos[1] + v.getHeight() / 2.0f,
+    };
   }
 
   public static void launchHomeAndBackToApp(Activity base) throws InterruptedException {

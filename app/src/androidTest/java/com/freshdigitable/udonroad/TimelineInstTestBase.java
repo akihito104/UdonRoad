@@ -104,13 +104,14 @@ public abstract class TimelineInstTestBase {
     final int initResListCount = setupTimeline();
 
     getRule().launchActivity(getIntent());
-    final IdlingResource idlingResource = getTimelineIdlingResource("launch", initResListCount);
-    try {
-      Espresso.registerIdlingResources(idlingResource);
-      verifyAfterLaunch();
-    } finally {
-      Espresso.unregisterIdlingResources(idlingResource);
-    }
+    IdlingResourceUtil.runWithIdlingResource(
+        getTimelineIdlingResource("launch", initResListCount), () -> {
+          try {
+            verifyAfterLaunch();
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   @NonNull

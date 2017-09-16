@@ -37,7 +37,6 @@ import android.support.test.espresso.util.HumanReadables;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.test.runner.lifecycle.Stage;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -93,7 +92,7 @@ import static org.mockito.Mockito.when;
  * Created by akihit on 2017/09/11.
  */
 @RunWith(AndroidJUnit4.class)
-public class NavDrawerInstTest extends TimelineInstTestBase {
+public class AccountScenarioInstTest extends TimelineInstTestBase {
   @Rule
   public final IntentsTestRule<MainActivity> rule
       = new IntentsTestRule<>(MainActivity.class, false, false);
@@ -379,20 +378,12 @@ public class NavDrawerInstTest extends TimelineInstTestBase {
 
   @NonNull
   private IdlingResource getOpenDrawerIdlingResource() {
-    return IdlingResourceUtil.getSimpleIdlingResource("open drawer", () -> {
-      final DrawerLayout drawerLayout = rule.getActivity().findViewById(R.id.nav_drawer_layout);
-      final View drawer = rule.getActivity().findViewById(R.id.nav_drawer);
-      return drawerLayout.isDrawerOpen(drawer);
-    });
+    return IdlingResourceUtil.getOpenDrawerIdlingResource(rule.getActivity());
   }
 
   @NonNull
   private IdlingResource getCloseDrawerIdlingResource() {
-    return IdlingResourceUtil.getSimpleIdlingResource("close drawer", () -> {
-      final DrawerLayout drawerLayout = rule.getActivity().findViewById(R.id.nav_drawer_layout);
-      final View drawer = rule.getActivity().findViewById(R.id.nav_drawer);
-      return !drawerLayout.isDrawerOpen(drawer);
-    });
+    return IdlingResourceUtil.getCloseDrawerIdlingResource(rule.getActivity());
   }
 
   private static Matcher<View> isDefaultNavMenu() {
