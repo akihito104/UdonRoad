@@ -68,7 +68,6 @@ public class RealmStoreManager implements StoreManager {
         }
       }
     }
-    Log.d("RealmStoreManager", "maybeDropPool: cache> " + dir.getName());
     dropCache(dir, StoreType.POOL.storeName);
   }
 
@@ -89,8 +88,10 @@ public class RealmStoreManager implements StoreManager {
       final Realm realm = Realm.getInstance(config);
       realm.executeTransaction(r -> r.deleteAll());
       realm.close();
+      Log.d("RealmStoreManager", "deleted: cache> " + dir.getName());
     } else {
       Realm.deleteRealm(config);
+      Log.d("RealmStoreManager", "dropped: cache> " + dir.getName());
     }
   }
 

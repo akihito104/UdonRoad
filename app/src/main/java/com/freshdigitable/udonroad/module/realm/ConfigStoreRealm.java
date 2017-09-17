@@ -63,6 +63,9 @@ public class ConfigStoreRealm implements ConfigStore {
 
   @Override
   public void open() {
+    if (configStore != null) {
+      return;
+    }
     appSettingStore.open();
     config = new RealmConfiguration.Builder()
         .directory(appSettingStore.getCurrentUserDir())
@@ -78,6 +81,7 @@ public class ConfigStoreRealm implements ConfigStore {
   public void close() {
     Log.d(TAG, "close: " + config.getRealmDirectory());
     configStore.close();
+    configStore = null;
   }
 
   @Override

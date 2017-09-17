@@ -1,7 +1,5 @@
 package com.freshdigitable.udonroad.util;
 
-import android.support.test.espresso.core.deps.guava.io.PatternFilenameFilter;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +38,7 @@ public class StorageUtil {
   }
 
   private static String[] listStorage(File dir) {
-    final String[] list = dir.list(new PatternFilenameFilter("^.*\\.management$"));
+    final String[] list = dir.list((file, s) -> s.matches("^.*\\.management$"));
     for (int i = 0; i < list.length; i++) {
       list[i] = list[i].replace(".management", "");
     }

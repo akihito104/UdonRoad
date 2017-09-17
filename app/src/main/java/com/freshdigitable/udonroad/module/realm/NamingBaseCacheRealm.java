@@ -46,10 +46,13 @@ class NamingBaseCacheRealm implements NamingBaseCache {
   @Override
   @CallSuper
   public void open(String storeName) {
+    if (realm != null) {
+      return;
+    }
     appSettingStore.open();
     config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
-    Log.d(TAG, "openRealm: " + config.getRealmFileName());
+    Log.d(TAG, "open: " + config.getRealmFileName());
     appSettingStore.close();
   }
 
@@ -67,8 +70,9 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     if (realm == null || realm.isClosed()) {
       return;
     }
-    Log.d(TAG, "closeRealm: " + realm.getConfiguration().getRealmFileName());
+    Log.d(TAG, "close: " + realm.getConfiguration().getRealmFileName());
     realm.close();
+    realm = null;
   }
 
   @Override
@@ -77,9 +81,11 @@ class NamingBaseCacheRealm implements NamingBaseCache {
       return;
     }
     if (Realm.getGlobalInstanceCount(config) <= 0) {
-      Log.d(TAG, "drop: " + config.getRealmFileName());
-      Realm.deleteRealm(config);
-      RealmStoreManager.maybeDropPool(config.getRealmDirectory());
+      final boolean dropped = Realm.deleteRealm(config);
+      if (dropped) {
+        Log.d(TAG, "drop: " + config.getRealmDirectory() + "/" + config.getRealmFileName());
+        RealmStoreManager.maybeDropPool(config.getRealmDirectory());
+      }
     }
   }
 

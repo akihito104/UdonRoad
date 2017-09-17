@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
@@ -26,12 +27,15 @@ import com.freshdigitable.udonroad.datastore.WritableSortedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.CompletableObserver;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Paging;
@@ -110,14 +114,29 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
         public void fetch() {
           twitterApi.fetchConversations(id)
               .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
-                  sortedCache::upsert,
-                  th -> {
-                    onErrorFeedback(R.string.msg_tweet_not_download).accept(th);
-                    sortedCache.close();
-                  },
-                  sortedCache::close,
-                  d -> sortedCache.open(storeName));
+              .map(Collections::singleton)
+              .flatMapCompletable(sortedCache::observeUpsert)
+              .subscribe(new CompletableObserver() {
+                @Override
+                public void onSubscribe(Disposable d) {
+                  sortedCache.open(storeName);
+                }
+
+                @Override
+                public void onComplete() {
+                  sortedCache.close();
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                  try {
+                    onErrorFeedback(R.string.msg_tweet_not_download).accept(e);
+                  } catch (Exception e1) {
+                    Log.e("StatusListRequestWorker", "onError: ", e1);
+                  }
+                  sortedCache.close();
+                }
+              });
         }
 
         @Override

@@ -63,6 +63,7 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
@@ -104,7 +105,7 @@ public abstract class TimelineInstTestBase {
     final int initResListCount = setupTimeline();
 
     getRule().launchActivity(getIntent());
-    IdlingResourceUtil.runWithIdlingResource(
+    runWithIdlingResource(
         getTimelineIdlingResource("launch", initResListCount), () -> {
           try {
             verifyAfterLaunch();

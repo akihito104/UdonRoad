@@ -74,13 +74,11 @@ public class DataStoreModule {
     return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
   }
 
-  @Singleton
   @Provides
   AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences) {
     return new AppSettingStoreRealm(sharedPreferences, context.getFilesDir());
   }
 
-  @Singleton
   @Provides
   ConfigStore provideConfigStore(AppSettingStore appSetting) {
     return new ConfigStoreRealm(appSetting);
@@ -93,19 +91,16 @@ public class DataStoreModule {
     return new ListsSortedCacheRealm(factory, userCache, appSetting);
   }
 
-  @Singleton
   @Provides
   TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore, AppSettingStore appSetting) {
     return new StatusCacheRealm(configStore, appSetting);
   }
 
-  @Singleton
   @Provides
   MediaCache provideMediaCache(TypedCache<Status> configStore) {
     return ((StatusCacheRealm) configStore);
   }
 
-  @Singleton
   @Provides
   TypedCache<User> provideTypedCacheUser(AppSettingStore appSetting) {
     return new UserCacheRealm(appSetting);

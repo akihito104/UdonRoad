@@ -106,6 +106,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
       onView(withId(R.id.nav_header_account)).check(matches(isDisplayed()));
       onView(withId(R.id.nav_drawer)).check(matches(isDefaultNavMenu()));
     });
+    closeDrawerNavigation();
   }
 
   @Test

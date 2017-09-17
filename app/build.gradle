@@ -5,6 +5,7 @@ plugins {
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 apply plugin: 'com.cookpad.android.licensetools'
+apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
     compileSdkVersion 26
