@@ -179,7 +179,8 @@ public abstract class TimelineInstTestBase {
     if (activity != null) {
       activity.finish();
       Thread.sleep(800);
-      StorageUtil.checkAllRealmInstanceCleared();
+      InstrumentationRegistry.getInstrumentation().runOnMainSync(
+          StorageUtil::checkAllRealmInstanceCleared);
     }
   }
 

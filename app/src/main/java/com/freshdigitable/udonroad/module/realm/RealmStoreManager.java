@@ -90,8 +90,9 @@ public class RealmStoreManager implements StoreManager {
       realm.close();
       Log.d("RealmStoreManager", "deleted: cache> " + dir.getName());
     } else {
-      Realm.deleteRealm(config);
-      Log.d("RealmStoreManager", "dropped: cache> " + dir.getName());
+      if (Realm.deleteRealm(config)) {
+        Log.d("RealmStoreManager", "dropped: cache> " + dir.getName());
+      }
     }
   }
 
