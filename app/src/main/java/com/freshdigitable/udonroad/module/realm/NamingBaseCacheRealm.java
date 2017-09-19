@@ -70,7 +70,7 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     if (realm == null || realm.isClosed()) {
       return;
     }
-    Log.d(TAG, "close: " + realm.getConfiguration().getRealmFileName());
+    Log.d(TAG, "close: " + config.getRealmDirectory() + "/" + config.getRealmFileName());
     realm.close();
     realm = null;
   }

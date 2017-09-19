@@ -1,5 +1,7 @@
 package com.freshdigitable.udonroad.util;
 
+import android.support.test.InstrumentationRegistry;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +26,9 @@ public class StorageUtil {
             .name(l)
             .deleteRealmIfMigrationNeeded()
             .build();
+        final int localInstanceCount = Realm.getLocalInstanceCount(config);
         final int globalInstanceCount = Realm.getGlobalInstanceCount(config);
-        if (globalInstanceCount > 0) {
+        if (globalInstanceCount > 0 || localInstanceCount > 0) {
           final Realm realm = Realm.getInstance(config);
           realm.executeTransaction(r -> r.deleteAll());
           realm.close();
@@ -54,14 +57,23 @@ public class StorageUtil {
     return res;
   }
 
-  public static void checkAllRealmInstanceCleared() {  // XXX
-    final ArrayList<InstanceCount> realms = new ArrayList<>();
+  public static void checkAllRealmInstanceClosed() {  // XXX
+    final ArrayList<StorageUtil.InstanceCount> realmCounts = new ArrayList<>();
+    InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+        StorageUtil.getAllRealmInstanceCount(realmCounts));
+    StorageUtil.checkAllRealmInstanceClosed(realmCounts);
+  }
+
+  private static void getAllRealmInstanceCount(List<InstanceCount> realms) {
     for (File d : listDir()) {
       for (String l : listStorage(d)) {
         final InstanceCount ic = checkRealmInstanceCount(d, l);
         realms.add(ic);
       }
     }
+  }
+
+  private static void checkAllRealmInstanceClosed(List<InstanceCount> realms) {
     final String countResult = parseCountResult(realms);
     for (InstanceCount r : realms) {
       assertThat(countResult, r.localCount, is(0));

@@ -74,13 +74,7 @@ public class OAuthActivityInstTest {
 
     @Override
     void tearDownActivity() throws Exception {
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-        final Activity oAuthActivity = findResumeActivityByClass(OAuthActivity.class);
-        if (oAuthActivity != null) {
-          oAuthActivity.finish();
-        }
-      });
-      Thread.sleep(800);
+      IdlingResourceUtil.ActivityWaiter.create(OAuthActivity.class).waitForDestroyed();
     }
   }
 
@@ -161,13 +155,7 @@ public class OAuthActivityInstTest {
 
     @Override
     void tearDownActivity() throws Exception {
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-        final Activity activity = findResumeActivityByClass(MainActivity.class);
-        if (activity != null) {
-          activity.finish();
-        }
-      });
-      Thread.sleep(1000);
+      IdlingResourceUtil.ActivityWaiter.create(MainActivity.class).waitForDestroyed();
     }
   }
 
@@ -199,13 +187,9 @@ public class OAuthActivityInstTest {
       reset(twitter);
       reset(twitterStream);
       tearDownActivity();
-      StorageUtil.checkAllRealmInstanceCleared();
+      StorageUtil.checkAllRealmInstanceClosed();
     }
 
     abstract void tearDownActivity() throws Exception;
-  }
-
-  private static Activity findResumeActivityByClass(Class<? extends Activity> clz) {
-    return IdlingResourceUtil.findActivityByStage(clz, Stage.RESUMED);
   }
 }

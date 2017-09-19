@@ -44,6 +44,7 @@ import android.view.View;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
+import com.freshdigitable.udonroad.util.IdlingResourceUtil.ActivityWaiter;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -135,12 +136,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
           onView(withText(R.string.title_add_account)).check(matches(isDisplayed()));
         });
 
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-      final Activity activity = IdlingResourceUtil.findActivityByStage(OAuthActivity.class, Stage.RESUMED);
-      if (activity != null) {
-        activity.finish();
-      }
-    });
+    ActivityWaiter.create(OAuthActivity.class).waitForDestroyed();
   }
 
   @Test
@@ -164,12 +160,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
 
     verify(twitterStream, times(1)).user();
 
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-      final Activity mainActivity = IdlingResourceUtil.findActivityByStage(MainActivity.class, Stage.RESUMED);
-      if (mainActivity != null) {
-        mainActivity.finish();
-      }
-    });
+    ActivityWaiter.create(MainActivity.class).waitForDestroyed();
   }
 
   @Test
@@ -273,12 +264,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
     runWithIdlingResource(getOpenDrawerIdlingResource(), () ->
         onView(withId(R.id.nav_header_account)).check(matches(withText("user AA\n@userAA"))));
 
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-      final Activity mainActivity = IdlingResourceUtil.findActivityByStage(MainActivity.class, Stage.RESUMED);
-      if (mainActivity != null) {
-        mainActivity.finish();
-      }
-    });
+    ActivityWaiter.create(MainActivity.class).waitForDestroyed();
   }
 
   @Test
@@ -320,12 +306,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
         onView(withId(R.id.nav_header_account))
             .check(matches(withText(getLoginUser().getName() + "\n@" + getLoginUser().getScreenName()))));
 
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-      final Activity mainActivity = IdlingResourceUtil.findActivityByStage(MainActivity.class, Stage.RESUMED);
-      if (mainActivity != null) {
-        mainActivity.finish();
-      }
-    });
+    ActivityWaiter.create(MainActivity.class).waitForDestroyed();
   }
 
   private static void hideAndRelaunchOAuth() {

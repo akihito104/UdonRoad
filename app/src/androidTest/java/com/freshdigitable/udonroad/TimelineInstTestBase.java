@@ -161,13 +161,13 @@ public abstract class TimelineInstTestBase {
   protected abstract int setupTimeline() throws TwitterException;
 
   protected void verifyAfterLaunch() throws Exception {
+    onView(withId(R.id.timeline)).check(matches(isDisplayed()));
+    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
     verify(twitter, times(1)).getHomeTimeline();
     verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
     verify(twitterStream, times(1)).setOAuthAccessToken(any(AccessToken.class));
     final UserStreamListener userStreamListener = getApp().getUserStreamListener();
     assertThat(userStreamListener, is(notNullValue()));
-    onView(withId(R.id.timeline)).check(matches(isDisplayed()));
-    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
   }
 
   @After
@@ -177,10 +177,8 @@ public abstract class TimelineInstTestBase {
     reset(twitterStream);
     final AppCompatActivity activity = getRule().getActivity();
     if (activity != null) {
-      activity.finish();
-      Thread.sleep(800);
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(
-          StorageUtil::checkAllRealmInstanceCleared);
+      IdlingResourceUtil.ActivityWaiter.create(activity).waitForDestroyed();
+      StorageUtil.checkAllRealmInstanceClosed();
     }
   }
 
