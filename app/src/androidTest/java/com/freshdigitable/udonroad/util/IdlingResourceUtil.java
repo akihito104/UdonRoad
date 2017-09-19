@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.util;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
@@ -107,6 +108,47 @@ public class IdlingResourceUtil {
       runnable.run();
     } finally {
       Espresso.unregisterIdlingResources(ir);
+    }
+  }
+
+  public static class ActivityWaiter {
+    public static ActivityWaiter create(Class<? extends Activity> clz) {
+      final ActivityWaiter waiter = new ActivityWaiter(clz);
+      waiter.run();
+      return waiter;
+    }
+
+    public static ActivityWaiter create(Activity target) {
+      final ActivityWaiter waiter = new ActivityWaiter(target);
+      waiter.run();
+      return waiter;
+    }
+
+    private Activity target;
+    private final Class<? extends Activity> clz;
+
+    private ActivityWaiter(Class<? extends Activity> clz) {
+      this.clz = clz;
+    }
+
+    private ActivityWaiter(Activity target) {
+      this.clz = null;
+      this.target = target;
+    }
+
+    private void run() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+          if (clz != null) {
+            target = IdlingResourceUtil.findActivityByStage(clz, Stage.RESUMED);
+          }
+          if (target != null) {
+            target.finish();
+          }
+        });
+    }
+
+    public void waitForDestroyed() {
+      while (target != null && !target.isDestroyed()) {}
     }
   }
 
