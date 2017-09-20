@@ -122,4 +122,5 @@
     <string name="oauth_pin_direction">input PIN code and send it.</string>
 
     <string name="settings_title_sensitive">hide sensitive thumbnail</string>
+    <string name="settings_key_sensitive" translatable="false">key_hide_sensitive_thumb</string>
 </resources>
