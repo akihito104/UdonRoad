@@ -58,6 +58,14 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
             />
+
+        <activity
+            android:name=".UserSettingsActivity"
+            android:theme="@style/SettingsTheme"
+            android:label="@string/title_settings"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="false"
+            />
     </application>
 
 </manifest>

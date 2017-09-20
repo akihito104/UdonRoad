@@ -167,6 +167,8 @@ public class MainActivity extends AppCompatActivity
       } else if (itemId == R.id.drawer_menu_license) {
         startActivity(new Intent(getApplicationContext(), LicenseActivity.class));
         drawerNavigator.closeDrawer();
+      } else if (itemId == R.id.drawer_menu_settings) {
+        startActivity(new Intent(getApplicationContext(), UserSettingsActivity.class));
       }
     });
     drawerNavigator.setOnAccountItemSelectedListener((item, user) -> {
