@@ -16,9 +16,17 @@
   -->
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <SwitchPreference
+    <CheckBoxPreference
         android:defaultValue="false"
         android:key="@string/settings_key_sensitive"
         android:title="@string/settings_title_sensitive"
+        />
+    <ListPreference
+        android:key="@string/settings_key_loginUser"
+        android:title="@string/settings_title_loginUser"
+        android:dialogTitle="@string/settings_title_loginUser"
+        android:entries="@array/settings_loginUser_entries"
+        android:entryValues="@array/settings_loginUser_values"
+        android:defaultValue="@string/settings_loginUser_default"
         />
 </PreferenceScreen>

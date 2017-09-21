@@ -74,6 +74,8 @@
     <string name="msg_oauth_user_icon">you can see the user information.</string>
     <string name="msg_oauth_success">authentication is success!</string>
     <string name="msg_oauth_failed">authentication is failed…</string>
+    <string name="msg_media_failed_loading">failed to load media…</string>
+    <string name="msg_media_failed_tweetNotFound">failed to load media: maybe the tweet was deleted…</string>
 
     <string name="action_totop">To Top</string>
     <string name="action_send_status">Send Status</string>
@@ -123,4 +125,13 @@
 
     <string name="settings_title_sensitive">hide sensitive thumbnail</string>
     <string name="settings_key_sensitive" translatable="false">key_hide_sensitive_thumb</string>
+    <string name="settings_key_loginUser" translatable="false">key_login_user</string>
+    <string name="settings_title_loginUser">login user on launching</string>
+    <string name="settings_loginUser_default">-1</string>
+    <string-array name="settings_loginUser_entries">
+        <item>last logged in</item>
+    </string-array>
+    <string-array name="settings_loginUser_values">
+        <item>@string/settings_loginUser_default</item>
+    </string-array>
 </resources>

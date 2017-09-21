@@ -26,6 +26,7 @@ import com.freshdigitable.udonroad.TweetInputFragment;
 import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.UserInfoFragment;
 import com.freshdigitable.udonroad.UserInfoPagerFragment;
+import com.freshdigitable.udonroad.UserSettingsActivity;
 import com.freshdigitable.udonroad.UserStreamUtil;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 
@@ -68,4 +69,6 @@ public interface AppComponent {
   void inject(MainApplication mainApplication);
 
   void inject(TimelineFragment.ListsListFragment listsListFragment);
+
+  void inject(UserSettingsActivity.SettingsFragment settingsFragment);
 }

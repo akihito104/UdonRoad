@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.app.AppCompatDelegate;
@@ -42,6 +43,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 import twitter4j.auth.AccessToken;
+
+import static android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences;
 
 /**
  * MainApplication is custom Application class.
@@ -96,6 +99,11 @@ public class MainApplication extends Application {
 
   private static boolean init(MainApplication application) {
     application.appSettings.open();
+    final SharedPreferences sp = getDefaultSharedPreferences(application);
+    final String loginUser = sp.getString(application.getString(R.string.settings_key_loginUser), "-1");
+    if (!loginUser.equals("-1")) {
+      application.appSettings.setCurrentUserId(Long.parseLong(loginUser));
+    }
     final long currentUserId = application.appSettings.getCurrentUserId();
     application.appSettings.close();
     if (currentUserId > 0) {
