@@ -61,6 +61,7 @@ class DrawerNavigator {
       }
     }
   };
+  private boolean navMenuPerforming = false;
 
   DrawerNavigator(@NonNull DrawerLayout drawerLayout, @NonNull NavigationView navigationView,
                   @NonNull NavHeaderBinding navHeaderBinding, @NonNull AppSettingStore appSetting) {
@@ -77,11 +78,19 @@ class DrawerNavigator {
         null, null, downArrow, null);
     this.navigationView.addHeaderView(this.navHeaderBinding.getRoot());
     this.navigationView.setNavigationItemSelectedListener(item -> {
-      if (item.getGroupId() == R.id.drawer_menu_default) {
-        defaultItemSelectedListener.onDefaultItemSelected(item);
-      } else if (item.getGroupId() == R.id.drawer_menu_accounts) {
-        final User user = findUserByAccount(item.getTitle().toString());
-        accountItemSelectedListener.onAccountItemSelected(item, user);
+      if (navMenuPerforming) {
+        return false;
+      }
+      navMenuPerforming = true;
+      try {
+        if (item.getGroupId() == R.id.drawer_menu_default) {
+          defaultItemSelectedListener.onDefaultItemSelected(item);
+        } else if (item.getGroupId() == R.id.drawer_menu_accounts) {
+          final User user = findUserByAccount(item.getTitle().toString());
+          accountItemSelectedListener.onAccountItemSelected(item, user);
+        }
+      } finally {
+        navMenuPerforming = false;
       }
       return false;
     });
