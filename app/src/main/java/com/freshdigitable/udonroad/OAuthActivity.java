@@ -208,12 +208,12 @@ public class OAuthActivity extends AppCompatActivity
   }
 
   private void checkOAuth(AccessToken accessToken) {
+    userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_success));
     appSettings.open();
     appSettings.storeAccessToken(accessToken);
-    appSettings.setCurrentUserId(accessToken.getUserId());
     ((MainApplication) getApplication()).logout();
     appSettings.close();
-    userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_success));
+    ((MainApplication) getApplication()).login(accessToken.getUserId());
     Intent intent = new Intent(this, getRedirect());
     startActivity(intent);
     finish();
