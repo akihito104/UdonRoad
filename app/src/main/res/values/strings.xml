@@ -127,7 +127,7 @@
     <string name="settings_key_sensitive" translatable="false">key_hide_sensitive_thumb</string>
     <string name="settings_key_loginUser" translatable="false">key_login_user</string>
     <string name="settings_title_loginUser">login account on launching</string>
-    <string name="settings_loginUser_default">-1</string>
+    <string name="settings_loginUser_default" translatable="false">-1</string>
     <string-array name="settings_loginUser_entries">
         <item>last logged in</item>
     </string-array>

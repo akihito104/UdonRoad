@@ -176,6 +176,7 @@ public class MainActivity extends AppCompatActivity
         OAuthActivity.start(this);
         finish();
       } else {
+        drawerNavigator.closeDrawer();
         ((MainApplication) getApplication()).logout();
         timelineContainerSwitcher.clear();
         iffabItemSelectedListeners.clear();
@@ -186,7 +187,6 @@ public class MainActivity extends AppCompatActivity
         tweetInputFragment.changeCurrentUser();
         timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
         ((MainApplication) getApplication()).connectStream();
-        drawerNavigator.closeDrawer();
       }
     });
   }
