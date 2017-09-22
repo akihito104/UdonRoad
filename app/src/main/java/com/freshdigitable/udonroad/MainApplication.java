@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.app.AppCompatDelegate;
@@ -42,6 +43,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 import twitter4j.auth.AccessToken;
+
+import static android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences;
 
 /**
  * MainApplication is custom Application class.
@@ -94,19 +97,30 @@ public class MainApplication extends Application {
     return appComponent;
   }
 
-  private static boolean init(MainApplication application) {
+  private static void init(MainApplication application) {
     application.appSettings.open();
-    final long currentUserId = application.appSettings.getCurrentUserId();
-    application.appSettings.close();
-    if (currentUserId > 0) {
-      login(application, currentUserId);
-      return application.appSettingWorker.setup();
-    } else {
-      return false;
+    final SharedPreferences sp = getDefaultSharedPreferences(application);
+    final String loginUser = sp.getString(application.getString(R.string.settings_key_loginUser), "-1");
+    if (!loginUser.equals("-1")) {
+      application.appSettings.setCurrentUserId(Long.parseLong(loginUser));
     }
+    application.appSettings.close();
   }
 
   private boolean loggedIn = false;
+
+  void login() {
+    login(this);
+  }
+
+  private static void login(MainApplication app) {
+    app.appSettings.open();
+    final long currentUserId = app.appSettings.getCurrentUserId();
+    app.appSettings.close();
+    if (currentUserId >= 0) {
+      login(app, currentUserId);
+    }
+  }
 
   void login(long userId) {
     login(this, userId);
@@ -123,6 +137,7 @@ public class MainApplication extends Application {
     app.twitterApi.setOAuthAccessToken(accessToken);
     app.twitterStreamApi.setOAuthAccessToken(accessToken);
     app.loggedIn = true;
+    app.appSettingWorker.setup();
     app.appSettingWorker.verifyCredentials();
   }
 
@@ -149,8 +164,11 @@ public class MainApplication extends Application {
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
       Log.d(TAG, "onActivityCreated: count>" + activities.size());
-      if (activities.size() == 0 || !getApplication(activity).loggedIn) {
-        setupAccessToken(activity);
+      if (activities.size() == 0) {
+        init(activity);
+      }
+      if (!getApplication(activity).loggedIn) {
+        getApplication(activity).login();
       }
       if (!getApplication(activity).loggedIn) {
         launchOAuthActivity(activity);
@@ -166,9 +184,10 @@ public class MainApplication extends Application {
       activity.finish();
     }
 
-    private static boolean setupAccessToken(Activity activity) {
-      return !(activity instanceof OAuthActivity)
-          && MainApplication.init(getApplication(activity));
+    private static void init(Activity activity) {
+      if (!(activity instanceof OAuthActivity)) {
+        MainApplication.init(getApplication(activity));
+      }
     }
 
     @Override

@@ -80,6 +80,8 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$supportLibVer"
     implementation "com.android.support:recyclerview-v7:$supportLibVer"
     implementation "com.android.support:design:$supportLibVer"
+    implementation "com.android.support:preference-v7:$supportLibVer"
+    implementation "com.android.support:preference-v14:$supportLibVer"
 
     implementation "org.twitter4j:twitter4j-core:$t4jVer"
     implementation "org.twitter4j:twitter4j-stream:$t4jVer"

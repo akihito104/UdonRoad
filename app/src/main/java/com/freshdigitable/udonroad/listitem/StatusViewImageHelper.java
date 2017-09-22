@@ -17,11 +17,13 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
+import android.support.v7.preference.PreferenceManager;
 import android.view.View;
 
 import com.freshdigitable.udonroad.R;
@@ -118,16 +120,26 @@ public class StatusViewImageHelper {
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     thumbnailContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = thumbnailContainer.getThumbCount();
+    if (mediaCount < 1) {
+      return;
+    }
+
+    final Context context = thumbnailContainer.getContext();
+    final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+    final String key = context.getString(R.string.settings_key_sensitive);
+    final boolean isHideSensitive = sp.getBoolean(key, false);
+
     final long statusId = item.getId();
+
     for (int i = 0; i < mediaCount; i++) {
       final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
       final String type = mediaEntities[i].getType();
       mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
 
-      if (item.isPossiblySensitive()) {
-        mediaView.setImageDrawable(AppCompatResources.getDrawable(mediaView.getContext(), R.drawable.ic_whatshot));
+      if (isHideSensitive && item.isPossiblySensitive()) {
+        mediaView.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_whatshot));
       } else {
-        final RequestCreator rc = getRequest(thumbnailContainer.getContext(),
+        final RequestCreator rc = getRequest(context,
             mediaEntities[i].getMediaURLHttps() + ":thumb", statusId);
         if (thumbnailContainer.getHeight() == 0 || thumbnailContainer.getThumbWidth() == 0) {
           rc.fit();

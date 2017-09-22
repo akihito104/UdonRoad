@@ -18,7 +18,9 @@ package com.freshdigitable.udonroad;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -75,6 +77,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayingAtL
 import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static android.support.v7.preference.PreferenceManager.*;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.findActivityByStage;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
@@ -97,6 +100,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
   @Rule
   public final IntentsTestRule<MainActivity> rule
       = new IntentsTestRule<>(MainActivity.class, false, false);
+  private static User userASub;
 
   @Test
   public void openDrawer() {
@@ -211,7 +215,6 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
     verify(twitterStream, times(2)).user();
 
     openDrawerNavigation();
-    final User userASub = UserUtil.createUserAsub();
     runWithIdlingResource(getOpenDrawerIdlingResource(),() ->
       onView(withText(userASub.getName() + "\n@" + userASub.getScreenName())).check(matches(isDisplayed()))
     );
@@ -224,6 +227,10 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
 
   @Test
   public void addNewAccount_then_mainActivityIsShown() throws Exception {
+    checkNewAccountIsAdded();
+  }
+
+  private void checkNewAccountIsAdded() throws TwitterException {
     openDrawerNavigation();
     runWithIdlingResource(getOpenDrawerIdlingResource(),() -> {
       onView(withId(R.id.nav_header_account)).perform(click());
@@ -309,6 +316,20 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
     ActivityWaiter.create(MainActivity.class).waitForDestroyed();
   }
 
+  @Test
+  public void whenLoginUserIsSetAndNewAccountIsAdded_then_mainActivityIsShown() throws Exception {
+    setLoginUserOnLaunching(getLoginUser().getId());
+
+    checkNewAccountIsAdded();
+  }
+
+  private void setLoginUserOnLaunching(long userId) {
+    final Context context = InstrumentationRegistry.getTargetContext();
+    final SharedPreferences sp = getDefaultSharedPreferences(context);
+    final String loginUserKey = context.getString(R.string.settings_key_loginUser);
+    sp.edit().putString(loginUserKey, Long.toString(userId)).apply();
+  }
+
   private static void hideAndRelaunchOAuth() {
     InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
       final Activity activity = findActivityByStage(OAuthActivity.class, Stage.RESUMED);
@@ -345,7 +366,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
         NavigationView navigationView = (NavigationView) view;
         Menu menu = navigationView.getMenu();
         for (int i = 0; i < menu.size(); i++) {
-          if (menu.getItem(i).getTitle().toString().endsWith(UserUtil.createUserAsub().getScreenName())) {
+          if (menu.getItem(i).getTitle().toString().endsWith(userASub.getScreenName())) {
             menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
             return;
           }
@@ -411,20 +432,27 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
   protected void setupConfig(User loginUser) throws Exception {
     super.setupConfig(loginUser);
     appSettings.open();
-    final User userAsub = UserUtil.createUserAsub();
+    userASub = UserUtil.createUserAsub();
     final AccessToken accessToken = mock(AccessToken.class);
     when(accessToken.getToken()).thenReturn("valid.token.userAsub");
     when(accessToken.getTokenSecret()).thenReturn("valid.secret.userAsub");
-    final long userId = userAsub.getId();
+    final long userId = userASub.getId();
     when(accessToken.getUserId()).thenReturn(userId);
     appSettings.storeAccessToken(accessToken);
-    appSettings.addAuthenticatedUser(userAsub);
+    appSettings.addAuthenticatedUser(userASub);
     appSettings.close();
+    setLoginUserOnLaunching(-1);
   }
 
   @Override
   protected int setupTimeline() throws TwitterException {
     return setupDefaultTimeline();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    setLoginUserOnLaunching(-1);
   }
 
   @Override

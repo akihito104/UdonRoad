@@ -126,4 +126,13 @@
     <string name="msg_oauth_user_icon">ユーザーの情報をみることができます</string>
     <string name="drawer_menu_add_account">登録済みアカウントの追加…</string>
     <string name="title_add_account">登録済みアカウントの追加</string>
+    <string name="drawer_menu_settings">設定</string>
+    <string name="title_settings">@string/drawer_menu_settings</string>
+    <string name="settings_title_sensitive">センシティブなサムネイルを隠す</string>
+    <string name="settings_title_loginUser">起動時のログインアカウント</string>
+    <string-array name="settings_loginUser_entries">
+        <item>最後にログインしたアカウント</item>
+    </string-array>
+    <string name="msg_media_failed_loading">メディアの読み込みに失敗しました…</string>
+    <string name="msg_media_failed_tweetNotFound">元のツイートが削除されたようです…</string>
 </resources>

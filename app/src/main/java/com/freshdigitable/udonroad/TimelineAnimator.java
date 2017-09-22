@@ -494,16 +494,16 @@ public class TimelineAnimator extends SimpleItemAnimator {
       }
     }
 
-    if (changeAnimations.remove(item)) {
+    if (BuildConfig.DEBUG && changeAnimations.remove(item)) {
       throw new IllegalStateException("after animation is canceled, item should not be in changeAnimations.");
     }
-    if (removeAnimations.remove(item)) {
+    if (BuildConfig.DEBUG && removeAnimations.remove(item)) {
       throw new IllegalStateException("after animation is canceled, item should not be in removeAnimations.");
     }
-    if (addAnimations.remove(item)) {
+    if (BuildConfig.DEBUG && addAnimations.remove(item)) {
       throw new IllegalStateException("after animation is canceled, item should not be in addAnimations.");
     }
-    if (moveAnimations.remove(item)) {
+    if (BuildConfig.DEBUG && moveAnimations.remove(item)) {
       throw new IllegalStateException("after animation is canceled, item should not be in moveAnimations.");
     }
     dispatchFinishedWhenDone();
