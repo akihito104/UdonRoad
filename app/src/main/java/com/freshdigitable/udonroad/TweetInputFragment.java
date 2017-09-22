@@ -168,17 +168,9 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onStart: ");
     super.onStart();
     appSettings.open();
+    changeCurrentUser();
 
     final TweetInputView inputText = binding.mainTweetInputView;
-    subscription = appSettings.observeCurrentUser().subscribe(authenticatedUser -> {
-      inputText.setUserInfo(authenticatedUser);
-      Picasso.with(inputText.getContext())
-          .load(authenticatedUser.getMiniProfileImageURLHttps())
-          .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-          .tag(LOADINGTAG_TWEET_INPUT_ICON)
-          .into(inputText.getIcon());
-    }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
-
     inputText.getAppendImageButton().setOnClickListener(v -> {
       final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
@@ -357,6 +349,21 @@ public class TweetInputFragment extends Fragment {
 
   public boolean isStatusInputViewVisible() {
     return binding.mainTweetInputView.isVisible();
+  }
+
+  public void changeCurrentUser() {
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
+    }
+    final TweetInputView inputText = binding.mainTweetInputView;
+    subscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
+      inputText.setUserInfo(currentUser);
+      Picasso.with(inputText.getContext())
+          .load(currentUser.getMiniProfileImageURLHttps())
+          .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
+          .tag(LOADINGTAG_TWEET_INPUT_ICON)
+          .into(inputText.getIcon());
+    }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
   }
 
   interface TweetSendable {

@@ -68,7 +68,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
 
           @Override
           public void onError() {
-            Toast.makeText(getContext(), "failed to load media...", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG).show();
           }
         });
   }

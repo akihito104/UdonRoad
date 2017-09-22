@@ -196,7 +196,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     final long statusId = intent.getLongExtra(CREATE_STATUS, -1);
     final Status status = statusCache.find(statusId);
     if (status == null) {
-      Toast.makeText(getApplicationContext(), "status is not found", Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, R.string.msg_media_failed_tweetNotFound, Toast.LENGTH_SHORT).show();
       return;
     }
     final MediaEntity[] bindingMediaEntities = getBindingStatus(status).getMediaEntities();

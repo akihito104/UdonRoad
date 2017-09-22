@@ -208,11 +208,18 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
       onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())).perform(click());
       onView(withId(R.id.nav_drawer)).check(matches(isSelectAccountMenu()));
     });
-    onView(withId(R.id.nav_drawer)).perform(navigateWithTitle());
+    onView(withId(R.id.nav_drawer)).perform(navigateWithTitle("@" + userASub.getScreenName()));
     runWithIdlingResource(getCloseDrawerIdlingResource(), () ->
         AssertionUtil.checkMainActivityTitle(R.string.title_home));
 
     verify(twitterStream, times(2)).user();
+
+    PerformUtil.clickWriteOnMenu();
+    try {
+      onView(withId(R.id.tw_name)).check(matches(withText(userASub.getName() + " @" + userASub.getScreenName())));
+    } finally {
+      PerformUtil.clickCancelWriteOnMenu();
+    }
 
     openDrawerNavigation();
     runWithIdlingResource(getOpenDrawerIdlingResource(),() ->
@@ -346,7 +353,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
   }
 
   @NonNull
-  private static ViewAction navigateWithTitle() {
+  private static ViewAction navigateWithTitle(@NonNull String account) {
     return new ViewAction() {
       @Override
       public Matcher<View> getConstraints() {
@@ -366,7 +373,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
         NavigationView navigationView = (NavigationView) view;
         Menu menu = navigationView.getMenu();
         for (int i = 0; i < menu.size(); i++) {
-          if (menu.getItem(i).getTitle().toString().endsWith(userASub.getScreenName())) {
+          if (account.equals(menu.getItem(i).getTitle().toString())) {
             menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
             return;
           }

@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity
         ((MainApplication) getApplication()).login(user.getId());
         setupHomeTimeline();
         drawerNavigator.changeCurrentUser();
+        tweetInputFragment.changeCurrentUser();
         timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
         ((MainApplication) getApplication()).connectStream();
         drawerNavigator.closeDrawer();

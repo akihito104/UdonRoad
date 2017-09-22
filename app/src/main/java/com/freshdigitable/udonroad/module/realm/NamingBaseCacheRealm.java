@@ -46,9 +46,6 @@ class NamingBaseCacheRealm implements NamingBaseCache {
   @Override
   @CallSuper
   public void open(String storeName) {
-    if (realm != null) {
-      return;
-    }
     appSettingStore.open();
     config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
@@ -72,7 +69,6 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     }
     Log.d(TAG, "close: " + config.getRealmDirectory() + "/" + config.getRealmFileName());
     realm.close();
-    realm = null;
   }
 
   @Override

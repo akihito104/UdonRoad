@@ -47,9 +47,6 @@ final class PoolRealm implements BaseCache {
   @Override
   @CallSuper
   public void open() {
-    if (cache != null) {
-      return;
-    }
     appSettingStore.open();
     config = new RealmConfiguration.Builder()
         .directory(appSettingStore.getCurrentUserDir())
@@ -74,7 +71,6 @@ final class PoolRealm implements BaseCache {
     }
     Log.d(TAG, "close: " + config.getRealmFileName());
     cache.close();
-    cache = null;
   }
 
   @Override

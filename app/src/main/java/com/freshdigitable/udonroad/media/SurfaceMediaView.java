@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.media;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -26,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.databinding.FragmentSurfaceMediaBinding;
@@ -54,6 +56,18 @@ public class SurfaceMediaView extends MediaFragment {
   private FragmentSurfaceMediaBinding binding;
   private final MediaPlayer mediaPlayer = new MediaPlayer();
   private Disposable subscribe;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    final Uri mediaUri = Uri.parse(getUrl());
+    try {
+      mediaPlayer.setDataSource(getContext(), mediaUri);
+    } catch (IOException e) {
+      Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG).show();
+      Log.e(TAG, "onAttach: ", e);
+    }
+  }
 
   @Nullable
   @Override
@@ -99,12 +113,7 @@ public class SurfaceMediaView extends MediaFragment {
   @Override
   public void onStart() {
     super.onStart();
-    try {
-      setupMediaPlayer();
-    } catch (IOException e) {
-      e.printStackTrace();
-      return;
-    }
+    setupMediaPlayer();
     setupProgressBar();
   }
 
@@ -122,7 +131,6 @@ public class SurfaceMediaView extends MediaFragment {
     }
     mediaPlayer.setDisplay(null);
     mediaPlayer.stop();
-    mediaPlayer.release();
     mediaPlayer.setOnPreparedListener(null);
     mediaPlayer.setOnVideoSizeChangedListener(null);
   }
@@ -137,10 +145,13 @@ public class SurfaceMediaView extends MediaFragment {
     }
   }
 
-  private void setupMediaPlayer() throws IOException {
-    final Uri mediaUri = Uri.parse(getUrl());
-    mediaPlayer.setDataSource(getContext(), mediaUri);
+  @Override
+  public void onDetach() {
+    super.onDetach();
+    mediaPlayer.release();
+  }
 
+  private void setupMediaPlayer() {
     mediaPlayer.setOnPreparedListener(mp -> {
       binding.mediaWheel.setVisibility(View.GONE);
       final int duration = mp.getDuration();

@@ -58,16 +58,12 @@ public class AppSettingStoreRealm implements AppSettingStore {
 
   @Override
   public void open() {
-    if (realm != null) {
-      return;
-    }
     realm = Realm.getInstance(config);
   }
 
   @Override
   public void close() {
     realm.close();
-    realm = null;
   }
 
   @Override
