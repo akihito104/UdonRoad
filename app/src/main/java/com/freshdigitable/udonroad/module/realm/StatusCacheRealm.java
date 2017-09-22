@@ -59,16 +59,16 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   private static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final PoolRealm pool;
   private final ConfigStore configStore;
-  private UserCacheRealm userTypedCache;
+  private final UserCacheRealm userTypedCache;
 
   public StatusCacheRealm(ConfigStore configStore, AppSettingStore appSetting) {
     this.configStore = configStore;
     this.pool = new PoolRealm(appSetting);
+    this.userTypedCache = new UserCacheRealm(pool);
   }
 
   @Override
   public void open() {
-    this.userTypedCache = new UserCacheRealm(pool);
     configStore.open();
     pool.open();
   }
