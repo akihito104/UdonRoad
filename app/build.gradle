@@ -82,6 +82,7 @@ dependencies {
     implementation "com.android.support:design:$supportLibVer"
     implementation "com.android.support:preference-v7:$supportLibVer"
     implementation "com.android.support:preference-v14:$supportLibVer"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
     implementation "org.twitter4j:twitter4j-core:$t4jVer"
     implementation "org.twitter4j:twitter4j-stream:$t4jVer"

@@ -269,7 +269,6 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void setUpTweetInputView() {
-    appSettingRequestWorker.verifyCredentials();
     binding.mainTweetInputView.setShortUrlLength(
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
   }
