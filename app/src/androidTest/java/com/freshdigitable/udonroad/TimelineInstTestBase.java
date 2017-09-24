@@ -59,6 +59,7 @@ import twitter4j.UserStreamListener;
 import twitter4j.auth.AccessToken;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
@@ -68,7 +69,6 @@ import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRespons
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
@@ -162,7 +162,7 @@ public abstract class TimelineInstTestBase {
 
   protected void verifyAfterLaunch() throws Exception {
     onView(withId(R.id.timeline)).check(matches(isDisplayed()));
-    onView(withId(R.id.main_send_tweet)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.action_sendTweet)).check(doesNotExist());
     verify(twitter, times(1)).getHomeTimeline();
     verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
     verify(twitterStream, times(1)).setOAuthAccessToken(any(AccessToken.class));

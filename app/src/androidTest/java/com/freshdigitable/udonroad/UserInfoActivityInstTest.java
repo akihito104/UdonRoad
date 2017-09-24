@@ -98,7 +98,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.tw_intext)).check(matches(withText("")));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
       onView(withId(R.id.action_group_user)).check(doesNotExist());
-      onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()));
       // tear down
       PerformUtil.clickCancelWriteOnMenu();
       AssertionUtil.checkUserInfoActivityTitle("");
@@ -117,8 +117,8 @@ public class UserInfoActivityInstTest {
       AssertionUtil.checkUserInfoActivityTitle("");
       onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-      onView(withId(R.id.action_write)).check(doesNotExist());
-      onView(withId(R.id.action_cancel)).check(doesNotExist());
+      onView(withId(R.id.action_writeTweet)).check(doesNotExist());
+      onView(withId(R.id.action_sendTweet)).check(doesNotExist());
     }
 
     @Test
@@ -457,7 +457,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
       onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-      onView(withId(R.id.action_write)).check(doesNotExist());
+      onView(withId(R.id.action_writeTweet)).check(doesNotExist());
     }
 
     @Override

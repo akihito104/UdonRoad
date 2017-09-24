@@ -90,7 +90,6 @@ public class ReplyActivity extends AppCompatActivity {
     binding.replyStatus.bind(new StatusListItem(status));
 
     tweetInputFragment = (TweetInputFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
-    tweetInputFragment.setTweetSendFab(binding.replySendTweet);
     final @TweetType int tweetType = getTweetType();
     tweetInputFragment.stretchTweetInputView(tweetType, statusId);
   }
@@ -99,7 +98,6 @@ public class ReplyActivity extends AppCompatActivity {
   protected void onStop() {
     statusCache.close();
     tweetInputFragment.collapseStatusInputView();
-    tweetInputFragment.setTweetSendFab(null);
     super.onStop();
   }
 

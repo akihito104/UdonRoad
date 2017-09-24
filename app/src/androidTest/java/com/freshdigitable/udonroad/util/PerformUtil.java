@@ -115,11 +115,11 @@ public class PerformUtil {
   }
 
   public static ViewInteraction clickWriteOnMenu() {
-    return onView(withId(R.id.action_write)).perform(click());
+    return onView(withId(R.id.action_writeTweet)).perform(click());
   }
 
   public static ViewInteraction clickCancelWriteOnMenu() {
-    return onView(withId(R.id.action_cancel)).perform(click());
+    return MatcherUtil.onCancelWriteMenu().perform(click());
   }
 
   public static ViewInteraction clickHeadingOnMenu() {

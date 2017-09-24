@@ -33,7 +33,6 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.animation.AlphaAnimation;
@@ -174,15 +173,6 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    final int itemId = item.getItemId();
-    if (itemId == R.id.action_cancel) {
-      closeTwitterInputView();
-    }
-    return super.onOptionsItemSelected(item);
-  }
-
-  @Override
   public void onEnterAnimationComplete() {
     userInfoAppbarFragment.onEnterAnimationComplete();
     if (isTimelineContainerEmpty()) {
@@ -262,7 +252,6 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
 
     tweetInputFragment = TweetInputFragment.create();
-    tweetInputFragment.setTweetSendFab(binding.userInfoTweetSend);
     getSupportFragmentManager().beginTransaction()
         .hide(userInfoAppbarFragment)
         .add(R.id.userInfo_appbar_container, tweetInputFragment)

@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment<?> tlFragment;
-  private TweetInputFragment tweetInputFragment;
 
   @Inject
   ConfigRequestWorker configRequestWorker;
@@ -80,6 +79,7 @@ public class MainActivity extends AppCompatActivity
   AppSettingStore appSetting;
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private DrawerNavigator drawerNavigator;
+  private ToolbarTweetInputToggle toolbarTweetInputToggle;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -93,8 +93,8 @@ public class MainActivity extends AppCompatActivity
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setupHomeTimeline();
-    setupTweetInputView();
     setupNavigationDrawer();
+    setupTweetInputView();
 
     setSupportActionBar(binding.mainToolbar);
     final ActionBar supportActionBar = getSupportActionBar();
@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity
 
   private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
+        binding.navDrawerLayout, toolbar, R.string.navDesc_openDrawer, R.string.navDesc_closeDrawer) {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity
         ((MainApplication) getApplication()).login(user.getId());
         setupHomeTimeline();
         drawerNavigator.changeCurrentUser();
-        tweetInputFragment.changeCurrentUser();
+        toolbarTweetInputToggle.changeCurrentUser();
         timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
         ((MainApplication) getApplication()).connectStream();
       }
@@ -236,8 +236,7 @@ public class MainActivity extends AppCompatActivity
       drawerNavigator.closeDrawer();
       return;
     }
-    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
-      tweetInputFragment.collapseStatusInputView();
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
       cancelWritingSelected();
       return;
     }
@@ -259,33 +258,23 @@ public class MainActivity extends AppCompatActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == R.id.action_write) {
+    if (itemId == R.id.action_writeTweet) {
       sendStatusSelected(TYPE_DEFAULT, -1);
-    } else if (itemId == R.id.action_cancel) {
-      cancelWritingSelected();
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
   }
-
-  private CharSequence prevTitle;
 
   private void sendStatusSelected(@TweetType int type, long statusId) {
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
     }
     tlFragment.stopScroll();
-    if (type != TYPE_DEFAULT) {
-      tweetInputFragment.stretchTweetInputView(type, statusId);
-    }
-    prevTitle = binding.mainToolbar.getTitle();
-    if (type == TYPE_REPLY) {
-      binding.mainToolbar.setTitle(R.string.title_reply);
-    } else if (type == TYPE_QUOTE) {
-      binding.mainToolbar.setTitle(R.string.title_comment);
-    } else {
-      binding.mainToolbar.setTitle(R.string.title_tweet);
-    }
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
+    actionBarDrawerToggle.setToolbarNavigationClickListener(
+        toolbarTweetInputToggle.getOnCollapseClickListener());
+    toolbarTweetInputToggle.setOnCloseListener(v -> cancelWritingSelected());
+    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
   }
 
   private void cancelWritingSelected() {
@@ -293,15 +282,19 @@ public class MainActivity extends AppCompatActivity
     if (tlFragment.isItemSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
-    binding.mainToolbar.setTitle(prevTitle);
+    toolbarTweetInputToggle.collapseTweetInputView();
+    toolbarTweetInputToggle.setOnCloseListener(null);
+    actionBarDrawerToggle.setToolbarNavigationClickListener(null);
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+    actionBarDrawerToggle.syncState();
   }
 
   private void setupTweetInputView() {
-    tweetInputFragment = TweetInputFragment.create();
-    tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
+    final TweetInputFragment tweetInputFragment = TweetInputFragment.create();
     getSupportFragmentManager().beginTransaction()
         .add(R.id.main_appbar_container, tweetInputFragment)
         .commit();
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(tweetInputFragment, binding.mainToolbar);
   }
 
   @Override
@@ -366,7 +359,7 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onUserIconClicked(View view, User user) {
-    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
       return;
     }
     tlFragment.stopScroll();

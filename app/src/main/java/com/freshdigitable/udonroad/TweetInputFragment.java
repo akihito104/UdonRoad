@@ -31,7 +31,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -116,16 +115,16 @@ public class TweetInputFragment extends Fragment {
     setHasOptionsMenu(true);
   }
 
-  private MenuItem sendStatusMenuItem;
-  private MenuItem cancelMenuItem;
+  private MenuItem writeTweetMenuItem;
+  private MenuItem sendTweetItem;
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     Log.d(TAG, "onCreateOptionsMenu: ");
     super.onCreateOptionsMenu(menu, inflater);
     inflater.inflate(R.menu.tweet_input, menu);
-    sendStatusMenuItem = menu.findItem(R.id.action_write);
-    cancelMenuItem = menu.findItem(R.id.action_cancel);
+    writeTweetMenuItem = menu.findItem(R.id.action_writeTweet);
+    sendTweetItem = menu.findItem(R.id.action_sendTweet);
     setupMenuVisibility();
   }
 
@@ -133,11 +132,11 @@ public class TweetInputFragment extends Fragment {
     if (binding == null) {
       return;
     }
-    if (sendStatusMenuItem != null) {
-      sendStatusMenuItem.setVisible(!binding.mainTweetInputView.isVisible());
+    if (writeTweetMenuItem != null) {
+      writeTweetMenuItem.setVisible(!binding.mainTweetInputView.isVisible());
     }
-    if (cancelMenuItem != null) {
-      cancelMenuItem.setVisible(binding.mainTweetInputView.isVisible());
+    if (sendTweetItem != null) {
+      sendTweetItem.setVisible(binding.mainTweetInputView.isVisible());
     }
   }
 
@@ -145,10 +144,18 @@ public class TweetInputFragment extends Fragment {
   public boolean onOptionsItemSelected(MenuItem item) {
     Log.d(TAG, "onOptionsItemSelected: ");
     final int itemId = item.getItemId();
-    if (itemId == R.id.action_write) {
+    if (itemId == R.id.action_writeTweet) {
       stretchTweetInputView();
-    } else if (itemId == R.id.action_cancel) {
-      collapseStatusInputView();
+    } else if (itemId == R.id.action_sendTweet) {
+      final TweetSendable tweetSendable = getActivity() instanceof TweetSendable ?
+          (TweetSendable) getActivity() : (s) -> {};
+      updateStatusTask = createSendObservable().subscribe((s, e) -> {
+        item.setEnabled(false);
+        if (s != null) { //  on success
+          reset();
+          tweetSendable.onTweetComplete(s);
+        }
+      });
     }
     return false;
   }
@@ -182,7 +189,6 @@ public class TweetInputFragment extends Fragment {
       showMediaChooser();
     });
     inputText.addTextWatcher(textWatcher);
-    tweetSendFab.setOnClickListener(createSendClickListener());
   }
 
   @Override
@@ -196,7 +202,6 @@ public class TweetInputFragment extends Fragment {
     appSettings.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
-    tweetSendFab.setOnClickListener(null);
   }
 
   @Override
@@ -205,19 +210,12 @@ public class TweetInputFragment extends Fragment {
     if (updateStatusTask != null && !updateStatusTask.isDisposed()) {
       updateStatusTask.dispose();
     }
-    tweetSendFab.setOnClickListener(null);
-  }
-
-  private FloatingActionButton tweetSendFab;
-
-  public void setTweetSendFab(FloatingActionButton fab) {
-    this.tweetSendFab = fab;
   }
 
   private final TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
-      tweetSendFab.setEnabled(editable.length() >= 1);
+      sendTweetItem.setEnabled(editable.length() >= 1);
     }
 
     @Override
@@ -276,7 +274,7 @@ public class TweetInputFragment extends Fragment {
   private void setUpTweetSendFab() {
     final TweetInputView inputText = binding.mainTweetInputView;
     if (inputText.getText().length() < 1) {
-      tweetSendFab.setEnabled(false);
+      sendTweetItem.setEnabled(false);
     }
   }
 
@@ -434,13 +432,13 @@ public class TweetInputFragment extends Fragment {
   private void addAllMedia(Collection<Uri> uris) {
     media.addAll(uris);
     updateMediaContainer();
-    tweetSendFab.setEnabled(true);
+    sendTweetItem.setEnabled(true);
   }
 
   private void removeMedia(Uri uri) {
     media.remove(uri);
     updateMediaContainer();
-    tweetSendFab.setEnabled(!media.isEmpty());
+    sendTweetItem.setEnabled(!media.isEmpty());
   }
 
   private void updateMediaContainer() {
@@ -472,7 +470,7 @@ public class TweetInputFragment extends Fragment {
   private void clearMedia() {
     media.clear();
     binding.mainTweetInputView.clearMedia();
-    tweetSendFab.setEnabled(false);
+    sendTweetItem.setEnabled(false);
   }
 
   @Override
