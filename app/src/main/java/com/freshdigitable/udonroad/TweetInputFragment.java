@@ -126,6 +126,7 @@ public class TweetInputFragment extends Fragment {
     writeTweetMenuItem = menu.findItem(R.id.action_writeTweet);
     sendTweetItem = menu.findItem(R.id.action_sendTweet);
     setupMenuVisibility();
+    setUpSendTweetMenuItem();
   }
 
   private void setupMenuVisibility() {
@@ -261,7 +262,7 @@ public class TweetInputFragment extends Fragment {
 
   private void stretchTweetInputView() {
     setUpTweetInputView();
-    setUpTweetSendFab();
+    setUpSendTweetMenuItem();
     binding.mainTweetInputView.appearing();
     setupMenuVisibility();
   }
@@ -271,9 +272,9 @@ public class TweetInputFragment extends Fragment {
         appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
   }
 
-  private void setUpTweetSendFab() {
+  private void setUpSendTweetMenuItem() {
     final TweetInputView inputText = binding.mainTweetInputView;
-    if (inputText.getText().length() < 1) {
+    if (sendTweetItem != null && inputText.getText().length() < 1) {
       sendTweetItem.setEnabled(false);
     }
   }

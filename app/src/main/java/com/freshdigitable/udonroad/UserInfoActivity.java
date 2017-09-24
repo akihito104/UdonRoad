@@ -247,6 +247,7 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   private int titleVisibility;
+  private ToolbarTweetInputToggle toolbarTweetInputToggle;
 
   private void showTwitterInputView(@TweetType int type, long statusId) {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
@@ -256,19 +257,16 @@ public class UserInfoActivity extends AppCompatActivity
         .hide(userInfoAppbarFragment)
         .add(R.id.userInfo_appbar_container, tweetInputFragment)
         .commitNow();
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(tweetInputFragment, binding.userInfoToolbar);
     titleVisibility = binding.userInfoToolbarTitle.getVisibility();
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
-    if (type == TYPE_REPLY) {
-      binding.userInfoToolbar.setTitle(R.string.title_reply);
-    } else if (type == TYPE_QUOTE) {
-      binding.userInfoToolbar.setTitle(R.string.title_comment);
-    }
-    tweetInputFragment.stretchTweetInputView(type, statusId);
+    toolbarTweetInputToggle.setOnCloseListener(v -> closeTwitterInputView());
+    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
     binding.userInfoAppbarLayout.setExpanded(true);
   }
 
   private void closeTwitterInputView() {
-    if (tweetInputFragment == null) {
+    if (toolbarTweetInputToggle == null) {
       return;
     }
     binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
@@ -279,7 +277,8 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoToolbar.setTitle("");
     binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
     binding.userInfoToolbarTitle.setVisibility(titleVisibility);
-    tweetInputFragment = null;
+    toolbarTweetInputToggle.setOnCloseListener(null);
+    toolbarTweetInputToggle = null;
   }
 
   @Override
@@ -290,7 +289,7 @@ public class UserInfoActivity extends AppCompatActivity
     if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
       return;
     }
-    if (tweetInputFragment != null && tweetInputFragment.isVisible()) {
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
       closeTwitterInputView();
       return;
     }

@@ -26,6 +26,7 @@ import android.support.test.rule.ActivityTestRule;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.util.AssertionUtil;
+import com.freshdigitable.udonroad.util.MatcherUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
@@ -50,6 +51,7 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.UserInfoActivityInstTest.ActionItem.BLOCK;
@@ -94,14 +96,20 @@ public class UserInfoActivityInstTest {
       PerformUtil.selectItemViewAt(0);
       PerformUtil.reply();
       // verify
+      MatcherUtil.onCancelWriteMenu().check(matches(isDisplayed()));
       AssertionUtil.checkUserInfoActivityTitle(R.string.title_reply);
       onView(withId(R.id.tw_intext)).check(matches(withText("")));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
       onView(withId(R.id.action_group_user)).check(doesNotExist());
-      onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()));
+      onView(withId(R.id.action_sendTweet))
+          .check(matches(isDisplayed()))
+          .check(matches(not(isEnabled())));
+
       // tear down
       PerformUtil.clickCancelWriteOnMenu();
       AssertionUtil.checkUserInfoActivityTitle("");
+      MatcherUtil.onCancelWriteMenu().check(doesNotExist());
+      onView(withId(R.id.action_sendTweet)).check(doesNotExist());
     }
 
     @Test
@@ -111,10 +119,14 @@ public class UserInfoActivityInstTest {
       PerformUtil.selectItemViewAt(0);
       PerformUtil.reply();
       AssertionUtil.checkUserInfoActivityTitle(R.string.title_reply);
+      MatcherUtil.onCancelWriteMenu().check(matches(isDisplayed()));
+      onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()))
+          .check(matches(not(isEnabled())));
       onView(withId(R.id.tw_intext)).check(matches(withText("")));
       PerformUtil.clickCancelWriteOnMenu();
       // verify
       AssertionUtil.checkUserInfoActivityTitle("");
+      MatcherUtil.onCancelWriteMenu().check(doesNotExist());
       onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
       onView(withId(R.id.action_writeTweet)).check(doesNotExist());
