@@ -20,11 +20,9 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
@@ -50,9 +48,7 @@ class ToolbarTweetInputToggle {
   }
 
   void expandTweetInputView(@TweetType int type, long statusId) {
-    if (type != TYPE_DEFAULT) {
-      fragment.stretchTweetInputView(type, statusId);
-    }
+    fragment.stretchTweetInputView(type, statusId);
     prevTitle = toolbar.getTitle();
     if (type == TYPE_REPLY) {
       toolbar.setTitle(R.string.title_reply);
@@ -70,7 +66,12 @@ class ToolbarTweetInputToggle {
   }
 
   void collapseTweetInputView() {
-    fragment.collapseStatusInputView();
+    if (fragment.isStatusInputViewVisible()) {
+      fragment.collapseStatusInputView();
+    }
+  }
+
+  void onTweetInputViewClosed() {
     toolbar.setTitle(prevTitle);
     toolbar.setNavigationContentDescription(navContentDescriptionDefault);
     toolbar.setNavigationIcon(navIconDefault);
@@ -87,13 +88,5 @@ class ToolbarTweetInputToggle {
 
   TweetInputFragment getFragment() {
     return fragment;
-  }
-
-  boolean onOptionsItemSelected(MenuItem item) {
-    if (fragment.isStatusInputViewVisible() && item.getItemId() == android.R.id.home) {
-      collapseTweetInputView();
-      return true;
-    }
-    return false;
   }
 }

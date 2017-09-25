@@ -33,14 +33,13 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -55,7 +54,6 @@ import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import twitter4j.Status;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
@@ -68,7 +66,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetSendable, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
+    implements TweetInputListener, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
     OnSpanClickListener, TimelineFragment.OnItemClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
@@ -263,21 +261,6 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoAppbarLayout.setExpanded(true);
   }
 
-  private void closeTwitterInputView() {
-    if (toolbarTweetInputToggle == null) {
-      return;
-    }
-    toolbarTweetInputToggle.collapseTweetInputView();
-    binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
-    getSupportFragmentManager().beginTransaction()
-        .remove(toolbarTweetInputToggle.getFragment())
-        .show(userInfoAppbarFragment)
-        .commit();
-    binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
-    binding.userInfoToolbarTitle.setVisibility(titleVisibility);
-    toolbarTweetInputToggle = null;
-  }
-
   @Override
   public void onBackPressed() {
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
@@ -287,23 +270,33 @@ public class UserInfoActivity extends AppCompatActivity
       return;
     }
     if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
-      closeTwitterInputView();
+      toolbarTweetInputToggle.collapseTweetInputView();
       return;
     }
     super.onBackPressed();
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.onOptionsItemSelected(item)) {
-      closeTwitterInputView();
+  public void onTweetInputClosed() {
+    if (toolbarTweetInputToggle == null) {
+      return;
     }
-    return super.onOptionsItemSelected(item);
+    toolbarTweetInputToggle.onTweetInputViewClosed();
+    binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
+    binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
+    binding.userInfoToolbarTitle.setVisibility(titleVisibility);
+    getSupportFragmentManager().beginTransaction()
+        .hide(toolbarTweetInputToggle.getFragment())
+        .show(userInfoAppbarFragment)
+        .commit();
   }
 
   @Override
-  public void onTweetComplete(Status updated) {
-    closeTwitterInputView();
+  public void onSendCompleted() {
+    getSupportFragmentManager().beginTransaction()
+        .remove(toolbarTweetInputToggle.getFragment())
+        .commit();
+    toolbarTweetInputToggle = null;
   }
 
   private void updateTabs(@NonNull TabLayout userInfoTabs, User user) {

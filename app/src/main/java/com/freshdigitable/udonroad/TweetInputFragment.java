@@ -33,6 +33,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -50,7 +51,6 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
@@ -90,8 +90,6 @@ public class TweetInputFragment extends Fragment {
   private FragmentTweetInputBinding binding;
   @Inject
   StatusRequestWorker statusRequestWorker;
-  @Inject
-  AppSettingRequestWorker appSettingRequestWorker;
   @Inject
   AppSettingStore appSettings;
   @Inject
@@ -145,18 +143,19 @@ public class TweetInputFragment extends Fragment {
   public boolean onOptionsItemSelected(MenuItem item) {
     Log.d(TAG, "onOptionsItemSelected: ");
     final int itemId = item.getItemId();
-    if (itemId == R.id.action_writeTweet) {
-      stretchTweetInputView();
-    } else if (itemId == R.id.action_sendTweet) {
-      final TweetSendable tweetSendable = getActivity() instanceof TweetSendable ?
-          (TweetSendable) getActivity() : (s) -> {};
+    if (itemId == R.id.action_sendTweet) {
+      collapseStatusInputView();
+      final TweetInputListener tweetInputListener = getTweetInputListener();
       updateStatusTask = createSendObservable().subscribe((s, e) -> {
         item.setEnabled(false);
         if (s != null) { //  on success
+          tweetInputListener.onSendCompleted();
           reset();
-          tweetSendable.onTweetComplete(s);
         }
       });
+    } else if (isStatusInputViewVisible() && itemId == android.R.id.home) {
+      collapseStatusInputView();
+      reset();
     }
     return false;
   }
@@ -285,24 +284,6 @@ public class TweetInputFragment extends Fragment {
     }
   }
 
-  private View.OnClickListener createSendClickListener() {
-    final TweetSendable tweetSendable = getActivity() instanceof TweetSendable ?
-        (TweetSendable) getActivity() : (s) -> {};
-    final TweetInputView mainTweetInputView = binding.mainTweetInputView;
-    return v -> {
-      v.setClickable(false);
-      mainTweetInputView.setClickable(false);
-      updateStatusTask = createSendObservable().subscribe((s, e) -> {
-        v.setClickable(true);
-        mainTweetInputView.setClickable(true);
-        if (s != null) { //  on success
-          reset();
-          tweetSendable.onTweetComplete(s);
-        }
-      });
-    };
-  }
-
   private Single<Status> createSendObservable() {
     final String sendingText = binding.mainTweetInputView.getText().toString();
     if (!isStatusUpdateNeeded()) {
@@ -339,7 +320,9 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void collapseStatusInputView() {
-    reset();
+    binding.mainTweetInputView.disappearing();
+    setupMenuVisibility();
+    getTweetInputListener().onTweetInputClosed();
   }
 
   private void reset() {
@@ -347,8 +330,6 @@ public class TweetInputFragment extends Fragment {
     quoteStatusIds.clear();
     clearMedia();
     binding.mainTweetInputView.reset();
-    binding.mainTweetInputView.disappearing();
-    setupMenuVisibility();
   }
 
   public boolean isStatusInputViewVisible() {
@@ -370,8 +351,23 @@ public class TweetInputFragment extends Fragment {
     }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
   }
 
-  interface TweetSendable {
-    void onTweetComplete(Status updated);
+  interface TweetInputListener {
+    void onTweetInputClosed();
+
+    void onSendCompleted();
+  }
+
+  @NonNull
+  private TweetInputListener getTweetInputListener() {
+    final FragmentActivity activity = getActivity();
+    return activity instanceof TweetInputListener ? (TweetInputListener) activity
+        : new TweetInputListener() {
+      @Override
+      public void onTweetInputClosed() {}
+
+      @Override
+      public void onSendCompleted() {}
+    };
   }
 
   public static final int TYPE_DEFAULT = 0;
