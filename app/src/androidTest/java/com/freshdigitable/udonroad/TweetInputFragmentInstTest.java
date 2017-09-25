@@ -44,6 +44,8 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getOpenDrawerIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.CoreMatchers.not;
@@ -167,7 +169,9 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
   public void openTweetInputAndThenOpenDrawer() {
     PerformUtil.clickWriteOnMenu();
     PerformUtil.clickCancelWriteOnMenu();
-    PerformUtil.openDrawerNavigation();
+    MatcherUtil.onOpenDrawerMenu().perform(click());
+    runWithIdlingResource(getOpenDrawerIdlingResource(rule.getActivity()), () ->
+        onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())));
   }
 
   private void sendReplyToMe() throws Exception {

@@ -20,7 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 
@@ -40,10 +40,13 @@ class ToolbarTweetInputToggle {
   private CharSequence navContentDescriptionDefault;
   private Drawable navIconDefault;
 
-  ToolbarTweetInputToggle(@NonNull TweetInputFragment fragment, @NonNull Toolbar toolbar) {
-    this.fragment = fragment;
+  ToolbarTweetInputToggle(@NonNull Toolbar toolbar) {
     this.toolbar = toolbar;
-    this.navigationIcon = new DrawerArrowDrawable(toolbar.getContext());
+    this.fragment = TweetInputFragment.create();
+    final Drawable defaultNavIcon = toolbar.getNavigationIcon();
+    this.navigationIcon = defaultNavIcon != null && defaultNavIcon instanceof DrawerArrowDrawable ?
+        (DrawerArrowDrawable) defaultNavIcon
+        : new DrawerArrowDrawable(toolbar.getContext());
   }
 
   void expandTweetInputView(@TweetType int type, long statusId) {
@@ -61,26 +64,14 @@ class ToolbarTweetInputToggle {
     navIconDefault = toolbar.getNavigationIcon();
     navContentDescriptionDefault = toolbar.getNavigationContentDescription();
 
-    toolbar.setNavigationIcon(this.navigationIcon);
-    toolbar.setNavigationOnClickListener(getOnCollapseClickListener());
+    toolbar.setNavigationIcon(navigationIcon);
     navigationIcon.setProgress(1.f);
     toolbar.setNavigationContentDescription(R.string.navDesc_cancelTweet);
-  }
-
-  @NonNull
-  View.OnClickListener getOnCollapseClickListener() {
-    return v -> {
-      collapseTweetInputView();
-      if (closeListener != null) {
-        closeListener.onTweetInputClosed(v);
-      }
-    };
   }
 
   void collapseTweetInputView() {
     fragment.collapseStatusInputView();
     toolbar.setTitle(prevTitle);
-    toolbar.setNavigationOnClickListener(null);
     toolbar.setNavigationContentDescription(navContentDescriptionDefault);
     toolbar.setNavigationIcon(navIconDefault);
     navigationIcon.setProgress(0.f);
@@ -94,13 +85,15 @@ class ToolbarTweetInputToggle {
     fragment.changeCurrentUser();
   }
 
-  interface OnCloseListener {
-    void onTweetInputClosed(View view);
+  TweetInputFragment getFragment() {
+    return fragment;
   }
 
-  private OnCloseListener closeListener;
-
-  void setOnCloseListener(OnCloseListener listener) {
-    closeListener = listener;
+  boolean onOptionsItemSelected(MenuItem item) {
+    if (fragment.isStatusInputViewVisible() && item.getItemId() == android.R.id.home) {
+      collapseTweetInputView();
+      return true;
+    }
+    return false;
   }
 }

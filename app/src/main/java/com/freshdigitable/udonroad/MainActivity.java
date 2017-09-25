@@ -27,7 +27,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -92,11 +91,12 @@ public class MainActivity extends AppCompatActivity
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+    setSupportActionBar(binding.mainToolbar);
+
     setupHomeTimeline();
     setupNavigationDrawer();
     setupTweetInputView();
 
-    setSupportActionBar(binding.mainToolbar);
     final ActionBar supportActionBar = getSupportActionBar();
     if (supportActionBar != null) {
       supportActionBar.setDisplayHomeAsUpEnabled(true);
@@ -116,16 +116,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupNavigationDrawer() {
-    attachToolbar(binding.mainToolbar);
-
-    final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
-        LayoutInflater.from(this), R.layout.nav_header, null, false);
-    drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
-  }
-
-  private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        binding.navDrawerLayout, toolbar, R.string.navDesc_openDrawer, R.string.navDesc_closeDrawer) {
+        binding.navDrawerLayout, R.string.navDesc_openDrawer, R.string.navDesc_closeDrawer) {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
@@ -141,6 +133,10 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
+
+    final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
+        LayoutInflater.from(this), R.layout.nav_header, null, false);
+    drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
   }
 
   @Override
@@ -260,6 +256,9 @@ public class MainActivity extends AppCompatActivity
     int itemId = item.getItemId();
     if (itemId == R.id.action_writeTweet) {
       sendStatusSelected(TYPE_DEFAULT, -1);
+    } else if (toolbarTweetInputToggle.onOptionsItemSelected(item)) {
+      cancelWritingSelected();
+      return true;
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
@@ -271,9 +270,6 @@ public class MainActivity extends AppCompatActivity
     }
     tlFragment.stopScroll();
     actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
-    actionBarDrawerToggle.setToolbarNavigationClickListener(
-        toolbarTweetInputToggle.getOnCollapseClickListener());
-    toolbarTweetInputToggle.setOnCloseListener(v -> cancelWritingSelected());
     toolbarTweetInputToggle.expandTweetInputView(type, statusId);
   }
 
@@ -283,18 +279,15 @@ public class MainActivity extends AppCompatActivity
       binding.ffab.show();
     }
     toolbarTweetInputToggle.collapseTweetInputView();
-    toolbarTweetInputToggle.setOnCloseListener(null);
-    actionBarDrawerToggle.setToolbarNavigationClickListener(null);
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     actionBarDrawerToggle.syncState();
   }
 
   private void setupTweetInputView() {
-    final TweetInputFragment tweetInputFragment = TweetInputFragment.create();
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.mainToolbar);
     getSupportFragmentManager().beginTransaction()
-        .add(R.id.main_appbar_container, tweetInputFragment)
+        .add(R.id.main_appbar_container, toolbarTweetInputToggle.getFragment())
         .commit();
-    toolbarTweetInputToggle = new ToolbarTweetInputToggle(tweetInputFragment, binding.mainToolbar);
   }
 
   @Override

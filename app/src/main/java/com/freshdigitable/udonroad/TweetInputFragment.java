@@ -216,6 +216,9 @@ public class TweetInputFragment extends Fragment {
   private final TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
+      if (sendTweetItem == null) {
+        return;
+      }
       sendTweetItem.setEnabled(editable.length() >= 1);
     }
 
@@ -273,6 +276,9 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void setUpSendTweetMenuItem() {
+    if (binding == null) {
+      return;
+    }
     final TweetInputView inputText = binding.mainTweetInputView;
     if (sendTweetItem != null && inputText.getText().length() < 1) {
       sendTweetItem.setEnabled(false);
