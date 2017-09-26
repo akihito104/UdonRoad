@@ -154,11 +154,13 @@ public class TweetInputFragment extends Fragment {
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
       collapseStatusInputView();
+      writeTweetMenuItem.setEnabled(false);
       final TweetInputListener tweetInputListener = getTweetInputListener();
       updateStatusTask = createSendObservable().subscribe((s, e) -> {
         item.setEnabled(false);
         if (s != null) { //  on success
           tweetInputListener.onSendCompleted();
+          writeTweetMenuItem.setEnabled(true);
           reset();
         }
       });

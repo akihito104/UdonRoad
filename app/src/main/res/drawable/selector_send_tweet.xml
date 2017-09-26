@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2016. Matsuda, Akihit (akihito104)
+  ~ Copyright (c) 2017. Matsuda, Akihit (akihito104)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,21 +15,10 @@
   ~ limitations under the License.
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
-
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/action_writeTweet"
-        android:icon="@drawable/selector_write_tweet"
-        android:title="@string/action_writeTweet"
-        android:orderInCategory="10"
-        app:showAsAction="ifRoom"/>
-
+        android:drawable="@drawable/ic_send_disabled"
+        android:state_enabled="false"/>
     <item
-        android:id="@+id/action_sendTweet"
-        android:icon="@drawable/selector_send_tweet"
-        android:title="@string/action_sendTweet"
-        android:orderInCategory="11"
-        app:showAsAction="ifRoom"
-        />
-</menu>
+        android:drawable="@drawable/ic_send_enabled"/>
+</selector>
