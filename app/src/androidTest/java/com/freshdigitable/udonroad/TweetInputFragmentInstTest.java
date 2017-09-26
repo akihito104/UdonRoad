@@ -42,6 +42,7 @@ import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getOpenDrawerIdlingResource;
@@ -109,6 +110,8 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     onView(withId(R.id.tw_intext))
         .check(matches(withText("@" + userB.getScreenName() + " ")));
     PerformUtil.clickCancelWriteOnMenu();
+    onView(withId(R.id.action_writeTweet)).check(matches(isDisplayed()))
+        .check(matches(isEnabled()));
     MatcherUtil.onOpenDrawerMenu().check(matches(isDisplayed()));
   }
 
@@ -130,6 +133,8 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
     onView(withId(R.id.tw_intext))
         .check(matches(withText(not(containsString("@" + getLoginUser().getScreenName())))));
     PerformUtil.clickCancelWriteOnMenu();
+    onView(withId(R.id.action_writeTweet)).check(matches(isDisplayed()))
+        .check(matches(isEnabled()));
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
     MatcherUtil.onOpenDrawerMenu().check(matches(isDisplayed()));
   }
@@ -158,6 +163,8 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
 
     // close
     PerformUtil.clickCancelWriteOnMenu();
+    onView(withId(R.id.action_writeTweet)).check(matches(isDisplayed()))
+        .check(matches(isEnabled()));
     MatcherUtil.onOpenDrawerMenu().check(matches(isDisplayed()));
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
     onActionWrite().check(matches(isDisplayed()));
@@ -169,9 +176,25 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
   public void openTweetInputAndThenOpenDrawer() {
     PerformUtil.clickWriteOnMenu();
     PerformUtil.clickCancelWriteOnMenu();
+    onView(withId(R.id.action_writeTweet)).check(matches(isDisplayed()))
+        .check(matches(isEnabled()));
     MatcherUtil.onOpenDrawerMenu().perform(click());
     runWithIdlingResource(getOpenDrawerIdlingResource(rule.getActivity()), () ->
         onView(withId(R.id.nav_header_account)).check(matches(isDisplayed())));
+  }
+
+  @Test
+  public void failedSendTweet_then_actionResumeIsEnabled() throws Exception {
+    final String inputText = "typed tweet";
+    when(twitter.updateStatus(inputText)).thenThrow(new TwitterException("send error"));
+    PerformUtil.clickWriteOnMenu();
+    onView(withId(R.id.tw_intext)).perform(typeText(inputText))
+        .check(matches(withText(inputText)));
+    onView(withId(R.id.action_sendTweet)).perform(click());
+    onView(withId(R.id.action_resumeTweet)).check(matches(isDisplayed()))
+        .perform(click());
+    onView(withId(R.id.tw_intext)).check(matches(isDisplayed()))
+        .check(matches(withText(inputText)));
   }
 
   private void sendReplyToMe() throws Exception {

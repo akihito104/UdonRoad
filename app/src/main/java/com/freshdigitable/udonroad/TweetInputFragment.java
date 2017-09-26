@@ -59,6 +59,7 @@ import com.squareup.picasso.RequestCreator;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -117,6 +118,7 @@ public class TweetInputFragment extends Fragment {
 
   private MenuItem writeTweetMenuItem;
   private MenuItem sendTweetItem;
+  private MenuItem resumeTweetItem;
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -125,6 +127,7 @@ public class TweetInputFragment extends Fragment {
     inflater.inflate(R.menu.tweet_input, menu);
     writeTweetMenuItem = menu.findItem(R.id.action_writeTweet);
     sendTweetItem = menu.findItem(R.id.action_sendTweet);
+    resumeTweetItem = menu.findItem(R.id.action_resumeTweet);
     setupMenuVisibility();
   }
 
@@ -132,19 +135,32 @@ public class TweetInputFragment extends Fragment {
     if (binding == null) {
       return;
     }
-    setupMenuVisibility(binding.mainTweetInputView.isVisible() ?
-        R.id.action_sendTweet : R.id.action_writeTweet);
+    if (binding.mainTweetInputView.isVisible()) {
+      setupMenuVisibility(R.id.action_sendTweet);
+    } else {
+      setupMenuVisibility(isCleared() ?
+          R.id.action_writeTweet : R.id.action_resumeTweet);
+    }
   }
 
   private void setupMenuVisibility(@IdRes int visibleItemId) {
-    if (writeTweetMenuItem != null) {
-      writeTweetMenuItem.setVisible(writeTweetMenuItem.getItemId() == visibleItemId);
-    }
-    if (sendTweetItem != null) {
-      sendTweetItem.setVisible(sendTweetItem.getItemId() == visibleItemId);
-      if (sendTweetItem.isVisible() && binding.mainTweetInputView.getText().length() < 1) {
-        sendTweetItem.setEnabled(false);
+    for (MenuItem item : Arrays.asList(writeTweetMenuItem, sendTweetItem, resumeTweetItem)) {
+      if (item != null) {
+        item.setVisible(item.getItemId() == visibleItemId);
+        setupItemEnable(item);
       }
+    }
+  }
+
+  private void setupItemEnable(@NonNull MenuItem item) {
+    final int itemId = item.getItemId();
+    if (!item.isVisible()) {
+      return;
+    }
+    if (itemId == R.id.action_writeTweet) {
+      item.setEnabled(isCleared());
+    } else if (itemId == R.id.action_sendTweet) {
+      item.setEnabled(binding.mainTweetInputView.getText().length() > 0);
     }
   }
 
@@ -152,21 +168,21 @@ public class TweetInputFragment extends Fragment {
   public boolean onOptionsItemSelected(MenuItem item) {
     Log.d(TAG, "onOptionsItemSelected: ");
     final int itemId = item.getItemId();
-    if (itemId == R.id.action_sendTweet) {
+    if (itemId == R.id.action_resumeTweet) {
+      expandTweetInputView();
+    } else if (itemId == R.id.action_sendTweet) {
       collapseStatusInputView();
       writeTweetMenuItem.setEnabled(false);
       final TweetInputListener tweetInputListener = getTweetInputListener();
-      updateStatusTask = createSendObservable().subscribe((s, e) -> {
-        item.setEnabled(false);
-        if (s != null) { //  on success
-          tweetInputListener.onSendCompleted();
-          writeTweetMenuItem.setEnabled(true);
-          reset();
-        }
-      });
+      updateStatusTask = createSendObservable().subscribe(s -> {
+        tweetInputListener.onSendCompleted();
+        reset();
+        setupMenuVisibility(R.id.action_writeTweet);
+      }, e ->
+          setupMenuVisibility(R.id.action_resumeTweet));
     } else if (isStatusInputViewVisible() && itemId == android.R.id.home) {
-      collapseStatusInputView();
       reset();
+      collapseStatusInputView();
     }
     return false;
   }
@@ -328,6 +344,11 @@ public class TweetInputFragment extends Fragment {
     quoteStatusIds.clear();
     clearMedia();
     binding.mainTweetInputView.reset();
+  }
+
+  private boolean isCleared() {
+    return replyEntity == null && quoteStatusIds.isEmpty() && media.isEmpty()
+        && (binding == null || binding.mainTweetInputView.getText().length() <= 0);
   }
 
   public boolean isStatusInputViewVisible() {
