@@ -20,14 +20,14 @@
 
     <item
         android:id="@+id/action_writeTweet"
-        android:icon="@drawable/ic_create_white_24dp"
+        android:icon="@drawable/ic_create"
         android:title="@string/action_writeTweet"
         android:orderInCategory="10"
         app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/action_sendTweet"
-        android:icon="@drawable/ic_send_white_24dp"
+        android:icon="@drawable/ic_send"
         android:title="@string/action_sendTweet"
         android:orderInCategory="11"
         app:showAsAction="ifRoom"
