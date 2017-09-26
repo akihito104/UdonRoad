@@ -89,13 +89,13 @@ public class TweetInputView extends ConstraintLayout {
     return getVisibility() == VISIBLE;
   }
 
-  public void appearing() {
+  public void show() {
     setVisibility(VISIBLE);
     inputText.requestFocus();
     updateTextCounter(inputText.getText());
   }
 
-  public void disappearing() {
+  public void hide() {
     clearFocus();
     setVisibility(GONE);
   }
@@ -163,7 +163,7 @@ public class TweetInputView extends ConstraintLayout {
     }
   };
 
-  public void updateTextCounter(Editable editable) {
+  private void updateTextCounter(Editable editable) {
     int length = editable.length();
     if (quoteMark.getVisibility() == VISIBLE) {
       if (length > 0) {

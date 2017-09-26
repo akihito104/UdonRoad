@@ -27,6 +27,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
+import android.support.annotation.IdRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -70,6 +71,7 @@ import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -124,18 +126,25 @@ public class TweetInputFragment extends Fragment {
     writeTweetMenuItem = menu.findItem(R.id.action_writeTweet);
     sendTweetItem = menu.findItem(R.id.action_sendTweet);
     setupMenuVisibility();
-    setUpSendTweetMenuItem();
   }
 
   private void setupMenuVisibility() {
     if (binding == null) {
       return;
     }
+    setupMenuVisibility(binding.mainTweetInputView.isVisible() ?
+        R.id.action_sendTweet : R.id.action_writeTweet);
+  }
+
+  private void setupMenuVisibility(@IdRes int visibleItemId) {
     if (writeTweetMenuItem != null) {
-      writeTweetMenuItem.setVisible(!binding.mainTweetInputView.isVisible());
+      writeTweetMenuItem.setVisible(writeTweetMenuItem.getItemId() == visibleItemId);
     }
     if (sendTweetItem != null) {
-      sendTweetItem.setVisible(binding.mainTweetInputView.isVisible());
+      sendTweetItem.setVisible(sendTweetItem.getItemId() == visibleItemId);
+      if (sendTweetItem.isVisible() && binding.mainTweetInputView.getText().length() < 1) {
+        sendTweetItem.setEnabled(false);
+      }
     }
   }
 
@@ -232,7 +241,7 @@ public class TweetInputFragment extends Fragment {
 
   private final List<Long> quoteStatusIds = new ArrayList<>(4);
 
-  public void stretchTweetInputView(@TweetType int type, long statusId) {
+  public void expandTweetInputView(@TweetType int type, long statusId) {
     if (type == TYPE_NONE) {
       return;
     }
@@ -241,7 +250,7 @@ public class TweetInputFragment extends Fragment {
     } else if (type == TYPE_QUOTE) {
       setupQuote(statusId);
     }
-    stretchTweetInputView();
+    expandTweetInputView();
   }
 
   private ReplyEntity replyEntity;
@@ -262,26 +271,13 @@ public class TweetInputFragment extends Fragment {
     binding.mainTweetInputView.setQuote();
   }
 
-  private void stretchTweetInputView() {
-    setUpTweetInputView();
-    setUpSendTweetMenuItem();
-    binding.mainTweetInputView.appearing();
-    setupMenuVisibility();
-  }
-
-  private void setUpTweetInputView() {
-    binding.mainTweetInputView.setShortUrlLength(
-        appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
-  }
-
-  private void setUpSendTweetMenuItem() {
-    if (binding == null) {
-      return;
+  private void expandTweetInputView() {
+    final TwitterAPIConfiguration twitterAPIConfig = appSettings.getTwitterAPIConfig();
+    if (twitterAPIConfig != null) {
+      binding.mainTweetInputView.setShortUrlLength(twitterAPIConfig.getShortURLLengthHttps());
     }
-    final TweetInputView inputText = binding.mainTweetInputView;
-    if (sendTweetItem != null && inputText.getText().length() < 1) {
-      sendTweetItem.setEnabled(false);
-    }
+    binding.mainTweetInputView.show();
+    setupMenuVisibility(R.id.action_sendTweet);
   }
 
   private Single<Status> createSendObservable() {
@@ -320,8 +316,8 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void collapseStatusInputView() {
-    binding.mainTweetInputView.disappearing();
-    setupMenuVisibility();
+    binding.mainTweetInputView.hide();
+    setupMenuVisibility(R.id.action_writeTweet);
     getTweetInputListener().onTweetInputClosed();
   }
 

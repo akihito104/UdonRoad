@@ -48,7 +48,7 @@ class ToolbarTweetInputToggle {
   }
 
   void expandTweetInputView(@TweetType int type, long statusId) {
-    fragment.stretchTweetInputView(type, statusId);
+    fragment.expandTweetInputView(type, statusId);
     prevTitle = toolbar.getTitle();
     if (type == TYPE_REPLY) {
       toolbar.setTitle(R.string.title_reply);

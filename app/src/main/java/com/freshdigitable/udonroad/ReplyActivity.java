@@ -91,7 +91,7 @@ public class ReplyActivity extends AppCompatActivity {
 
     tweetInputFragment = (TweetInputFragment) getSupportFragmentManager().findFragmentById(R.id.reply_input);
     final @TweetType int tweetType = getTweetType();
-    tweetInputFragment.stretchTweetInputView(tweetType, statusId);
+    tweetInputFragment.expandTweetInputView(tweetType, statusId);
   }
 
   @Override
