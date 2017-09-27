@@ -106,6 +106,18 @@ public class PerformUtil {
     return onIFFAB().perform(viewAction);
   }
 
+  public static ViewInteraction quote() {
+    final ViewAction viewAction = actionWithAssertions(
+        new GeneralSwipeAction(Swipe.FAST, GeneralLocation.CENTER,
+            view -> {
+              final float[] pos = GeneralLocation.BOTTOM_RIGHT.calculateCoordinates(view);
+              pos[0] += 0.5f * view.getWidth();
+              pos[1] += 0.5f * view.getHeight();
+              return pos;
+            }, Press.FINGER));
+    return onIFFAB().perform(viewAction);
+  }
+
   private static ViewInteraction onIFFAB() {
     return onView(withId(R.id.ffab));
   }

@@ -197,6 +197,64 @@ public class TweetInputFragmentInstTest extends TimelineInstTestBase {
         .check(matches(withText(inputText)));
   }
 
+  @Test
+  public void openTweetInputForQuote_then_qtMarkIsShown() {
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.quote();
+    onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()));
+    AssertionUtil.checkMainActivityTitle(R.string.title_comment);
+    onView(withId(R.id.tw_quote)).check(matches(isDisplayed()));
+  }
+
+  @Test
+  public void replyButDoesNotOpenWhenAlreadyOpened() {
+    PerformUtil.clickWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
+    onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()));
+    onView(withId(R.id.tw_replyTo)).check(matches(not(isDisplayed())));
+
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.reply();
+    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
+    onView(withId(R.id.tw_replyTo)).check(matches(not(isDisplayed())));
+
+    PerformUtil.clickCancelWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+  }
+
+  @Test
+  public void quoteDoesNotOpenWhenAlreadyOpened() {
+    PerformUtil.clickWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
+    onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()));
+    onView(withId(R.id.tw_quote)).check(matches(not(isDisplayed())));
+
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.quote();
+    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
+    onView(withId(R.id.tw_quote)).check(matches(not(isDisplayed())));
+
+    PerformUtil.clickCancelWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+  }
+
+  @Test
+  public void quoteDoesNotOpenWhenReplyAlreadyOpened() {
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.reply();
+    AssertionUtil.checkMainActivityTitle(R.string.title_reply);
+    onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()));
+    onView(withId(R.id.tw_replyTo)).check(matches(isDisplayed()));
+
+    PerformUtil.selectItemViewAt(1);
+    PerformUtil.quote();
+    AssertionUtil.checkMainActivityTitle(R.string.title_reply);
+    onView(withId(R.id.tw_quote)).check(matches(not(isDisplayed())));
+
+    PerformUtil.clickCancelWriteOnMenu();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+  }
+
   private void sendReplyToMe() throws Exception {
     final Status replied = findByStatusId(20000);
     PerformUtil.selectItemView(replied);

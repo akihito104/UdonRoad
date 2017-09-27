@@ -97,7 +97,7 @@ public class TweetInputFragment extends Fragment {
   AppSettingStore appSettings;
   @Inject
   TypedCache<Status> statusCache;
-  private Disposable subscription;
+  private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
 
   public static TweetInputFragment create() {
@@ -222,9 +222,9 @@ public class TweetInputFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
-    if (subscription != null && !subscription.isDisposed()) {
+    if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
       Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
-      subscription.dispose();
+      currentUserSubscription.dispose();
     }
     appSettings.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
@@ -259,8 +259,14 @@ public class TweetInputFragment extends Fragment {
 
   private final List<Long> quoteStatusIds = new ArrayList<>(4);
 
+  public boolean isNewTweetCreatable() {
+    return !isStatusInputViewVisible()
+        && (updateStatusTask == null || updateStatusTask.isDisposed())
+        && isCleared();
+  }
+
   public void expandTweetInputView(@TweetType int type, long statusId) {
-    if (type == TYPE_NONE) {
+    if (type == TYPE_NONE || !isNewTweetCreatable()) {
       return;
     }
     if (type == TYPE_REPLY) {
@@ -356,11 +362,11 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void changeCurrentUser() {
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
+    if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
+      currentUserSubscription.dispose();
     }
     final TweetInputView inputText = binding.mainTweetInputView;
-    subscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
+    currentUserSubscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
       inputText.setUserInfo(currentUser);
       Picasso.with(inputText.getContext())
           .load(currentUser.getMiniProfileImageURLHttps())
