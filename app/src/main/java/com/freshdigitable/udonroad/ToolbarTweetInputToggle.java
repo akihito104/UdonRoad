@@ -20,6 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 
@@ -52,6 +53,20 @@ class ToolbarTweetInputToggle {
       return;
     }
     fragment.expandTweetInputView(type, statusId);
+    switchTitle(type);
+    switchNavigationIcon();
+  }
+
+  private void switchNavigationIcon() {
+    navIconDefault = toolbar.getNavigationIcon();
+    navContentDescriptionDefault = toolbar.getNavigationContentDescription();
+
+    navigationIcon.setProgress(1.f);
+    toolbar.setNavigationIcon(navigationIcon);
+    toolbar.setNavigationContentDescription(R.string.navDesc_cancelTweet);
+  }
+
+  private void switchTitle(@TweetType int type) {
     prevTitle = toolbar.getTitle();
     if (type == TYPE_REPLY) {
       toolbar.setTitle(R.string.title_reply);
@@ -60,21 +75,41 @@ class ToolbarTweetInputToggle {
     } else {
       toolbar.setTitle(R.string.title_tweet);
     }
-    navIconDefault = toolbar.getNavigationIcon();
-    navContentDescriptionDefault = toolbar.getNavigationContentDescription();
-
-    toolbar.setNavigationIcon(navigationIcon);
-    navigationIcon.setProgress(1.f);
-    toolbar.setNavigationContentDescription(R.string.navDesc_cancelTweet);
   }
 
-  void collapseTweetInputView() {
-    if (fragment.isStatusInputViewVisible()) {
-      fragment.collapseStatusInputView();
+  private void collapseTweetInputView() {
+    if (!fragment.isStatusInputViewVisible()) {
+      return;
     }
+    fragment.collapseStatusInputView();
+    toolbar.setTitle(prevTitle);
+    toolbar.setNavigationContentDescription(navContentDescriptionDefault);
+    toolbar.setNavigationIcon(navIconDefault);
+    navigationIcon.setProgress(0.f);
   }
 
-  void onTweetInputViewClosed() {
+  boolean onOptionMenuSelected(MenuItem item) {
+    final int itemId = item.getItemId();
+    if (itemId == R.id.action_writeTweet) {
+      expandTweetInputView(TweetInputFragment.TYPE_DEFAULT, -1);
+      return true;
+    } else if (itemId == R.id.action_sendTweet) {
+      collapseTweetInputView();
+      return true;
+    } else if (itemId == R.id.action_resumeTweet) {
+      fragment.expandForResume();
+      toolbar.setTitle(R.string.title_tweet);
+      switchNavigationIcon();
+      return true;
+    } else if (itemId == android.R.id.home && fragment.isStatusInputViewVisible()) {
+      cancelInput();
+      return true;
+    }
+    return false;
+  }
+
+  void cancelInput() {
+    fragment.cancelInput();
     toolbar.setTitle(prevTitle);
     toolbar.setNavigationContentDescription(navContentDescriptionDefault);
     toolbar.setNavigationIcon(navIconDefault);

@@ -22,6 +22,7 @@ import com.freshdigitable.udonroad.R;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
 
 /**
  * Created by akihit on 2017/09/24.
@@ -38,4 +39,8 @@ public class MatcherUtil {
   }
 
   private MatcherUtil() {}
+
+  public static ViewInteraction onActionWrite() {
+    return onView(withId(R.id.action_writeTweet));
+  }
 }

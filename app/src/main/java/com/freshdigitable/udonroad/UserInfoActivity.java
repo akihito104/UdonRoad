@@ -33,6 +33,7 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.animation.AlphaAnimation;
@@ -244,55 +245,85 @@ public class UserInfoActivity extends AppCompatActivity
         String.format(resources.getString(R.string.tweet_screenName), user.getScreenName()));
   }
 
-  private int titleVisibility;
-  private ToolbarTweetInputToggle toolbarTweetInputToggle;
-
-  private void showTwitterInputView(@TweetType int type, long statusId) {
-    binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
-
-    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.userInfoToolbar);
-    getSupportFragmentManager().beginTransaction()
-        .hide(userInfoAppbarFragment)
-        .add(R.id.userInfo_appbar_container, toolbarTweetInputToggle.getFragment())
-        .commitNow();
-    titleVisibility = binding.userInfoToolbarTitle.getVisibility();
-    binding.userInfoToolbarTitle.setVisibility(View.GONE);
-    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
-    binding.userInfoAppbarLayout.setExpanded(true);
-  }
-
   @Override
   public void onBackPressed() {
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
+      toolbarTweetInputToggle.cancelInput();
+      onTweetInputClosed();
+      tearDownTweetInputView();
+      return;
+    }
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
       return;
     }
     if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
       return;
     }
-    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
-      toolbarTweetInputToggle.collapseTweetInputView();
-      return;
-    }
     super.onBackPressed();
   }
 
   @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.onOptionMenuSelected(item)) {
+      final int itemId = item.getItemId();
+      if (itemId == R.id.action_sendTweet) {
+        onTweetInputClosed();
+      } else if (itemId == R.id.action_resumeTweet) {
+        onTweetInputOpened();
+      } else if (itemId == android.R.id.home) {
+        onTweetInputClosed();
+        tearDownTweetInputView();
+      }
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
+  private int titleVisibility;
+  private ToolbarTweetInputToggle toolbarTweetInputToggle;
+
+  private void showTwitterInputView(@TweetType int type, long statusId) {
+    if (toolbarTweetInputToggle != null) {
+      return;
+    }
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.userInfoToolbar);
+    getSupportFragmentManager().beginTransaction()
+        .hide(userInfoAppbarFragment)
+        .add(R.id.userInfo_appbar_container, toolbarTweetInputToggle.getFragment())
+        .commitNow();
+    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
+    onTweetInputOpened();
+  }
+
+  public void onTweetInputOpened() {
+    binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
+    if (userInfoAppbarFragment.isVisible()) {
+      getSupportFragmentManager().beginTransaction()
+          .hide(userInfoAppbarFragment)
+          .commitNow();
+    }
+    titleVisibility = binding.userInfoToolbarTitle.getVisibility();
+    binding.userInfoToolbarTitle.setVisibility(View.GONE);
+    binding.userInfoAppbarLayout.setExpanded(true);
+  }
+
   public void onTweetInputClosed() {
     if (toolbarTweetInputToggle == null) {
       return;
     }
-    toolbarTweetInputToggle.onTweetInputViewClosed();
     binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
     binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
     binding.userInfoToolbarTitle.setVisibility(titleVisibility);
     getSupportFragmentManager().beginTransaction()
-        .hide(toolbarTweetInputToggle.getFragment())
         .show(userInfoAppbarFragment)
         .commit();
   }
 
   @Override
   public void onSendCompleted() {
+    tearDownTweetInputView();
+  }
+
+  private void tearDownTweetInputView() {
     getSupportFragmentManager().beginTransaction()
         .remove(toolbarTweetInputToggle.getFragment())
         .commit();

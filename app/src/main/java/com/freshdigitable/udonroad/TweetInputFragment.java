@@ -168,11 +168,8 @@ public class TweetInputFragment extends Fragment {
   public boolean onOptionsItemSelected(MenuItem item) {
     Log.d(TAG, "onOptionsItemSelected: ");
     final int itemId = item.getItemId();
-    if (itemId == R.id.action_resumeTweet) {
-      expandTweetInputView();
-    } else if (itemId == R.id.action_sendTweet) {
-      collapseStatusInputView();
-      writeTweetMenuItem.setEnabled(false);
+    if (itemId == R.id.action_sendTweet) {
+      sendTweetItem.setEnabled(false);
       final TweetInputListener tweetInputListener = getTweetInputListener();
       updateStatusTask = createSendObservable().subscribe(s -> {
         tweetInputListener.onSendCompleted();
@@ -180,9 +177,6 @@ public class TweetInputFragment extends Fragment {
         setupMenuVisibility(R.id.action_writeTweet);
       }, e ->
           setupMenuVisibility(R.id.action_resumeTweet));
-    } else if (isStatusInputViewVisible() && itemId == android.R.id.home) {
-      reset();
-      collapseStatusInputView();
     }
     return false;
   }
@@ -265,6 +259,13 @@ public class TweetInputFragment extends Fragment {
         && isCleared();
   }
 
+  public void expandForResume() {
+    if (isCleared()) {
+      throw new IllegalStateException("there is no tweet for resume...");
+    }
+    expandTweetInputView();
+  }
+
   public void expandTweetInputView(@TweetType int type, long statusId) {
     if (type == TYPE_NONE || !isNewTweetCreatable()) {
       return;
@@ -335,14 +336,14 @@ public class TweetInputFragment extends Fragment {
         || media.size() > 0;
   }
 
-  public void addQuoteStatus(long quoteStatusId) {
-    quoteStatusIds.add(quoteStatusId);
-  }
-
   public void collapseStatusInputView() {
     binding.mainTweetInputView.hide();
+  }
+
+  public void cancelInput() {
+    reset();
+    collapseStatusInputView();
     setupMenuVisibility(R.id.action_writeTweet);
-    getTweetInputListener().onTweetInputClosed();
   }
 
   private void reset() {
@@ -377,22 +378,16 @@ public class TweetInputFragment extends Fragment {
   }
 
   interface TweetInputListener {
-    void onTweetInputClosed();
-
     void onSendCompleted();
   }
+
+  private final TweetInputListener emptyListener = () -> {};
 
   @NonNull
   private TweetInputListener getTweetInputListener() {
     final FragmentActivity activity = getActivity();
     return activity instanceof TweetInputListener ? (TweetInputListener) activity
-        : new TweetInputListener() {
-      @Override
-      public void onTweetInputClosed() {}
-
-      @Override
-      public void onSendCompleted() {}
-    };
+        : emptyListener;
   }
 
   public static final int TYPE_DEFAULT = 0;

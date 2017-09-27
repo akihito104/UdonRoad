@@ -54,7 +54,6 @@ import javax.inject.Inject;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.StoreType.HOME;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
@@ -136,6 +135,13 @@ public class MainActivity extends AppCompatActivity
     final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
         LayoutInflater.from(this), R.layout.nav_header, null, false);
     drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
+  }
+
+  private void setupTweetInputView() {
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.mainToolbar);
+    getSupportFragmentManager().beginTransaction()
+        .add(R.id.main_appbar_container, toolbarTweetInputToggle.getFragment())
+        .commit();
   }
 
   @Override
@@ -232,7 +238,8 @@ public class MainActivity extends AppCompatActivity
       return;
     }
     if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
-      toolbarTweetInputToggle.collapseTweetInputView();
+      toolbarTweetInputToggle.cancelInput();
+      onTweetInputClosed();
       return;
     }
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
@@ -254,35 +261,41 @@ public class MainActivity extends AppCompatActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
     if (itemId == R.id.action_writeTweet) {
-      sendStatusSelected(TYPE_DEFAULT, -1);
+      onTweetInputOpened();
+      toolbarTweetInputToggle.onOptionMenuSelected(item);
+    } else if (itemId == R.id.action_resumeTweet) {
+      onTweetInputOpened();
+      toolbarTweetInputToggle.onOptionMenuSelected(item);
+    } else if (itemId == R.id.action_sendTweet) {
+      toolbarTweetInputToggle.onOptionMenuSelected(item);
+      onTweetInputClosed();
+      return super.onOptionsItemSelected(item);
+    } else if (itemId == android.R.id.home && toolbarTweetInputToggle.onOptionMenuSelected(item)) {
+      onTweetInputClosed();
+      return super.onOptionsItemSelected(item);
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
   }
 
   private void sendStatusSelected(@TweetType int type, long statusId) {
+    onTweetInputOpened();
+    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
+  }
+
+  public void onTweetInputOpened() {
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
     }
     tlFragment.stopScroll();
     actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
-    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
   }
 
-  private void setupTweetInputView() {
-    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.mainToolbar);
-    getSupportFragmentManager().beginTransaction()
-        .add(R.id.main_appbar_container, toolbarTweetInputToggle.getFragment())
-        .commit();
-  }
-
-  @Override
   public void onTweetInputClosed() {
     tlFragment.startScroll();
     if (tlFragment.isItemSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
-    toolbarTweetInputToggle.onTweetInputViewClosed();
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     actionBarDrawerToggle.syncState();
   }
