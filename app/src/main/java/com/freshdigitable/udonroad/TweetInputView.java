@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.TextInputEditText;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -27,7 +28,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
@@ -40,7 +40,7 @@ import twitter4j.User;
  *
  * Created by akihit on 2016/01/17.
  */
-public class TweetInputView extends RelativeLayout {
+public class TweetInputView extends ConstraintLayout {
   @SuppressWarnings("unused")
   private static final String TAG = TweetInputView.class.getSimpleName();
   private final TextInputEditText inputText;
@@ -89,13 +89,13 @@ public class TweetInputView extends RelativeLayout {
     return getVisibility() == VISIBLE;
   }
 
-  public void appearing() {
+  public void show() {
     setVisibility(VISIBLE);
     inputText.requestFocus();
     updateTextCounter(inputText.getText());
   }
 
-  public void disappearing() {
+  public void hide() {
     clearFocus();
     setVisibility(GONE);
   }
@@ -163,7 +163,7 @@ public class TweetInputView extends RelativeLayout {
     }
   };
 
-  public void updateTextCounter(Editable editable) {
+  private void updateTextCounter(Editable editable) {
     int length = editable.length();
     if (quoteMark.getVisibility() == VISIBLE) {
       if (length > 0) {
@@ -211,6 +211,7 @@ public class TweetInputView extends RelativeLayout {
 
   public void clearMedia() {
     mediaContainer.reset();
+    mediaContainer.setVisibility(INVISIBLE);
     final int childCount = mediaContainer.getChildCount();
     for (int i = 0; i < childCount; i++) {
       mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);

@@ -27,16 +27,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
+import android.support.annotation.IdRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,7 +53,6 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
@@ -71,6 +72,7 @@ import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -92,12 +94,10 @@ public class TweetInputFragment extends Fragment {
   @Inject
   StatusRequestWorker statusRequestWorker;
   @Inject
-  AppSettingRequestWorker appSettingRequestWorker;
-  @Inject
   AppSettingStore appSettings;
   @Inject
   TypedCache<Status> statusCache;
-  private Disposable subscription;
+  private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
 
   public static TweetInputFragment create() {
@@ -116,16 +116,16 @@ public class TweetInputFragment extends Fragment {
     setHasOptionsMenu(true);
   }
 
-  private MenuItem sendStatusMenuItem;
-  private MenuItem cancelMenuItem;
+  private final SparseArray<MenuItem> menuItems = new SparseArray<>();
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     Log.d(TAG, "onCreateOptionsMenu: ");
     super.onCreateOptionsMenu(menu, inflater);
     inflater.inflate(R.menu.tweet_input, menu);
-    sendStatusMenuItem = menu.findItem(R.id.action_write);
-    cancelMenuItem = menu.findItem(R.id.action_cancel);
+    for (@IdRes int resId : new int[]{R.id.action_writeTweet, R.id.action_sendTweet, R.id.action_resumeTweet}) {
+      menuItems.put(resId, menu.findItem(resId));
+    }
     setupMenuVisibility();
   }
 
@@ -133,11 +133,31 @@ public class TweetInputFragment extends Fragment {
     if (binding == null) {
       return;
     }
-    if (sendStatusMenuItem != null) {
-      sendStatusMenuItem.setVisible(!binding.mainTweetInputView.isVisible());
+    if (binding.mainTweetInputView.isVisible()) {
+      setupMenuVisibility(R.id.action_sendTweet);
+    } else {
+      setupMenuVisibility(isCleared() ?
+          R.id.action_writeTweet : R.id.action_resumeTweet);
     }
-    if (cancelMenuItem != null) {
-      cancelMenuItem.setVisible(binding.mainTweetInputView.isVisible());
+  }
+
+  private void setupMenuVisibility(@IdRes int visibleItemId) {
+    for (int i = 0; i < menuItems.size(); i++) {
+      final MenuItem item = menuItems.valueAt(i);
+      item.setVisible(item.getItemId() == visibleItemId);
+      setupItemEnable(item);
+    }
+  }
+
+  private void setupItemEnable(@NonNull MenuItem item) {
+    final int itemId = item.getItemId();
+    if (!item.isVisible()) {
+      return;
+    }
+    if (itemId == R.id.action_writeTweet) {
+      item.setEnabled(isCleared());
+    } else if (itemId == R.id.action_sendTweet) {
+      item.setEnabled(binding.mainTweetInputView.getText().length() > 0);
     }
   }
 
@@ -145,10 +165,15 @@ public class TweetInputFragment extends Fragment {
   public boolean onOptionsItemSelected(MenuItem item) {
     Log.d(TAG, "onOptionsItemSelected: ");
     final int itemId = item.getItemId();
-    if (itemId == R.id.action_write) {
-      stretchTweetInputView();
-    } else if (itemId == R.id.action_cancel) {
-      collapseStatusInputView();
+    if (itemId == R.id.action_sendTweet) {
+      menuItems.get(R.id.action_sendTweet).setEnabled(false);
+      final TweetInputListener tweetInputListener = getTweetInputListener();
+      updateStatusTask = createSendObservable().subscribe(s -> {
+        tweetInputListener.onSendCompleted();
+        clear();
+        setupMenuVisibility(R.id.action_writeTweet);
+      }, e ->
+          setupMenuVisibility(R.id.action_resumeTweet));
     }
     return false;
   }
@@ -172,31 +197,32 @@ public class TweetInputFragment extends Fragment {
 
     final TweetInputView inputText = binding.mainTweetInputView;
     inputText.getAppendImageButton().setOnClickListener(v -> {
-      final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
-      imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+      final Context context = v.getContext();
+      final InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+      if (imm != null) {
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+      }
 
-      if (isPermissionNeed(v.getContext())) {
+      if (isPermissionNeed(context)) {
         requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_PERMISSION);
         return;
       }
       showMediaChooser();
     });
     inputText.addTextWatcher(textWatcher);
-    tweetSendFab.setOnClickListener(createSendClickListener());
   }
 
   @Override
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
-    if (subscription != null && !subscription.isDisposed()) {
+    if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
       Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
-      subscription.dispose();
+      currentUserSubscription.dispose();
     }
     appSettings.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
-    tweetSendFab.setOnClickListener(null);
   }
 
   @Override
@@ -205,34 +231,41 @@ public class TweetInputFragment extends Fragment {
     if (updateStatusTask != null && !updateStatusTask.isDisposed()) {
       updateStatusTask.dispose();
     }
-    tweetSendFab.setOnClickListener(null);
-  }
-
-  private FloatingActionButton tweetSendFab;
-
-  public void setTweetSendFab(FloatingActionButton fab) {
-    this.tweetSendFab = fab;
+    menuItems.clear();
   }
 
   private final TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
-      tweetSendFab.setEnabled(editable.length() >= 1);
+      final MenuItem sendTweetItem = menuItems.get(R.id.action_sendTweet);
+      if (sendTweetItem != null) {
+        sendTweetItem.setEnabled(editable.length() >= 1);
+      }
     }
 
     @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
     @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
   };
 
   private final List<Long> quoteStatusIds = new ArrayList<>(4);
 
-  public void stretchTweetInputView(@TweetType int type, long statusId) {
-    if (type == TYPE_NONE) {
+  public boolean isNewTweetCreatable() {
+    return !isTweetInputViewVisible()
+        && (updateStatusTask == null || updateStatusTask.isDisposed())
+        && isCleared();
+  }
+
+  public void expandForResume() {
+    if (isCleared()) {
+      throw new IllegalStateException("there is no tweet for resume...");
+    }
+    expandTweetInputView();
+  }
+
+  public void expandTweetInputView(@TweetType int type, long statusId) {
+    if (type == TYPE_NONE || !isNewTweetCreatable()) {
       return;
     }
     if (type == TYPE_REPLY) {
@@ -240,7 +273,7 @@ public class TweetInputFragment extends Fragment {
     } else if (type == TYPE_QUOTE) {
       setupQuote(statusId);
     }
-    stretchTweetInputView();
+    expandTweetInputView();
   }
 
   private ReplyEntity replyEntity;
@@ -261,42 +294,13 @@ public class TweetInputFragment extends Fragment {
     binding.mainTweetInputView.setQuote();
   }
 
-  private void stretchTweetInputView() {
-    setUpTweetInputView();
-    setUpTweetSendFab();
-    binding.mainTweetInputView.appearing();
-    setupMenuVisibility();
-  }
-
-  private void setUpTweetInputView() {
-    appSettingRequestWorker.verifyCredentials();
-    binding.mainTweetInputView.setShortUrlLength(
-        appSettings.getTwitterAPIConfig().getShortURLLengthHttps());
-  }
-
-  private void setUpTweetSendFab() {
-    final TweetInputView inputText = binding.mainTweetInputView;
-    if (inputText.getText().length() < 1) {
-      tweetSendFab.setEnabled(false);
+  private void expandTweetInputView() {
+    final TwitterAPIConfiguration twitterAPIConfig = appSettings.getTwitterAPIConfig();
+    if (twitterAPIConfig != null) {
+      binding.mainTweetInputView.setShortUrlLength(twitterAPIConfig.getShortURLLengthHttps());
     }
-  }
-
-  private View.OnClickListener createSendClickListener() {
-    final TweetSendable tweetSendable = getActivity() instanceof TweetSendable ?
-        (TweetSendable) getActivity() : (s) -> {};
-    final TweetInputView mainTweetInputView = binding.mainTweetInputView;
-    return v -> {
-      v.setClickable(false);
-      mainTweetInputView.setClickable(false);
-      updateStatusTask = createSendObservable().subscribe((s, e) -> {
-        v.setClickable(true);
-        mainTweetInputView.setClickable(true);
-        if (s != null) { //  on success
-          reset();
-          tweetSendable.onTweetComplete(s);
-        }
-      });
-    };
+    binding.mainTweetInputView.show();
+    setupMenuVisibility(R.id.action_sendTweet);
   }
 
   private Single<Status> createSendObservable() {
@@ -330,33 +334,38 @@ public class TweetInputFragment extends Fragment {
         || media.size() > 0;
   }
 
-  public void addQuoteStatus(long quoteStatusId) {
-    quoteStatusIds.add(quoteStatusId);
-  }
-
   public void collapseStatusInputView() {
-    reset();
+    binding.mainTweetInputView.hide();
   }
 
-  private void reset() {
+  public void cancelInput() {
+    clear();
+    collapseStatusInputView();
+    setupMenuVisibility(R.id.action_writeTweet);
+  }
+
+  private void clear() {
     replyEntity = null;
     quoteStatusIds.clear();
     clearMedia();
     binding.mainTweetInputView.reset();
-    binding.mainTweetInputView.disappearing();
-    setupMenuVisibility();
   }
 
-  public boolean isStatusInputViewVisible() {
+  private boolean isCleared() {
+    return replyEntity == null && quoteStatusIds.isEmpty() && media.isEmpty()
+        && (binding == null || binding.mainTweetInputView.getText().length() <= 0);
+  }
+
+  public boolean isTweetInputViewVisible() {
     return binding.mainTweetInputView.isVisible();
   }
 
   public void changeCurrentUser() {
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
+    if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
+      currentUserSubscription.dispose();
     }
     final TweetInputView inputText = binding.mainTweetInputView;
-    subscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
+    currentUserSubscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
       inputText.setUserInfo(currentUser);
       Picasso.with(inputText.getContext())
           .load(currentUser.getMiniProfileImageURLHttps())
@@ -366,8 +375,17 @@ public class TweetInputFragment extends Fragment {
     }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
   }
 
-  interface TweetSendable {
-    void onTweetComplete(Status updated);
+  interface TweetInputListener {
+    void onSendCompleted();
+  }
+
+  private final TweetInputListener emptyListener = () -> {};
+
+  @NonNull
+  private TweetInputListener getTweetInputListener() {
+    final FragmentActivity activity = getActivity();
+    return activity instanceof TweetInputListener ? (TweetInputListener) activity
+        : emptyListener;
   }
 
   public static final int TYPE_DEFAULT = 0;
@@ -435,13 +453,18 @@ public class TweetInputFragment extends Fragment {
   private void addAllMedia(Collection<Uri> uris) {
     media.addAll(uris);
     updateMediaContainer();
-    tweetSendFab.setEnabled(true);
+    menuItems.get(R.id.action_sendTweet).setEnabled(true);
   }
 
   private void removeMedia(Uri uri) {
     media.remove(uri);
     updateMediaContainer();
-    tweetSendFab.setEnabled(!media.isEmpty());
+    menuItems.get(R.id.action_sendTweet).setEnabled(!media.isEmpty());
+  }
+
+  private void clearMedia() {
+    media.clear();
+    binding.mainTweetInputView.clearMedia();
   }
 
   private void updateMediaContainer() {
@@ -468,12 +491,6 @@ public class TweetInputFragment extends Fragment {
         });
       });
     }
-  }
-
-  private void clearMedia() {
-    media.clear();
-    binding.mainTweetInputView.clearMedia();
-    tweetSendFab.setEnabled(false);
   }
 
   @Override

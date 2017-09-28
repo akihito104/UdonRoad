@@ -27,7 +27,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -37,7 +36,7 @@ import android.view.WindowManager;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedListener;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
@@ -52,11 +51,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import twitter4j.Status;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.StoreType.HOME;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_DEFAULT;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
@@ -66,13 +63,12 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetSendable, OnUserIconClickedListener, FabHandleable, SnackbarCapable,
+    implements TweetInputListener, OnUserIconClickedListener, FabHandleable, SnackbarCapable,
     TimelineFragment.OnItemClickedListener, OnSpanClickListener {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private TimelineFragment<?> tlFragment;
-  private TweetInputFragment tweetInputFragment;
 
   @Inject
   ConfigRequestWorker configRequestWorker;
@@ -80,6 +76,7 @@ public class MainActivity extends AppCompatActivity
   AppSettingStore appSetting;
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private DrawerNavigator drawerNavigator;
+  private ToolbarTweetInputToggle toolbarTweetInputToggle;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -92,11 +89,12 @@ public class MainActivity extends AppCompatActivity
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    setupHomeTimeline();
-    setupTweetInputView();
-    setupNavigationDrawer();
-
     setSupportActionBar(binding.mainToolbar);
+
+    setupHomeTimeline();
+    setupNavigationDrawer();
+    setupTweetInputView();
+
     final ActionBar supportActionBar = getSupportActionBar();
     if (supportActionBar != null) {
       supportActionBar.setDisplayHomeAsUpEnabled(true);
@@ -116,16 +114,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupNavigationDrawer() {
-    attachToolbar(binding.mainToolbar);
-
-    final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
-        LayoutInflater.from(this), R.layout.nav_header, null, false);
-    drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
-  }
-
-  private void attachToolbar(Toolbar toolbar) {
     actionBarDrawerToggle = new ActionBarDrawerToggle(this,
-        binding.navDrawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
+        binding.navDrawerLayout, R.string.navDesc_openDrawer, R.string.navDesc_closeDrawer) {
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
@@ -141,6 +131,17 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     binding.navDrawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
+
+    final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
+        LayoutInflater.from(this), R.layout.nav_header, null, false);
+    drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
+  }
+
+  private void setupTweetInputView() {
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.mainToolbar);
+    getSupportFragmentManager().beginTransaction()
+        .add(R.id.main_appbar_container, toolbarTweetInputToggle.getFragment())
+        .commit();
   }
 
   @Override
@@ -184,7 +185,7 @@ public class MainActivity extends AppCompatActivity
         ((MainApplication) getApplication()).login(user.getId());
         setupHomeTimeline();
         drawerNavigator.changeCurrentUser();
-        tweetInputFragment.changeCurrentUser();
+        toolbarTweetInputToggle.changeCurrentUser();
         timelineContainerSwitcher.setOnContentChangedListener(getOnContentChangedListener());
         ((MainApplication) getApplication()).connectStream();
       }
@@ -236,9 +237,9 @@ public class MainActivity extends AppCompatActivity
       drawerNavigator.closeDrawer();
       return;
     }
-    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
-      tweetInputFragment.collapseStatusInputView();
-      cancelWritingSelected();
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
+      toolbarTweetInputToggle.cancelInput();
+      onTweetInputClosed();
       return;
     }
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
@@ -259,55 +260,48 @@ public class MainActivity extends AppCompatActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == R.id.action_write) {
-      sendStatusSelected(TYPE_DEFAULT, -1);
-    } else if (itemId == R.id.action_cancel) {
-      cancelWritingSelected();
+    if (itemId == R.id.action_writeTweet) {
+      onTweetInputOpened();
+      toolbarTweetInputToggle.onOptionMenuSelected(item);
+    } else if (itemId == R.id.action_resumeTweet) {
+      onTweetInputOpened();
+      toolbarTweetInputToggle.onOptionMenuSelected(item);
+    } else if (itemId == R.id.action_sendTweet) {
+      toolbarTweetInputToggle.onOptionMenuSelected(item);
+      onTweetInputClosed();
+      return super.onOptionsItemSelected(item);
+    } else if (itemId == android.R.id.home && toolbarTweetInputToggle.onOptionMenuSelected(item)) {
+      onTweetInputClosed();
+      return super.onOptionsItemSelected(item);
     }
     return actionBarDrawerToggle.onOptionsItemSelected(item)
         || super.onOptionsItemSelected(item);
   }
 
-  private CharSequence prevTitle;
-
   private void sendStatusSelected(@TweetType int type, long statusId) {
+    onTweetInputOpened();
+    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
+  }
+
+  public void onTweetInputOpened() {
     if (binding.ffab.getVisibility() == View.VISIBLE) {
       binding.ffab.hide();
     }
     tlFragment.stopScroll();
-    if (type != TYPE_DEFAULT) {
-      tweetInputFragment.stretchTweetInputView(type, statusId);
-    }
-    prevTitle = binding.mainToolbar.getTitle();
-    if (type == TYPE_REPLY) {
-      binding.mainToolbar.setTitle(R.string.title_reply);
-    } else if (type == TYPE_QUOTE) {
-      binding.mainToolbar.setTitle(R.string.title_comment);
-    } else {
-      binding.mainToolbar.setTitle(R.string.title_tweet);
-    }
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
   }
 
-  private void cancelWritingSelected() {
+  public void onTweetInputClosed() {
     tlFragment.startScroll();
     if (tlFragment.isItemSelected() && tlFragment.isVisible()) {
       binding.ffab.show();
     }
-    binding.mainToolbar.setTitle(prevTitle);
-  }
-
-  private void setupTweetInputView() {
-    tweetInputFragment = TweetInputFragment.create();
-    tweetInputFragment.setTweetSendFab(binding.mainSendTweet);
-    getSupportFragmentManager().beginTransaction()
-        .add(R.id.main_appbar_container, tweetInputFragment)
-        .commit();
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+    actionBarDrawerToggle.syncState();
   }
 
   @Override
-  public void onTweetComplete(Status updated) {
-    cancelWritingSelected();
-  }
+  public void onSendCompleted() {}
 
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
@@ -366,7 +360,7 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onUserIconClicked(View view, User user) {
-    if (tweetInputFragment != null && tweetInputFragment.isStatusInputViewVisible()) {
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
       return;
     }
     tlFragment.stopScroll();

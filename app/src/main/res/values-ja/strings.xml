@@ -22,7 +22,7 @@
     <string name="detail_fav_delete">favを取り消す</string>
     <string name="detail_reply">リプライ</string>
     <string name="detail_quote">引用してRT</string>
-    <string name="action_send_status">ツイートする</string>
+    <string name="action_writeTweet">ツイートを書く</string>
     <string name="action_totop">先頭へ</string>
     <string name="app_name">aoeliyakei</string>
     <string name="msg_rt_create_failed">RTできませんでした…</string>
@@ -84,8 +84,8 @@
     <string name="msg_faved_by_someone">ふぁぼられました: \@%1$s</string>
     <string name="msg_followed_by_someone">フォローされました: \@%1$s</string>
     <string name="msg_retweeted_by_someone">リツイートされました: \@%1$s</string>
-    <string name="drawer_close">ドロワーを閉じる</string>
-    <string name="drawer_open">ドロワーを開く</string>
+    <string name="navDesc_closeDrawer">ドロワーを閉じる</string>
+    <string name="navDesc_openDrawer">ドロワーを開く</string>
     <string name="msg_userId_failed">ユーザIDを取得できませんでした…</string>
     <string name="desc_swipe_to_down">下へスワイプ</string>
     <string name="desc_swipe_to_left">左へスワイプ</string>
@@ -135,4 +135,5 @@
     </string-array>
     <string name="msg_media_failed_loading">メディアの読み込みに失敗しました…</string>
     <string name="msg_media_failed_tweetNotFound">元のツイートが削除されたようです…</string>
+    <string name="action_sendTweet">ツイートを送る</string>
 </resources>

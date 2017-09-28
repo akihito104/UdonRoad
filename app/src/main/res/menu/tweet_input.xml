@@ -19,18 +19,28 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_write"
-        android:icon="@drawable/ic_create_white_24dp"
-        android:title="@string/action_send_status"
+        android:id="@+id/action_writeTweet"
+        android:icon="@drawable/selector_write_tweet"
+        android:title="@string/action_writeTweet"
         android:orderInCategory="10"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom"
+        />
 
     <item
-        android:id="@+id/action_cancel"
-        android:icon="@drawable/ic_clear_white_24dp"
-        android:title="@android:string/cancel"
-        android:visible="false"
+        android:id="@+id/action_sendTweet"
+        android:icon="@drawable/selector_send_tweet"
+        android:title="@string/action_sendTweet"
         android:orderInCategory="11"
+        android:visible="false"
         app:showAsAction="ifRoom"
+        />
+
+    <item
+        android:id="@+id/action_resumeTweet"
+        android:icon="@drawable/ic_send_error"
+        android:title="@string/action_resumeTweet"
+        android:orderInCategory="12"
+        app:showAsAction="ifRoom"
+        android:visible="false"
         />
 </menu>

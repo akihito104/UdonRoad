@@ -13,8 +13,11 @@
     <string name="update_status" translatable="false">Tweet</string>
     <string name="desc_icon" translatable="false">user icon</string>
     <string name="oauth_login">Login Twitter</string>
-    <string name="drawer_open">open nav drawer</string>
-    <string name="drawer_close">close nav drawer</string>
+
+    <string name="navDesc_openDrawer">open nav drawer</string>
+    <string name="navDesc_closeDrawer">close nav drawer</string>
+    <string name="navDesc_cancelTweet">Cancel input tweet</string>
+
     <string name="detail_rt_create">RT</string>
     <string name="detail_rt_delete">cancel RT</string>
     <string name="detail_fav_create">fav</string>
@@ -78,7 +81,8 @@
     <string name="msg_media_failed_tweetNotFound">failed to load media: maybe the tweet was deleted…</string>
 
     <string name="action_totop">To Top</string>
-    <string name="action_send_status">Send Status</string>
+    <string name="action_writeTweet">Write Tweet</string>
+    <string name="action_sendTweet">Send Tweet</string>
     <string name="action_group_user">action for the user</string>
     <string name="action_follow">follow</string>
     <string name="action_unfollow">unfollow</string>
@@ -128,6 +132,7 @@
     <string name="settings_key_loginUser" translatable="false">key_login_user</string>
     <string name="settings_title_loginUser">login account on launching</string>
     <string name="settings_loginUser_default" translatable="false">-1</string>
+    <string name="action_resumeTweet">Resume Tweet</string>
     <string-array name="settings_loginUser_entries">
         <item>last logged in</item>
     </string-array>

@@ -40,7 +40,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetSendable;
+import com.freshdigitable.udonroad.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -55,7 +55,6 @@ import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import twitter4j.Status;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
@@ -68,7 +67,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetSendable, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
+    implements TweetInputListener, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
     OnSpanClickListener, TimelineFragment.OnItemClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
@@ -76,7 +75,6 @@ public class UserInfoActivity extends AppCompatActivity
   @Inject
   TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
-  private TweetInputFragment tweetInputFragment;
   private Disposable subscription;
   private TimelineContainerSwitcher timelineContainerSwitcher;
 
@@ -174,15 +172,6 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    final int itemId = item.getItemId();
-    if (itemId == R.id.action_cancel) {
-      closeTwitterInputView();
-    }
-    return super.onOptionsItemSelected(item);
-  }
-
-  @Override
   public void onEnterAnimationComplete() {
     userInfoAppbarFragment.onEnterAnimationComplete();
     if (isTimelineContainerEmpty()) {
@@ -256,61 +245,89 @@ public class UserInfoActivity extends AppCompatActivity
         String.format(resources.getString(R.string.tweet_screenName), user.getScreenName()));
   }
 
-  private int titleVisibility;
-
-  private void showTwitterInputView(@TweetType int type, long statusId) {
-    binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
-
-    tweetInputFragment = TweetInputFragment.create();
-    tweetInputFragment.setTweetSendFab(binding.userInfoTweetSend);
-    getSupportFragmentManager().beginTransaction()
-        .hide(userInfoAppbarFragment)
-        .add(R.id.userInfo_appbar_container, tweetInputFragment)
-        .commitNow();
-    titleVisibility = binding.userInfoToolbarTitle.getVisibility();
-    binding.userInfoToolbarTitle.setVisibility(View.GONE);
-    if (type == TYPE_REPLY) {
-      binding.userInfoToolbar.setTitle(R.string.title_reply);
-    } else if (type == TYPE_QUOTE) {
-      binding.userInfoToolbar.setTitle(R.string.title_comment);
-    }
-    tweetInputFragment.stretchTweetInputView(type, statusId);
-    binding.userInfoAppbarLayout.setExpanded(true);
-  }
-
-  private void closeTwitterInputView() {
-    if (tweetInputFragment == null) {
-      return;
-    }
-    binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
-    getSupportFragmentManager().beginTransaction()
-        .remove(tweetInputFragment)
-        .show(userInfoAppbarFragment)
-        .commit();
-    binding.userInfoToolbar.setTitle("");
-    binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
-    binding.userInfoToolbarTitle.setVisibility(titleVisibility);
-    tweetInputFragment = null;
-  }
-
   @Override
   public void onBackPressed() {
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
+      toolbarTweetInputToggle.cancelInput();
+      onTweetInputClosed();
+      tearDownTweetInputView();
+      return;
+    }
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
       return;
     }
     if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
       return;
     }
-    if (tweetInputFragment != null && tweetInputFragment.isVisible()) {
-      closeTwitterInputView();
-      return;
-    }
     super.onBackPressed();
   }
 
   @Override
-  public void onTweetComplete(Status updated) {
-    closeTwitterInputView();
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.onOptionMenuSelected(item)) {
+      final int itemId = item.getItemId();
+      if (itemId == R.id.action_sendTweet) {
+        onTweetInputClosed();
+      } else if (itemId == R.id.action_resumeTweet) {
+        onTweetInputOpened();
+      } else if (itemId == android.R.id.home) {
+        onTweetInputClosed();
+        tearDownTweetInputView();
+      }
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
+  private int titleVisibility;
+  private ToolbarTweetInputToggle toolbarTweetInputToggle;
+
+  private void showTwitterInputView(@TweetType int type, long statusId) {
+    if (toolbarTweetInputToggle != null) {
+      return;
+    }
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.userInfoToolbar);
+    getSupportFragmentManager().beginTransaction()
+        .hide(userInfoAppbarFragment)
+        .add(R.id.userInfo_appbar_container, toolbarTweetInputToggle.getFragment())
+        .commitNow();
+    toolbarTweetInputToggle.expandTweetInputView(type, statusId);
+    onTweetInputOpened();
+  }
+
+  public void onTweetInputOpened() {
+    binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
+    if (userInfoAppbarFragment.isVisible()) {
+      getSupportFragmentManager().beginTransaction()
+          .hide(userInfoAppbarFragment)
+          .commitNow();
+    }
+    titleVisibility = binding.userInfoToolbarTitle.getVisibility();
+    binding.userInfoToolbarTitle.setVisibility(View.GONE);
+    binding.userInfoAppbarLayout.setExpanded(true);
+  }
+
+  public void onTweetInputClosed() {
+    if (toolbarTweetInputToggle == null) {
+      return;
+    }
+    binding.userInfoAppbarContainer.setPadding(0, 0, 0, 0);
+    binding.userInfoAppbarLayout.setExpanded(titleVisibility != View.VISIBLE);
+    binding.userInfoToolbarTitle.setVisibility(titleVisibility);
+    getSupportFragmentManager().beginTransaction()
+        .show(userInfoAppbarFragment)
+        .commit();
+  }
+
+  @Override
+  public void onSendCompleted() {
+    tearDownTweetInputView();
+  }
+
+  private void tearDownTweetInputView() {
+    getSupportFragmentManager().beginTransaction()
+        .remove(toolbarTweetInputToggle.getFragment())
+        .commit();
+    toolbarTweetInputToggle = null;
   }
 
   private void updateTabs(@NonNull TabLayout userInfoTabs, User user) {

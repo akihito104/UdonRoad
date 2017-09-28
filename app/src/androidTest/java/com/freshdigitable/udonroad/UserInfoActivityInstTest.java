@@ -26,7 +26,6 @@ import android.support.test.rule.ActivityTestRule;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.freshdigitable.udonroad.util.AssertionUtil;
-import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -85,40 +84,6 @@ public class UserInfoActivityInstTest {
       when(relationship.isSourceMutingTarget()).thenReturn(false);
       when(relationship.isSourceWantRetweets()).thenReturn(true);
       return setupUserInfoTimeline(relationship);
-    }
-
-    @Test
-    public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
-        throws Exception {
-      AssertionUtil.checkUserInfoActivityTitle("");
-      PerformUtil.selectItemViewAt(0);
-      PerformUtil.reply();
-      // verify
-      AssertionUtil.checkUserInfoActivityTitle(R.string.title_reply);
-      onView(withId(R.id.tw_intext)).check(matches(withText("")));
-      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-      onView(withId(R.id.action_group_user)).check(doesNotExist());
-      onView(withId(R.id.action_cancel)).check(matches(isDisplayed()));
-      // tear down
-      PerformUtil.clickCancelWriteOnMenu();
-      AssertionUtil.checkUserInfoActivityTitle("");
-    }
-
-    @Test
-    public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
-        throws Exception {
-      AssertionUtil.checkUserInfoActivityTitle("");
-      PerformUtil.selectItemViewAt(0);
-      PerformUtil.reply();
-      AssertionUtil.checkUserInfoActivityTitle(R.string.title_reply);
-      onView(withId(R.id.tw_intext)).check(matches(withText("")));
-      PerformUtil.clickCancelWriteOnMenu();
-      // verify
-      AssertionUtil.checkUserInfoActivityTitle("");
-      onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
-      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-      onView(withId(R.id.action_write)).check(doesNotExist());
-      onView(withId(R.id.action_cancel)).check(doesNotExist());
     }
 
     @Test
@@ -457,7 +422,7 @@ public class UserInfoActivityInstTest {
       onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
       onView(withId(R.id.action_group_user)).check(matches(isDisplayed()));
       onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
-      onView(withId(R.id.action_write)).check(doesNotExist());
+      onView(withId(R.id.action_writeTweet)).check(doesNotExist());
     }
 
     @Override

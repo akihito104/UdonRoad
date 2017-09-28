@@ -183,3 +183,11 @@
   license: The Apache Software License, Version 2.0
   licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
   url: http://developer.android.com/tools/extras/support-library.html
+- artifact: com.android.support.constraint:constraint-layout-solver:+
+  name: constraint-layout-solver
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+- artifact: com.android.support.constraint:constraint-layout:+
+  name: constraint-layout
+  copyrightHolder: The Android Open Source Project
+  license: The Apache Software License, Version 2.0
