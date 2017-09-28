@@ -38,6 +38,7 @@ import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -59,7 +60,6 @@ import com.squareup.picasso.RequestCreator;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -116,18 +116,16 @@ public class TweetInputFragment extends Fragment {
     setHasOptionsMenu(true);
   }
 
-  private MenuItem writeTweetMenuItem;
-  private MenuItem sendTweetItem;
-  private MenuItem resumeTweetItem;
+  private final SparseArray<MenuItem> menuItems = new SparseArray<>();
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     Log.d(TAG, "onCreateOptionsMenu: ");
     super.onCreateOptionsMenu(menu, inflater);
     inflater.inflate(R.menu.tweet_input, menu);
-    writeTweetMenuItem = menu.findItem(R.id.action_writeTweet);
-    sendTweetItem = menu.findItem(R.id.action_sendTweet);
-    resumeTweetItem = menu.findItem(R.id.action_resumeTweet);
+    for (@IdRes int resId : new int[]{R.id.action_writeTweet, R.id.action_sendTweet, R.id.action_resumeTweet}) {
+      menuItems.put(resId, menu.findItem(resId));
+    }
     setupMenuVisibility();
   }
 
@@ -144,11 +142,10 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void setupMenuVisibility(@IdRes int visibleItemId) {
-    for (MenuItem item : Arrays.asList(writeTweetMenuItem, sendTweetItem, resumeTweetItem)) {
-      if (item != null) {
-        item.setVisible(item.getItemId() == visibleItemId);
-        setupItemEnable(item);
-      }
+    for (int i = 0; i < menuItems.size(); i++) {
+      final MenuItem item = menuItems.valueAt(i);
+      item.setVisible(item.getItemId() == visibleItemId);
+      setupItemEnable(item);
     }
   }
 
@@ -169,11 +166,11 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onOptionsItemSelected: ");
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
-      sendTweetItem.setEnabled(false);
+      menuItems.get(R.id.action_sendTweet).setEnabled(false);
       final TweetInputListener tweetInputListener = getTweetInputListener();
       updateStatusTask = createSendObservable().subscribe(s -> {
         tweetInputListener.onSendCompleted();
-        reset();
+        clear();
         setupMenuVisibility(R.id.action_writeTweet);
       }, e ->
           setupMenuVisibility(R.id.action_resumeTweet));
@@ -200,10 +197,13 @@ public class TweetInputFragment extends Fragment {
 
     final TweetInputView inputText = binding.mainTweetInputView;
     inputText.getAppendImageButton().setOnClickListener(v -> {
-      final InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(INPUT_METHOD_SERVICE);
-      imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+      final Context context = v.getContext();
+      final InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+      if (imm != null) {
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+      }
 
-      if (isPermissionNeed(v.getContext())) {
+      if (isPermissionNeed(context)) {
         requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_PERMISSION);
         return;
       }
@@ -231,30 +231,28 @@ public class TweetInputFragment extends Fragment {
     if (updateStatusTask != null && !updateStatusTask.isDisposed()) {
       updateStatusTask.dispose();
     }
+    menuItems.clear();
   }
 
   private final TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
-      if (sendTweetItem == null) {
-        return;
+      final MenuItem sendTweetItem = menuItems.get(R.id.action_sendTweet);
+      if (sendTweetItem != null) {
+        sendTweetItem.setEnabled(editable.length() >= 1);
       }
-      sendTweetItem.setEnabled(editable.length() >= 1);
     }
 
     @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
     @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
   };
 
   private final List<Long> quoteStatusIds = new ArrayList<>(4);
 
   public boolean isNewTweetCreatable() {
-    return !isStatusInputViewVisible()
+    return !isTweetInputViewVisible()
         && (updateStatusTask == null || updateStatusTask.isDisposed())
         && isCleared();
   }
@@ -341,12 +339,12 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void cancelInput() {
-    reset();
+    clear();
     collapseStatusInputView();
     setupMenuVisibility(R.id.action_writeTweet);
   }
 
-  private void reset() {
+  private void clear() {
     replyEntity = null;
     quoteStatusIds.clear();
     clearMedia();
@@ -358,7 +356,7 @@ public class TweetInputFragment extends Fragment {
         && (binding == null || binding.mainTweetInputView.getText().length() <= 0);
   }
 
-  public boolean isStatusInputViewVisible() {
+  public boolean isTweetInputViewVisible() {
     return binding.mainTweetInputView.isVisible();
   }
 
@@ -455,13 +453,18 @@ public class TweetInputFragment extends Fragment {
   private void addAllMedia(Collection<Uri> uris) {
     media.addAll(uris);
     updateMediaContainer();
-    sendTweetItem.setEnabled(true);
+    menuItems.get(R.id.action_sendTweet).setEnabled(true);
   }
 
   private void removeMedia(Uri uri) {
     media.remove(uri);
     updateMediaContainer();
-    sendTweetItem.setEnabled(!media.isEmpty());
+    menuItems.get(R.id.action_sendTweet).setEnabled(!media.isEmpty());
+  }
+
+  private void clearMedia() {
+    media.clear();
+    binding.mainTweetInputView.clearMedia();
   }
 
   private void updateMediaContainer() {
@@ -488,12 +491,6 @@ public class TweetInputFragment extends Fragment {
         });
       });
     }
-  }
-
-  private void clearMedia() {
-    media.clear();
-    binding.mainTweetInputView.clearMedia();
-    sendTweetItem.setEnabled(false);
   }
 
   @Override

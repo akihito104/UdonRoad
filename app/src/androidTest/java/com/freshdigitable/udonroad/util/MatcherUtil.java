@@ -38,9 +38,9 @@ public class MatcherUtil {
     return onView(withContentDescription(R.string.navDesc_openDrawer));
   }
 
-  private MatcherUtil() {}
-
   public static ViewInteraction onActionWrite() {
     return onView(withId(R.id.action_writeTweet));
   }
+
+  private MatcherUtil() {}
 }

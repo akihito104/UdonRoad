@@ -78,7 +78,7 @@ class ToolbarTweetInputToggle {
   }
 
   private void collapseTweetInputView() {
-    if (!fragment.isStatusInputViewVisible()) {
+    if (!fragment.isTweetInputViewVisible()) {
       return;
     }
     fragment.collapseStatusInputView();
@@ -101,7 +101,7 @@ class ToolbarTweetInputToggle {
       toolbar.setTitle(R.string.title_tweet);
       switchNavigationIcon();
       return true;
-    } else if (itemId == android.R.id.home && fragment.isStatusInputViewVisible()) {
+    } else if (itemId == android.R.id.home && fragment.isTweetInputViewVisible()) {
       cancelInput();
       return true;
     }
@@ -117,7 +117,7 @@ class ToolbarTweetInputToggle {
   }
 
   boolean isOpened() {
-    return fragment.isStatusInputViewVisible();
+    return fragment.isTweetInputViewVisible();
   }
 
   void changeCurrentUser() {
