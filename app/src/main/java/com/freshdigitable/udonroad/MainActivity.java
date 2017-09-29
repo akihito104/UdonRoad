@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     InjectionUtil.getComponent(this).inject(this);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+    if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
