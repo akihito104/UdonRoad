@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v7.widget.RecyclerView;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
@@ -38,6 +39,8 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewAssertion.recyclerViewDescendantsMatches;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
@@ -118,7 +121,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // exec.
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
-    PerformUtil.retweet();
+    performRetweet();
     AssertionUtil.checkRTCountAt(0, 1);
     PerformUtil.pullDownTimeline();
     AssertionUtil.checkRTCountAt(0, 1);
@@ -146,7 +149,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // exec.
     final Status rtTarget = findByStatusId(20000);
     PerformUtil.selectItemViewAt(0);
-    PerformUtil.retweet();
+    performRetweet();
     final Status target = TwitterResponseMock.createRtStatus(rtTarget, 25000, false);
     PerformUtil.pullDownTimeline();
     receiveDeletionNotice(target);
@@ -164,7 +167,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
     PerformUtil.selectItemView(target);
-    PerformUtil.retweet();
+    performRetweet();
     final Status targetRt = TwitterResponseMock.createRtStatus(target, 25000, false);
     receiveDeletionNotice(target, targetRt);
 
@@ -253,6 +256,17 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // assert
     onView(withText(R.string.msg_already_rt)).check(matches(isDisplayed()));
     AssertionUtil.checkRTCountAt(0, 3);
+  }
+
+  private void performRetweet() {
+    final RecyclerView recyclerView = getTimelineView();
+    final int expectedCount = (recyclerView != null ? recyclerView.getAdapter().getItemCount() : 0) + 1;
+    PerformUtil.retweet();
+    runWithIdlingResource(getSimpleIdlingResource("receive status", () -> {
+      final RecyclerView rv = getTimelineView();
+      return rv != null && rv.getAdapter().getItemCount() == expectedCount;
+    }), () ->
+        onView(withId(R.id.timeline)).check(matches(isDisplayed())));
   }
 
   @Test

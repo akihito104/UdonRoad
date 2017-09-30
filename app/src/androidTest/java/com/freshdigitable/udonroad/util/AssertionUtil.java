@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.util;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.test.espresso.ViewAssertion;
 import android.support.test.espresso.core.deps.guava.collect.Iterables;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.v7.widget.Toolbar;
@@ -48,6 +49,7 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusV
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by akihit on 2016/11/25.
@@ -150,6 +152,12 @@ public class AssertionUtil {
       return;
     }
     checkUserInfoActivityTitle(withText(title));
+  }
+
+  @NonNull
+  public static ViewAssertion anywayNotVisible() {
+    return (view, noViewFoundException) ->
+        assertTrue(view == null || view.getVisibility() != View.VISIBLE);
   }
 
   private AssertionUtil() {}

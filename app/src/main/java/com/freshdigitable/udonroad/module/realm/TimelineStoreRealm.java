@@ -109,7 +109,7 @@ public class TimelineStoreRealm implements SortedCache<Status> {
     timeline = sortedCache.where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
     setItemCount(timeline.size());
-    timeline.addChangeListener(elem -> setItemCount(elem.size()));
+//    timeline.addChangeListener(elem -> setItemCount(elem.size()));
     timeline.addChangeListener(addChangeListener);
   }
 

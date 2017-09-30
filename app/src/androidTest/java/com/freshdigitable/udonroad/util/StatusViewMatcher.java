@@ -46,15 +46,42 @@ public class StatusViewMatcher {
     return ofStatusViewInternal(viewMatcher, StatusView.class);
   }
 
-  public static Matcher<View> ofQuotedStatusView(final Matcher<View> viewMatcher) {
-    return ofStatusViewInternal(viewMatcher, QuotedStatusView.class);
+  public static Matcher<View> ofRTStatusView(final Matcher<View> viewMatcher) {
+    return ofStatusViewInternal(viewMatcher, StatusView.class, true);
   }
 
   private static <T extends View & ItemView> Matcher<View> ofStatusViewInternal(
       final Matcher<View> viewMatcher, Class<T> clz) {
+    return ofStatusViewInternal(viewMatcher, clz, false);
+  }
+
+  private static <T extends View & ItemView> Matcher<View> ofStatusViewInternal(
+      final Matcher<View> viewMatcher, Class<T> clz, boolean isRetweet) {
     return new BoundedMatcher<View, T>(clz) {
       @Override
       protected boolean matchesSafely(T item) {
+        if (isRetweet) {
+          final View rtUser = item.findViewById(R.id.tl_rt_user);
+          if (rtUser == null || rtUser.getVisibility() != View.VISIBLE) {
+            return false;
+          }
+        }
+        final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
+            view -> view != null && !(view.getParent() instanceof QuotedStatusView) && viewMatcher.matches(view));
+        return it.iterator().hasNext();
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        viewMatcher.describeTo(description);
+      }
+    };
+  }
+
+  public static Matcher<View> ofQuotedStatusView(final Matcher<View> viewMatcher) {
+    return     new BoundedMatcher<View, QuotedStatusView>(QuotedStatusView.class) {
+      @Override
+      protected boolean matchesSafely(QuotedStatusView item) {
         final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
             view -> view != null && viewMatcher.matches(view));
         return it.iterator().hasNext();

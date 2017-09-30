@@ -172,6 +172,7 @@ public class StatusRequestWorker implements RequestWorker {
   }
 
   private void feedbackOnError(long statusId, Throwable throwable, @StringRes int defaultId) {
+    Log.e(TAG, "feedbackOnError: ", throwable);
     final int msg = findMessageByTwitterExeption(throwable, defaultId);
     if (msg == R.string.msg_already_fav) {
       updateStatusWithReaction(statusId, reaction -> reaction.setFavorited(true));

@@ -81,6 +81,7 @@ public class MainApplication extends Application {
 
     appComponent = createAppComponent();
     appComponent.inject(this);
+    init(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
     AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
   }
@@ -164,9 +165,6 @@ public class MainApplication extends Application {
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
       Log.d(TAG, "onActivityCreated: count>" + activities.size());
-      if (activities.size() == 0) {
-        init(activity);
-      }
       if (!getApplication(activity).loggedIn) {
         getApplication(activity).login();
       }
@@ -182,12 +180,6 @@ public class MainApplication extends Application {
       }
       OAuthActivity.start(activity);
       activity.finish();
-    }
-
-    private static void init(Activity activity) {
-      if (!(activity instanceof OAuthActivity)) {
-        MainApplication.init(getApplication(activity));
-      }
     }
 
     @Override

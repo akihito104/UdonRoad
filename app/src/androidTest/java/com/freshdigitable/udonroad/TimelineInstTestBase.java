@@ -16,12 +16,15 @@
 
 package com.freshdigitable.udonroad;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import android.support.test.runner.lifecycle.Stage;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -29,8 +32,6 @@ import android.view.View;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;
-import com.freshdigitable.udonroad.util.StreamIdlingResource;
-import com.freshdigitable.udonroad.util.StreamIdlingResource.Operation;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
@@ -40,6 +41,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -64,7 +66,12 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.AssertionUtil.anywayNotVisible;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofRTStatusView;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
@@ -118,8 +125,8 @@ public abstract class TimelineInstTestBase {
   @NonNull
   IdlingResource getTimelineIdlingResource(String name, int initResListCount) {
     return IdlingResourceUtil.getSimpleIdlingResource(name,
-        () -> getRecyclerView() != null
-            && getRecyclerView().getAdapter().getItemCount() >= initResListCount);
+        () -> getTimelineView() != null
+            && getTimelineView().getAdapter().getItemCount() >= initResListCount);
   }
 
 
@@ -172,7 +179,6 @@ public abstract class TimelineInstTestBase {
 
   @After
   public void tearDown() throws Exception {
-    unregisterStreamIdlingResource();
     reset(twitter);
     reset(twitterStream);
     final AppCompatActivity activity = getRule().getActivity();
@@ -188,48 +194,61 @@ public abstract class TimelineInstTestBase {
     return new Intent();
   }
 
-  private StreamIdlingResource streamIdlingResource;
-
-  private void registerStreamIdlingResource(StreamIdlingResource streamIdlingResource) {
-    if (this.streamIdlingResource != null) {
-      unregisterStreamIdlingResource();
-    }
-    Espresso.registerIdlingResources(streamIdlingResource);
-    this.streamIdlingResource = streamIdlingResource;
-  }
-
-  private void unregisterStreamIdlingResource() {
-    if (this.streamIdlingResource == null) {
-      return;
-    }
-    Espresso.unregisterIdlingResources(this.streamIdlingResource);
-    this.streamIdlingResource = null;
-  }
-
   protected void receiveDeletionNotice(final Status... target) {
-    final RecyclerView recyclerView = getRecyclerView();
-    StreamIdlingResource streamIdlingResource
-        = new StreamIdlingResource(recyclerView, Operation.DELETE, target.length);
-    registerStreamIdlingResource(streamIdlingResource);
+    final RecyclerView timeline = getTimelineView();
+    final int expectedCount = timeline.getAdapter().getItemCount() - target.length;
+
     TwitterResponseMock.receiveDeletionNotice(getApp().getUserStreamListener(), target);
+
+    runWithIdlingResource(getSimpleIdlingResource("receive deletion notice", () ->
+        timeline.getAdapter().getItemCount() == expectedCount), () -> {
+      for (Status t : target) {
+        if (t.isRetweet()) {
+          onView(ofRTStatusView(withText(t.getText()))).check(anywayNotVisible());
+        } else {
+          onView(ofStatusView(withText(t.getText()))).check(anywayNotVisible());
+          onView(ofQuotedStatusView(withText(t.getText()))).check(anywayNotVisible());
+        }
+      }
+    });
   }
+
 
   protected void receiveStatuses(final Status... statuses) throws Exception {
     receiveStatuses(true, statuses);
   }
 
   protected void receiveStatuses(boolean isIdlingResourceUsed, final Status... statuses) {
-    if (isIdlingResourceUsed) {
-      final RecyclerView recyclerView = getRecyclerView();
-      final StreamIdlingResource streamIdlingResource
-          = new StreamIdlingResource(recyclerView, Operation.ADD, statuses.length);
-      registerStreamIdlingResource(streamIdlingResource);
-    }
+    final RecyclerView recyclerView = getTimelineView();
+    final int expectedCount = (recyclerView != null ? recyclerView.getAdapter().getItemCount() : 0)
+        + statuses.length;
+
     TwitterResponseMock.receiveStatuses(getApp().getUserStreamListener(), statuses);
+
+    if (isIdlingResourceUsed) {
+      runWithIdlingResource(getSimpleIdlingResource("receive status", () -> {
+        final RecyclerView rv = getTimelineView();
+        return rv != null && rv.getAdapter().getItemCount() == expectedCount;
+      }), () ->
+          onView(withId(R.id.timeline)).check(matches(isDisplayed())));
+    }
   }
 
-  private RecyclerView getRecyclerView() {
-    return (RecyclerView) getRule().getActivity().findViewById(R.id.timeline);
+  protected RecyclerView getTimelineView() {
+    final RecyclerView timeline = getRule().getActivity().findViewById(R.id.timeline);
+    if (timeline != null) {
+      return timeline;
+    }
+    if (Looper.getMainLooper().isCurrentThread()) {
+      final Collection<Activity> resumedActivity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
+      for (Activity a : resumedActivity) {
+        final RecyclerView t = a.findViewById(R.id.timeline);
+        if (t != null) {
+          return t;
+        }
+      }
+    }
+    return null;
   }
 
   protected Status findByStatusId(long statusId) throws Exception {
@@ -264,7 +283,8 @@ public abstract class TimelineInstTestBase {
     when(twitter.retweetStatus(anyLong())).thenAnswer(invocation -> {
       final Long id = invocation.getArgument(0);
       final Status rtedStatus = findByStatusId(id);
-      receiveStatuses(true, createRtStatus(rtedStatus, rtStatusId, false));
+      TwitterResponseMock.receiveStatuses(getApp().getUserStreamListener(),
+          createRtStatus(rtedStatus, rtStatusId, false));
       return createRtStatus(rtedStatus, rtStatusId, rtCount, favCount, true);
     });
   }

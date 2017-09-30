@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad;
 
 import android.app.Activity;
 import android.support.test.espresso.Espresso;
-import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
@@ -26,7 +25,6 @@ import android.support.test.runner.lifecycle.Stage;
 import android.support.v4.app.Fragment;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
-import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 
 import org.junit.Rule;
@@ -45,6 +43,8 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
@@ -83,7 +83,6 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Test
   public void receiveStatusesAfterRelaunch_then_latestTweetAppears() throws Exception {
     PerformUtil.launchHomeAndBackToApp(rule.getActivity());
-    Thread.sleep(200);
 
     final Status received = createStatus(22000);
     receiveStatuses(createStatus(21000), received);
@@ -138,7 +137,8 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
     final Status top = findByStatusId(20000);
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
 
-    final IdlingResource ir = IdlingResourceUtil.getSimpleIdlingResource("userInfo", () -> {
+    PerformUtil.clickUserIconAt(0);
+    runWithIdlingResource(getSimpleIdlingResource("userInfo", () -> {
       final Collection<Activity> activities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
       for (Activity a : activities) {
         if (!(a instanceof UserInfoActivity)) {
@@ -152,20 +152,15 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
         }
       }
       return false;
-    });
-    PerformUtil.clickUserIconAt(0);
-    try {
-      Espresso.registerIdlingResources(ir);
-      onView(withText("TWEET\n20")).check(matches(isDisplayed()));
-    } finally {
-      Espresso.unregisterIdlingResources(ir);
-    }
+    }), () ->
+        onView(withText("TWEET\n20")).check(matches(isDisplayed())));
 
     final Status received22 = createStatus(22000);
-    receiveStatuses(received22);
+    receiveStatuses(false, received22);
     Espresso.pressBack();
-
-    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
+    runWithIdlingResource(getSimpleIdlingResource("back to main", () ->
+        getTimelineView().getAdapter().getItemCount() == 21), () ->
+        onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText())))));
 
     final Status received25 = createStatus(25000);
     receiveStatuses(received25);
