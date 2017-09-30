@@ -19,7 +19,7 @@ package com.freshdigitable.udonroad;
 import android.content.Intent;
 import android.support.annotation.StringRes;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingRegistry;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 
@@ -411,7 +411,7 @@ public class UserInfoActivityInstTest {
       TestInjectionUtil.getComponent().inject(this);
 
       idlingResource = new ConfigSetupIdlingResource();
-      Espresso.registerIdlingResources(idlingResource);
+      IdlingRegistry.getInstance().register(idlingResource);
 
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
           configRequestWorker.setup().subscribe(() -> idlingResource.setDoneSetup(true)));
@@ -429,7 +429,7 @@ public class UserInfoActivityInstTest {
     @After
     public void tearDown() throws Exception {
       InstrumentationRegistry.getInstrumentation().runOnMainSync(userCache::close);
-      Espresso.unregisterIdlingResources(idlingResource);
+      IdlingRegistry.getInstance().unregister(idlingResource);
       super.tearDown();
     }
   }

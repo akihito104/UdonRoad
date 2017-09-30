@@ -19,7 +19,7 @@ package com.freshdigitable.udonroad.util;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.test.espresso.ViewAssertion;
-import android.support.test.espresso.core.deps.guava.collect.Iterables;
+import android.support.test.espresso.core.internal.deps.guava.collect.Iterables;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;

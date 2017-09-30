@@ -97,9 +97,8 @@ public class OwnedListInstTest extends TimelineInstTestBase {
     });
 
     PerformUtil.selectItemViewAt(0, UserItemView.class);
-    runWithIdlingResource(getSimpleIdlingResource("show listTL", isTimelineLoaded()), () -> {
-      AssertionUtil.checkMainActivityTitle("list0");
-    });
+    runWithIdlingResource(getSimpleIdlingResource("show listTL", isTimelineLoaded()), () ->
+        AssertionUtil.checkMainActivityTitle("list0"));
 
     Espresso.pressBack();
     runWithIdlingResource(getSimpleIdlingResource("show lists", isTimelineLoaded()), () -> {

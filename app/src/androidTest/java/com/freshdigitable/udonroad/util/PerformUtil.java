@@ -160,7 +160,7 @@ public class PerformUtil {
         return calcCenterCoord(v);
       }
       return calcCenterCoord(view);
-    }, Press.FINGER));
+    }, Press.FINGER, 0, 0));
   }
 
   private static float[] calcCenterCoord(View v) {
