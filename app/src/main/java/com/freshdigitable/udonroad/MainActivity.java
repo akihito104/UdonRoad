@@ -90,16 +90,15 @@ public class MainActivity extends AppCompatActivity
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setSupportActionBar(binding.mainToolbar);
-
-    setupHomeTimeline();
-    setupNavigationDrawer();
-    setupTweetInputView();
-
     final ActionBar supportActionBar = getSupportActionBar();
     if (supportActionBar != null) {
       supportActionBar.setDisplayHomeAsUpEnabled(true);
       supportActionBar.setHomeButtonEnabled(true);
     }
+
+    setupHomeTimeline();
+    setupNavigationDrawer();
+    setupTweetInputView();
   }
 
   private void setupHomeTimeline() {
