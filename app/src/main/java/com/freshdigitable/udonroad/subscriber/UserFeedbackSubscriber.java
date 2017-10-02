@@ -28,9 +28,7 @@ import java.lang.ref.WeakReference;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * UserFeedbackSubscriber subscribes request job such as RT and fav.
@@ -56,38 +54,22 @@ public class UserFeedbackSubscriber {
       return;
     }
     this.feedbackSubscription = this.feedbackSubject.onBackpressureBuffer()
-        .observeOn(Schedulers.newThread())
-        .subscribe(new Consumer<UserFeedbackEvent>() {
-          @Override
-          public void accept(final UserFeedbackEvent msg) {
-            Disposable schedule = null;
-            try {
-              final Runnable feedbackAction = createFeedbackAction(msg);
-              schedule = AndroidSchedulers.mainThread().createWorker()
-                  .schedule(feedbackAction);
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-              // nop
-            } finally {
-              if (schedule != null) {
-                schedule.dispose();
-              }
-            }
-          }
+        .observeOn(AndroidSchedulers.mainThread())
+        .map(this::createFeedbackAction)
+        .subscribe(Runnable::run, e -> Log.e(TAG, "feedback: ", e));
+  }
 
-          private Runnable createFeedbackAction(final UserFeedbackEvent msg) {
-            final View view = rootView.get();
-            final CharSequence message = msg.createMessage(context);
-            if (view != null) {
-              return SnackBarUtil.action(view, message);
-            }
-            return () -> {
-              final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
-              toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
-              toast.show();
-            };
-          }
-        }, e -> Log.e(TAG, "feedback: ", e));
+  private Runnable createFeedbackAction(final UserFeedbackEvent msg) {
+    final View view = rootView.get();
+    final CharSequence message = msg.createMessage(context);
+    if (view != null) {
+      return SnackBarUtil.action(view, message);
+    }
+    final Toast toast = new Toast(context);
+    toast.setText(message);
+    toast.setDuration(Toast.LENGTH_SHORT);
+    toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
+    return toast::show;
   }
 
   private WeakReference<View> rootView;
@@ -96,8 +78,8 @@ public class UserFeedbackSubscriber {
     if (isRegisteredView(rootView)) {
       return;
     }
-    subscribe();
     this.rootView = new WeakReference<>(rootView);
+    subscribe();
   }
 
   private boolean isRegisteredView(@NonNull View rootView) {
