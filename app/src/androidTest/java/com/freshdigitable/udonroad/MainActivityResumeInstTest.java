@@ -25,6 +25,7 @@ import android.support.test.runner.lifecycle.Stage;
 import android.support.v4.app.Fragment;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
+import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 
 import org.junit.Rule;
@@ -43,6 +44,7 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
@@ -70,19 +72,8 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   }
 
   @Test
-  public void heading_then_latestTweetAppears() throws Exception {
-    PerformUtil.selectItemViewAt(0);
-    final Status received = createStatus(22000);
-    receiveStatuses(createStatus(21000), received);
-    PerformUtil.clickHeadingOnMenu();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(received.getText()))));
-    onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
-  }
-
-  @Test
   public void receiveStatusesAfterRelaunch_then_latestTweetAppears() throws Exception {
-    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
+    launchHome();
 
     final Status received = createStatus(22000);
     receiveStatuses(createStatus(21000), received);
@@ -92,7 +83,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
   @Test
   public void headingAfterRelaunch_then_latestTweetAppears() throws Exception {
-    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
+    launchHome();
 
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
@@ -107,29 +98,13 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
   @Test
   public void createFavAfterRelaunch_then_success() throws Exception {
     // setup
-    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
+    launchHome();
     setupCreateFavorite(0, 1);
     // exec.
     PerformUtil.selectItemViewAt(0);
     PerformUtil.favo();
     Espresso.pressBack();
     AssertionUtil.checkFavCountAt(0, 1);
-  }
-
-  @Test
-  public void receiveStatusWhenStatusIsSelected_then_timelineIsNotScrolled() throws Exception {
-    final Status target = findByStatusId(20000);
-    PerformUtil.selectItemViewAt(0).check(matches(ofStatusView(withText(target.getText()))));
-    final Status received = createStatus(22000);
-    receiveStatuses(received);
-
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(target.getText()))));
-    PerformUtil.clickHeadingOnMenu();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(received.getText()))));
-    onView(ofStatusViewAt(R.id.timeline, 1))
-        .check(matches(ofStatusView(withText(target.getText()))));
   }
 
   @Test
@@ -173,6 +148,13 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
         .check(matches(ofStatusView(withText(received22.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 2))
         .check(matches(ofStatusView(withText(top.getText()))));
+  }
+
+  private void launchHome() throws InterruptedException {
+    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
+    IdlingResourceUtil.runWithIdlingResource(
+        getActivityStageIdlingResource("relaunch", MainActivity.class, Stage.RESUMED), () ->
+            onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(isDisplayed())));
   }
 
   @Override

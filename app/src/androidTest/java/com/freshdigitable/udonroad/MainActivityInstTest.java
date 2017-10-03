@@ -45,6 +45,7 @@ import static com.freshdigitable.udonroad.util.StatusViewAssertion.recyclerViewD
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -323,6 +324,33 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(status.getText()))));
+  }
+
+  @Test
+  public void heading_then_latestTweetAppears() throws Exception {
+    PerformUtil.selectItemViewAt(0);
+    final Status received = createStatus(22000);
+    receiveStatuses(createStatus(21000), received);
+    PerformUtil.clickHeadingOnMenu();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(received.getText()))));
+    onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
+  }
+
+  @Test
+  public void receiveStatusWhenStatusIsSelected_then_timelineIsNotScrolled() throws Exception {
+    final Status target = findByStatusId(20000);
+    PerformUtil.selectItemViewAt(0).check(matches(ofStatusView(withText(target.getText()))));
+    final Status received = createStatus(22000);
+    receiveStatuses(received);
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(target.getText()))));
+    PerformUtil.clickHeadingOnMenu();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(received.getText()))));
+    onView(ofStatusViewAt(R.id.timeline, 1))
+        .check(matches(ofStatusView(withText(target.getText()))));
   }
 
   @Override
