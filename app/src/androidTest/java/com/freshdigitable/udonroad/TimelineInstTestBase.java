@@ -43,6 +43,9 @@ import org.junit.Before;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import javax.inject.Inject;
 
@@ -181,7 +184,7 @@ public abstract class TimelineInstTestBase {
   public void tearDown() throws Exception {
     reset(twitter);
     reset(twitterStream);
-    final AppCompatActivity activity = getRule().getActivity();
+    final Activity activity = getActivity();
     if (activity != null) {
       IdlingResourceUtil.ActivityWaiter.create(activity).waitForDestroyed();
       StorageUtil.checkAllRealmInstanceClosed();
@@ -189,6 +192,30 @@ public abstract class TimelineInstTestBase {
   }
 
   protected abstract ActivityTestRule<? extends AppCompatActivity> getRule();
+
+  private Activity getActivity() {
+    final Callable<Activity> resumedActivity = () -> {
+      final Collection<Activity> resumedActivities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
+      return resumedActivities.isEmpty() ? null
+          : resumedActivities.iterator().next();
+    };
+    try {
+      if (Looper.getMainLooper().isCurrentThread()) {
+        return resumedActivity.call();
+      } else {
+        final FutureTask<Activity> activityFutureTask = new FutureTask<>(resumedActivity);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(activityFutureTask);
+        return activityFutureTask.get();
+      }
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 
   protected Intent getIntent() {
     return new Intent();
@@ -235,11 +262,7 @@ public abstract class TimelineInstTestBase {
   }
 
   protected RecyclerView getTimelineView() {
-    final RecyclerView timeline = getRule().getActivity().findViewById(R.id.timeline);
-    if (timeline != null) {
-      return timeline;
-    }
-    if (Looper.getMainLooper().isCurrentThread()) {
+    final Callable<RecyclerView> findView = () -> {
       final Collection<Activity> resumedActivity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
       for (Activity a : resumedActivity) {
         final RecyclerView t = a.findViewById(R.id.timeline);
@@ -247,6 +270,22 @@ public abstract class TimelineInstTestBase {
           return t;
         }
       }
+      return null;
+    };
+    try {
+      if (Looper.getMainLooper().isCurrentThread()) {
+        return findView.call();
+      } else {
+        final FutureTask<RecyclerView> findViewFuture = new FutureTask<>(findView);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(findViewFuture);
+        return findViewFuture.get();
+      }
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
   }
