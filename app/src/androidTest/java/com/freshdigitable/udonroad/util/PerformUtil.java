@@ -178,12 +178,9 @@ public class PerformUtil {
     home.addCategory(Intent.CATEGORY_HOME);
     home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-    Intent relaunch = new Intent(base, base.getClass());
-    relaunch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-
     InstrumentationRegistry.getTargetContext().startActivity(home);
     Thread.sleep(500);
-    base.startActivity(relaunch);
+    base.startActivity(base.getIntent());
   }
 
   private PerformUtil() {
