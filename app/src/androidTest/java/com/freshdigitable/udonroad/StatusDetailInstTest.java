@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.lifecycle.Stage;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -43,6 +44,9 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.AssertionUtil.anywayNotVisible;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getReactionContainerMatcher;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
@@ -113,7 +117,11 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.user_name)).check(matches(withText(getLoginUser().getName())));
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
-    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    runWithIdlingResource(
+        getActivityStageIdlingResource("back to main", MainActivity.class, Stage.RESUMED), () -> {
+          AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+          onView(withId(R.id.iffabMenu_main_detail)).check(anywayNotVisible());
+        });
   }
 
   @Test

@@ -125,4 +125,10 @@ class BottomButtonsToolbar extends Toolbar {
         ? TypedValue.complexToDimensionPixelSize(tv.data, context.getResources().getDisplayMetrics())
         : MarginLayoutParams.WRAP_CONTENT;
   }
+
+  @Override
+  protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    clearAnimation();
+  }
 }
