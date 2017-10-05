@@ -238,7 +238,11 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     isAddedUntilStopped();
+  }
 
+  @Override
+  public void onResume() {
+    super.onResume();
     if (isVisible()) {
       if (tlAdapter.isItemSelected()) {
         showFab();

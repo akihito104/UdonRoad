@@ -81,7 +81,7 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+    if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
     binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
@@ -94,7 +94,6 @@ public class UserInfoActivity extends AppCompatActivity
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.userInfo_appbar_container, userInfoAppbarFragment)
         .commit();
-    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
 
   private void setUpAppbar() {
@@ -176,8 +175,9 @@ public class UserInfoActivity extends AppCompatActivity
     userInfoAppbarFragment.onEnterAnimationComplete();
     if (isTimelineContainerEmpty()) {
       getSupportFragmentManager().beginTransaction()
-          .replace(R.id.userInfo_timeline_container, viewPager)
+          .replace(R.id.userInfo_timeline_container, viewPager, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
           .commitNow();
+      timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
     }
     final User user = userCache.find(getUserId());
     setupTabs(binding.userInfoTabs, user);

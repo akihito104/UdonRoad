@@ -18,7 +18,9 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -36,11 +38,12 @@ import twitter4j.Status;
  */
 
 class TimelineContainerSwitcher {
+  static final String MAIN_FRAGMENT_TAG = ContentType.MAIN.createTag(-1, null);
   private final Fragment mainFragment;
   private final IndicatableFFAB ffab;
   private final @IdRes int containerId;
 
-  TimelineContainerSwitcher(View container, Fragment mainFragment, IndicatableFFAB iffab) {
+  TimelineContainerSwitcher(@NonNull View container, @NonNull Fragment mainFragment, @NonNull IndicatableFFAB iffab) {
     if (!(mainFragment instanceof ItemSelectable)) {
       throw new IllegalArgumentException("mainFragment should implement ItemSelectable.");
     }
@@ -92,7 +95,7 @@ class TimelineContainerSwitcher {
     final String name = type.createTag(id, query);
     getSupportFragmentManager().beginTransaction()
         .replace(containerId, fragment, name)
-        .addToBackStack(tag != null ? tag : ContentType.MAIN.createTag(-1, null))
+        .addToBackStack(tag)
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
     type.onShow(this, name, true);
@@ -110,6 +113,11 @@ class TimelineContainerSwitcher {
     final String appearFragmentName = backStack.getName();
     ContentType.findByTag(appearFragmentName).onShow(this, appearFragmentName, false);
     return true;
+  }
+
+  void syncState() {
+    final String tag = getCurrentFragment().getTag();
+    ContentType.findByTag(tag).onShow(this, tag, false);
   }
 
   private void setDetailIsEnabled(boolean enabled) {
@@ -142,11 +150,13 @@ class TimelineContainerSwitcher {
   }
 
   private FragmentManager getSupportFragmentManager() {
-    return mainFragment.getActivity().getSupportFragmentManager();
+    final FragmentActivity activity = mainFragment.getActivity();
+    return activity != null ? activity.getSupportFragmentManager()
+        : mainFragment.getFragmentManager();
   }
 
   private Context getContext() {
-    return mainFragment.getContext();
+    return getCurrentFragment().getContext();
   }
 
   private Fragment getCurrentFragment() {

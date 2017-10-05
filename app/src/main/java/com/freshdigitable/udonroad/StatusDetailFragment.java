@@ -231,6 +231,15 @@ public class StatusDetailFragment extends Fragment {
   }
 
   @Override
+  public void onResume() {
+    super.onResume();
+    if (getActivity() instanceof FabHandleable) {
+      final FabHandleable fabHandleable = (FabHandleable) getActivity();
+      fabHandleable.showFab(FabHandleable.TYPE_TOOLBAR);
+    }
+  }
+
+  @Override
   public void onStop() {
     super.onStop();
     tearDownActionToolbar();
@@ -277,7 +286,6 @@ public class StatusDetailFragment extends Fragment {
       final FabHandleable fabHandleable = (FabHandleable) getActivity();
       onIffabItemSelectedListener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
       fabHandleable.addOnItemSelectedListener(onIffabItemSelectedListener);
-      fabHandleable.showFab(FabHandleable.TYPE_TOOLBAR);
     }
   }
 

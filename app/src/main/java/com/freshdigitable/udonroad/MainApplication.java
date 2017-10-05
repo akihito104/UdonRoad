@@ -184,9 +184,15 @@ public class MainApplication extends Application {
 
     @Override
     public void onActivityStarted(Activity activity) {
+      Log.d(TAG, "onActivityStarted: ");
       if (activity instanceof MainActivity) {
         getApplication(activity).connectStream();
       }
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+      Log.d(TAG, "onActivityResumed: ");
       if (activity instanceof SnackbarCapable) {
         final View rootView = ((SnackbarCapable) activity).getRootView();
         getApplication(activity).userFeedback.registerRootView(rootView);
@@ -194,18 +200,16 @@ public class MainApplication extends Application {
     }
 
     @Override
-    public void onActivityResumed(Activity activity) { }
-
-    @Override
-    public void onActivityPaused(Activity activity) { }
-
-    @Override
-    public void onActivityStopped(Activity activity) {
+    public void onActivityPaused(Activity activity) {
+      Log.d(TAG, "onActivityPaused: ");
       if (activity instanceof SnackbarCapable) {
         final View rootView = ((SnackbarCapable) activity).getRootView();
         getApplication(activity).userFeedback.unregisterRootView(rootView);
       }
     }
+
+    @Override
+    public void onActivityStopped(Activity activity) {}
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }

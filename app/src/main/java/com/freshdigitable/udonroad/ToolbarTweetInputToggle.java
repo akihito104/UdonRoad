@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -40,8 +41,12 @@ class ToolbarTweetInputToggle {
   private Drawable navIconDefault;
 
   ToolbarTweetInputToggle(@NonNull Toolbar toolbar) {
+    this(toolbar, TweetInputFragment.create());
+  }
+
+  ToolbarTweetInputToggle(@NonNull Toolbar toolbar, @Nullable TweetInputFragment tweetInputFragment) {
     this.toolbar = toolbar;
-    this.fragment = TweetInputFragment.create();
+    this.fragment = tweetInputFragment != null ? tweetInputFragment : TweetInputFragment.create();
     final Drawable defaultNavIcon = toolbar.getNavigationIcon();
     this.navigationIcon = defaultNavIcon != null && defaultNavIcon instanceof DrawerArrowDrawable ?
         (DrawerArrowDrawable) defaultNavIcon

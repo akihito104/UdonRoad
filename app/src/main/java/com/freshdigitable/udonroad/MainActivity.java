@@ -24,6 +24,8 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -85,7 +87,13 @@ public class MainActivity extends AppCompatActivity
     if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
-    binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+
+    final View v = findViewById(R.id.nav_drawer_layout);
+    if (v == null) {
+      binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+    } else {
+      binding = DataBindingUtil.findBinding(v);
+    }
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -102,14 +110,24 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupHomeTimeline() {
-    tlFragment = TimelineFragment.getInstance(HOME);
-    configRequestWorker.setup().subscribe(
-        () -> getSupportFragmentManager().beginTransaction()
-            .replace(R.id.main_timeline_container, tlFragment)
-            .commit(),
-        throwable -> Log.e(TAG, "config.setup: ", throwable));
+    final TimelineFragment<?> timelineFragment = getTimelineFragment();
+    if (timelineFragment == null) {
+      tlFragment = TimelineFragment.getInstance(HOME);
+      configRequestWorker.setup().subscribe(
+          () -> getSupportFragmentManager().beginTransaction()
+              .replace(R.id.main_timeline_container, tlFragment, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
+              .commit(),
+          throwable -> Log.e(TAG, "config.setup: ", throwable));
+    } else {
+      tlFragment = timelineFragment;
+    }
     timelineContainerSwitcher = new TimelineContainerSwitcher(
         binding.mainTimelineContainer, tlFragment, binding.ffab);
+  }
+
+  @Nullable
+  private TimelineFragment<?> getTimelineFragment() {
+    return ((TimelineFragment) getSupportFragmentManager().findFragmentByTag(TimelineContainerSwitcher.MAIN_FRAGMENT_TAG));
   }
 
   private void setupNavigationDrawer() {
@@ -137,10 +155,19 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupTweetInputView() {
-    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.mainToolbar);
-    getSupportFragmentManager().beginTransaction()
-        .add(R.id.main_appbar_container, toolbarTweetInputToggle.getFragment())
-        .commit();
+    final TweetInputFragment tweetInputFragment = getTweetInputFragment();
+    toolbarTweetInputToggle = new ToolbarTweetInputToggle(binding.mainToolbar, tweetInputFragment);
+    if (tweetInputFragment == null) {
+      getSupportFragmentManager().beginTransaction()
+          .add(R.id.main_appbar_container, toolbarTweetInputToggle.getFragment())
+          .commit();
+    }
+  }
+
+  @Nullable
+  private TweetInputFragment getTweetInputFragment() {
+    final Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_appbar_container);
+    return fragment instanceof TweetInputFragment ? ((TweetInputFragment) fragment) : null;
   }
 
   @Override
@@ -201,6 +228,12 @@ public class MainActivity extends AppCompatActivity
       }
       binding.mainToolbar.setTitle(title);
     };
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    super.onRestoreInstanceState(savedInstanceState);
+    timelineContainerSwitcher.syncState();
   }
 
   @Override
