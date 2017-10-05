@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusView;
+import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -129,6 +130,35 @@ public class StatusViewInstTest {
         TimeUnit.HOURS.toMillis(23) + TimeUnit.MINUTES.toMillis(59));
     sut.bind(new StatusListItem(status));
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 24)));
+  }
+
+  @Test
+  public void showVerifiedIconForVerifiedUsersTweet() {
+    final User verifiedUser = UserUtil.createVerifiedUser();
+    final Status status = createStatus(10000L, verifiedUser);
+    sut.bind(new StatusListItem(status));
+    assertThat(actualNames(), is(verifiedUser.getName() + " @" + verifiedUser.getScreenName() + " "));
+  }
+
+  @Test
+  public void showProtectedIconForProtectedUsersTweet() {
+    final User protectedUser = UserUtil.createProtectedUser();
+    final Status status = createStatus(10001L, protectedUser);
+    sut.bind(new StatusListItem(status));
+    assertThat(actualNames(), is(protectedUser.getName() + " @" + protectedUser.getScreenName() + " "));
+  }
+
+  @Test
+  public void showBothIconForVerifiedAndProtectedUsersTweet() {
+    final User bothUser = UserUtil.createVerifiedAndProtectedUser();
+    final Status status = createStatus(10002L, bothUser);
+    sut.bind(new StatusListItem(status));
+    assertThat(actualNames(), is(bothUser.getName() + " @" + bothUser.getScreenName() + "  "));
+  }
+
+  @NonNull
+  private String actualNames() {
+    return ((TextView) sut.findViewById(R.id.tl_names)).getText().toString();
   }
 
   @NonNull
