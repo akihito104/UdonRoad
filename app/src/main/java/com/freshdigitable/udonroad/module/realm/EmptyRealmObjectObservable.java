@@ -41,7 +41,11 @@ class EmptyRealmObjectObservable<T extends RealmModel> extends Observable<T> {
 
   @Override
   protected void subscribeActual(Observer<? super T> observer) {
-    final RealmChangeListener<RealmResults<T>> changeListener = ts -> observer.onNext(ts.first());
+    final RealmChangeListener<RealmResults<T>> changeListener = ts -> {
+      if (!ts.isEmpty()) {
+        observer.onNext(ts.first());
+      }
+    };
     observer.onSubscribe(new ChangeListenerDisposable<>(realmResult, changeListener));
     realmResult.addChangeListener(changeListener);
   }
