@@ -77,6 +77,7 @@ public class MainActivityResumeInstTest extends TimelineInstTestBase {
 
     final Status received = createStatus(22000);
     receiveStatuses(createStatus(21000), received);
+    PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(received.getText()))));
   }
