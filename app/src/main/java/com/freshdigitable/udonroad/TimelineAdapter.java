@@ -17,6 +17,8 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
@@ -234,6 +236,18 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
       setSelectedBackground();
     }
 
+    /**
+     * for restore saved state
+     *
+     * @param selectedContainerId container ID that has selected item
+     * @param selectedItemId ID of actually selected item
+     */
+    private SelectedItem(long selectedContainerId, long selectedItemId) {
+      this.id = selectedItemId;
+      this.containerId = selectedContainerId;
+      this.viewHolder = null;
+    }
+
     private void setSelectedBackground() {
       final ItemViewHolder vh = getViewHolder();
       if (vh != null) {
@@ -353,6 +367,58 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     @Override
     public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
       return new UserItemViewHolder(parent);
+    }
+  }
+
+  Parcelable onSaveInstanceState() {
+    final SavedState savedState = new SavedState();
+    if (selectedItemHolder != null) {
+      savedState.selectedContainerId = selectedItemHolder.containerId;
+      savedState.selectedItemId = selectedItemHolder.id;
+    }
+    return savedState;
+  }
+
+  void onRestoreInstanceState(Parcelable parcelable) {
+    if (!(parcelable instanceof SavedState)) {
+      return;
+    }
+    final SavedState ss = (SavedState) parcelable;
+    selectedItemHolder = new SelectedItem(ss.selectedContainerId, ss.selectedItemId);
+  }
+
+  private static class SavedState implements Parcelable {
+    long selectedContainerId = -1;
+    long selectedItemId = -1;
+
+    private SavedState() {}
+
+    SavedState(Parcel in) {
+      selectedContainerId = in.readLong();
+      selectedItemId = in.readLong();
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+      parcel.writeLong(selectedContainerId);
+      parcel.writeLong(selectedItemId);
+    }
+
+    public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
+      @Override
+      public SavedState createFromParcel(Parcel in) {
+        return new SavedState(in);
+      }
+
+      @Override
+      public SavedState[] newArray(int size) {
+        return new SavedState[size];
+      }
+    };
+
+    @Override
+    public int describeContents() {
+      return 0;
     }
   }
 }

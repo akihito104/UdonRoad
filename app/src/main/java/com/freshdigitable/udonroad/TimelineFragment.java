@@ -66,6 +66,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private static final String SS_DONE_FIRST_FETCH = "ss_doneFirstFetch";
   private static final String SS_TOP_ITEM_ID = "ss_topItemId";
   private static final String SS_TOP_ITEM_TOP = "ss_topItemTop";
+  public static final String SS_ADAPTER = "ss_adapter";
   private FragmentTimelineBinding binding;
   TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
@@ -128,6 +129,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       isScrolledByUser = savedInstanceState.getBoolean(SS_SCROLLED_BY_USER);
       stopScroll = savedInstanceState.getBoolean(SS_STOP_SCROLL);
       doneFirstFetch = savedInstanceState.getBoolean(SS_DONE_FIRST_FETCH);
+      tlAdapter.onRestoreInstanceState(savedInstanceState.getParcelable(SS_ADAPTER));
     }
     if (binding == null) {
       binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
@@ -146,6 +148,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     outState.putBoolean(SS_DONE_FIRST_FETCH, doneFirstFetch);
     outState.putLong(SS_TOP_ITEM_ID, topItemId);
     outState.putInt(SS_TOP_ITEM_TOP, firstVisibleItemTopOnStop);
+    outState.putParcelable(SS_ADAPTER, tlAdapter.onSaveInstanceState());
   }
 
   private boolean isScrolledByUser = false;
