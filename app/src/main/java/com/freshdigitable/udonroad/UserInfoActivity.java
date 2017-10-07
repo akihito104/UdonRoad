@@ -30,6 +30,7 @@ import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -84,12 +85,19 @@ public class UserInfoActivity extends AppCompatActivity
     if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
-    binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
+    final View v = findViewById(R.id.userInfo_appbar_container);
+    if (v == null) {
+      binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
+    } else {
+      binding = DataBindingUtil.findBinding(v);
+    }
     InjectionUtil.getComponent(this).inject(this);
 
     setUpAppbar();
-    long userId = getUserId();
-    viewPager = UserInfoPagerFragment.create(userId);
+    setupInfoAppbarFragment(getUserId());
+  }
+
+  private void setupInfoAppbarFragment(long userId) {
     userInfoAppbarFragment = UserInfoFragment.create(userId);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.userInfo_appbar_container, userInfoAppbarFragment)
@@ -174,13 +182,24 @@ public class UserInfoActivity extends AppCompatActivity
   public void onEnterAnimationComplete() {
     userInfoAppbarFragment.onEnterAnimationComplete();
     if (isTimelineContainerEmpty()) {
-      getSupportFragmentManager().beginTransaction()
-          .replace(R.id.userInfo_timeline_container, viewPager, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
-          .commitNow();
-      timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
+      setupTimeline();
     }
     final User user = userCache.find(getUserId());
     setupTabs(binding.userInfoTabs, user);
+    timelineContainerSwitcher.syncState();
+  }
+
+  private void setupTimeline() {
+    final Fragment mainFragment = getSupportFragmentManager().findFragmentByTag(TimelineContainerSwitcher.MAIN_FRAGMENT_TAG);
+    if (mainFragment == null) {
+      viewPager = UserInfoPagerFragment.create(getUserId());
+      getSupportFragmentManager().beginTransaction()
+          .replace(R.id.userInfo_timeline_container, viewPager, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
+          .commitNow();
+    } else {
+      viewPager = (UserInfoPagerFragment) mainFragment;
+    }
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
 
   private boolean isTimelineContainerEmpty() {
@@ -360,9 +379,6 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void showFab(int type) {
-    if (viewPager.getSelectedItemId() < 1) {
-      return;
-    }
     if (type == TYPE_FAB) {
       binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
           View.VISIBLE : View.INVISIBLE);
