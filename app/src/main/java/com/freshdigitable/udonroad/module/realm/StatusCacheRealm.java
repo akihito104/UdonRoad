@@ -325,17 +325,19 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
     private StatusChangeObservable(StatusRealm statusRealm, ConfigStore configStore) {
       this.statusRealm = statusRealm;
       final StatusRealm bindingStatus = getBindingStatus(statusRealm);
+      addObservables(bindingStatus, configStore);
+      final Status quotedStatus = bindingStatus.getQuotedStatus();
+      if (quotedStatus != null) {
+        addObservables((StatusRealm) quotedStatus, configStore);
+      }
+    }
+
+    private void addObservables(StatusRealm bindingStatus, ConfigStore configStore) {
       observables.add(observeStatus(bindingStatus));
       final Observable<? extends RealmModel> reactionObservable = bindingStatus.getStatusReaction() != null ?
           ConfigStoreRealm.observe((StatusReactionRealm) bindingStatus.getStatusReaction())
           : configStore.observeById(bindingStatus.getId()).cast(StatusReactionRealm.class);
       observables.add(reactionObservable);
-      final Status quotedStatus = bindingStatus.getQuotedStatus();
-      if (quotedStatus != null) {
-        final StatusRealm qs = (StatusRealm) quotedStatus;
-        observables.add(observeStatus(qs));
-        observables.add(ConfigStoreRealm.observe((StatusReactionRealm) qs.getStatusReaction()));
-      }
     }
 
     private static Observable<StatusRealm> observeStatus(StatusRealm bindingStatus) {
