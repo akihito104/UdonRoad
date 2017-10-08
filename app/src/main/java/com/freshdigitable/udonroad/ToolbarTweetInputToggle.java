@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
@@ -25,6 +26,7 @@ import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
 
+import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_NONE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 
@@ -58,11 +60,23 @@ class ToolbarTweetInputToggle {
       return;
     }
     fragment.expandTweetInputView(type, statusId);
-    switchTitle(type);
-    switchNavigationIcon();
+    toggleToTweetInput(type);
   }
 
-  private void switchNavigationIcon() {
+  private void toggleToTweetInput(@TweetType int type) {
+    toggleTitleToTweetInput(type);
+    toggleNavigationIconToTweetInput();
+  }
+
+  private void toggleToDefault() {
+    currentType = TYPE_NONE;
+    toolbar.setTitle(prevTitle);
+    toolbar.setNavigationContentDescription(navContentDescriptionDefault);
+    toolbar.setNavigationIcon(navIconDefault);
+    navigationIcon.setProgress(0.f);
+  }
+
+  private void toggleNavigationIconToTweetInput() {
     navIconDefault = toolbar.getNavigationIcon();
     navContentDescriptionDefault = toolbar.getNavigationContentDescription();
 
@@ -71,8 +85,11 @@ class ToolbarTweetInputToggle {
     toolbar.setNavigationContentDescription(R.string.navDesc_cancelTweet);
   }
 
-  private void switchTitle(@TweetType int type) {
+  private @TweetType int currentType = TYPE_NONE;
+
+  private void toggleTitleToTweetInput(@TweetType int type) {
     prevTitle = toolbar.getTitle();
+    currentType = type;
     if (type == TYPE_REPLY) {
       toolbar.setTitle(R.string.title_reply);
     } else if (type == TYPE_QUOTE) {
@@ -87,10 +104,7 @@ class ToolbarTweetInputToggle {
       return;
     }
     fragment.collapseStatusInputView();
-    toolbar.setTitle(prevTitle);
-    toolbar.setNavigationContentDescription(navContentDescriptionDefault);
-    toolbar.setNavigationIcon(navIconDefault);
-    navigationIcon.setProgress(0.f);
+    toggleToDefault();
   }
 
   boolean onOptionMenuSelected(MenuItem item) {
@@ -103,8 +117,7 @@ class ToolbarTweetInputToggle {
       return true;
     } else if (itemId == R.id.action_resumeTweet) {
       fragment.expandForResume();
-      toolbar.setTitle(R.string.title_tweet);
-      switchNavigationIcon();
+      toggleToTweetInput(TweetInputFragment.TYPE_DEFAULT);
       return true;
     } else if (itemId == android.R.id.home && fragment.isTweetInputViewVisible()) {
       cancelInput();
@@ -115,10 +128,7 @@ class ToolbarTweetInputToggle {
 
   void cancelInput() {
     fragment.cancelInput();
-    toolbar.setTitle(prevTitle);
-    toolbar.setNavigationContentDescription(navContentDescriptionDefault);
-    toolbar.setNavigationIcon(navIconDefault);
-    navigationIcon.setProgress(0.f);
+    toggleToDefault();
   }
 
   boolean isOpened() {
@@ -131,5 +141,23 @@ class ToolbarTweetInputToggle {
 
   TweetInputFragment getFragment() {
     return fragment;
+  }
+
+  private static final String SS_PREV_TITLE = "ss_prevTitle";
+  private static final String SS_CURRENT_TYPE = "ss_currentType";
+
+  void onSaveInstanceState(Bundle outState) {
+    outState.putCharSequence(SS_PREV_TITLE, prevTitle);
+    outState.putInt(SS_CURRENT_TYPE, currentType);
+  }
+
+  void onRestoreInstanceState(Bundle savedInstanceState) {
+    currentType = savedInstanceState.getInt(SS_CURRENT_TYPE);
+    if (currentType == TYPE_NONE) {
+      return;
+    } else {
+      toggleToTweetInput(currentType);
+    }
+    prevTitle = savedInstanceState.getCharSequence(SS_PREV_TITLE);
   }
 }

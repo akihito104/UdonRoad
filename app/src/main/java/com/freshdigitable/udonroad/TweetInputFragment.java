@@ -25,6 +25,7 @@ import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.support.annotation.IdRes;
@@ -599,5 +600,74 @@ public class TweetInputFragment extends Fragment {
             Intent.EXTRA_ALTERNATE_INTENTS : Intent.EXTRA_INITIAL_INTENTS,
         new Intent[]{cameraIntent});
     startActivityForResult(chooser, REQUEST_CODE_MEDIA_CHOOSER);
+  }
+
+  private static final String SS_MEDIA = "ss_media";
+  private static final String SS_QUOTED_STATUS_IDS = "ss_quotedStatusIds";
+  private static final String SS_CAMERA_PIC_URI = "ss_cameraPicUri";
+  private static final String SS_REPLIED_STATUS_ID = "ss_repliedStatusId";
+  private static final String SS_REPLIED_USER_NAMES = "ss_repliedUserNames";
+  private static final String SS_TWEET_INPUT_VIEW_VISIBILITY = "ss_tweetInputView.visibility";
+
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    Log.d(TAG, "onSaveInstanceState: ");
+    super.onSaveInstanceState(outState);
+    outState.putInt(SS_TWEET_INPUT_VIEW_VISIBILITY, binding.mainTweetInputView.getVisibility());
+    outState.putParcelableArray(SS_MEDIA, media.toArray(new Uri[media.size()]));
+    final long[] qIds = new long[quoteStatusIds.size()];
+    for (int i = 0; i < quoteStatusIds.size(); i++) {
+      qIds[i] = quoteStatusIds.get(i);
+    }
+    outState.putLongArray(SS_QUOTED_STATUS_IDS, qIds);
+    outState.putParcelable(SS_CAMERA_PIC_URI, cameraPicUri);
+    if (replyEntity != null) {
+      outState.putLong(SS_REPLIED_STATUS_ID, replyEntity.inReplyToStatusId);
+      outState.putStringArray(SS_REPLIED_USER_NAMES,
+          replyEntity.screenNames.toArray(new String[replyEntity.screenNames.size()]));
+    }
+  }
+
+  @Override
+  public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+    super.onViewStateRestored(savedInstanceState);
+    if (savedInstanceState == null) {
+      return;
+    }
+    final int visibility = savedInstanceState.getInt(SS_TWEET_INPUT_VIEW_VISIBILITY);
+    binding.mainTweetInputView.setVisibility(visibility);
+    final Parcelable[] uris = savedInstanceState.getParcelableArray(SS_MEDIA);
+    if (uris != null && uris.length > 0) {
+      for (Parcelable p : uris) {
+        media.add((Uri) p);
+      }
+    }
+
+    final long[] qIds = savedInstanceState.getLongArray(SS_QUOTED_STATUS_IDS);
+    if (qIds != null) {
+      for (long qId : qIds) {
+        quoteStatusIds.add(qId);
+      }
+    }
+    if (!quoteStatusIds.isEmpty()) {
+      binding.mainTweetInputView.setQuote();
+    }
+
+    cameraPicUri = savedInstanceState.getParcelable(SS_CAMERA_PIC_URI);
+
+    final long repliedStatusId = savedInstanceState.getLong(SS_REPLIED_STATUS_ID, -1);
+    if (repliedStatusId != -1) {
+      final String[] repliedUserNames = savedInstanceState.getStringArray(SS_REPLIED_USER_NAMES);
+      final LinkedHashSet<String> userNames = new LinkedHashSet<>();
+      if (repliedUserNames != null) {
+        Collections.addAll(userNames, repliedUserNames);
+      }
+      replyEntity = new ReplyEntity(repliedStatusId, userNames);
+    }
+    if (replyEntity != null) {
+      binding.mainTweetInputView.setInReplyTo();
+    }
+
+    setupMenuVisibility();
   }
 }

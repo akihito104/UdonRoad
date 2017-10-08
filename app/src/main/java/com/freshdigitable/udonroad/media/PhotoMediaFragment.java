@@ -58,6 +58,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onStart();
     imageView.setOnClickListener(super.getOnClickListener());
     imageView.setOnTouchListener(super.getTouchListener());
+    final Toast toast = Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG);
     Picasso.with(getContext())
         .load(getUrl())
         .into(imageView, new Callback() {
@@ -68,7 +69,8 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
 
           @Override
           public void onError() {
-            Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG).show();
+            toast.show();
+            progressBar.setVisibility(View.GONE);
           }
         });
   }
