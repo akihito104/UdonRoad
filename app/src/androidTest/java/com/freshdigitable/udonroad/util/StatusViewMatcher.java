@@ -60,11 +60,10 @@ public class StatusViewMatcher {
     return new BoundedMatcher<View, T>(clz) {
       @Override
       protected boolean matchesSafely(T item) {
-        if (isRetweet) {
-          final View rtUser = item.findViewById(R.id.tl_rt_user);
-          if (rtUser == null || rtUser.getVisibility() != View.VISIBLE) {
-            return false;
-          }
+        final View rtUser = item.findViewById(R.id.tl_rt_user);
+        final boolean rtViewInvisible = rtUser == null || rtUser.getVisibility() != View.VISIBLE;
+        if (rtViewInvisible == isRetweet) {
+          return false;
         }
         final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
             view -> view != null && !(view.getParent() instanceof QuotedStatusView) && viewMatcher.matches(view));

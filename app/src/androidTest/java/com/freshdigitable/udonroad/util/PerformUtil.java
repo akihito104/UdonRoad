@@ -28,13 +28,17 @@ import android.support.test.espresso.action.Press;
 import android.support.test.espresso.action.Swipe;
 import android.support.test.espresso.action.Tap;
 import android.support.test.espresso.contrib.DrawerActions;
+import android.support.test.espresso.matcher.BoundedMatcher;
 import android.view.View;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.UserItemView;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
+import com.freshdigitable.udonroad.media.ThumbnailView;
 
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 
 import twitter4j.Status;
@@ -51,6 +55,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofItemViewAt;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofRTStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 
@@ -59,7 +64,9 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
  */
 public class PerformUtil {
   public static ViewInteraction selectItemView(Status target) {
-    return onView(ofStatusView(withText(target.getText()))).perform(clickForStatusView());
+    final Matcher<View> viewMatcher = target.isRetweet() ? ofRTStatusView(withText(target.getText()))
+        : ofStatusView(withText(target.getText()));
+    return onView(viewMatcher).perform(clickForStatusView());
   }
 
   public static ViewInteraction selectQuotedItemView(Status target) {
@@ -161,6 +168,24 @@ public class PerformUtil {
       }
       return calcCenterCoord(view);
     }, Press.FINGER, 0, 0));
+  }
+
+  public static void clickThumbnailAt(Status hasImage, int thumbIndex) {
+    final Matcher<View> viewMatcher = ofStatusView(withText(hasImage.getText()));
+    onView(new BoundedMatcher<View, ThumbnailView>(ThumbnailView.class) {
+      @Override
+      protected boolean matchesSafely(ThumbnailView item) {
+        final ThumbnailContainer container = (ThumbnailContainer) item.getParent();
+        final View v = container.getChildAt(thumbIndex);
+        return viewMatcher.matches(container.getParent()) && v == item;
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("thumbnail of " + thumbIndex);
+      }
+    }).perform(actionWithAssertions(new GeneralClickAction(
+        Tap.SINGLE, PerformUtil::calcCenterCoord, Press.FINGER, 0, 0)));
   }
 
   private static float[] calcCenterCoord(View v) {
