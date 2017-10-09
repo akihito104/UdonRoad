@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.StringRes;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.ViewInteraction;
@@ -105,13 +106,13 @@ public class TweetInputFragmentInstTest {
 
       PerformUtil.clickWriteOnMenu();
 
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
     }
 
     @Test
     public void pressBackAfterTweetInputIsAppeared_then_hideTweetInput() {
       PerformUtil.clickWriteOnMenu();
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
       Espresso.closeSoftKeyboard();
       pressBack();
       AssertionUtil.checkMainActivityTitle(R.string.title_home);
@@ -125,7 +126,7 @@ public class TweetInputFragmentInstTest {
     public void clickSendIcon_then_openTweetInputViewAndShowFab() {
       // open
       PerformUtil.clickWriteOnMenu();
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
       onActionCancel().check(matches(isDisplayed()));
       MatcherUtil.onActionWrite().check(doesNotExist());
 
@@ -177,11 +178,11 @@ public class TweetInputFragmentInstTest {
     @Test
     public void replyButDoesNotOpenWhenAlreadyOpened() {
       PerformUtil.clickWriteOnMenu();
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
 
       PerformUtil.selectItemViewAt(0);
       PerformUtil.reply();
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
 
       PerformUtil.clickCancelWriteOnMenu();
       AssertionUtil.checkMainActivityTitle(R.string.title_home);
@@ -190,11 +191,11 @@ public class TweetInputFragmentInstTest {
     @Test
     public void quoteDoesNotOpenWhenAlreadyOpened() {
       PerformUtil.clickWriteOnMenu();
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
 
       PerformUtil.selectItemViewAt(0);
       PerformUtil.quote();
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
 
       PerformUtil.clickCancelWriteOnMenu();
       AssertionUtil.checkMainActivityTitle(R.string.title_home);
@@ -254,16 +255,16 @@ public class TweetInputFragmentInstTest {
     }
 
     @Test
-    public void openAnotherActivityAndBack_then_restoredDefaultState() throws Exception {
+    public void restoreDefaultState() throws Exception {
       PerformUtil.clickWriteOnMenu();
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(false);
+      final String inputText = "this is default tweet.";
+      onView(withId(R.id.tw_intext)).perform(typeText(inputText));
 
-      Espresso.closeSoftKeyboard();
-      PerformUtil.clickThumbnailAt(hasImage, 0);
-      onView(withId(R.id.media_pager)).check(matches(isDisplayed()));
+      showMediaView();
       Espresso.pressBack();
-
-      checkDefaultTweetInputFragment();
+      checkDefaultTweetInputFragment(true);
+      onView(withId(R.id.tw_intext)).check(matches(withText(inputText)));
 
       PerformUtil.clickCancelWriteOnMenu();
       AssertionUtil.checkMainActivityTitle(R.string.title_home);
@@ -271,22 +272,40 @@ public class TweetInputFragmentInstTest {
     }
 
     @Test
-    public void openAnotherActivityAndBack_then_restoredReplyState() throws Exception {
+    public void restoreReplyState() throws Exception {
       PerformUtil.selectItemView(normalTweet);
       PerformUtil.reply();
       checkReplyTweetInputFragment(true);
 
-      Espresso.closeSoftKeyboard();
-      PerformUtil.pullDownTimeline();
-      PerformUtil.clickThumbnailAt(hasImage, 0);
-      onView(withId(R.id.media_pager)).check(matches(isDisplayed()));
+      showMediaView();
       Espresso.pressBack();
-
       checkReplyTweetInputFragment(true);
 
       PerformUtil.clickCancelWriteOnMenu();
       AssertionUtil.checkMainActivityTitle(R.string.title_home);
       onView(withId(R.id.action_writeTweet)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void restoreQuoteState() throws Exception {
+      PerformUtil.selectItemView(normalTweet);
+      PerformUtil.quote();
+      checkQuoteTweetInputFragment();
+
+      showMediaView();
+      Espresso.pressBack();
+      checkQuoteTweetInputFragment();
+
+      PerformUtil.clickCancelWriteOnMenu();
+      AssertionUtil.checkMainActivityTitle(R.string.title_home);
+      onView(withId(R.id.action_writeTweet)).check(matches(isDisplayed()));
+    }
+
+    private void showMediaView() {
+      Espresso.closeSoftKeyboard();
+      PerformUtil.pullDownTimeline();
+      PerformUtil.clickThumbnailAt(hasImage, 0);
+      onView(withId(R.id.media_pager)).check(matches(isDisplayed()));
     }
 
     private final Status normalTweet = createStatus(30000, userB);
@@ -367,22 +386,25 @@ public class TweetInputFragmentInstTest {
     }
   }
 
-  private static void checkDefaultTweetInputFragment() {
-    AssertionUtil.checkMainActivityTitle(R.string.title_tweet);
-    onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
-    onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()))
-        .check(matches(not(isEnabled())));
-    onView(withId(R.id.tw_quote)).check(matches(not(isDisplayed())));
-    onView(withId(R.id.tw_replyTo)).check(matches(not(isDisplayed())));
+  private static void checkDefaultTweetInputFragment(boolean sendable) {
+    checkTweetInputFragment(R.string.title_tweet, sendable, false, false);
   }
 
   private static void checkReplyTweetInputFragment(boolean enabledSend) {
-    AssertionUtil.checkMainActivityTitle(R.string.title_reply);
+    checkTweetInputFragment(R.string.title_reply, enabledSend, true, false);
+  }
+
+  private static void checkQuoteTweetInputFragment() {
+    checkTweetInputFragment(R.string.title_comment, false, false, true);
+  }
+
+  private static void checkTweetInputFragment(@StringRes int titleRes, boolean sendable, boolean shownReplyTo, boolean shownQuote) {
+    AssertionUtil.checkMainActivityTitle(titleRes);
     onView(withId(R.id.main_tweet_input_view)).check(matches(isDisplayed()));
     onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()))
-        .check(matches(enabledSend ? isEnabled() : not(isEnabled())));
-    onView(withId(R.id.tw_quote)).check(matches(not(isDisplayed())));
-    onView(withId(R.id.tw_replyTo)).check(matches(isDisplayed()));
+        .check(matches(sendable ? isEnabled() : not(isEnabled())));
+    onView(withId(R.id.tw_replyTo)).check(matches(shownReplyTo ? isDisplayed() : not(isDisplayed())));
+    onView(withId(R.id.tw_quote)).check(matches(shownQuote ? isDisplayed() : not(isDisplayed())));
   }
 
   private static ViewInteraction onActionCancel() {
