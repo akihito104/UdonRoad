@@ -57,8 +57,7 @@ class TimelineContainerSwitcher {
     if (currentFragment == mainFragment) {
       return;
     }
-    getSupportFragmentManager().popBackStack(
-        ContentType.MAIN.createTag(0, ""), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    getSupportFragmentManager().popBackStack(MAIN_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     ContentType.MAIN.onShow(this, "", false);
   }
 

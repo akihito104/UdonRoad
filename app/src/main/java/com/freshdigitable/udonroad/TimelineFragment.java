@@ -268,13 +268,24 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   @Override
   public void onResume() {
     super.onResume();
-    if (isVisible()) {
+    if (!isChildOfViewPager() || isVisibleOnViewPager()) {
       if (tlAdapter.isItemSelected()) {
         showFab();
       } else {
         hideFab();
       }
     }
+  }
+
+  private boolean isChildOfViewPager() {
+    final Fragment parent = getParentFragment();
+    return parent instanceof UserInfoPagerFragment;
+  }
+
+  private boolean isVisibleOnViewPager() {
+    final Fragment parent = getParentFragment();
+    final UserInfoPagerFragment pager = (UserInfoPagerFragment) parent;
+    return this == pager.getCurrentFragment();
   }
 
   @Override
@@ -469,7 +480,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     return fragment;
   }
 
-  private String getStoreName() {
+  String getStoreName() {
     return getStoreType().nameWithSuffix(getEntityId(), getQuery());
   }
 

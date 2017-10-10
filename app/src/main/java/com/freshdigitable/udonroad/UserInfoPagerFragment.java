@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -31,11 +32,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 
+import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import twitter4j.User;
 
 /**
@@ -46,6 +53,9 @@ import twitter4j.User;
 public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   private static final String TAG = UserInfoPagerFragment.class.getSimpleName();
   private static final String ARGS_USER_ID = "userId";
+  @Inject
+  TypedCache<User> userCache;
+  private Disposable subscription;
 
   public static UserInfoPagerFragment create(long userId) {
     final Bundle args = new Bundle();
@@ -77,12 +87,16 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   public View onCreateView(LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    return viewPager == null ?
-        inflater.inflate(R.layout.fragment_user_info_pager, container, false)
-        : viewPager;
+    if (root == null) {
+      root = inflater.inflate(R.layout.fragment_user_info_pager, container, false);
+    }
+    return root;
   }
 
+  private View root;
   private ViewPager viewPager;
+  private TabLayout tabLayout;
+  private PagerAdapter pagerAdapter;
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -90,10 +104,10 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     super.onViewCreated(view, savedInstanceState);
     if (viewPager == null) {
       viewPager = view.findViewById(R.id.user_pager);
+      tabLayout = view.findViewById(R.id.pager_tabs);
+      tabLayout.setupWithViewPager(viewPager);
     }
   }
-
-  private PagerAdapter pagerAdapter;
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -109,8 +123,22 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   }
 
   private void putToPagerAdapter(@NonNull UserPageInfo page) {
-    final TimelineFragment<?> fragment = page.setup(getUserId());
-    pagerAdapter.putFragment(page, fragment);
+    final TimelineFragment f = findTimeline(page);
+    final TimelineFragment<?> timelineFragment = f != null ? f : page.setup(getUserId());
+    pagerAdapter.putFragment(page, timelineFragment);
+  }
+
+  private TimelineFragment findTimeline(@NonNull UserPageInfo page) {
+    final List<Fragment> fragments = getChildFragmentManager().getFragments();
+    for (Fragment f : fragments) {
+      if (f instanceof TimelineFragment) {
+        final TimelineFragment timeline = (TimelineFragment) f;
+        if (page.storeType.nameWithSuffix(getUserId(), "").equals(timeline.getStoreName())) {
+          return timeline;
+        }
+      }
+    }
+    return null;
   }
 
   @Override
@@ -132,9 +160,16 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
         }
       });
     }
+    userCache.open();
+    if (subscription == null || subscription.isDisposed()) {
+      subscription = userCache.observeById(getUserId())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(this::updateTabs,
+              e -> Log.e(TAG, "userUpdated: ", e));
+    }
   }
 
-  private TimelineFragment getCurrentFragment() {
+  public TimelineFragment getCurrentFragment() {
     final int currentItem = viewPager.getCurrentItem();
     return pagerAdapter.getItem(currentItem);
   }
@@ -144,6 +179,10 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     Log.d(TAG, "onStop: ");
     super.onStop();
     viewPager.clearOnPageChangeListeners();
+    if (subscription != null) {
+      subscription.dispose();
+    }
+    userCache.close();
   }
 
   @Override
@@ -153,8 +192,13 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     viewPager.setAdapter(null);
   }
 
-  public ViewPager getViewPager() {
-    return viewPager;
+  private void updateTabs(User user) {
+    for (UserPageInfo p : UserPageInfo.values()) {
+      final TabLayout.Tab tab = tabLayout.getTabAt(p.ordinal());
+      if (tab != null) {
+        tab.setText(p.createTitle(user));
+      }
+    }
   }
 
   @Override
@@ -243,7 +287,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
       @Override
       public String createTitle(User user) {
         final int listedCount = user.getListedCount();
-        return name() + (listedCount > 0 ? "\n" + listedCount : "0");
+        return name() + "\n" + (listedCount >= 0 ? listedCount : "0");
       }
     },
     MEDIA(StoreType.USER_MEDIA) {
