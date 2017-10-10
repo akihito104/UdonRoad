@@ -115,6 +115,18 @@ public class TwitterResponseMock {
   }
 
   @NonNull
+  public static Status createStatusHasImage(long id, User user) {
+    final Status hasImage = createStatus(id, user);
+    when(hasImage.isPossiblySensitive()).thenReturn(true);
+    final MediaEntity media = mock(MediaEntity.class);
+    when(media.getURL()).thenReturn("");
+    when(media.getType()).thenReturn("photo");
+    when(media.getVideoVariants()).thenReturn(new MediaEntity.Variant[0]);
+    when(hasImage.getMediaEntities()).thenReturn(new MediaEntity[]{media});
+    return hasImage;
+  }
+
+  @NonNull
   public static ResponseList<Status> createResponseList() {
     return createResponseList(new ArrayList<>());
   }

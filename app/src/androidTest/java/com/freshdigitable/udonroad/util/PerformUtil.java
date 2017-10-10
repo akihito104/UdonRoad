@@ -41,6 +41,8 @@ import com.freshdigitable.udonroad.media.ThumbnailView;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 
+import java.util.function.Function;
+
 import twitter4j.Status;
 
 import static android.support.test.espresso.Espresso.onView;
@@ -172,12 +174,25 @@ public class PerformUtil {
 
   public static void clickThumbnailAt(Status hasImage, int thumbIndex) {
     final Matcher<View> viewMatcher = ofStatusView(withText(hasImage.getText()));
+    clickThumbnailAt(item -> {
+      final ThumbnailContainer container = (ThumbnailContainer) item.getParent();
+      final View v = container.getChildAt(thumbIndex);
+      return viewMatcher.matches(container.getParent()) && v == item;
+    }, thumbIndex);
+  }
+
+  public static void clickThumbnailAt(int thumbIndex) {
+    clickThumbnailAt(item -> {
+      final ThumbnailContainer container = (ThumbnailContainer) item.getParent();
+      return container.getChildAt(thumbIndex) == item;
+    }, thumbIndex);
+  }
+
+  private static void clickThumbnailAt(Function<ThumbnailView, Boolean> matchesSafely, int thumbIndex) {
     onView(new BoundedMatcher<View, ThumbnailView>(ThumbnailView.class) {
       @Override
       protected boolean matchesSafely(ThumbnailView item) {
-        final ThumbnailContainer container = (ThumbnailContainer) item.getParent();
-        final View v = container.getChildAt(thumbIndex);
-        return viewMatcher.matches(container.getParent()) && v == item;
+        return matchesSafely.apply(item);
       }
 
       @Override

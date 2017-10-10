@@ -40,7 +40,6 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 import java.util.List;
 
-import twitter4j.MediaEntity;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -64,6 +63,7 @@ import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingR
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatusHasImage;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.any;
@@ -310,7 +310,7 @@ public class TweetInputFragmentInstTest {
 
     private final Status normalTweet = createStatus(30000, userB);
     private final Status rtTweet = createRtStatus(normalTweet, 31000, true);
-    private final Status hasImage = createStatus(32000, userB);
+    private final Status hasImage = createStatusHasImage(32000, userB);
 
     @Override
     protected void setupConfig(User loginUser) throws Exception {
@@ -333,13 +333,6 @@ public class TweetInputFragmentInstTest {
     @Override
     protected int setupTimeline() throws TwitterException {
       when(rtTweet.getUser()).thenReturn(userC);
-
-      when(hasImage.isPossiblySensitive()).thenReturn(true);
-      final MediaEntity media = mock(MediaEntity.class);
-      when(media.getURL()).thenReturn("");
-      when(media.getType()).thenReturn("photo");
-      when(media.getVideoVariants()).thenReturn(new MediaEntity.Variant[0]);
-      when(hasImage.getMediaEntities()).thenReturn(new MediaEntity[]{media});
 
       final List<Status> statuses = Arrays.asList(normalTweet, rtTweet, hasImage);
       super.responseList = createResponseList(statuses);
