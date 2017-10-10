@@ -221,7 +221,7 @@ class IffabMenuItem implements MenuItem {
 
   @Override
   public MenuItem setChecked(boolean checked) {
-    if (checkable) {
+    if (this.checked != checked) {
       this.checked = checked;
       menu.dispatchUpdatePresenter();
     }

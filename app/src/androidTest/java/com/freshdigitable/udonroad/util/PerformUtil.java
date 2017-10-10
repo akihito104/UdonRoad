@@ -28,6 +28,7 @@ import android.support.test.espresso.action.Press;
 import android.support.test.espresso.action.Swipe;
 import android.support.test.espresso.action.Tap;
 import android.support.test.espresso.contrib.DrawerActions;
+import android.support.test.espresso.core.internal.deps.guava.base.Function;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.view.View;
 
@@ -40,8 +41,6 @@ import com.freshdigitable.udonroad.media.ThumbnailView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-
-import java.util.function.Function;
 
 import twitter4j.Status;
 

@@ -16,22 +16,28 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.annotation.AttrRes;
+import android.support.annotation.NonNull;
 import android.support.test.espresso.Espresso;
+import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.lifecycle.Stage;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Arrays;
 
+import twitter4j.Paging;
 import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -49,9 +55,12 @@ import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivitySta
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.getReactionContainerMatcher;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatusHasImage;
 import static org.hamcrest.CoreMatchers.not;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -66,6 +75,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   private Status target;
   private Status simple;
   private Status quoted;
+  private Status hasImage;
 
   @Test
   public void showStatusDetailForSimpleStatus() {
@@ -88,6 +98,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
     onView(withId(R.id.iffabMenu_main_rt)).perform(click());
+    onView(withId(R.id.iffabMenu_main_rt)).check(matches(withDrawableState(android.R.attr.state_checked)));
     checkRTCount(4);
     checkFavCount(6);
   }
@@ -102,6 +113,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
     onView(withId(R.id.iffabMenu_main_fav)).perform(click());
+    onView(withId(R.id.iffabMenu_main_fav)).check(matches(withDrawableState(android.R.attr.state_checked)));
     checkRTCount(3);
     checkFavCount(9);
   }
@@ -171,19 +183,56 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(ofQuotedStatusView(withText(quoted.getText()))).check(matches(not(isDisplayed())));
   }
 
+  @Test
+  public void restoreSimpleTweet() {
+    PerformUtil.selectItemView(hasImage);
+    PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    PerformUtil.clickThumbnailAt(0);
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+  }
+
+  @Test
+  public void restoreTweetHasReaction() throws Exception {
+    setupRetweetStatus(23000, 4, 10);
+    setupCreateFavorite(4, 12);
+
+    PerformUtil.selectItemView(hasImage);
+    PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    onView(withId(R.id.iffabMenu_main_rt)).perform(click());
+    onView(withId(R.id.iffabMenu_main_fav)).perform(click());
+    onView(withId(R.id.iffabMenu_main_rt)).check(matches(withDrawableState(android.R.attr.state_checked)));
+    onView(withId(R.id.iffabMenu_main_fav)).check(matches(withDrawableState(android.R.attr.state_checked)));
+
+    PerformUtil.clickThumbnailAt(0);
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    onView(withId(R.id.iffabMenu_main_rt)).check(matches(withDrawableState(android.R.attr.state_checked)));
+    onView(withId(R.id.iffabMenu_main_fav)).check(matches(withDrawableState(android.R.attr.state_checked)));
+
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+  }
+
   @Override
   protected int setupTimeline() throws TwitterException {
     quoted = createStatus(10000, getLoginUser());
     target = createStatus(20000, getLoginUser());
     simple = createStatus(5000, getLoginUser());
+    hasImage = createStatusHasImage(3000, getLoginUser());
     final long quotedId = quoted.getId();
     when(target.getQuotedStatusId()).thenReturn(quotedId);
     when(target.getQuotedStatus()).thenReturn(quoted);
 
     final ResponseList<Status> responseList
-        = TwitterResponseMock.createResponseList(Arrays.asList(target, simple, quoted));
+        = TwitterResponseMock.createResponseList(Arrays.asList(target, simple, quoted, hasImage));
     super.responseList = responseList;
     when(twitter.getHomeTimeline()).thenReturn(responseList);
+    when(twitter.getHomeTimeline(any(Paging.class))).thenReturn(createResponseList());
     final Relationship relationship = mock(Relationship.class);
     when(relationship.isSourceFollowingTarget()).thenReturn(true);
     when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
@@ -208,6 +257,27 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   private static Matcher<View> getFavIcon() {
     return getReactionContainerMatcher(
         R.id.d_reaction_container, R.drawable.ic_like, IconAttachedTextView.class);
+  }
+
+  @NonNull
+  private Matcher<View> withDrawableState(@AttrRes int expectedState) {
+    return new BoundedMatcher<View, ImageView>(ImageView.class) {
+      @Override
+      protected boolean matchesSafely(ImageView item) {
+        final int[] states = item.getDrawableState();
+        for (int s : states) {
+          if (s == expectedState) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("drawable state: " + expectedState);
+      }
+    };
   }
 
   @Override
