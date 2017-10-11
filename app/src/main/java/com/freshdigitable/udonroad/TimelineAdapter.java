@@ -384,12 +384,16 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
       return;
     }
     final SavedState ss = (SavedState) parcelable;
-    selectedItemHolder = new SelectedItem(ss.selectedContainerId, ss.selectedItemId);
+    if (ss.selectedItemId == EMPTY.id && ss.selectedContainerId == EMPTY.containerId) {
+      selectedItemHolder = EMPTY;
+    } else {
+      selectedItemHolder = new SelectedItem(ss.selectedContainerId, ss.selectedItemId);
+    }
   }
 
   private static class SavedState implements Parcelable {
-    long selectedContainerId = -1;
-    long selectedItemId = -1;
+    long selectedContainerId = EMPTY.containerId;
+    long selectedItemId = EMPTY.id;
 
     private SavedState() {}
 

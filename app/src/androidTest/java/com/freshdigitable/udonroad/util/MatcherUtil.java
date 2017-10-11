@@ -42,5 +42,9 @@ public class MatcherUtil {
     return onView(withId(R.id.action_writeTweet));
   }
 
+  public static ViewInteraction onIFFAB() {
+    return onView(withId(R.id.ffab));
+  }
+
   private MatcherUtil() {}
 }

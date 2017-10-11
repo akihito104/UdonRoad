@@ -16,9 +16,6 @@
 
 package com.freshdigitable.udonroad.util;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.GeneralClickAction;
@@ -53,6 +50,7 @@ import static android.support.test.espresso.action.ViewActions.swipeRight;
 import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.MatcherUtil.onIFFAB;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofItemViewAt;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
@@ -124,10 +122,6 @@ public class PerformUtil {
               return pos;
             }, Press.FINGER));
     return onIFFAB().perform(viewAction);
-  }
-
-  private static ViewInteraction onIFFAB() {
-    return onView(withId(R.id.ffab));
   }
 
   public static ViewInteraction pullDownTimeline() {
@@ -209,17 +203,6 @@ public class PerformUtil {
         pos[0] + v.getWidth() / 2.0f,
         pos[1] + v.getHeight() / 2.0f,
     };
-  }
-
-  public static void launchHomeAndBackToApp(Activity base) throws InterruptedException {
-    Intent home = new Intent();
-    home.setAction(Intent.ACTION_MAIN);
-    home.addCategory(Intent.CATEGORY_HOME);
-    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-    InstrumentationRegistry.getTargetContext().startActivity(home);
-    Thread.sleep(500);
-    base.startActivity(base.getIntent());
   }
 
   private PerformUtil() {
