@@ -92,53 +92,21 @@ public class OAuthActivity extends AppCompatActivity
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    InjectionUtil.getComponent(this).inject(this);
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_login);
-    InjectionUtil.getComponent(this).inject(this);
-
     ffab = findViewById(R.id.ffab);
-
     toolbar = findViewById(R.id.oauth_toolbar);
     setSupportActionBar(toolbar);
 
-    final DemoTimelineFragment demoTimelineFragment = new DemoTimelineFragment();
-    final Bundle args = TimelineFragment.createArgs(StoreType.DEMO, -1, "");
-    demoTimelineFragment.setArguments(args);
-    final List<ListItem> items = new ArrayList<>();
-    items.addAll(createItems(getApplicationContext()));
-    updateSubject = updateSubjectFactory.getInstance("demo");
-    demoTimelineFragment.sortedCache = new DemoSortedCache(items, updateSubject);
-    demoTimelineFragment.requestWorker = new ListRequestWorker<ListItem>() {
-      @Override
-      public ListFetchStrategy getFetchStrategy(StoreType type, long idForQuery, String query) {
-        return new DemoListFetcher(items);
-      }
-
-      @Override
-      public IndicatableFFAB.OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
-        return item -> {
-          final int itemId = item.getItemId();
-          if (itemId == R.id.iffabMenu_main_fav) {
-            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
-          } else if (itemId == R.id.iffabMenu_main_rt) {
-            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
-          } else if (itemId == R.id.iffabMenu_main_favRt) {
-            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
-          } else if (itemId == R.id.iffabMenu_main_detail) {
-            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
-          } else if (itemId == R.id.iffabMenu_main_conv) {
-            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
-          } else if (itemId == R.id.iffabMenu_main_reply) {
-            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
-          } else if (itemId == R.id.iffabMenu_main_quote) {
-            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
-          }
-        };
-      }
-    };
-    getSupportFragmentManager().beginTransaction()
-        .replace(R.id.oauth_timeline_container, demoTimelineFragment)
-        .commit();
+    if (savedInstanceState == null) {
+      final DemoTimelineFragment demoTimelineFragment = new DemoTimelineFragment();
+      final Bundle args = TimelineFragment.createArgs(StoreType.DEMO, -1, "");
+      demoTimelineFragment.setArguments(args);
+      getSupportFragmentManager().beginTransaction()
+          .replace(R.id.oauth_timeline_container, demoTimelineFragment)
+          .commit();
+    }
   }
 
   @Override
@@ -182,7 +150,20 @@ public class OAuthActivity extends AppCompatActivity
     super.onBackPressed();
   }
 
+  private static final String SS_REQUEST_TOKEN = "ss_requestToken";
   private RequestToken requestToken;
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putSerializable(SS_REQUEST_TOKEN, requestToken);
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    super.onRestoreInstanceState(savedInstanceState);
+    requestToken = (RequestToken) savedInstanceState.getSerializable(SS_REQUEST_TOKEN);
+  }
 
   private void startAuthorization() {
     ((MainApplication) getApplication()).logout();
@@ -286,9 +267,46 @@ public class OAuthActivity extends AppCompatActivity
     this.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_user_icon));
   }
 
+  private static void inject(DemoTimelineFragment demoTimelineFragment) {
+    final OAuthActivity oAuthActivity = (OAuthActivity) demoTimelineFragment.getActivity();
+    final List<ListItem> items = new ArrayList<>();
+    items.addAll(createItems(demoTimelineFragment.getContext()));
+    oAuthActivity.updateSubject = oAuthActivity.updateSubjectFactory.getInstance("demo");
+    demoTimelineFragment.sortedCache = new DemoSortedCache(items, oAuthActivity.updateSubject);
+    demoTimelineFragment.requestWorker = new ListRequestWorker<ListItem>() {
+      @Override
+      public ListFetchStrategy getFetchStrategy(StoreType type, long idForQuery, String query) {
+        return new DemoListFetcher(items);
+      }
+
+      @Override
+      public IndicatableFFAB.OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
+        return item -> {
+          final int itemId = item.getItemId();
+          if (itemId == R.id.iffabMenu_main_fav) {
+            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
+          } else if (itemId == R.id.iffabMenu_main_rt) {
+            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
+          } else if (itemId == R.id.iffabMenu_main_favRt) {
+            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
+          } else if (itemId == R.id.iffabMenu_main_detail) {
+            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
+          } else if (itemId == R.id.iffabMenu_main_conv) {
+            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
+          } else if (itemId == R.id.iffabMenu_main_reply) {
+            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
+          } else if (itemId == R.id.iffabMenu_main_quote) {
+            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
+          }
+        };
+      }
+    };
+  }
+
   public static class DemoTimelineFragment extends TimelineFragment<ListItem> {
     @Override
     public void onAttach(Context context) {
+      OAuthActivity.inject(this);
       super.onAttach(context);
       tlAdapter = new DemoTimelineAdapter(sortedCache);
     }
