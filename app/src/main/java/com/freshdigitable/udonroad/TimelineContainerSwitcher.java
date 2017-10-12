@@ -31,6 +31,9 @@ import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import twitter4j.Status;
 
 /**
@@ -57,7 +60,15 @@ class TimelineContainerSwitcher {
     if (currentFragment == mainFragment) {
       return;
     }
-    getSupportFragmentManager().popBackStack(MAIN_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    final List<String> dropList = getDropList();
+    final FragmentManager fm = getSupportFragmentManager();
+    final int backStackEntryCount = fm.getBackStackEntryCount();
+    for (int i = backStackEntryCount - 1; i > 0; i--) {
+      final FragmentManager.BackStackEntry bs = fm.getBackStackEntryAt(i);
+      dropList.add(bs.getName());
+    }
+    registerDropCacheListener(dropList);
+    fm.popBackStack(MAIN_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     ContentType.MAIN.onShow(this, "", false);
   }
 
@@ -102,6 +113,7 @@ class TimelineContainerSwitcher {
 
   boolean popBackStackTimelineContainer() {
     final FragmentManager fm = getSupportFragmentManager();
+    registerDropCacheListener();
     final int backStackEntryCount = fm.getBackStackEntryCount();
     if (backStackEntryCount <= 0) {
       return false;
@@ -112,6 +124,49 @@ class TimelineContainerSwitcher {
     final String appearFragmentName = backStack.getName();
     ContentType.findByTag(appearFragmentName).onShow(this, appearFragmentName, false);
     return true;
+  }
+
+  private void registerDropCacheListener() {
+    final List<String> dropList = getDropList();
+    registerDropCacheListener(dropList);
+  }
+
+  private void registerDropCacheListener(@NonNull List<String> dropList) {
+    if (dropList.isEmpty()) {
+      return;
+    }
+    final FragmentManager fm = getCurrentFragment().getFragmentManager();
+    fm.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
+      @Override
+      public void onFragmentDetached(FragmentManager fm, Fragment f) {
+        Log.d("TCS", "onFragmentDetached: " + f.getTag());
+        if (f instanceof TimelineFragment) {
+          final TimelineFragment timelineFragment = (TimelineFragment) f;
+          if (dropList.remove(timelineFragment.getStoreName())) {
+            timelineFragment.dropCache();
+          }
+        }
+        if (dropList.isEmpty()) {
+          fm.unregisterFragmentLifecycleCallbacks(this);
+        }
+      }
+    }, true);
+  }
+
+  private List<String> getDropList() {
+    final Fragment currentFragment = getCurrentFragment();
+    final ArrayList<String> dropList = new ArrayList<>();
+    if (currentFragment instanceof TimelineFragment) {
+      dropList.add(((TimelineFragment) currentFragment).getStoreName());
+    } else if (currentFragment instanceof UserInfoPagerFragment) {
+      final List<Fragment> fragments = currentFragment.getChildFragmentManager().getFragments();
+      for (Fragment f : fragments) {
+        if (f instanceof TimelineFragment) {
+          dropList.add(((TimelineFragment) f).getStoreName());
+        }
+      }
+    }
+    return dropList;
   }
 
   void syncState() {

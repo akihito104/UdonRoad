@@ -23,7 +23,6 @@ import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.StoreManager;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,10 +35,6 @@ import io.realm.RealmConfiguration;
 
 public class RealmStoreManager implements StoreManager {
 
-  private static final List<StoreType> deletableCaches
-      = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION, StoreType.POOL,
-      StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
-      StoreType.SEARCH, StoreType.OWNED_LIST, StoreType.USER_LIST);
   private static final List<StoreType> timelineStore
       = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION,
       StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
@@ -48,9 +43,6 @@ public class RealmStoreManager implements StoreManager {
   @Override
   public void init(Context context) {
     Realm.init(context);
-    for (File d : listDir()) {
-      dropCaches(d);
-    }
   }
 
   @Override
@@ -71,12 +63,6 @@ public class RealmStoreManager implements StoreManager {
     dropCache(dir, StoreType.POOL.storeName);
   }
 
-  private static void dropCaches(File dir) {
-    for (String name : listDeletableCache(dir)) {
-      dropCache(dir, name);
-    }
-  }
-
   private static void dropCache(File dir, String name) {
     final RealmConfiguration config = new RealmConfiguration.Builder()
         .directory(dir)
@@ -94,18 +80,6 @@ public class RealmStoreManager implements StoreManager {
         Log.d("RealmStoreManager", "dropped: cache> " + dir.getName());
       }
     }
-  }
-
-  private static String[] listDeletableCache(File dir) {
-    List<String> res = new ArrayList<>();
-    for (String s : listStorage(dir)) {
-      for (StoreType t : deletableCaches) {
-        if (s.startsWith(t.storeName)) {
-          res.add(s);
-        }
-      }
-    }
-    return res.toArray(new String[res.size()]);
   }
 
   private static String[] listStorage(File dir) {

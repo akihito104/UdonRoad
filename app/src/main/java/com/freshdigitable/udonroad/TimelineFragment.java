@@ -432,6 +432,10 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
+  public void dropCache() {
+    sortedCache.drop();
+  }
+
   interface OnItemClickedListener {
     void onItemClicked(ContentType type, long id, String query);
   }
