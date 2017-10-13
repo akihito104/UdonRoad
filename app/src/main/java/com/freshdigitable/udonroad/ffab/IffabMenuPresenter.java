@@ -24,6 +24,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
@@ -84,10 +86,10 @@ class IffabMenuPresenter {
   }
 
   private void inflateMenu(Context context, int menuRes) {
-    setPendingUpdate(true);
+    pendingUpdate = true;
     final IffabMenuItemInflater menuInflater = new IffabMenuItemInflater(context);
     menuInflater.inflate(menuRes, menu);
-    setPendingUpdate(false);
+    pendingUpdate = false;
     if (bbt != null) {
       bbt.setMenu(menu);
     }
@@ -189,10 +191,6 @@ class IffabMenuPresenter {
 
   private boolean pendingUpdate = false;
 
-  void setPendingUpdate(boolean pendingUpdate) {
-    this.pendingUpdate = pendingUpdate;
-  }
-
   private static final int MSG_LAYOUT_ACTION_ITEM_VIEW = 1;
   private static final int MSG_DISMISS_ACTION_ITEM_VIEW = 2;
   private static final int MSG_LAYOUT_BOTTOM_TOOLBAR = 3;
@@ -260,11 +258,41 @@ class IffabMenuPresenter {
     return (expected & actual) == expected;
   }
 
+  private void layoutToolbar() {
+    final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
+    final int height = BottomButtonsToolbar.getHeight(ffab.getContext());
+    if (layoutParams instanceof FrameLayout.LayoutParams) {
+      final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT, height);
+      mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
+      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
+    } else if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
+      final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT, height);
+      mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
+      mlp.dodgeInsetEdges = Gravity.BOTTOM;
+      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
+    }
+  }
+
   private final BottomButtonsToolbar bbt;
+  private static final int MODE_FAB = 0;
+  private static final int MODE_TOOLBAR = 1;
+  private int mode = MODE_FAB;
+
+  boolean isFabMode() {
+    return mode == MODE_FAB;
+  }
 
   void transToToolbar() {
+    if (mode == MODE_TOOLBAR) {
+      return;
+    }
     updateMenuItemCheckable(true);
-    animateToShowToolbar();
+    if (bbt.getVisibility() != View.VISIBLE) {
+      animateToShowToolbar();
+    }
+    mode = MODE_TOOLBAR;
   }
 
   private void animateToShowToolbar() {
@@ -295,31 +323,17 @@ class IffabMenuPresenter {
   }
 
   void transToFAB(int afterVisibility) {
-    animateToHideToolbar(afterVisibility);
-    pendingUpdate = true;
-    final int menuSize = menu.size();
-    for (int i = 0; i < menuSize; i++) {
-      menu.getItem(i).setChecked(false);
-    }
-    updateMenuItemCheckable(false);
-    pendingUpdate = false;
-    updateMenu();
-  }
-
-  private void layoutToolbar() {
-    final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
-    final int height = BottomButtonsToolbar.getHeight(ffab.getContext());
-    if (layoutParams instanceof FrameLayout.LayoutParams) {
-      final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT, height);
-      mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
-      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
-    } else if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
-      final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT, height);
-      mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
-      mlp.dodgeInsetEdges = Gravity.BOTTOM;
-      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
+    if (mode == MODE_FAB) {
+      if (afterVisibility == View.VISIBLE) {
+        ffab.show();
+      } else {
+        ffab.hide();
+      }
+    } else {
+      mode = MODE_FAB;
+      animateToHideToolbar(afterVisibility);
+      updateMenuItemCheckable(false);
+      updateMenu();
     }
   }
 
@@ -362,5 +376,57 @@ class IffabMenuPresenter {
 
   IffabMenu getMenu() {
     return menu;
+  }
+
+  void onSaveInstanceState(SavedState savedState) {
+    savedState.mode = mode;
+  }
+
+  void onRestoreInstanceState(SavedState state) {
+    mode = state.mode;
+    syncState();
+  }
+
+  private void syncState() {
+    if (mode == MODE_FAB) {
+      ffab.setVisibility(View.VISIBLE);
+      bbt.setVisibility(View.INVISIBLE);
+    } else {
+      ffab.setVisibility(View.INVISIBLE);
+      bbt.setVisibility(View.VISIBLE);
+    }
+    updateMenuItemCheckable(mode == MODE_TOOLBAR);
+    updateMenu();
+  }
+
+  static class SavedState extends View.BaseSavedState {
+    int mode;
+
+    SavedState(Parcelable source) {
+      super(source);
+    }
+
+    private SavedState(Parcel in) {
+      super(in);
+      mode = in.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel out, int flags) {
+      super.writeToParcel(out, flags);
+      out.writeInt(mode);
+    }
+
+    public static final Parcelable.Creator<SavedState> CREATOR = new Creator<SavedState>() {
+      @Override
+      public SavedState createFromParcel(Parcel parcel) {
+        return new SavedState(parcel);
+      }
+
+      @Override
+      public SavedState[] newArray(int size) {
+        return new SavedState[size];
+      }
+    };
   }
 }

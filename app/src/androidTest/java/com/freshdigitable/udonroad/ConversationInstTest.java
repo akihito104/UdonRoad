@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
-import android.support.test.espresso.IdlingResource;
 import android.support.test.espresso.ViewAssertion;
 import android.support.test.espresso.contrib.DrawerMatchers;
 import android.support.test.espresso.contrib.NavigationViewActions;
@@ -45,6 +44,7 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
@@ -73,12 +73,11 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     onView(withId(R.id.iffabMenu_main_conv)).perform(click());
 
-    final IdlingResource timelineIdlingResource = getTimelineIdlingResource("conv", 2);
-    Espresso.registerIdlingResources(timelineIdlingResource);
-    AssertionUtil.checkHasReplyTo(hasReply);
-    AssertionUtil.checkMainActivityTitle(R.string.title_conv);
-    checkFFAB(matches(not(isDisplayed())));
-    Espresso.unregisterIdlingResources(timelineIdlingResource);
+    runWithIdlingResource(getTimelineIdlingResource("conv", 2), () -> {
+      AssertionUtil.checkHasReplyTo(hasReply);
+      AssertionUtil.checkMainActivityTitle(R.string.title_conv);
+      checkFFAB(matches(not(isDisplayed())));
+    });
     PerformUtil.selectItemView(replied);
     checkFFAB(matches(isDisplayed()));
     PerformUtil.favo();
@@ -110,13 +109,12 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     onView(withId(R.id.iffabMenu_main_conv)).perform(click());
 
-    final IdlingResource timelineIdlingResource = getTimelineIdlingResource("conv", 2);
-    Espresso.registerIdlingResources(timelineIdlingResource);
-    AssertionUtil.checkHasReplyTo(hasReply);
-    AssertionUtil.checkMainActivityTitle(R.string.title_conv);
-    onView(withId(R.id.iffabMenu_main_conv)).check(matches(not(isDisplayed())));
-    checkFFAB(matches(not(isDisplayed())));
-    Espresso.unregisterIdlingResources(timelineIdlingResource);
+    runWithIdlingResource(getTimelineIdlingResource("conv", 2), () -> {
+      AssertionUtil.checkHasReplyTo(hasReply);
+      AssertionUtil.checkMainActivityTitle(R.string.title_conv);
+      onView(withId(R.id.iffabMenu_main_conv)).check(matches(not(isDisplayed())));
+      checkFFAB(matches(not(isDisplayed())));
+    });
     PerformUtil.selectItemView(replied);
     checkFFAB(matches(isDisplayed()));
     PerformUtil.favo();

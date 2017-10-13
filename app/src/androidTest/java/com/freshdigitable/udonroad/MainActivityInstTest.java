@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad;
 import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v7.widget.RecyclerView;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
@@ -38,10 +39,13 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewAssertion.recyclerViewDescendantsMatches;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -118,7 +122,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // exec.
     PerformUtil.selectItemViewAt(0);
     onView(withId(R.id.ffab)).check(matches(isDisplayed()));
-    PerformUtil.retweet();
+    performRetweet();
     AssertionUtil.checkRTCountAt(0, 1);
     PerformUtil.pullDownTimeline();
     AssertionUtil.checkRTCountAt(0, 1);
@@ -146,7 +150,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     // exec.
     final Status rtTarget = findByStatusId(20000);
     PerformUtil.selectItemViewAt(0);
-    PerformUtil.retweet();
+    performRetweet();
     final Status target = TwitterResponseMock.createRtStatus(rtTarget, 25000, false);
     PerformUtil.pullDownTimeline();
     receiveDeletionNotice(target);
@@ -164,7 +168,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     final Status target = findByStatusId(20000);
     final Status top = findByStatusId(19000);
     PerformUtil.selectItemView(target);
-    PerformUtil.retweet();
+    performRetweet();
     final Status targetRt = TwitterResponseMock.createRtStatus(target, 25000, false);
     receiveDeletionNotice(target, targetRt);
 
@@ -255,6 +259,17 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     AssertionUtil.checkRTCountAt(0, 3);
   }
 
+  private void performRetweet() {
+    final RecyclerView recyclerView = getTimelineView();
+    final int expectedCount = (recyclerView != null ? recyclerView.getAdapter().getItemCount() : 0) + 1;
+    PerformUtil.retweet();
+    runWithIdlingResource(getSimpleIdlingResource("receive status", () -> {
+      final RecyclerView rv = getTimelineView();
+      return rv != null && rv.getAdapter().getItemCount() == expectedCount;
+    }), () ->
+        onView(withId(R.id.timeline)).check(matches(isDisplayed())));
+  }
+
   @Test
   public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {
     // setup
@@ -309,6 +324,33 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(status.getText()))));
+  }
+
+  @Test
+  public void heading_then_latestTweetAppears() throws Exception {
+    PerformUtil.selectItemViewAt(0);
+    final Status received = createStatus(22000);
+    receiveStatuses(createStatus(21000), received);
+    PerformUtil.clickHeadingOnMenu();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(received.getText()))));
+    onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
+  }
+
+  @Test
+  public void receiveStatusWhenStatusIsSelected_then_timelineIsNotScrolled() throws Exception {
+    final Status target = findByStatusId(20000);
+    PerformUtil.selectItemViewAt(0).check(matches(ofStatusView(withText(target.getText()))));
+    final Status received = createStatus(22000);
+    receiveStatuses(received);
+
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(target.getText()))));
+    PerformUtil.clickHeadingOnMenu();
+    onView(ofStatusViewAt(R.id.timeline, 0))
+        .check(matches(ofStatusView(withText(received.getText()))));
+    onView(ofStatusViewAt(R.id.timeline, 1))
+        .check(matches(ofStatusView(withText(target.getText()))));
   }
 
   @Override

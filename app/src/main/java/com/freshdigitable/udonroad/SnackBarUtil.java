@@ -49,12 +49,14 @@ public class SnackBarUtil {
   }
 
   public static Runnable action(@NonNull final View root, final CharSequence text) {
-    return () -> show(root, text);
+    final Snackbar snackbar = create(root, text);
+    return snackbar::show;
   }
 
   public static Action action(@NonNull final View root, final @StringRes int text) {
-    return () -> show(root, text);
+    final Snackbar snackbar = create(root, text);
+    return snackbar::show;
   }
-  private SnackBarUtil() {
-  }
+
+  private SnackBarUtil() {}
 }

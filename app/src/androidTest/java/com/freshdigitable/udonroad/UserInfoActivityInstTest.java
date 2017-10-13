@@ -19,9 +19,12 @@ package com.freshdigitable.udonroad;
 import android.content.Intent;
 import android.support.annotation.StringRes;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingRegistry;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.lifecycle.ActivityLifecycleCallback;
+import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
@@ -383,16 +386,12 @@ public class UserInfoActivityInstTest {
 
     @Inject
     TypedCache<User> userCache;
+    private final User user = UserUtil.createUserA();
+    private ActivityLifecycleCallback callback;
 
     @Override
     protected Intent getIntent() {
-      final User user = UserUtil.createUserA();
-      InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-        userCache.open();
-        userCache.upsert(user);
-      });
-      return UserInfoActivity.createIntent(
-          InstrumentationRegistry.getTargetContext(), user);
+      return UserInfoActivity.createIntent(InstrumentationRegistry.getTargetContext(), user);
     }
 
     Relationship getRelationship() {
@@ -411,10 +410,19 @@ public class UserInfoActivityInstTest {
       TestInjectionUtil.getComponent().inject(this);
 
       idlingResource = new ConfigSetupIdlingResource();
-      Espresso.registerIdlingResources(idlingResource);
+      IdlingRegistry.getInstance().register(idlingResource);
 
       InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
           configRequestWorker.setup().subscribe(() -> idlingResource.setDoneSetup(true)));
+
+      callback = (activity, stage) -> {
+        if (stage == Stage.CREATED) {
+          userCache.open();
+          userCache.upsert(user);
+          ActivityLifecycleMonitorRegistry.getInstance().removeLifecycleCallback(callback);
+        }
+      };
+      ActivityLifecycleMonitorRegistry.getInstance().addLifecycleCallback(callback);
     }
 
     @Override
@@ -429,7 +437,8 @@ public class UserInfoActivityInstTest {
     @After
     public void tearDown() throws Exception {
       InstrumentationRegistry.getInstrumentation().runOnMainSync(userCache::close);
-      Espresso.unregisterIdlingResources(idlingResource);
+      IdlingRegistry.getInstance().unregister(idlingResource);
+      ActivityLifecycleMonitorRegistry.getInstance().removeLifecycleCallback(callback);
       super.tearDown();
     }
   }

@@ -48,15 +48,21 @@ public class RealmStoreManager implements StoreManager {
   @Override
   public void init(Context context) {
     Realm.init(context);
-    for (File d : listDir()) {
-      dropCaches(d);
-    }
   }
 
   @Override
   public void cleanUp() {
+    for (File d : listDir()) {
+      dropCaches(d);
+    }
     for (File dir : listDir()) {
       maybeDropPool(dir);
+    }
+  }
+
+  private static void dropCaches(File dir) {
+    for (String name : listDeletableCache(dir)) {
+      dropCache(dir, name);
     }
   }
 
@@ -64,17 +70,12 @@ public class RealmStoreManager implements StoreManager {
     for (String name : listStorage(dir)) {
       for (StoreType t : timelineStore) {
         if (name.startsWith(t.storeName)) {
+          Log.d("RealmStoreManager", "maybeDropPool: " + name);
           return;
         }
       }
     }
     dropCache(dir, StoreType.POOL.storeName);
-  }
-
-  private static void dropCaches(File dir) {
-    for (String name : listDeletableCache(dir)) {
-      dropCache(dir, name);
-    }
   }
 
   private static void dropCache(File dir, String name) {
@@ -88,10 +89,10 @@ public class RealmStoreManager implements StoreManager {
       final Realm realm = Realm.getInstance(config);
       realm.executeTransaction(r -> r.deleteAll());
       realm.close();
-      Log.d("RealmStoreManager", "deleted: cache> " + dir.getName());
+      Log.d("RealmStoreManager", "deleted: cache> " + dir.getName() + "/" + name);
     } else {
       if (Realm.deleteRealm(config)) {
-        Log.d("RealmStoreManager", "dropped: cache> " + dir.getName());
+        Log.d("RealmStoreManager", "dropped: cache> " + dir.getName() + "/" + name);
       }
     }
   }

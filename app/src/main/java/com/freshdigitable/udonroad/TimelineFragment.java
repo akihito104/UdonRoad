@@ -61,8 +61,12 @@ import twitter4j.UserList;
 public abstract class TimelineFragment<T> extends Fragment implements ItemSelectable {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
-  public static final String BUNDLE_IS_SCROLLED_BY_USER = "is_scrolled_by_user";
-  public static final String BUNDLE_STOP_SCROLL = "stop_scroll";
+  private static final String SS_SCROLLED_BY_USER = "ss_scrolledByUser";
+  private static final String SS_STOP_SCROLL = "ss_stopScroll";
+  private static final String SS_DONE_FIRST_FETCH = "ss_doneFirstFetch";
+  private static final String SS_TOP_ITEM_ID = "ss_topItemId";
+  private static final String SS_TOP_ITEM_TOP = "ss_topItemTop";
+  public static final String SS_ADAPTER = "ss_adapter";
   private FragmentTimelineBinding binding;
   TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
@@ -122,8 +126,10 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
                            @Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: " + getStoreName());
     if (savedInstanceState != null) {
-      isScrolledByUser = savedInstanceState.getBoolean(BUNDLE_IS_SCROLLED_BY_USER);
-      stopScroll = savedInstanceState.getBoolean(BUNDLE_STOP_SCROLL);
+      isScrolledByUser = savedInstanceState.getBoolean(SS_SCROLLED_BY_USER);
+      stopScroll = savedInstanceState.getBoolean(SS_STOP_SCROLL);
+      doneFirstFetch = savedInstanceState.getBoolean(SS_DONE_FIRST_FETCH);
+      tlAdapter.onRestoreInstanceState(savedInstanceState.getParcelable(SS_ADAPTER));
     }
     if (binding == null) {
       binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
@@ -137,8 +143,12 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public void onSaveInstanceState(Bundle outState) {
     Log.d(TAG, "onSaveInstanceState: " + getStoreName());
     super.onSaveInstanceState(outState);
-    outState.putBoolean(BUNDLE_IS_SCROLLED_BY_USER, isScrolledByUser);
-    outState.putBoolean(BUNDLE_STOP_SCROLL, stopScroll);
+    outState.putBoolean(SS_SCROLLED_BY_USER, isScrolledByUser);
+    outState.putBoolean(SS_STOP_SCROLL, stopScroll);
+    outState.putBoolean(SS_DONE_FIRST_FETCH, doneFirstFetch);
+    outState.putLong(SS_TOP_ITEM_ID, topItemId);
+    outState.putInt(SS_TOP_ITEM_TOP, firstVisibleItemTopOnStop);
+    outState.putParcelable(SS_ADAPTER, tlAdapter.onSaveInstanceState());
   }
 
   private boolean isScrolledByUser = false;
@@ -164,7 +174,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       fetcher.fetch();
       doneFirstFetch = true;
     }
-    tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
   }
 
   private boolean doneFirstFetch = false;
@@ -201,23 +210,39 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       if (newState == RecyclerView.SCROLL_STATE_IDLE) {
         final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
         isScrolledByUser = firstVisibleItemPosition != 0;
-        // if first visible item is updated, isAddedUntilStopped also should be updated.
-        isAddedUntilStopped();
+        // if first visible item is updated, setAddedUntilStopped also should be updated.
+        setAddedUntilStopped();
       } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
         isScrolledByUser = true;
       }
     }
   };
 
+  private long topItemId = -1;
+  private int firstVisibleItemTopOnStop;
+
+  @Override
+  public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+    Log.d(TAG, "onViewStateRestored: " + getStoreName());
+    super.onViewStateRestored(savedInstanceState);
+    if (savedInstanceState == null) {
+      return;
+    }
+    topItemId = savedInstanceState.getLong(SS_TOP_ITEM_ID, -1);
+    firstVisibleItemTopOnStop = savedInstanceState.getInt(SS_TOP_ITEM_TOP, 0);
+  }
+
   @Override
   public void onStart() {
     Log.d(TAG, "onStart: " + getStoreName());
     super.onStart();
-    if (firstVisibleItemPosOnStop >= 0) {
-      tlLayoutManager.scrollToPositionWithOffset(firstVisibleItemPosOnStop, firstVisibleItemTopOnStop);
-      firstVisibleItemPosOnStop = -1;
-      tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
-      firstItemObserver = null;
+    if (topItemId >= 0) {
+      final int pos = sortedCache.getPositionById(topItemId);
+      tlLayoutManager.scrollToPositionWithOffset(pos, firstVisibleItemTopOnStop);
+      topItemId = -1;
+      addedUntilStopped = true;
+    } else {
+      setAddedUntilStopped();
     }
     binding.timeline.addOnScrollListener(onScrollListener);
 
@@ -237,9 +262,13 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     tlAdapter.setLastItemBoundListener(() -> fetcher.fetchNext());
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
-    isAddedUntilStopped();
+    tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
+  }
 
-    if (isVisible()) {
+  @Override
+  public void onResume() {
+    super.onResume();
+    if (!isChildOfViewPager() || isVisibleOnViewPager()) {
       if (tlAdapter.isItemSelected()) {
         showFab();
       } else {
@@ -248,8 +277,29 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
-  private int firstVisibleItemPosOnStop = -1;
-  private int firstVisibleItemTopOnStop;
+  private boolean isChildOfViewPager() {
+    final Fragment parent = getParentFragment();
+    return parent instanceof UserInfoPagerFragment;
+  }
+
+  private boolean isVisibleOnViewPager() {
+    final Fragment parent = getParentFragment();
+    final UserInfoPagerFragment pager = (UserInfoPagerFragment) parent;
+    return this == pager.getCurrentFragment();
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    int adapterPos = tlLayoutManager.findFirstVisibleItemPosition();
+    if (adapterPos >= 0) {
+      final RecyclerView.ViewHolder vh = binding.timeline.findViewHolderForAdapterPosition(adapterPos);
+      if (vh != null) {
+        topItemId = sortedCache.getId(adapterPos);
+        firstVisibleItemTopOnStop = vh.itemView.getTop();
+      }
+    }
+  }
 
   @Override
   public void onStop() {
@@ -260,57 +310,13 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.removeOnScrollListener(onScrollListener);
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
-    firstVisibleItemPosOnStop = tlLayoutManager.findFirstVisibleItemPosition();
-    if (firstVisibleItemPosOnStop >= 0) {
-      final RecyclerView.ViewHolder vh = binding.timeline.findViewHolderForAdapterPosition(firstVisibleItemPosOnStop);
-      if (vh != null) {
-        firstVisibleItemTopOnStop = vh.itemView.getTop();
-        firstItemObserver = getFirstItemObserver();
-        tlAdapter.registerAdapterDataObserver(firstItemObserver);
-      }
-    }
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
-  }
-
-  private AdapterDataObserver firstItemObserver;
-
-  private AdapterDataObserver getFirstItemObserver() {
-    return new AdapterDataObserver() {
-      @Override
-      public void onItemRangeInserted(int positionStart, int itemCount) {
-        if (positionStart <= firstVisibleItemPosOnStop) {
-          Log.d(TAG, "onItemRangeInserted: inserted above");
-          firstVisibleItemPosOnStop += itemCount;
-        }
-      }
-
-      @Override
-      public void onItemRangeRemoved(int positionStart, int itemCount) {
-        if (positionStart <= firstVisibleItemPosOnStop) {
-          Log.d(TAG, "onItemRangeRemoved: removed above");
-          firstVisibleItemPosOnStop -= itemCount;
-          if (firstVisibleItemPosOnStop < 0) {
-            firstVisibleItemPosOnStop = 0;
-            firstVisibleItemTopOnStop = 0;
-          }
-        }
-      }
-    };
   }
 
   @Override
   public void onDetach() {
     Log.d(TAG, "onDetach: " + getStoreName());
     super.onDetach();
-    if (firstItemObserver != null) {
-      tlAdapter.unregisterAdapterDataObserver(firstItemObserver);
-      firstItemObserver = null;
-    }
     if (binding != null) {
       binding.timeline.setItemAnimator(null);
       timelineAnimator = null;
@@ -324,7 +330,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
     updateEventSubscription.dispose();
     sortedCache.close();
-    sortedCache.drop();
   }
 
   private OnIffabItemSelectedListener iffabItemSelectedListener;
@@ -357,7 +362,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private boolean stopScroll = false;
   private boolean addedUntilStopped = false;
 
-  private void isAddedUntilStopped() {
+  private void setAddedUntilStopped() {
     addedUntilStopped = tlLayoutManager.getChildCount() > 0
         && tlLayoutManager.findFirstVisibleItemPosition() != 0;
   }
@@ -427,6 +432,10 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
+  public void dropCache() {
+    sortedCache.drop();
+  }
+
   interface OnItemClickedListener {
     void onItemClicked(ContentType type, long id, String query);
   }
@@ -475,7 +484,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     return fragment;
   }
 
-  private String getStoreName() {
+  String getStoreName() {
     return getStoreType().nameWithSuffix(getEntityId(), getQuery());
   }
 

@@ -82,12 +82,15 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
 
   @Override
   public void upsert(final Collection<Status> statuses) {
+    if (statuses == null || statuses.isEmpty()) {
+      return;
+    }
     observeUpsert(statuses).subscribe();
   }
 
   @Override
   public Completable observeUpsert(Collection<Status> statuses) {
-    if (statuses == null) {
+    if (statuses == null || statuses.isEmpty()) {
       return Completable.complete();
     }
     final ArrayList<Status> targets = new ArrayList<>(statuses.size());

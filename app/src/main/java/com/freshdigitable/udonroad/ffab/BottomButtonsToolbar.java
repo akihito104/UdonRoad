@@ -106,7 +106,11 @@ class BottomButtonsToolbar extends Toolbar {
     iv.setImageState(item.parseToState(), false);
     final int itemId = item.getItemId();
     iv.setId(itemId);
-    iv.setOnClickListener(v -> menu.dispatchSelectedMenuItem(itemId));
+    iv.setOnClickListener(v -> {
+      if (item.isCheckable()) {
+        menu.dispatchSelectedMenuItem(itemId);
+      }
+    });
   }
 
   void clear() {
@@ -124,5 +128,11 @@ class BottomButtonsToolbar extends Toolbar {
         android.support.v7.appcompat.R.attr.actionBarSize, tv, true)
         ? TypedValue.complexToDimensionPixelSize(tv.data, context.getResources().getDisplayMetrics())
         : MarginLayoutParams.WRAP_CONTENT;
+  }
+
+  @Override
+  protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    clearAnimation();
   }
 }

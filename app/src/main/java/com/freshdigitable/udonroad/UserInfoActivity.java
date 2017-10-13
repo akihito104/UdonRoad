@@ -24,12 +24,11 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -41,7 +40,6 @@ import android.widget.TextView;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.TweetInputFragment.TweetInputListener;
-import com.freshdigitable.udonroad.UserInfoPagerFragment.UserPageInfo;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
@@ -53,8 +51,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
@@ -75,26 +71,31 @@ public class UserInfoActivity extends AppCompatActivity
   @Inject
   TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
-  private Disposable subscription;
   private TimelineContainerSwitcher timelineContainerSwitcher;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+    if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
-    binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
+    final View v = findViewById(R.id.userInfo_appbar_container);
+    if (v == null) {
+      binding = DataBindingUtil.setContentView(this, R.layout.activity_user_info);
+    } else {
+      binding = DataBindingUtil.findBinding(v);
+    }
     InjectionUtil.getComponent(this).inject(this);
 
     setUpAppbar();
-    long userId = getUserId();
-    viewPager = UserInfoPagerFragment.create(userId);
+    setupInfoAppbarFragment(getUserId());
+  }
+
+  private void setupInfoAppbarFragment(long userId) {
     userInfoAppbarFragment = UserInfoFragment.create(userId);
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.userInfo_appbar_container, userInfoAppbarFragment)
         .commit();
-    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
 
   private void setUpAppbar() {
@@ -145,7 +146,8 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onResume() {
     super.onResume();
-    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1
+        || getWindow().getSharedElementEnterTransition() == null) {
       onEnterAnimationComplete();
     }
   }
@@ -157,11 +159,6 @@ public class UserInfoActivity extends AppCompatActivity
     binding.ffab.setOnIffabItemSelectedListener(null);
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
-    binding.userInfoTabs.removeAllTabs();
-    binding.userInfoTabs.setupWithViewPager(null);
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
-    }
     userCache.close();
   }
 
@@ -174,37 +171,29 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   public void onEnterAnimationComplete() {
     userInfoAppbarFragment.onEnterAnimationComplete();
-    if (isTimelineContainerEmpty()) {
-      getSupportFragmentManager().beginTransaction()
-          .replace(R.id.userInfo_timeline_container, viewPager)
-          .commitNow();
-    }
+    setupTimeline();
     final User user = userCache.find(getUserId());
-    setupTabs(binding.userInfoTabs, user);
-  }
-
-  private boolean isTimelineContainerEmpty() {
-    return binding.userInfoTimelineContainer.getChildCount() < 1;
-  }
-
-  private void setupTabs(@NonNull final TabLayout userInfoTabs, User user) {
-    if (viewPager.getViewPager() != null && userInfoTabs.getTabCount() < 1) {
-      userInfoTabs.setupWithViewPager(viewPager.getViewPager());
-    }
-    if (subscription == null || subscription.isDisposed()) {
-      subscription = userCache.observeById(getUserId())
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(u -> updateTabs(userInfoTabs, u), e -> Log.e(TAG, "userUpdated: ", e));
-    }
     timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
       if (type == ContentType.MAIN) {
-        userInfoTabs.setVisibility(View.VISIBLE);
         UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
       } else {
-        userInfoTabs.setVisibility(View.GONE);
         binding.userInfoToolbarTitle.setText(title);
       }
     });
+    timelineContainerSwitcher.syncState();
+  }
+
+  private void setupTimeline() {
+    final Fragment mainFragment = getSupportFragmentManager().findFragmentByTag(TimelineContainerSwitcher.MAIN_FRAGMENT_TAG);
+    if (mainFragment == null) {
+      viewPager = UserInfoPagerFragment.create(getUserId());
+      getSupportFragmentManager().beginTransaction()
+          .replace(R.id.userInfo_timeline_container, viewPager, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
+          .commitNow();
+    } else {
+      viewPager = (UserInfoPagerFragment) mainFragment;
+    }
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
 
   public static Intent createIntent(Context context, User user) {
@@ -330,15 +319,6 @@ public class UserInfoActivity extends AppCompatActivity
     toolbarTweetInputToggle = null;
   }
 
-  private void updateTabs(@NonNull TabLayout userInfoTabs, User user) {
-    for (UserPageInfo p : UserPageInfo.values()) {
-      final TabLayout.Tab tab = userInfoTabs.getTabAt(p.ordinal());
-      if (tab != null) {
-        tab.setText(p.createTitle(user));
-      }
-    }
-  }
-
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {
       final int itemId = item.getItemId();
@@ -360,9 +340,6 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   public void showFab(int type) {
-    if (viewPager.getSelectedItemId() < 1) {
-      return;
-    }
     if (type == TYPE_FAB) {
       binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
           View.VISIBLE : View.INVISIBLE);

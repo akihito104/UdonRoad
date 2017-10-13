@@ -19,7 +19,7 @@ package com.freshdigitable.udonroad.util;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
-import android.support.test.espresso.core.deps.guava.collect.Iterables;
+import android.support.test.espresso.core.internal.deps.guava.collect.Iterables;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -46,15 +46,41 @@ public class StatusViewMatcher {
     return ofStatusViewInternal(viewMatcher, StatusView.class);
   }
 
-  public static Matcher<View> ofQuotedStatusView(final Matcher<View> viewMatcher) {
-    return ofStatusViewInternal(viewMatcher, QuotedStatusView.class);
+  public static Matcher<View> ofRTStatusView(final Matcher<View> viewMatcher) {
+    return ofStatusViewInternal(viewMatcher, StatusView.class, true);
   }
 
   private static <T extends View & ItemView> Matcher<View> ofStatusViewInternal(
       final Matcher<View> viewMatcher, Class<T> clz) {
+    return ofStatusViewInternal(viewMatcher, clz, false);
+  }
+
+  private static <T extends View & ItemView> Matcher<View> ofStatusViewInternal(
+      final Matcher<View> viewMatcher, Class<T> clz, boolean isRetweet) {
     return new BoundedMatcher<View, T>(clz) {
       @Override
       protected boolean matchesSafely(T item) {
+        final View rtUser = item.findViewById(R.id.tl_rt_user);
+        final boolean rtViewInvisible = rtUser == null || rtUser.getVisibility() != View.VISIBLE;
+        if (rtViewInvisible == isRetweet) {
+          return false;
+        }
+        final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
+            view -> view != null && !(view.getParent() instanceof QuotedStatusView) && viewMatcher.matches(view));
+        return it.iterator().hasNext();
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        viewMatcher.describeTo(description);
+      }
+    };
+  }
+
+  public static Matcher<View> ofQuotedStatusView(final Matcher<View> viewMatcher) {
+    return     new BoundedMatcher<View, QuotedStatusView>(QuotedStatusView.class) {
+      @Override
+      protected boolean matchesSafely(QuotedStatusView item) {
         final Iterable<View> it = Iterables.filter(breadthFirstViewTraversal(item),
             view -> view != null && viewMatcher.matches(view));
         return it.iterator().hasNext();

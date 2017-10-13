@@ -55,6 +55,13 @@ class TransformAnimator {
             ffab.setVisibility(View.INVISIBLE);
             showToolbar(ffab, bbt);
           }
+
+          @Override
+          public void onAnimationCancel(Animator animation) {
+            ffab.setVisibility(View.INVISIBLE);
+            bbt.setVisibility(View.VISIBLE);
+            animation.removeListener(this);
+          }
         })
         .start();
   }
@@ -88,6 +95,13 @@ class TransformAnimator {
       public void onAnimationEnd(Animator animation) {
         bbt.setVisibility(View.INVISIBLE);
         showFFAB(ffab, afterVisibility);
+      }
+
+      @Override
+      public void onAnimationCancel(Animator animation) {
+        bbt.setVisibility(View.INVISIBLE);
+        ffab.setVisibility(View.VISIBLE);
+        animation.removeListener(this);
       }
     });
     revealAnimator.setDuration(TOOLBAR_MOVE_DURATION);

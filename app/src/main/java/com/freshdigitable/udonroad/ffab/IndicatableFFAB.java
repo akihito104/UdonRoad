@@ -17,7 +17,9 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -68,13 +70,8 @@ public class IndicatableFFAB extends FlickableFAB {
     setOnIffabItemSelectedListener(null);
   }
 
-  private static final int MODE_FAB = 0;
-  private static final int MODE_TOOLBAR = 1;
-  private int mode = MODE_FAB;
-
   public void transToToolbar() {
     presenter.transToToolbar();
-    mode = MODE_TOOLBAR;
   }
 
   public void transToFAB() {
@@ -82,16 +79,7 @@ public class IndicatableFFAB extends FlickableFAB {
   }
 
   public void transToFAB(int afterVisibility) {
-    if (mode == MODE_FAB) {
-      if (afterVisibility == VISIBLE) {
-        show();
-      } else {
-        hide();
-      }
-    } else {
-      mode = MODE_FAB;
-      presenter.transToFAB(afterVisibility);
-    }
+    presenter.transToFAB(afterVisibility);
   }
 
   public interface OnIffabItemSelectedListener {
@@ -100,7 +88,7 @@ public class IndicatableFFAB extends FlickableFAB {
 
   @Override
   public void show() {
-    if (mode == MODE_FAB) {
+    if (presenter.isFabMode()) {
       super.show();
     } else {
       presenter.showToolbar();
@@ -109,10 +97,32 @@ public class IndicatableFFAB extends FlickableFAB {
 
   @Override
   public void hide() {
-    if (mode == MODE_FAB) {
+    if (presenter.isFabMode()) {
       super.hide();
     } else {
       presenter.hideToolbar();
     }
+  }
+
+  @Nullable
+  @Override
+  protected Parcelable onSaveInstanceState() {
+    final Parcelable parcelable = super.onSaveInstanceState();
+    final IffabMenuPresenter.SavedState savedState = new IffabMenuPresenter.SavedState(parcelable);
+    presenter.onSaveInstanceState(savedState);
+    return savedState;
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Parcelable state) {
+    final IffabMenuPresenter.SavedState savedState = (IffabMenuPresenter.SavedState) state;
+    super.onRestoreInstanceState(savedState.getSuperState());
+    presenter.onRestoreInstanceState(savedState);
+  }
+
+  @Override
+  protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    clearAnimation();
   }
 }

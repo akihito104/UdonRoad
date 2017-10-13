@@ -50,8 +50,6 @@ import com.freshdigitable.udonroad.util.IdlingResourceUtil.ActivityWaiter;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
-import junit.framework.Assert;
-
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Rule;
@@ -77,9 +75,8 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayingAtL
 import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static android.support.v7.preference.PreferenceManager.*;
+import static android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
-import static com.freshdigitable.udonroad.util.IdlingResourceUtil.findActivityByStage;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getActivityStageIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.PerformUtil.closeDrawerNavigation;
@@ -265,7 +262,6 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
     intending(hasData(Uri.parse(authorizationUrl)))
         .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
     onView(withId(R.id.oauth_start)).perform(click());
-    hideAndRelaunchOAuth();
 
     onView(withId(R.id.oauth_pin)).perform(typeText("000000"));
     onView(withId(R.id.oauth_send_pin)).perform(click());
@@ -308,7 +304,6 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
     intending(hasData(Uri.parse(authorizationUrl)))
         .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
     onView(withId(R.id.oauth_start)).perform(click());
-    hideAndRelaunchOAuth();
 
     Espresso.pressBack();
     runWithIdlingResource(
@@ -335,21 +330,6 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
     final SharedPreferences sp = getDefaultSharedPreferences(context);
     final String loginUserKey = context.getString(R.string.settings_key_loginUser);
     sp.edit().putString(loginUserKey, Long.toString(userId)).apply();
-  }
-
-  private static void hideAndRelaunchOAuth() {
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-      final Activity activity = findActivityByStage(OAuthActivity.class, Stage.RESUMED);
-      if (activity == null) {
-        Assert.fail();
-      }
-      try {
-        PerformUtil.launchHomeAndBackToApp(activity);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        Assert.fail();
-      }
-    });
   }
 
   @NonNull

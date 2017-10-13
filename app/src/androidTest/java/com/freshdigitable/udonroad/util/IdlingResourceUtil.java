@@ -19,7 +19,7 @@ package com.freshdigitable.udonroad.util;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingRegistry;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import android.support.test.runner.lifecycle.Stage;
@@ -104,10 +104,10 @@ public class IdlingResourceUtil {
 
   public static void runWithIdlingResource(@NonNull IdlingResource ir, @NonNull Runnable runnable) {
     try {
-      Espresso.registerIdlingResources(ir);
+      IdlingRegistry.getInstance().register(ir);
       runnable.run();
     } finally {
-      Espresso.unregisterIdlingResources(ir);
+      IdlingRegistry.getInstance().unregister(ir);
     }
   }
 

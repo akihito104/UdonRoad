@@ -18,7 +18,9 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -29,6 +31,9 @@ import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import twitter4j.Status;
 
 /**
@@ -36,11 +41,12 @@ import twitter4j.Status;
  */
 
 class TimelineContainerSwitcher {
+  static final String MAIN_FRAGMENT_TAG = ContentType.MAIN.createTag(-1, null);
   private final Fragment mainFragment;
   private final IndicatableFFAB ffab;
   private final @IdRes int containerId;
 
-  TimelineContainerSwitcher(View container, Fragment mainFragment, IndicatableFFAB iffab) {
+  TimelineContainerSwitcher(@NonNull View container, @NonNull Fragment mainFragment, @NonNull IndicatableFFAB iffab) {
     if (!(mainFragment instanceof ItemSelectable)) {
       throw new IllegalArgumentException("mainFragment should implement ItemSelectable.");
     }
@@ -54,8 +60,15 @@ class TimelineContainerSwitcher {
     if (currentFragment == mainFragment) {
       return;
     }
-    getSupportFragmentManager().popBackStack(
-        ContentType.MAIN.createTag(0, ""), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    final List<String> dropList = getDropList();
+    final FragmentManager fm = getSupportFragmentManager();
+    final int backStackEntryCount = fm.getBackStackEntryCount();
+    for (int i = backStackEntryCount - 1; i > 0; i--) {
+      final FragmentManager.BackStackEntry bs = fm.getBackStackEntryAt(i);
+      dropList.add(bs.getName());
+    }
+    registerDropCacheListener(dropList);
+    fm.popBackStack(MAIN_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     ContentType.MAIN.onShow(this, "", false);
   }
 
@@ -92,7 +105,7 @@ class TimelineContainerSwitcher {
     final String name = type.createTag(id, query);
     getSupportFragmentManager().beginTransaction()
         .replace(containerId, fragment, name)
-        .addToBackStack(tag != null ? tag : ContentType.MAIN.createTag(-1, null))
+        .addToBackStack(tag)
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         .commit();
     type.onShow(this, name, true);
@@ -100,6 +113,7 @@ class TimelineContainerSwitcher {
 
   boolean popBackStackTimelineContainer() {
     final FragmentManager fm = getSupportFragmentManager();
+    registerDropCacheListener();
     final int backStackEntryCount = fm.getBackStackEntryCount();
     if (backStackEntryCount <= 0) {
       return false;
@@ -110,6 +124,53 @@ class TimelineContainerSwitcher {
     final String appearFragmentName = backStack.getName();
     ContentType.findByTag(appearFragmentName).onShow(this, appearFragmentName, false);
     return true;
+  }
+
+  private void registerDropCacheListener() {
+    final List<String> dropList = getDropList();
+    registerDropCacheListener(dropList);
+  }
+
+  private void registerDropCacheListener(@NonNull List<String> dropList) {
+    if (dropList.isEmpty()) {
+      return;
+    }
+    final FragmentManager fm = getCurrentFragment().getFragmentManager();
+    fm.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
+      @Override
+      public void onFragmentDetached(FragmentManager fm, Fragment f) {
+        if (f instanceof TimelineFragment) {
+          final TimelineFragment timelineFragment = (TimelineFragment) f;
+          if (dropList.remove(timelineFragment.getStoreName())) {
+            timelineFragment.dropCache();
+          }
+        }
+        if (dropList.isEmpty()) {
+          fm.unregisterFragmentLifecycleCallbacks(this);
+        }
+      }
+    }, true);
+  }
+
+  private List<String> getDropList() {
+    final Fragment currentFragment = getCurrentFragment();
+    final ArrayList<String> dropList = new ArrayList<>();
+    if (currentFragment instanceof TimelineFragment) {
+      dropList.add(((TimelineFragment) currentFragment).getStoreName());
+    } else if (currentFragment instanceof UserInfoPagerFragment) {
+      final List<Fragment> fragments = currentFragment.getChildFragmentManager().getFragments();
+      for (Fragment f : fragments) {
+        if (f instanceof TimelineFragment) {
+          dropList.add(((TimelineFragment) f).getStoreName());
+        }
+      }
+    }
+    return dropList;
+  }
+
+  void syncState() {
+    final String tag = getCurrentFragment().getTag();
+    ContentType.findByTag(tag).onShow(this, tag, false);
   }
 
   private void setDetailIsEnabled(boolean enabled) {
@@ -142,11 +203,13 @@ class TimelineContainerSwitcher {
   }
 
   private FragmentManager getSupportFragmentManager() {
-    return mainFragment.getActivity().getSupportFragmentManager();
+    final FragmentActivity activity = mainFragment.getActivity();
+    return activity != null ? activity.getSupportFragmentManager()
+        : mainFragment.getFragmentManager();
   }
 
   private Context getContext() {
-    return mainFragment.getContext();
+    return getCurrentFragment().getContext();
   }
 
   private Fragment getCurrentFragment() {

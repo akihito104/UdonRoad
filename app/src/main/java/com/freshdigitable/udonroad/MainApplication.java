@@ -26,6 +26,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
@@ -68,6 +69,8 @@ public class MainApplication extends Application {
   UserFeedbackSubscriber userFeedback;
   @Inject
   UpdateSubjectFactory updateSubjectFactory;
+  @Inject
+  StoreManager storeManager;
 
   @Override
   public void onCreate() {
@@ -81,6 +84,8 @@ public class MainApplication extends Application {
 
     appComponent = createAppComponent();
     appComponent.inject(this);
+    storeManager.init(getApplicationContext());
+    init(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
     AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
   }
@@ -164,14 +169,14 @@ public class MainApplication extends Application {
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
       Log.d(TAG, "onActivityCreated: count>" + activities.size());
-      if (activities.size() == 0) {
-        init(activity);
-      }
       if (!getApplication(activity).loggedIn) {
         getApplication(activity).login();
       }
       if (!getApplication(activity).loggedIn) {
         launchOAuthActivity(activity);
+      }
+      if (activities.isEmpty() && savedInstanceState == null) {
+        getApplication(activity).storeManager.cleanUp();
       }
       activities.add(activity.getClass().getSimpleName());
     }
@@ -184,14 +189,9 @@ public class MainApplication extends Application {
       activity.finish();
     }
 
-    private static void init(Activity activity) {
-      if (!(activity instanceof OAuthActivity)) {
-        MainApplication.init(getApplication(activity));
-      }
-    }
-
     @Override
     public void onActivityStarted(Activity activity) {
+      Log.d(TAG, "onActivityStarted: ");
       if (activity instanceof MainActivity) {
         getApplication(activity).connectStream();
       }
@@ -202,10 +202,10 @@ public class MainApplication extends Application {
     }
 
     @Override
-    public void onActivityResumed(Activity activity) { }
+    public void onActivityResumed(Activity activity) {}
 
     @Override
-    public void onActivityPaused(Activity activity) { }
+    public void onActivityPaused(Activity activity) {}
 
     @Override
     public void onActivityStopped(Activity activity) {

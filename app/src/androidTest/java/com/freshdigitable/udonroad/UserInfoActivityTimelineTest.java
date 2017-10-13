@@ -23,8 +23,15 @@ import com.freshdigitable.udonroad.util.PerformUtil;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
+import twitter4j.PagableResponseList;
+import twitter4j.Paging;
 import twitter4j.Relationship;
+import twitter4j.ResponseList;
+import twitter4j.Status;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
@@ -33,52 +40,86 @@ import static android.support.test.espresso.matcher.ViewMatchers.isCompletelyDis
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static org.hamcrest.CoreMatchers.not;
+import static com.freshdigitable.udonroad.util.AssertionUtil.anywayNotVisible;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatusHasImage;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by akihit on 2017/07/07.
  */
 public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base {
+
+  private Status tweetHasImage;
+  private Status defaultTweet;
+
   @Override
   protected int setupTimeline() throws TwitterException {
     final Relationship relationship = mock(Relationship.class);
-    return setupUserInfoTimeline(relationship);
+    final User loginUser = getLoginUser();
+    tweetHasImage = createStatusHasImage(20000, getLoginUser());
+    defaultTweet = createStatus(10000, getLoginUser());
+    final ResponseList<Status> responseList = createResponseList(Arrays.asList(defaultTweet, tweetHasImage));
+    this.responseList = responseList;
+    final ResponseList<Status> emptyStatusResponseList = createResponseList();
+
+    final int size = responseList.size();
+    when(loginUser.getStatusesCount()).thenReturn(size);
+    when(twitter.getUserTimeline(loginUser.getId())).thenReturn(responseList);
+    when(twitter.getUserTimeline(anyLong(), any(Paging.class))).thenReturn(emptyStatusResponseList);
+    when(twitter.getFavorites(anyLong())).thenReturn(emptyStatusResponseList);
+    final PagableResponseList<User> emptyUserPagableResponseList = mock(PagableResponseList.class);
+    when(twitter.getFollowersList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
+    when(twitter.getFriendsList(anyLong(), anyLong())).thenReturn(emptyUserPagableResponseList);
+
+    when(twitter.showFriendship(anyLong(), anyLong())).thenReturn(relationship);
+    return responseList.size();
   }
 
   @Test
   public void showStatusDetail() throws Exception {
     AssertionUtil.checkUserInfoActivityTitle("");
-    onView(withText("TWEET\n20")).check(matches(isDisplayed()));
-    PerformUtil.selectItemViewAt(0);
+    onView(withText("TWEET\n2")).check(matches(isDisplayed()));
+    PerformUtil.selectItemView(defaultTweet);
     PerformUtil.showDetail();
     AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
-    onView(withId(R.id.userInfo_tabs)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.pager_tabs)).check(anywayNotVisible());
     onView(withId(R.id.action_heading)).check(doesNotExist());
+
     Espresso.pressBack();
     AssertionUtil.checkUserInfoActivityTitle("");
-    onView(withId(R.id.userInfo_tabs)).check(matches(isDisplayed()));
+    onView(withId(R.id.pager_tabs)).check(matches(isDisplayed()));
+    onView(withText("TWEET\n2")).check(matches(isDisplayed()));
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
   }
 
   @Test
-  public void jumpAnotherAppFromStatusDetail_and_returnToStatusDetail() throws Exception {
+  public void restoreStatusDetail() throws Exception {
     AssertionUtil.checkUserInfoActivityTitle("");
-    onView(withText("TWEET\n20")).check(matches(isDisplayed()));
-    PerformUtil.selectItemViewAt(0);
+    onView(withText("TWEET\n2")).check(matches(isDisplayed()));
+    PerformUtil.selectItemView(tweetHasImage);
     PerformUtil.showDetail();
     AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
-    onView(withId(R.id.userInfo_tabs)).check(matches(not(isDisplayed())));
+    onView(withId(R.id.pager_tabs)).check(anywayNotVisible());
     onView(withId(R.id.action_heading)).check(doesNotExist());
 
-    PerformUtil.launchHomeAndBackToApp(rule.getActivity());
-//    AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
-    onView(withId(R.id.userInfo_tabs)).check(matches(not(isDisplayed())));
+    PerformUtil.clickThumbnailAt(0);
+    Espresso.pressBack();
+
+    //    AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
     onView(withId(R.id.action_heading)).check(doesNotExist());
+    onView(withId(R.id.iffabMenu_main_fav)).check(matches(isDisplayed()));
+    onView(withId(R.id.iffabMenu_main_rt)).check(matches(isDisplayed()));
+    onView(withId(R.id.pager_tabs)).check(anywayNotVisible());
 
     Espresso.pressBack();
     AssertionUtil.checkUserInfoActivityTitle("");
-    onView(withId(R.id.userInfo_tabs)).check(matches(isDisplayed()));
+    onView(withId(R.id.pager_tabs)).check(matches(isDisplayed()));
+    onView(withText("TWEET\n2")).check(matches(isDisplayed()));
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
   }
 }

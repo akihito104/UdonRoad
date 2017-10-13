@@ -16,9 +16,6 @@
 
 package com.freshdigitable.udonroad.util;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.action.GeneralClickAction;
@@ -28,13 +25,18 @@ import android.support.test.espresso.action.Press;
 import android.support.test.espresso.action.Swipe;
 import android.support.test.espresso.action.Tap;
 import android.support.test.espresso.contrib.DrawerActions;
+import android.support.test.espresso.core.internal.deps.guava.base.Function;
+import android.support.test.espresso.matcher.BoundedMatcher;
 import android.view.View;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.UserItemView;
+import com.freshdigitable.udonroad.media.ThumbnailContainer;
+import com.freshdigitable.udonroad.media.ThumbnailView;
 
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 
 import twitter4j.Status;
@@ -48,9 +50,11 @@ import static android.support.test.espresso.action.ViewActions.swipeRight;
 import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.MatcherUtil.onIFFAB;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofItemViewAt;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofRTStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 
@@ -59,7 +63,9 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
  */
 public class PerformUtil {
   public static ViewInteraction selectItemView(Status target) {
-    return onView(ofStatusView(withText(target.getText()))).perform(clickForStatusView());
+    final Matcher<View> viewMatcher = target.isRetweet() ? ofRTStatusView(withText(target.getText()))
+        : ofStatusView(withText(target.getText()));
+    return onView(viewMatcher).perform(clickForStatusView());
   }
 
   public static ViewInteraction selectQuotedItemView(Status target) {
@@ -118,10 +124,6 @@ public class PerformUtil {
     return onIFFAB().perform(viewAction);
   }
 
-  private static ViewInteraction onIFFAB() {
-    return onView(withId(R.id.ffab));
-  }
-
   public static ViewInteraction pullDownTimeline() {
     return onView(withId(R.id.timeline)).perform(swipeDown());
   }
@@ -160,7 +162,38 @@ public class PerformUtil {
         return calcCenterCoord(v);
       }
       return calcCenterCoord(view);
-    }, Press.FINGER));
+    }, Press.FINGER, 0, 0));
+  }
+
+  public static void clickThumbnailAt(Status hasImage, int thumbIndex) {
+    final Matcher<View> viewMatcher = ofStatusView(withText(hasImage.getText()));
+    clickThumbnailAt(item -> {
+      final ThumbnailContainer container = (ThumbnailContainer) item.getParent();
+      final View v = container.getChildAt(thumbIndex);
+      return viewMatcher.matches(container.getParent()) && v == item;
+    }, thumbIndex);
+  }
+
+  public static void clickThumbnailAt(int thumbIndex) {
+    clickThumbnailAt(item -> {
+      final ThumbnailContainer container = (ThumbnailContainer) item.getParent();
+      return container.getChildAt(thumbIndex) == item;
+    }, thumbIndex);
+  }
+
+  private static void clickThumbnailAt(Function<ThumbnailView, Boolean> matchesSafely, int thumbIndex) {
+    onView(new BoundedMatcher<View, ThumbnailView>(ThumbnailView.class) {
+      @Override
+      protected boolean matchesSafely(ThumbnailView item) {
+        return matchesSafely.apply(item);
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("thumbnail of " + thumbIndex);
+      }
+    }).perform(actionWithAssertions(new GeneralClickAction(
+        Tap.SINGLE, PerformUtil::calcCenterCoord, Press.FINGER, 0, 0)));
   }
 
   private static float[] calcCenterCoord(View v) {
@@ -170,20 +203,6 @@ public class PerformUtil {
         pos[0] + v.getWidth() / 2.0f,
         pos[1] + v.getHeight() / 2.0f,
     };
-  }
-
-  public static void launchHomeAndBackToApp(Activity base) throws InterruptedException {
-    Intent home = new Intent();
-    home.setAction(Intent.ACTION_MAIN);
-    home.addCategory(Intent.CATEGORY_HOME);
-    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-    Intent relaunch = new Intent(base, base.getClass());
-    relaunch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-
-    InstrumentationRegistry.getTargetContext().startActivity(home);
-    Thread.sleep(500);
-    base.startActivity(relaunch);
   }
 
   private PerformUtil() {
