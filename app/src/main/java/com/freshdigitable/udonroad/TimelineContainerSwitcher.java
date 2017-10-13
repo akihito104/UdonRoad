@@ -139,7 +139,6 @@ class TimelineContainerSwitcher {
     fm.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
       @Override
       public void onFragmentDetached(FragmentManager fm, Fragment f) {
-        Log.d("TCS", "onFragmentDetached: " + f.getTag());
         if (f instanceof TimelineFragment) {
           final TimelineFragment timelineFragment = (TimelineFragment) f;
           if (dropList.remove(timelineFragment.getStoreName())) {

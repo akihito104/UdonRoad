@@ -43,21 +43,21 @@ import twitter4j.auth.AccessToken;
 
 public class AppSettingStoreRealm implements AppSettingStore {
   private Realm realm;
-  private final RealmConfiguration config;
+  private RealmConfiguration config;
   private final SharedPreferences prefs;
   private final File filesDir;
 
   public AppSettingStoreRealm(SharedPreferences prefs, File filesDir) {
-    config = new RealmConfiguration.Builder()
-        .name(StoreType.APP_SETTINGS.storeName)
-        .deleteRealmIfMigrationNeeded()
-        .build();
     this.prefs = prefs;
     this.filesDir = filesDir;
   }
 
   @Override
   public void open() {
+    config = new RealmConfiguration.Builder()
+        .name(StoreType.APP_SETTINGS.storeName)
+        .deleteRealmIfMigrationNeeded()
+        .build();
     realm = Realm.getInstance(config);
   }
 

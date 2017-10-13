@@ -23,6 +23,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.SortedCache;
+import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
@@ -65,7 +66,12 @@ public class DataStoreModule {
 
   public DataStoreModule(Context context) {
     this.context = context;
-    new RealmStoreManager().init(context);
+  }
+
+  @Singleton
+  @Provides
+  public StoreManager provideStoreManager() {
+    return new RealmStoreManager();
   }
 
   @Singleton

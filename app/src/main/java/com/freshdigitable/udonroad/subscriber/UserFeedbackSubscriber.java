@@ -65,9 +65,7 @@ public class UserFeedbackSubscriber {
     if (view != null) {
       return SnackBarUtil.action(view, message);
     }
-    final Toast toast = new Toast(context);
-    toast.setText(message);
-    toast.setDuration(Toast.LENGTH_SHORT);
+    final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
     toast.setGravity(gravityFlag, gravityXOffset, gravityYOffset);
     return toast::show;
   }

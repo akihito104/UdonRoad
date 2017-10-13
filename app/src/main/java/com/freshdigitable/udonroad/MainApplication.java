@@ -26,6 +26,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
@@ -68,6 +69,8 @@ public class MainApplication extends Application {
   UserFeedbackSubscriber userFeedback;
   @Inject
   UpdateSubjectFactory updateSubjectFactory;
+  @Inject
+  StoreManager storeManager;
 
   @Override
   public void onCreate() {
@@ -81,6 +84,7 @@ public class MainApplication extends Application {
 
     appComponent = createAppComponent();
     appComponent.inject(this);
+    storeManager.init(getApplicationContext());
     init(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
     AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -171,6 +175,9 @@ public class MainApplication extends Application {
       if (!getApplication(activity).loggedIn) {
         launchOAuthActivity(activity);
       }
+      if (activities.isEmpty() && savedInstanceState == null) {
+        getApplication(activity).storeManager.cleanUp();
+      }
       activities.add(activity.getClass().getSimpleName());
     }
 
@@ -188,11 +195,6 @@ public class MainApplication extends Application {
       if (activity instanceof MainActivity) {
         getApplication(activity).connectStream();
       }
-    }
-
-    @Override
-    public void onActivityResumed(Activity activity) {
-      Log.d(TAG, "onActivityResumed: ");
       if (activity instanceof SnackbarCapable) {
         final View rootView = ((SnackbarCapable) activity).getRootView();
         getApplication(activity).userFeedback.registerRootView(rootView);
@@ -200,16 +202,18 @@ public class MainApplication extends Application {
     }
 
     @Override
-    public void onActivityPaused(Activity activity) {
-      Log.d(TAG, "onActivityPaused: ");
+    public void onActivityResumed(Activity activity) {}
+
+    @Override
+    public void onActivityPaused(Activity activity) {}
+
+    @Override
+    public void onActivityStopped(Activity activity) {
       if (activity instanceof SnackbarCapable) {
         final View rootView = ((SnackbarCapable) activity).getRootView();
         getApplication(activity).userFeedback.unregisterRootView(rootView);
       }
     }
-
-    @Override
-    public void onActivityStopped(Activity activity) {}
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }

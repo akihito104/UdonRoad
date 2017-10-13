@@ -23,6 +23,7 @@ import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.StoreManager;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,6 +36,10 @@ import io.realm.RealmConfiguration;
 
 public class RealmStoreManager implements StoreManager {
 
+  private static final List<StoreType> deletableCaches
+      = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION, StoreType.POOL,
+      StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
+      StoreType.SEARCH, StoreType.OWNED_LIST, StoreType.USER_LIST);
   private static final List<StoreType> timelineStore
       = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION,
       StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
@@ -47,8 +52,17 @@ public class RealmStoreManager implements StoreManager {
 
   @Override
   public void cleanUp() {
+    for (File d : listDir()) {
+      dropCaches(d);
+    }
     for (File dir : listDir()) {
       maybeDropPool(dir);
+    }
+  }
+
+  private static void dropCaches(File dir) {
+    for (String name : listDeletableCache(dir)) {
+      dropCache(dir, name);
     }
   }
 
@@ -56,6 +70,7 @@ public class RealmStoreManager implements StoreManager {
     for (String name : listStorage(dir)) {
       for (StoreType t : timelineStore) {
         if (name.startsWith(t.storeName)) {
+          Log.d("RealmStoreManager", "maybeDropPool: " + name);
           return;
         }
       }
@@ -74,12 +89,24 @@ public class RealmStoreManager implements StoreManager {
       final Realm realm = Realm.getInstance(config);
       realm.executeTransaction(r -> r.deleteAll());
       realm.close();
-      Log.d("RealmStoreManager", "deleted: cache> " + dir.getName());
+      Log.d("RealmStoreManager", "deleted: cache> " + dir.getName() + "/" + name);
     } else {
       if (Realm.deleteRealm(config)) {
-        Log.d("RealmStoreManager", "dropped: cache> " + dir.getName());
+        Log.d("RealmStoreManager", "dropped: cache> " + dir.getName() + "/" + name);
       }
     }
+  }
+
+  private static String[] listDeletableCache(File dir) {
+    List<String> res = new ArrayList<>();
+    for (String s : listStorage(dir)) {
+      for (StoreType t : deletableCaches) {
+        if (s.startsWith(t.storeName)) {
+          res.add(s);
+        }
+      }
+    }
+    return res.toArray(new String[res.size()]);
   }
 
   private static String[] listStorage(File dir) {
