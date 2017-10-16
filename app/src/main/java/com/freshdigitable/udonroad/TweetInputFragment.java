@@ -16,6 +16,9 @@
 
 package com.freshdigitable.udonroad;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Context;
@@ -36,6 +39,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -46,6 +50,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 
@@ -80,6 +85,7 @@ import twitter4j.UserMentionEntity;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.INPUT_METHOD_SERVICE;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 /**
  * TweetInputFragment provides TweetInputView and logic to send tweet.
@@ -300,8 +306,72 @@ public class TweetInputFragment extends Fragment {
     if (twitterAPIConfig != null) {
       binding.mainTweetInputView.setShortUrlLength(twitterAPIConfig.getShortURLLengthHttps());
     }
-    binding.mainTweetInputView.show();
+    setupExpandAnimation(binding.mainTweetInputView);
     setupMenuVisibility(R.id.action_sendTweet);
+  }
+
+  private static final int ANIM_DURATION = 200;
+  private FastOutSlowInInterpolator ANIM_INTERPOLATOR = new FastOutSlowInInterpolator();
+  private ValueAnimator valueAnimator;
+  private ViewTreeObserver.OnPreDrawListener callback;
+
+  private ViewTreeObserver.OnPreDrawListener getCallback(TweetInputView view) {
+    return () -> {
+      final int h = view.getHeight();
+      if (h <= 0) {
+        return true;
+      }
+      animateToExpand(view);
+      view.getViewTreeObserver().removeOnPreDrawListener(callback);
+      return true;
+    };
+  }
+
+  private void setupExpandAnimation(TweetInputView view) {
+    if (valueAnimator != null && valueAnimator.isRunning()) {
+      valueAnimator.cancel();
+    }
+    view.measure(
+        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+    final int height = view.getMeasuredHeight();
+    if (height > 0) {
+      view.setVisibility(View.VISIBLE);
+      animateToExpand(view);
+    } else {
+      callback = getCallback(view);
+      view.getViewTreeObserver().addOnPreDrawListener(callback);
+      view.setVisibility(View.VISIBLE);
+    }
+  }
+
+  private void animateToExpand(TweetInputView view) {
+    final int height = view.getMeasuredHeight();
+    view.setTranslationY(-height);
+    final View container = (View) view.getParent();
+    container.getLayoutParams().height = 0;
+    container.requestLayout();
+
+    valueAnimator = new ValueAnimator();
+    valueAnimator.setIntValues(-height, 0);
+    valueAnimator.setDuration(ANIM_DURATION);
+    valueAnimator.setInterpolator(ANIM_INTERPOLATOR);
+    valueAnimator.addUpdateListener(animation -> {
+      final int animatedFraction = (int) animation.getAnimatedValue();
+      view.setTranslationY(animatedFraction);
+      container.getLayoutParams().height = height + animatedFraction;
+      container.requestLayout();
+    });
+    valueAnimator.addListener(new AnimatorListenerAdapter() {
+      @Override
+      public void onAnimationEnd(Animator animation) {
+        view.setTranslationY(0);
+        view.show();
+        container.getLayoutParams().height = WRAP_CONTENT;
+        container.requestLayout();
+      }
+    });
+    valueAnimator.start();
   }
 
   private Single<Status> createSendObservable() {
@@ -336,7 +406,34 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void collapseStatusInputView() {
-    binding.mainTweetInputView.hide();
+    setupCollapseAnimation(binding.mainTweetInputView);
+  }
+
+  private void setupCollapseAnimation(@NonNull TweetInputView view) {
+    if (valueAnimator != null && valueAnimator.isRunning()) {
+      valueAnimator.cancel();
+    }
+    final View container = (View) view.getParent();
+    final int height = view.getHeight();
+    valueAnimator = new ValueAnimator();
+    valueAnimator.setIntValues(0, -height);
+    valueAnimator.setInterpolator(ANIM_INTERPOLATOR);
+    valueAnimator.setDuration(ANIM_DURATION);
+    valueAnimator.addUpdateListener(animation -> {
+      final int animatedValue = (int) animation.getAnimatedValue();
+      view.setTranslationY(animatedValue);
+      container.getLayoutParams().height = height + animatedValue;
+      container.requestLayout();
+    });
+    valueAnimator.addListener(new AnimatorListenerAdapter() {
+      @Override
+      public void onAnimationEnd(Animator animation) {
+        view.hide();
+        container.getLayoutParams().height = WRAP_CONTENT;
+        container.requestLayout();
+      }
+    });
+    valueAnimator.start();
   }
 
   public void cancelInput() {

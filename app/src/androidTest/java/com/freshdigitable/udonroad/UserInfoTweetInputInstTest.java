@@ -125,7 +125,7 @@ public class UserInfoTweetInputInstTest extends UserInfoActivityInstTest.Base {
     onView(withId(R.id.tw_intext)).check(matches(isDisplayed()))
         .check(matches(withText(inputText)));
     onView(withId(R.id.userInfo_user_info_view)).check(matches(not(isDisplayed())));
-    MatcherUtil.onCancelWriteMenu().check(matches(isDisplayed()));
+    MatcherUtil.onCancelWriteMenu().check(matches(isDisplayed())).perform(click());
   }
 
   @Test
