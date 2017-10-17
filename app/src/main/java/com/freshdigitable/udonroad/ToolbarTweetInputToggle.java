@@ -20,7 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.graphics.drawable.DrawerArrowDrawable;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
@@ -37,7 +37,7 @@ import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
 class ToolbarTweetInputToggle {
   private final TweetInputFragment fragment;
   private final Toolbar toolbar;
-  private final DrawerArrowDrawable navigationIcon;
+  private final Drawable navigationIcon;
   private CharSequence prevTitle;
   private CharSequence navContentDescriptionDefault;
   private Drawable navIconDefault;
@@ -49,10 +49,7 @@ class ToolbarTweetInputToggle {
   ToolbarTweetInputToggle(@NonNull Toolbar toolbar, @Nullable TweetInputFragment tweetInputFragment) {
     this.toolbar = toolbar;
     this.fragment = tweetInputFragment != null ? tweetInputFragment : TweetInputFragment.create();
-    final Drawable defaultNavIcon = toolbar.getNavigationIcon();
-    this.navigationIcon = defaultNavIcon != null && defaultNavIcon instanceof DrawerArrowDrawable ?
-        (DrawerArrowDrawable) defaultNavIcon
-        : new DrawerArrowDrawable(toolbar.getContext());
+    this.navigationIcon = AppCompatResources.getDrawable(toolbar.getContext(), R.drawable.ic_clear_white);
   }
 
   void expandTweetInputView(@TweetType int type, long statusId) {
@@ -73,14 +70,12 @@ class ToolbarTweetInputToggle {
     toolbar.setTitle(prevTitle);
     toolbar.setNavigationContentDescription(navContentDescriptionDefault);
     toolbar.setNavigationIcon(navIconDefault);
-    navigationIcon.setProgress(0.f);
   }
 
   private void toggleNavigationIconToTweetInput() {
     navIconDefault = toolbar.getNavigationIcon();
     navContentDescriptionDefault = toolbar.getNavigationContentDescription();
 
-    navigationIcon.setProgress(1.f);
     toolbar.setNavigationIcon(navigationIcon);
     toolbar.setNavigationContentDescription(R.string.navDesc_cancelTweet);
   }
