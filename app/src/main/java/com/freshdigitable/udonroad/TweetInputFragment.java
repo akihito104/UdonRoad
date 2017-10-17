@@ -311,7 +311,7 @@ public class TweetInputFragment extends Fragment {
   }
 
   private static final int ANIM_DURATION = 200;
-  private FastOutSlowInInterpolator ANIM_INTERPOLATOR = new FastOutSlowInInterpolator();
+  private static final FastOutSlowInInterpolator ANIM_INTERPOLATOR = new FastOutSlowInInterpolator();
   private ValueAnimator valueAnimator;
   private ViewTreeObserver.OnPreDrawListener callback;
 
@@ -327,7 +327,7 @@ public class TweetInputFragment extends Fragment {
     };
   }
 
-  private void setupExpandAnimation(TweetInputView view) {
+  private void setupExpandAnimation(@NonNull TweetInputView view) {
     if (valueAnimator != null && valueAnimator.isRunning()) {
       valueAnimator.cancel();
     }
@@ -345,15 +345,10 @@ public class TweetInputFragment extends Fragment {
     }
   }
 
-  private void animateToExpand(TweetInputView view) {
+  private void animateToExpand(@NonNull TweetInputView view) {
     final int height = view.getMeasuredHeight();
-    view.setTranslationY(-height);
     final View container = (View) view.getParent();
-    container.getLayoutParams().height = 0;
-    container.requestLayout();
-
-    valueAnimator = new ValueAnimator();
-    valueAnimator.setIntValues(-height, 0);
+    final ValueAnimator valueAnimator = ValueAnimator.ofInt(-height, 0);
     valueAnimator.setDuration(ANIM_DURATION);
     valueAnimator.setInterpolator(ANIM_INTERPOLATOR);
     valueAnimator.addUpdateListener(animation -> {
@@ -371,7 +366,8 @@ public class TweetInputFragment extends Fragment {
         container.requestLayout();
       }
     });
-    valueAnimator.start();
+    this.valueAnimator = valueAnimator;
+    this.valueAnimator.start();
   }
 
   private Single<Status> createSendObservable() {
@@ -406,17 +402,16 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void collapseStatusInputView() {
-    setupCollapseAnimation(binding.mainTweetInputView);
+    animateToCollapse(binding.mainTweetInputView);
   }
 
-  private void setupCollapseAnimation(@NonNull TweetInputView view) {
+  private void animateToCollapse(@NonNull TweetInputView view) {
     if (valueAnimator != null && valueAnimator.isRunning()) {
       valueAnimator.cancel();
     }
     final View container = (View) view.getParent();
     final int height = view.getHeight();
-    valueAnimator = new ValueAnimator();
-    valueAnimator.setIntValues(0, -height);
+    final ValueAnimator valueAnimator = ValueAnimator.ofInt(0, -height);
     valueAnimator.setInterpolator(ANIM_INTERPOLATOR);
     valueAnimator.setDuration(ANIM_DURATION);
     valueAnimator.addUpdateListener(animation -> {
@@ -433,7 +428,8 @@ public class TweetInputFragment extends Fragment {
         container.requestLayout();
       }
     });
-    valueAnimator.start();
+    this.valueAnimator = valueAnimator;
+    this.valueAnimator.start();
   }
 
   public void cancelInput() {
