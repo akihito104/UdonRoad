@@ -136,4 +136,6 @@
     <string name="msg_media_failed_loading">メディアの読み込みに失敗しました…</string>
     <string name="msg_media_failed_tweetNotFound">元のツイートが削除されたようです…</string>
     <string name="action_sendTweet">ツイートを送る</string>
+    <string name="navDesc_cancelTweet">入力を取り消す</string>
+    <string name="action_resumeTweet">ツイートの再送信</string>
 </resources>
