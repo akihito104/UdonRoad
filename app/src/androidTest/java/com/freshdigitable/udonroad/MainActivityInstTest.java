@@ -65,44 +65,6 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   }
 
   @Test
-  public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
-    final Status received = createStatus(25000, getLoginUser());
-    receiveStatuses(received);
-    onView(ofStatusView(withText(received.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    AssertionUtil.checkFavCountDoesNotExist(received);
-
-    final Status received29 = createStatus(29000, getLoginUser());
-    final Status received27 = createStatus(27000, getLoginUser());
-    receiveStatuses(received29, received27);
-    onView(ofStatusView(withText(received.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
-    onView(ofStatusView(withText(received29.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(ofStatusView(withText(received27.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
-  }
-
-  @Test
-  public void receiveDelayed2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder()
-      throws Exception {
-    final Status received25 = createStatus(25000);
-    receiveStatuses(received25);
-    onView(ofStatusView(withText(received25.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-
-    final Status received29 = createStatus(29000);
-    final Status received23 = createStatus(23000);
-    receiveStatuses(received29, received23);
-    onView(ofStatusView(withText(received25.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
-    onView(ofStatusView(withText(received29.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-    onView(ofStatusView(withText(received23.getText())))
-        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
-  }
-
-  @Test
   public void fetchFav_then_favIconAndCountAreDisplayed() throws Exception {
     // setup
     setupCreateFavorite(0, 1);
@@ -222,9 +184,25 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   }
 
   @Test
+  public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {
+    // setup
+    setupCreateFavorite(0, 3);
+    setupRetweetStatus(25000, 1, 3);
+    // exec.
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.fav_retweet();
+    // assert
+    PerformUtil.clickHeadingOnMenu();
+    AssertionUtil.checkFavCountAt(0, 3);
+    AssertionUtil.checkRTCountAt(0, 1);
+    AssertionUtil.checkFavCountAt(1, 3);
+    AssertionUtil.checkRTCountAt(1, 1);
+  }
+
+  @Test
   public void performFavorite_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
     // setup
-    final Status target = createStatus(21000, getLoginUser());
+    final Status target = createStatus(21000);
     when(target.getFavoriteCount()).thenReturn(3);
     receiveStatuses(true, target);
 
@@ -243,7 +221,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
   @Test
   public void performRetweet_then_receiveTwitterExceptionForAlreadyRetweeted() throws Exception {
     // setup
-    final Status target = createStatus(21000, getLoginUser());
+    final Status target = createStatus(21000);
     when(target.getRetweetCount()).thenReturn(3);
     receiveStatuses(true, target);
 
@@ -259,37 +237,10 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     AssertionUtil.checkRTCountAt(0, 3);
   }
 
-  private void performRetweet() {
-    final RecyclerView recyclerView = getTimelineView();
-    final int expectedCount = (recyclerView != null ? recyclerView.getAdapter().getItemCount() : 0) + 1;
-    PerformUtil.retweet();
-    runWithIdlingResource(getSimpleIdlingResource("receive status", () -> {
-      final RecyclerView rv = getTimelineView();
-      return rv != null && rv.getAdapter().getItemCount() == expectedCount;
-    }), () ->
-        onView(withId(R.id.timeline)).check(matches(isDisplayed())));
-  }
-
-  @Test
-  public void performFavAndRetweet_then_receiveFavoritedAndRetweetedStatus() throws Exception {
-    // setup
-    setupCreateFavorite(0, 3);
-    setupRetweetStatus(25000, 1, 3);
-    // exec.
-    PerformUtil.selectItemViewAt(0);
-    PerformUtil.fav_retweet();
-    // assert
-    PerformUtil.clickHeadingOnMenu();
-    AssertionUtil.checkFavCountAt(0, 3);
-    AssertionUtil.checkRTCountAt(0, 1);
-    AssertionUtil.checkFavCountAt(1, 3);
-    AssertionUtil.checkRTCountAt(1, 1);
-  }
-
   @Test
   public void performFavAndRetweet_then_receiveTwitterExceptionForAlreadyFavorited() throws Exception {
     // setup
-    final Status target = createStatus(20000, getLoginUser());
+    final Status target = createStatus(20000);
     final int expectedFavCount = 3;
     when(target.getFavoriteCount()).thenReturn(expectedFavCount);
     receiveStatuses(false, target);
@@ -315,7 +266,7 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     final Status target = findByStatusId(20000);
     PerformUtil.selectItemView(target);
     PerformUtil.showDetail();
-    final Status status = createStatus(25000, getLoginUser());
+    final Status status = createStatus(25000);
     receiveStatuses(false, status);
     Thread.sleep(1000);
     pressBack();
@@ -324,6 +275,42 @@ public class MainActivityInstTest extends TimelineInstTestBase {
     PerformUtil.clickHeadingOnMenu();
     onView(ofStatusViewAt(R.id.timeline, 0))
         .check(matches(ofStatusView(withText(status.getText()))));
+  }
+
+  @Test
+  public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
+    final Status top = findByStatusId(20000);
+    onView(ofStatusView(withText(top.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+    AssertionUtil.checkFavCountDoesNotExist(top);
+
+    final Status received29 = createStatus(29000);
+    final Status received27 = createStatus(27000);
+    receiveStatuses(received29, received27);
+    onView(ofStatusView(withText(top.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
+    onView(ofStatusView(withText(received29.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+    onView(ofStatusView(withText(received27.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
+  }
+
+  @Test
+  public void receiveDelayed2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder()
+      throws Exception {
+    final Status received20 = findByStatusId(20000);
+    onView(ofStatusView(withText(received20.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+
+    final Status received290 = createStatus(29000);
+    final Status received195 = createStatus(19500);
+    receiveStatuses(received290, received195);
+    onView(ofStatusView(withText(received20.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
+    onView(ofStatusView(withText(received290.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+    onView(ofStatusView(withText(received195.getText())))
+        .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
   }
 
   @Test
@@ -351,6 +338,17 @@ public class MainActivityInstTest extends TimelineInstTestBase {
         .check(matches(ofStatusView(withText(received.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 1))
         .check(matches(ofStatusView(withText(target.getText()))));
+  }
+
+  private void performRetweet() {
+    final RecyclerView recyclerView = getTimelineView();
+    final int expectedCount = (recyclerView != null ? recyclerView.getAdapter().getItemCount() : 0) + 1;
+    PerformUtil.retweet();
+    runWithIdlingResource(getSimpleIdlingResource("receive status", () -> {
+      final RecyclerView rv = getTimelineView();
+      return rv != null && rv.getAdapter().getItemCount() == expectedCount;
+    }), () ->
+        onView(withId(R.id.timeline)).check(matches(isDisplayed())));
   }
 
   @Override
