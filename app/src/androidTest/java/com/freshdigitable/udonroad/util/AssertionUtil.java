@@ -80,7 +80,15 @@ public class AssertionUtil {
   }
 
   public static void checkRTCountAt(int index, int expectedCount) {
-    checkReactionIcon(ofStatusViewAt(R.id.timeline, index), getRTIcon(),
+    checkRTCount(ofStatusViewAt(R.id.timeline, index), expectedCount);
+  }
+
+  public static void checkRTCount(Status status, int expectedCount) {
+    checkRTCount(ofStatusView(withText(status.getText())), expectedCount);
+  }
+
+  private static void checkRTCount(Matcher<View> matcher, int expectedCount) {
+    checkReactionIcon(matcher, getRTIcon(),
         expectedCount > 0 ? View.VISIBLE : View.INVISIBLE, expectedCount);
   }
 
