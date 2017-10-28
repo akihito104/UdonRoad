@@ -19,11 +19,11 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.animation.Animation;
@@ -100,7 +100,9 @@ class TimelineContainerSwitcher {
 
   private void replaceTimelineContainer(ContentType type, long id, String query, Fragment fragment) {
     final Fragment current = getCurrentFragment();
-    Log.d("TLContainerSwitcher", "replaceTimelineContainer: " + current.getTag());
+    if (current == null) {
+      return;
+    }
     final String tag = current.getTag();
     final String name = type.createTag(id, query);
     getSupportFragmentManager().beginTransaction()
@@ -113,6 +115,9 @@ class TimelineContainerSwitcher {
 
   boolean popBackStackTimelineContainer() {
     final FragmentManager fm = getSupportFragmentManager();
+    if (fm == null) {
+      return false;
+    }
     registerDropCacheListener();
     final int backStackEntryCount = fm.getBackStackEntryCount();
     if (backStackEntryCount <= 0) {
@@ -135,7 +140,12 @@ class TimelineContainerSwitcher {
     if (dropList.isEmpty()) {
       return;
     }
-    final FragmentManager fm = getCurrentFragment().getFragmentManager();
+    final Fragment currentFragment = getCurrentFragment();
+    if (currentFragment == null) {
+      return;
+    }
+    // FragmentManager of current Fragment is needed
+    final FragmentManager fm = currentFragment.getFragmentManager();
     fm.registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
       @Override
       public void onFragmentDetached(FragmentManager fm, Fragment f) {
@@ -169,7 +179,11 @@ class TimelineContainerSwitcher {
   }
 
   void syncState() {
-    final String tag = getCurrentFragment().getTag();
+    final Fragment currentFragment = getCurrentFragment();
+    if (currentFragment == null) {
+      return;
+    }
+    final String tag = currentFragment.getTag();
     ContentType.findByTag(tag).onShow(this, tag, false);
   }
 
@@ -184,8 +198,8 @@ class TimelineContainerSwitcher {
         && clearSelectedCursorIfNeeded((ItemSelectable) fragment);
   }
 
-  private boolean clearSelectedCursorIfNeeded(ItemSelectable fragment) {
-    if (fragment.isItemSelected()) {
+  private boolean clearSelectedCursorIfNeeded(@Nullable ItemSelectable fragment) {
+    if (fragment != null && fragment.isItemSelected()) {
       fragment.clearSelectedItem();
       return true;
     }
@@ -209,12 +223,14 @@ class TimelineContainerSwitcher {
   }
 
   private Context getContext() {
-    return getCurrentFragment().getContext();
+    final Fragment fragment = getCurrentFragment();
+    return fragment != null ? fragment.getContext() : null;
   }
 
+  @Nullable
   private Fragment getCurrentFragment() {
     final FragmentManager fm = getSupportFragmentManager();
-    return fm.findFragmentById(containerId);
+    return fm != null ? fm.findFragmentById(containerId) : null;
   }
 
   boolean isItemSelected() {
