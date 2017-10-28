@@ -179,7 +179,7 @@ public abstract class TimelineInstTestBase {
     assertThat(getUserStreamListener(), is(notNullValue()));
   }
 
-  UserStreamListener getUserStreamListener() {
+  private UserStreamListener getUserStreamListener() {
     return getApp().getUserStreamListener();
   }
 

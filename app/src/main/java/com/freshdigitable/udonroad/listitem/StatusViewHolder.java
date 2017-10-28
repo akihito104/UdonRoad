@@ -122,6 +122,10 @@ public class StatusViewHolder extends ItemViewHolder {
     }
   }
 
+  public boolean hasQuotedView() {
+    return getView().getQuotedStatusView() != null;
+  }
+
   public void attachQuotedView(QuotedStatusView quotedView) {
     getView().attachQuotedView(quotedView);
   }

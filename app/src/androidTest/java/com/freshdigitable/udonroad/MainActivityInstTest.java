@@ -57,6 +57,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -405,6 +407,7 @@ public class MainActivityInstTest {
       receiveStatuses(21, target);
       onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(target.getText()))));
 
+      verify(twitter, times(1)).getHomeTimeline(any(Paging.class));
       onView(ofQuotedStatusView(withText(createStatus(19999).getText()))).check(matches(isDisplayed()));
     }
   }

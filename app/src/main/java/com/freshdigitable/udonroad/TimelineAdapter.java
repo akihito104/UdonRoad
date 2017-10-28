@@ -295,8 +295,9 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     public void onBindViewHolder(final ItemViewHolder holder, int position) {
       final Status elem = timelineStore.get(position);
       final StatusListItem item = (StatusListItem) wrapListItem(elem);
-      if (item.getQuotedItem() != null) {
-        ((StatusViewHolder) holder).attachQuotedView(getQuotedView(holder.itemView.getContext()));
+      final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
+      if (item.getQuotedItem() != null && !statusViewHolder.hasQuotedView()) {
+        statusViewHolder.attachQuotedView(getQuotedView(holder.itemView.getContext()));
       }
       holder.bind(item);
       final Observable<ListItem> observable = timelineStore.observeById(elem).map(this::wrapListItem);
