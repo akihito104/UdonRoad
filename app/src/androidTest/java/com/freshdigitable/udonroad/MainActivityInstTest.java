@@ -30,6 +30,8 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -45,6 +47,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.StatusViewAssertion.recyclerViewDescendantsMatches;
+import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofQuotedStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
@@ -52,6 +55,7 @@ import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -360,6 +364,48 @@ public class MainActivityInstTest {
       AssertionUtil.checkFavCountAt(0, EXPECTED_FAV_COUNT);
       AssertionUtil.checkRTCount(faved, 1);
       AssertionUtil.checkFavCount(faved, EXPECTED_FAV_COUNT);
+    }
+  }
+
+  public static class WhenHomeTimelineDelayed extends Base {
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final List<Status> statuses = createDefaultStatuses(getLoginUser());
+      for (int i = 0; i < statuses.size(); i++) {
+        final Status s = statuses.get(i);
+        final long quotedId = s.getId() - 1;
+        final Status quoted = createStatus(quotedId, s.getUser());
+        when(s.getQuotedStatus()).thenReturn(quoted);
+        when(s.getQuotedStatusId()).thenReturn(quotedId);
+      }
+      final ResponseList<Status> responseList = createResponseList(statuses);
+      this.responseList = responseList;
+      when(twitter.getHomeTimeline()).thenAnswer(invocation -> {
+        Thread.sleep(2000L);
+        return responseList;
+      });
+      final long maxId = getMaxId(statuses);
+      when(twitter.getHomeTimeline(argThat(p -> p.getMaxId() > maxId))).thenReturn(responseList);
+      return 0;
+    }
+
+    private static long getMaxId(List<Status> statuses) {
+      long maxId = -1;
+      for (Status s : statuses) {
+        if (maxId < s.getId()) {
+          maxId = s.getId();
+        }
+      }
+      return maxId;
+    }
+
+    @Test
+    public void showOneQuotedTweetViewInEachTweetView() throws Exception {
+      final Status target = createStatus(25000);
+      receiveStatuses(21, target);
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(target.getText()))));
+
+      onView(ofQuotedStatusView(withText(createStatus(19999).getText()))).check(matches(isDisplayed()));
     }
   }
 

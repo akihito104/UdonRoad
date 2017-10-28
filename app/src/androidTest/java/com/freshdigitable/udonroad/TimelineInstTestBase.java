@@ -176,8 +176,11 @@ public abstract class TimelineInstTestBase {
     verify(twitter, times(1)).getHomeTimeline();
     verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
     verify(twitterStream, times(1)).setOAuthAccessToken(any(AccessToken.class));
-    final UserStreamListener userStreamListener = getApp().getUserStreamListener();
-    assertThat(userStreamListener, is(notNullValue()));
+    assertThat(getUserStreamListener(), is(notNullValue()));
+  }
+
+  UserStreamListener getUserStreamListener() {
+    return getApp().getUserStreamListener();
   }
 
   @After
@@ -225,7 +228,7 @@ public abstract class TimelineInstTestBase {
     final RecyclerView timeline = getTimelineView();
     final int expectedCount = timeline.getAdapter().getItemCount() - target.length;
 
-    TwitterResponseMock.receiveDeletionNotice(getApp().getUserStreamListener(), target);
+    TwitterResponseMock.receiveDeletionNotice(getUserStreamListener(), target);
 
     runWithIdlingResource(getSimpleIdlingResource("receive deletion notice", () ->
         timeline.getAdapter().getItemCount() == expectedCount), () -> {
@@ -246,19 +249,23 @@ public abstract class TimelineInstTestBase {
   }
 
   protected void receiveStatuses(boolean isIdlingResourceUsed, final Status... statuses) {
+    if (!isIdlingResourceUsed) {
+      TwitterResponseMock.receiveStatuses(getUserStreamListener(), statuses);
+      return;
+    }
     final RecyclerView recyclerView = getTimelineView();
     final int expectedCount = (recyclerView != null ? recyclerView.getAdapter().getItemCount() : 0)
         + statuses.length;
+    receiveStatuses(expectedCount, statuses);
+  }
 
-    TwitterResponseMock.receiveStatuses(getApp().getUserStreamListener(), statuses);
-
-    if (isIdlingResourceUsed) {
-      runWithIdlingResource(getSimpleIdlingResource("receive status", () -> {
-        final RecyclerView rv = getTimelineView();
-        return rv != null && rv.getAdapter().getItemCount() == expectedCount;
-      }), () ->
-          onView(withId(R.id.timeline)).check(matches(isDisplayed())));
-    }
+  void receiveStatuses(int expectedCount, final Status... statuses) {
+    TwitterResponseMock.receiveStatuses(getUserStreamListener(), statuses);
+    runWithIdlingResource(getSimpleIdlingResource("receive status", () -> {
+      final RecyclerView rv = getTimelineView();
+      return rv != null && rv.getAdapter().getItemCount() == expectedCount;
+    }), () ->
+        onView(withId(R.id.timeline)).check(matches(isDisplayed())));
   }
 
   protected RecyclerView getTimelineView() {
@@ -322,7 +329,7 @@ public abstract class TimelineInstTestBase {
     when(twitter.retweetStatus(anyLong())).thenAnswer(invocation -> {
       final Long id = invocation.getArgument(0);
       final Status rtedStatus = findByStatusId(id);
-      TwitterResponseMock.receiveStatuses(getApp().getUserStreamListener(),
+      TwitterResponseMock.receiveStatuses(getUserStreamListener(),
           createRtStatus(rtedStatus, rtStatusId, false));
       return createRtStatus(rtedStatus, rtStatusId, rtCount, favCount, true);
     });
