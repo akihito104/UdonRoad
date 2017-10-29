@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
@@ -51,9 +52,9 @@ public class TimelineStoreRealm implements SortedCache<Status> {
   private final OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>> addChangeListener
       = new OrderedRealmCollectionChangeListener<RealmResults<StatusIDs>>() {
     @Override
-    public void onChange(@NonNull RealmResults<StatusIDs> elem, @NonNull OrderedCollectionChangeSet changeSet) {
+    public void onChange(@NonNull RealmResults<StatusIDs> elem, @Nullable OrderedCollectionChangeSet changeSet) {
       setItemCount(elem.size());
-      if (updateSubject.hasSubscribers()) {
+      if (updateSubject.hasSubscribers() && changeSet != null) {
         for (OrderedCollectionChangeSet.Range range : changeSet.getInsertionRanges()) {
           updateSubject.onNext(EventType.INSERT, range.startIndex, range.length);
         }
@@ -126,13 +127,14 @@ public class TimelineStoreRealm implements SortedCache<Status> {
 
   @Override
   public long getId(int position) {
-    return timeline.get(position).getId();
+    final StatusIDs statusIDs = timeline.get(position);
+    return statusIDs != null ? statusIDs.getId() : -1;
   }
 
   @Override
   public Status get(int position) {
     final StatusIDs ids = timeline.get(position);
-    return pool.find(ids.getId());
+    return ids != null ? pool.find(ids.getId()) : null;
   }
 
   @Override

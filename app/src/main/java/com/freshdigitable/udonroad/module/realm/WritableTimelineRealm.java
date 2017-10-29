@@ -145,11 +145,13 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
     if (res.isEmpty()) {
       return;
     }
-    long[] deleted = new long[res.size()];
+    final long[] deleted = new long[res.size()];
     for (int i = 0; i < deleted.length; i++) {
-      deleted[i] = res.get(i).getId();
+      final StatusIDs ids = res.get(i);
+      if (ids != null) {
+        deleted[i] = ids.getId();
+      }
     }
-
     Completable.create(e -> {
       sortedCache.executeTransaction(r -> res.deleteAllFromRealm());
       e.onComplete();
@@ -174,9 +176,8 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
     }
     final RealmResults<StatusIDs> timeline = sortedCache.where(StatusIDs.class)
         .findAllSorted(KEY_ID, Sort.DESCENDING);
-    return timeline.size() > 0 ?
-        timeline.last().getId() - 1
-        : -1;
+    final StatusIDs last = !timeline.isEmpty() ? timeline.last() : null;
+    return last != null ? last.getId() - 1 : -1;
   }
 
   private PageCursor getNextPageCursor() {
