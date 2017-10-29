@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.SortedCache;
@@ -66,8 +67,8 @@ public class ListsSortedCacheRealm implements SortedCache<UserList> {
   private final OrderedRealmCollectionChangeListener<RealmResults<UserListRealm>> realmChangeListener
       = new OrderedRealmCollectionChangeListener<RealmResults<UserListRealm>>() {
     @Override
-    public void onChange(@NonNull RealmResults<UserListRealm> element, @NonNull OrderedCollectionChangeSet changeSet) {
-      if (updateSubject.hasSubscribers()) {
+    public void onChange(@NonNull RealmResults<UserListRealm> element, @Nullable OrderedCollectionChangeSet changeSet) {
+      if (updateSubject.hasSubscribers() && changeSet != null) {
         final OrderedCollectionChangeSet.Range[] insertions = changeSet.getInsertionRanges();
         for (OrderedCollectionChangeSet.Range i : insertions) {
           updateSubject.onNext(EventType.INSERT, i.startIndex, i.length);
@@ -96,12 +97,16 @@ public class ListsSortedCacheRealm implements SortedCache<UserList> {
 
   @Override
   public long getId(int position) {
-    return userLists.get(position).getId();
+    final UserListRealm u = userLists.get(position);
+    return u != null ? u.getId() : -1;
   }
 
   @Override
   public UserList get(int position) {
     final UserListRealm res = userLists.get(position);
+    if (res == null) {
+      return null;
+    }
     final User user = pool.find(res.getUserId());
     res.setUser(user);
     return res;
