@@ -182,6 +182,18 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
         .check(matches(ofStatusView(withText(top.getText()))));
   }
 
+  @Test
+  public void scrollToTopWhenStatusIsReceivedAfterBackToMain() throws Exception {
+    PerformUtil.clickUserIconAt(0);
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+    Espresso.pressBack();
+    onIFFAB().check(anywayNotVisible());
+
+    final Status target = createStatus(21000);
+    receiveStatuses(target);
+    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(target.getText()))));
+  }
+
   @Override
   protected ActivityTestRule<MainActivity> getRule() {
     return rule;
