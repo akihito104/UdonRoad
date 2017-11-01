@@ -240,9 +240,9 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       final int pos = sortedCache.getPositionById(topItemId);
       tlLayoutManager.scrollToPositionWithOffset(pos, firstVisibleItemTopOnStop);
       topItemId = -1;
-      addedUntilStopped = true;
-    } else {
-      setAddedUntilStopped();
+      if (pos > 0) {
+        addedUntilStopped = true;
+      }
     }
     binding.timeline.addOnScrollListener(onScrollListener);
 
