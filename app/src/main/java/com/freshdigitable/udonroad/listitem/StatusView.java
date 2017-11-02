@@ -171,8 +171,7 @@ public class StatusView extends RelativeLayout implements StatusItemView {
   public String toString() {
     final CharSequence text = tweet.getText();
     final CharSequence cs = text.length() > 10 ? text.subSequence(0, 9) : text;
-    return "height: " + getHeight()
-        + ", text: " + cs;
+    return "text: " + cs + ", y: " + getY();
   }
 
   public void setSelectedColor() {

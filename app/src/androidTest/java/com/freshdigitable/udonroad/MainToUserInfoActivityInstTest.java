@@ -16,11 +16,11 @@
 
 package com.freshdigitable.udonroad;
 
-import android.app.Activity;
+import android.support.annotation.NonNull;
+import android.support.design.widget.TabLayout;
 import android.support.test.espresso.Espresso;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import android.support.test.runner.lifecycle.Stage;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
@@ -31,8 +31,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import twitter4j.Relationship;
 import twitter4j.ResponseList;
@@ -49,6 +49,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.AssertionUtil.anywayNotVisible;
 import static com.freshdigitable.udonroad.util.AssertionUtil.checkMainActivityTitle;
+import static com.freshdigitable.udonroad.util.IdlingResourceUtil.findActivityByStage;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.MatcherUtil.onIFFAB;
@@ -144,26 +145,24 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
     onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
 
     PerformUtil.clickUserIconAt(0);
-    runWithIdlingResource(getSimpleIdlingResource("userInfo", () -> {
-      final Collection<Activity> activities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
-      for (Activity a : activities) {
-        if (!(a instanceof UserInfoActivity)) {
-          continue;
-        }
-        final List<Fragment> fragments = ((UserInfoActivity) a).getSupportFragmentManager().getFragments();
-        for (Fragment f : fragments) {
-          if (f instanceof UserInfoPagerFragment) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }), () ->
-        onView(withText("TWEET\n20")).check(matches(isDisplayed())));
+    runWithIdlingResource(getSimpleIdlingResource("userInfo", getUserInfoIdlingResource()),
+        () -> onView(withText("TWEET\n20")).check(matches(isDisplayed())));
 
     final Status received22 = createStatus(22000);
+    final User user = received22.getUser();
+    when(user.getStatusesCount()).thenReturn(21);
     receiveStatuses(false, received22);
+    runWithIdlingResource(getSimpleIdlingResource("store tweet", ()-> {
+      final UserInfoActivity a = findActivityByStage(UserInfoActivity.class, Stage.RESUMED);
+      if (a == null) {
+        return false;
+      }
+      final TabLayout tabs = a.findViewById(R.id.pager_tabs);
+      final TabLayout.Tab tab = tabs.getTabAt(0);
+      return tab != null && "TWEET\n21".equals(tab.getText());
+    }), () -> onView(withText("TWEET\n21")).check(matches(isDisplayed())));
     Espresso.pressBack();
+
     runWithIdlingResource(getSimpleIdlingResource("back to main", () ->
         getTimelineView().getAdapter().getItemCount() == 21), () ->
         onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText())))));
@@ -180,6 +179,35 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
         .check(matches(ofStatusView(withText(received22.getText()))));
     onView(ofStatusViewAt(R.id.timeline, 2))
         .check(matches(ofStatusView(withText(top.getText()))));
+  }
+
+  @NonNull
+  private static Callable<Boolean> getUserInfoIdlingResource() {
+    return () -> {
+      final UserInfoActivity a = findActivityByStage(UserInfoActivity.class, Stage.RESUMED);
+      if (a == null) {
+        return false;
+      }
+      final List<Fragment> fragments = a.getSupportFragmentManager().getFragments();
+      for (Fragment f : fragments) {
+        if (f instanceof UserInfoPagerFragment) {
+          return true;
+        }
+      }
+      return false;
+    };
+  }
+
+  @Test
+  public void scrollToTopWhenStatusIsReceivedAfterBackToMain() throws Exception {
+    PerformUtil.clickUserIconAt(0);
+    onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
+    Espresso.pressBack();
+    onIFFAB().check(anywayNotVisible());
+
+    final Status target = createStatus(21000);
+    receiveStatuses(target);
+    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(target.getText()))));
   }
 
   @Override

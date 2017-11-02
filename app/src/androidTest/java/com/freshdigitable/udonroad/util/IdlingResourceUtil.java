@@ -43,12 +43,12 @@ public class IdlingResourceUtil {
     return getSimpleIdlingResource(name, () -> findActivityByStage(clz, stage) != null);
   }
 
-  public static Activity findActivityByStage(@NonNull Class<? extends Activity> clz, @NonNull Stage stage) {
+  public static <T extends Activity> T findActivityByStage(@NonNull Class<T> clz, @NonNull Stage stage) {
     final Collection<Activity> resumeActivities
         = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(stage);
     for (Activity activity : resumeActivities) {
       if (activity.getClass().isAssignableFrom(clz)) {
-        return activity;
+        return (T) activity;
       }
     }
     return null;

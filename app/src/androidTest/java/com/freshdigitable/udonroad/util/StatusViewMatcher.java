@@ -100,16 +100,27 @@ public class StatusViewMatcher {
       @Override
       protected boolean matchesSafely(T item) {
         final RecyclerView recyclerView = (RecyclerView) item.getParent();
-        if (!recyclerViewMatcher.matches(recyclerView)) {
-          return false;
-        }
-        final View target = recyclerView.getChildAt(position);
-        return target == item;
+        return recyclerViewMatcher.matches(recyclerView)
+            && getPositionFromFirstVisibleItem(recyclerView, item) == position;
       }
 
       @Override
       public void describeTo(Description description) {}
     };
+  }
+
+  private static int getPositionFromFirstVisibleItem(RecyclerView recyclerView, View item) {
+    final int childCount = recyclerView.getChildCount();
+    int firstVisibleItemIndex = 0;
+    for (int i = 0; i < childCount; i++) {
+      final View child = recyclerView.getChildAt(i);
+      if (child.getY() < 0) {
+        firstVisibleItemIndex = i + 1;
+      } else if (child == item) {
+        return i - firstVisibleItemIndex;
+      }
+    }
+    return -1;
   }
 
   public static Matcher<View> ofStatusViewAt(@IdRes final int recyclerViewId, final int position) {

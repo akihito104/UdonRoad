@@ -218,11 +218,13 @@ public class MainActivityInstTest {
       receiveStatuses(false, status);
       Thread.sleep(1000);
       pressBack();
-      onView(ofStatusViewAt(R.id.timeline, 1))
+      onView(ofStatusViewAt(R.id.timeline, 0))
           .check(matches(ofStatusView(withText(target.getText()))));
       PerformUtil.clickHeadingOnMenu();
       onView(ofStatusViewAt(R.id.timeline, 0))
           .check(matches(ofStatusView(withText(status.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 1))
+          .check(matches(ofStatusView(withText(target.getText()))));
     }
 
     @Test

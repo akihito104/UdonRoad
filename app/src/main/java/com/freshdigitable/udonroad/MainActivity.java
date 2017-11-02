@@ -402,7 +402,6 @@ public class MainActivity extends AppCompatActivity
     if (toolbarTweetInputToggle != null && toolbarTweetInputToggle.isOpened()) {
       return;
     }
-    tlFragment.stopScroll();
     UserInfoActivity.start(this, user, view);
   }
 
