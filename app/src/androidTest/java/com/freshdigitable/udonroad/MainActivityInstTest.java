@@ -392,6 +392,24 @@ public class MainActivityInstTest {
     }
   }
 
+  public static class WhenFetchingIgnoringUsersIsFailed extends Base {
+    @Test
+    public void attachTimeline() {
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+    }
+
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      return setupDefaultTimeline();
+    }
+
+    @Override
+    void setupIgnoringUsers() throws TwitterException {
+      when(twitter.getBlocksIDs(anyLong())).thenThrow(new TwitterException(""));
+      when(twitter.getMutesIDs(anyLong())).thenThrow(new TwitterException(""));
+    }
+  }
+
   private static abstract class Base extends TimelineInstTestBase {
     @Rule
     public final ActivityTestRule<MainActivity> rule
