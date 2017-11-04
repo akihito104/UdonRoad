@@ -34,7 +34,10 @@ import com.freshdigitable.udonroad.listitem.StatusView;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 
+import twitter4j.Status;
+
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static android.support.test.espresso.util.TreeIterables.breadthFirstViewTraversal;
 
 /**
@@ -42,11 +45,22 @@ import static android.support.test.espresso.util.TreeIterables.breadthFirstViewT
  */
 public class StatusViewMatcher {
   @NonNull
-  public static Matcher<View> ofStatusView(final Matcher<View> viewMatcher) {
+  public static Matcher<View> ofStatusView(@NonNull final Status target) {
+    return ofStatusViewInternal(withText(target.getText()), StatusView.class);
+  }
+
+  @NonNull
+  public static Matcher<View> ofStatusView(@NonNull final Matcher<View> viewMatcher) {
     return ofStatusViewInternal(viewMatcher, StatusView.class);
   }
 
-  public static Matcher<View> ofRTStatusView(final Matcher<View> viewMatcher) {
+  @NonNull
+  public static Matcher<View> ofRTStatusView(@NonNull final Status target) {
+    return ofStatusViewInternal(withText(target.getText()), StatusView.class, true);
+  }
+
+  @NonNull
+  public static Matcher<View> ofRTStatusView(@NonNull final Matcher<View> viewMatcher) {
     return ofStatusViewInternal(viewMatcher, StatusView.class, true);
   }
 
@@ -77,7 +91,13 @@ public class StatusViewMatcher {
     };
   }
 
-  public static Matcher<View> ofQuotedStatusView(final Matcher<View> viewMatcher) {
+  @NonNull
+  public static Matcher<View> ofQuotedStatusView(@NonNull final Status target) {
+    return ofQuotedStatusView(withText(target.getText()));
+  }
+
+  @NonNull
+  public static Matcher<View> ofQuotedStatusView(@NonNull final Matcher<View> viewMatcher) {
     return     new BoundedMatcher<View, QuotedStatusView>(QuotedStatusView.class) {
       @Override
       protected boolean matchesSafely(QuotedStatusView item) {

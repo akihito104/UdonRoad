@@ -105,13 +105,11 @@ public class MainActivityInstTest {
     public void receiveStatusDeletionNoticeForLatestStatus_then_removedTheTopOfTimeline()
         throws Exception {
       final Status target = findByStatusId(20000);
-      final String deletedStatusText = target.getText();
       final Status top = findByStatusId(19000);
       receiveDeletionNotice(target);
 
-      onView(ofStatusView(withText(deletedStatusText))).check(doesNotExist());
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(top.getText()))));
+      onView(ofStatusView(target)).check(doesNotExist());
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top)));
     }
 
     @Test
@@ -127,8 +125,7 @@ public class MainActivityInstTest {
       PerformUtil.pullDownTimeline();
       receiveDeletionNotice(target);
 
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(rtTarget.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(rtTarget)));
     }
 
     @Test
@@ -144,9 +141,8 @@ public class MainActivityInstTest {
       final Status targetRt = TwitterResponseMock.createRtStatus(target, 25000, false);
       receiveDeletionNotice(target, targetRt);
 
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(top.getText()))));
-      onView(ofStatusView(withText(target.getText()))).check(doesNotExist());
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top)));
+      onView(ofStatusView(target)).check(doesNotExist());
     }
 
     @Test
@@ -161,9 +157,8 @@ public class MainActivityInstTest {
       PerformUtil.favo();
       receiveDeletionNotice(target);
 
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(top.getText()))));
-      onView(ofStatusView(withText(target.getText()))).check(doesNotExist());
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top)));
+      onView(ofStatusView(target)).check(doesNotExist());
     }
 
     @Test
@@ -174,10 +169,9 @@ public class MainActivityInstTest {
       final Status top = findByStatusId(19000);
       receiveDeletionNotice(status18000, status20000);
 
-      onView(ofStatusView(withText(status20000.getText()))).check(doesNotExist());
-      onView(ofStatusView(withText(status18000.getText()))).check(doesNotExist());
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(top.getText()))));
+      onView(ofStatusView(status20000)).check(doesNotExist());
+      onView(ofStatusView(status18000)).check(doesNotExist());
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top)));
     }
 
     @Test
@@ -188,9 +182,8 @@ public class MainActivityInstTest {
       final Status top = findByStatusId(19000);
       receiveDeletionNotice(target);
 
-      onView(ofStatusView(withText(target.getText()))).check(doesNotExist());
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(top.getText()))));
+      onView(ofStatusView(target)).check(doesNotExist());
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top)));
     }
 
     @Test
@@ -218,49 +211,38 @@ public class MainActivityInstTest {
       receiveStatuses(false, status);
       Thread.sleep(1000);
       pressBack();
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(target.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(target)));
       PerformUtil.clickHeadingOnMenu();
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(status.getText()))));
-      onView(ofStatusViewAt(R.id.timeline, 1))
-          .check(matches(ofStatusView(withText(target.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(status)));
+      onView(ofStatusViewAt(R.id.timeline, 1)).check(matches(ofStatusView(target)));
     }
 
     @Test
     public void receive2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder() throws Exception {
       final Status top = findByStatusId(20000);
-      onView(ofStatusView(withText(top.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+      onView(ofStatusView(top)).check(recyclerViewDescendantsMatches(R.id.timeline, 0));
       AssertionUtil.checkFavCountDoesNotExist(top);
 
       final Status received29 = createStatus(29000);
       final Status received27 = createStatus(27000);
       receiveStatuses(received29, received27);
-      onView(ofStatusView(withText(top.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
-      onView(ofStatusView(withText(received29.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-      onView(ofStatusView(withText(received27.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
+      onView(ofStatusView(top)).check(recyclerViewDescendantsMatches(R.id.timeline, 2));
+      onView(ofStatusView(received29)).check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+      onView(ofStatusView(received27)).check(recyclerViewDescendantsMatches(R.id.timeline, 1));
     }
 
     @Test
     public void receiveDelayed2ReverseStatusIdOrderTweetsAtSameTime_and_displayStatusIdOrder()
         throws Exception {
       final Status received20 = findByStatusId(20000);
-      onView(ofStatusView(withText(received20.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+      onView(ofStatusView(received20)).check(recyclerViewDescendantsMatches(R.id.timeline, 0));
 
       final Status received290 = createStatus(29000);
       final Status received195 = createStatus(19500);
       receiveStatuses(received290, received195);
-      onView(ofStatusView(withText(received20.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 1));
-      onView(ofStatusView(withText(received290.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 0));
-      onView(ofStatusView(withText(received195.getText())))
-          .check(recyclerViewDescendantsMatches(R.id.timeline, 2));
+      onView(ofStatusView(received20)).check(recyclerViewDescendantsMatches(R.id.timeline, 1));
+      onView(ofStatusView(received290)).check(recyclerViewDescendantsMatches(R.id.timeline, 0));
+      onView(ofStatusView(received195)).check(recyclerViewDescendantsMatches(R.id.timeline, 2));
     }
 
     @Test
@@ -269,25 +251,21 @@ public class MainActivityInstTest {
       final Status received = createStatus(22000);
       receiveStatuses(createStatus(21000), received);
       PerformUtil.clickHeadingOnMenu();
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(received.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(received)));
       onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
     }
 
     @Test
     public void receiveStatusWhenStatusIsSelected_then_timelineIsNotScrolled() throws Exception {
       final Status target = findByStatusId(20000);
-      PerformUtil.selectItemViewAt(0).check(matches(ofStatusView(withText(target.getText()))));
+      PerformUtil.selectItemViewAt(0).check(matches(ofStatusView(target)));
       final Status received = createStatus(22000);
       receiveStatuses(received);
 
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(target.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(target)));
       PerformUtil.clickHeadingOnMenu();
-      onView(ofStatusViewAt(R.id.timeline, 0))
-          .check(matches(ofStatusView(withText(received.getText()))));
-      onView(ofStatusViewAt(R.id.timeline, 1))
-          .check(matches(ofStatusView(withText(target.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(received)));
+      onView(ofStatusViewAt(R.id.timeline, 1)).check(matches(ofStatusView(target)));
     }
 
     private void performRetweet() {
@@ -407,10 +385,10 @@ public class MainActivityInstTest {
     public void showOneQuotedTweetViewInEachTweetView() throws Exception {
       final Status target = createStatus(25000);
       receiveStatuses(21, target);
-      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(target.getText()))));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(target)));
 
       verify(twitter, times(1)).getHomeTimeline(any(Paging.class));
-      onView(ofQuotedStatusView(withText(createStatus(19999).getText()))).check(matches(isDisplayed()));
+      onView(ofQuotedStatusView(createStatus(19999))).check(matches(isDisplayed()));
     }
   }
 

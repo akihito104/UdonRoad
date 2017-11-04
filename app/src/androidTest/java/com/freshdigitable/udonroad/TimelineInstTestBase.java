@@ -234,10 +234,10 @@ public abstract class TimelineInstTestBase {
         timeline.getAdapter().getItemCount() == expectedCount), () -> {
       for (Status t : target) {
         if (t.isRetweet()) {
-          onView(ofRTStatusView(withText(t.getText()))).check(anywayNotVisible());
+          onView(ofRTStatusView(t)).check(anywayNotVisible());
         } else {
-          onView(ofStatusView(withText(t.getText()))).check(anywayNotVisible());
-          onView(ofQuotedStatusView(withText(t.getText()))).check(anywayNotVisible());
+          onView(ofStatusView(t)).check(anywayNotVisible());
+          onView(ofQuotedStatusView(t)).check(anywayNotVisible());
         }
       }
     });

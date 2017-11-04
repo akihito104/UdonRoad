@@ -49,7 +49,6 @@ import static android.support.test.espresso.action.ViewActions.swipeLeft;
 import static android.support.test.espresso.action.ViewActions.swipeRight;
 import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.MatcherUtil.onIFFAB;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.asUserIcon;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofItemViewAt;
@@ -63,13 +62,13 @@ import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusViewAt;
  */
 public class PerformUtil {
   public static ViewInteraction selectItemView(Status target) {
-    final Matcher<View> viewMatcher = target.isRetweet() ? ofRTStatusView(withText(target.getText()))
-        : ofStatusView(withText(target.getText()));
+    final Matcher<View> viewMatcher = target.isRetweet() ? ofRTStatusView(target)
+        : ofStatusView(target);
     return onView(viewMatcher).perform(clickForStatusView());
   }
 
   public static ViewInteraction selectQuotedItemView(Status target) {
-    return onView(ofQuotedStatusView(withText(target.getText()))).perform(clickForStatusView());
+    return onView(ofQuotedStatusView(target)).perform(clickForStatusView());
   }
 
   public static void selectQuotedItemView(Matcher<View> viewMatcher) {
@@ -166,7 +165,7 @@ public class PerformUtil {
   }
 
   public static void clickThumbnailAt(Status hasImage, int thumbIndex) {
-    final Matcher<View> viewMatcher = ofStatusView(withText(hasImage.getText()));
+    final Matcher<View> viewMatcher = ofStatusView(hasImage);
     clickThumbnailAt(item -> {
       final ThumbnailContainer container = (ThumbnailContainer) item.getParent();
       final View v = container.getChildAt(thumbIndex);
