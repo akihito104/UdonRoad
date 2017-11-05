@@ -60,6 +60,7 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
   public void open(String name) {
     pool.open();
     configStore.open();
+    sortedCache.open(name);
     ignoringUsersSubscription = configStore.observeIgnoringUsers()
         .flatMap(Flowable::fromIterable)
         .map(IgnoringUser::getId)
@@ -72,7 +73,6 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
             .findAll())
         .filter(ids -> !ids.isEmpty())
         .subscribe(ids -> sortedCache.executeTransaction(r -> ids.deleteAllFromRealm()));
-    sortedCache.open(name);
   }
 
   @Override
