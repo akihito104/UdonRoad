@@ -24,6 +24,7 @@ import android.support.v7.widget.RecyclerView;
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
+import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,10 +33,12 @@ import org.junit.runner.RunWith;
 
 import java.util.List;
 
+import twitter4j.IDs;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
@@ -407,6 +410,65 @@ public class MainActivityInstTest {
     void setupIgnoringUsers() throws TwitterException {
       when(twitter.getBlocksIDs(anyLong())).thenThrow(new TwitterException(""));
       when(twitter.getMutesIDs(anyLong())).thenThrow(new TwitterException(""));
+    }
+  }
+
+  public static class WhenFetchingIgnoringUsersIsDelayed extends Base {
+    private static final long IGNORED_USER_ID = 30001;
+    private final User ignored = UserUtil.builder(IGNORED_USER_ID, "ignored").build();
+    private final Status ignoredTarget = createStatus(20001, ignored);
+    private boolean receivedBlocks = false;
+    private boolean receivedMutes = false;
+    private boolean blocked = true;
+
+    @Test
+    public void removeStatusAfterTimelineIsAttached() {
+      onView(withId(R.id.action_heading)).check(matches(isDisplayed()));
+      onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(ignoredTarget)));
+      blocked = false;
+      runWithIdlingResource(getSimpleIdlingResource("remove ignored",
+          () -> receivedBlocks && receivedMutes),
+          () -> onView(ofStatusView(ignoredTarget)).check(doesNotExist()));
+    }
+
+    @Override
+    protected int setupTimeline() throws TwitterException {
+      final ResponseList<Status> responseList = createDefaultResponseList(getLoginUser());
+      responseList.add(ignoredTarget);
+      this.responseList = responseList;
+      when(twitter.getHomeTimeline()).thenReturn(responseList);
+      when(twitter.getHomeTimeline(any(Paging.class))).thenReturn(createResponseList());
+      return responseList.size();
+    }
+
+    @Override
+    void setupIgnoringUsers() throws TwitterException {
+      final IDs ignoringUserIDsMock = mock(IDs.class);
+      when(ignoringUserIDsMock.getIDs()).thenReturn(new long[]{IGNORED_USER_ID});
+      when(ignoringUserIDsMock.getNextCursor()).thenReturn(0L);
+      when(ignoringUserIDsMock.getPreviousCursor()).thenReturn(0L);
+      when(ignoringUserIDsMock.hasNext()).thenReturn(false);
+      when(twitter.getBlocksIDs(anyLong())).thenAnswer(invocation -> {
+        while(blocked) {
+          Thread.sleep(500L);
+        }
+        receivedBlocks = true;
+        return ignoringUserIDsMock;
+      });
+      when(twitter.getMutesIDs(anyLong())).thenAnswer(invocation -> {
+        while(blocked) {
+          Thread.sleep(500L);
+        }
+        receivedMutes = true;
+        return ignoringUserIDsMock;
+      });
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+      receivedBlocks = false;
+      receivedMutes = false;
+      super.tearDown();
     }
   }
 

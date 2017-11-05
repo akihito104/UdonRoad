@@ -16,8 +16,11 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import com.freshdigitable.udonroad.module.realm.IgnoringUser;
+
 import java.util.Collection;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import twitter4j.Relationship;
 import twitter4j.User;
@@ -35,6 +38,8 @@ public interface ConfigStore extends TypedCache<StatusReaction> {
   void addIgnoringUser(User user);
 
   void removeIgnoringUser(User user);
+
+  Flowable<? extends Collection<IgnoringUser>> observeIgnoringUsers();
 
   void shrink();
 
