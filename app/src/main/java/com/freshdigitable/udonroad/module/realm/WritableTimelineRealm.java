@@ -72,7 +72,12 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
             .endGroup()
             .findAll())
         .filter(ids -> !ids.isEmpty())
-        .subscribe(ids -> sortedCache.executeTransaction(r -> ids.deleteAllFromRealm()));
+        .subscribe(ids -> {
+          sortedCache.executeTransaction(r -> ids.deleteAllFromRealm());
+          for (StatusIDs id : ids) {
+            pool.delete(id.getId());
+          }
+        });
   }
 
   @Override
