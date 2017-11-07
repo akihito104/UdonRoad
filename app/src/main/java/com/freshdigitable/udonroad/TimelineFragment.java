@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.AdapterDataObserver;
@@ -135,6 +136,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
       binding.timeline.setHasFixedSize(true);
       binding.timeline.setAdapter(tlAdapter);
+      binding.timelineSwipeLayout.setColorSchemeResources(R.color.accent, R.color.twitter_primary,
+          R.color.twitter_action_retweeted, R.color.twitter_action_faved);
     }
     return binding.getRoot();
   }
@@ -275,6 +278,11 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
         hideFab();
       }
     }
+    final SwipeRefreshLayout swipeLayout = binding.timelineSwipeLayout;
+    swipeLayout.setOnRefreshListener(() -> {
+      fetcher.fetch();
+      swipeLayout.setRefreshing(false);
+    });
   }
 
   private boolean isChildOfViewPager() {
@@ -299,6 +307,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
         firstVisibleItemTopOnStop = vh.itemView.getTop();
       }
     }
+    binding.timelineSwipeLayout.setOnRefreshListener(null);
   }
 
   @Override
