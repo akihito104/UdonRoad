@@ -99,7 +99,7 @@ public class MainActivityInstTest {
       onView(withId(R.id.ffab)).check(matches(isDisplayed()));
       performRetweet();
       AssertionUtil.checkRTCountAt(0, 1);
-      PerformUtil.pullDownTimeline();
+      PerformUtil.clickHeadingOnMenu();
       AssertionUtil.checkRTCountAt(0, 1);
       // TODO tint color check
     }
