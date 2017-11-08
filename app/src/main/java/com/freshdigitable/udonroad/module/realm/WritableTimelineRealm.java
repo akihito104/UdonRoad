@@ -82,11 +82,11 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
 
   @Override
   public void close() {
-    sortedCache.close();
-    pool.close();
     if (ignoringUsersSubscription != null && !ignoringUsersSubscription.isDisposed()) {
       ignoringUsersSubscription.dispose();
     }
+    sortedCache.close();
+    pool.close();
     configStore.close();
   }
 
