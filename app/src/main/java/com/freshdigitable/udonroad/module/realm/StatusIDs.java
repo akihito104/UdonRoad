@@ -32,16 +32,22 @@ public class StatusIDs implements RealmModel {
   private long id;
   private long retweetedStatusId;
   private long quotedStatusId;
+  private long userId;
+  private long retweetedUserId;
 
-  public StatusIDs() {
-  }
+  public StatusIDs() {}
 
   StatusIDs(Status status) {
     this.id = status.getId();
+    this.userId = status.getUser().getId();
     final Status retweetedStatus = status.getRetweetedStatus();
-    this.retweetedStatusId = retweetedStatus != null
-        ? retweetedStatus.getId()
-        : -1;
+    if (retweetedStatus != null) {
+      this.retweetedStatusId = retweetedStatus.getId();
+      this.retweetedUserId = retweetedStatus.getUser().getId();
+    } else {
+      this.retweetedStatusId = -1;
+      this.retweetedUserId = -1;
+    }
     this.quotedStatusId = status.getQuotedStatusId();
   }
 

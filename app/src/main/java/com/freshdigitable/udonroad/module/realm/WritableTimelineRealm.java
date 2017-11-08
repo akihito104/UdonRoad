@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.disposables.Disposable;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import twitter4j.Status;
@@ -45,6 +47,7 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
   private final TypedCache<Status> pool;
   private final ConfigStore configStore;
   private final NamingBaseCacheRealm sortedCache;
+  private Disposable ignoringUsersSubscription;
 
   public WritableTimelineRealm(
       TypedCache<Status> statusCacheRealm, ConfigStore configStore, AppSettingStore appSetting) {
@@ -58,10 +61,30 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
     pool.open();
     configStore.open();
     sortedCache.open(name);
+    ignoringUsersSubscription = configStore.observeIgnoringUsers()
+        .flatMap(Flowable::fromIterable)
+        .map(IgnoringUser::getId)
+        .map(id -> sortedCache.where(StatusIDs.class)
+            .beginGroup()
+            .equalTo("userId", id)
+            .or()
+            .equalTo("retweetedUserId", id)
+            .endGroup()
+            .findAll())
+        .filter(ids -> !ids.isEmpty())
+        .subscribe(ids -> {
+          sortedCache.executeTransaction(r -> ids.deleteAllFromRealm());
+          for (StatusIDs id : ids) {
+            pool.delete(id.getId());
+          }
+        });
   }
 
   @Override
   public void close() {
+    if (ignoringUsersSubscription != null && !ignoringUsersSubscription.isDisposed()) {
+      ignoringUsersSubscription.dispose();
+    }
     sortedCache.close();
     pool.close();
     configStore.close();

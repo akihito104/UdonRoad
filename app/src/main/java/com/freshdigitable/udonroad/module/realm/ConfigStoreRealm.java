@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -124,6 +125,12 @@ public class ConfigStoreRealm implements ConfigStore {
             .equalTo("id", userId)
             .findAll()
             .deleteAllFromRealm());
+  }
+
+  @Override
+  public Flowable<? extends Collection<IgnoringUser>> observeIgnoringUsers() {
+    return configStore.where(IgnoringUser.class)
+        .findAll().asFlowable();
   }
 
   @Override

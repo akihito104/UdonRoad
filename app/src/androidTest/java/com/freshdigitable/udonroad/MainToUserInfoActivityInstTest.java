@@ -86,8 +86,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
     checkMainActivityTitle(R.string.title_home);
     PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
-    onView(ofStatusView(withText(findByStatusId(20000).getText())))
-        .check(matches(isDisplayed()));
+    onView(ofStatusView(findByStatusId(20000))).check(matches(isDisplayed()));
     // tear down
     Espresso.pressBack();
     checkMainActivityTitle(R.string.title_home);
@@ -124,8 +123,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();
 
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(findByStatusId(20000).getText()))));
+    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(findByStatusId(20000))));
     onIFFAB().check(anywayNotVisible());
   }
 
@@ -142,7 +140,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   @Test
   public void receiveStatusWhenUserInfoIsAppeared_then_timelineIsNotScrolled() throws Exception {
     final Status top = findByStatusId(20000);
-    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
+    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top)));
 
     PerformUtil.clickUserIconAt(0);
     runWithIdlingResource(getSimpleIdlingResource("userInfo", getUserInfoIdlingResource()),
@@ -165,20 +163,17 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
 
     runWithIdlingResource(getSimpleIdlingResource("back to main", () ->
         getTimelineView().getAdapter().getItemCount() == 21), () ->
-        onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText())))));
+        onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top))));
     onIFFAB().check(anywayNotVisible());
 
     final Status received25 = createStatus(25000);
     receiveStatuses(received25);
-    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(top.getText()))));
+    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(top)));
 
     PerformUtil.clickHeadingOnMenu();
-    onView(ofStatusViewAt(R.id.timeline, 0))
-        .check(matches(ofStatusView(withText(received25.getText()))));
-    onView(ofStatusViewAt(R.id.timeline, 1))
-        .check(matches(ofStatusView(withText(received22.getText()))));
-    onView(ofStatusViewAt(R.id.timeline, 2))
-        .check(matches(ofStatusView(withText(top.getText()))));
+    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(received25)));
+    onView(ofStatusViewAt(R.id.timeline, 1)).check(matches(ofStatusView(received22)));
+    onView(ofStatusViewAt(R.id.timeline, 2)).check(matches(ofStatusView(top)));
   }
 
   @NonNull
@@ -207,7 +202,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
 
     final Status target = createStatus(21000);
     receiveStatuses(target);
-    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(withText(target.getText()))));
+    onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(target)));
   }
 
   @Override

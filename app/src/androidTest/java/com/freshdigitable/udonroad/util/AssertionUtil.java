@@ -62,7 +62,7 @@ public class AssertionUtil {
   }
 
   public static void checkFavCount(Status status, int expectedCount) {
-    checkFavCount(ofStatusView(withText(status.getText())), expectedCount);
+    checkFavCount(ofStatusView(status), expectedCount);
   }
 
   public static void checkFavCountDoesNotExist(Status status) {
@@ -75,7 +75,7 @@ public class AssertionUtil {
   }
 
   public static void checkFavCountForQuoted(Status quotedStatus, int expectedCount) {
-    checkReactionIcon(ofQuotedStatusView(withText(quotedStatus.getText())), getFavIconOfQuoted(),
+    checkReactionIcon(ofQuotedStatusView(quotedStatus), getFavIconOfQuoted(),
         expectedCount > 0 ? View.VISIBLE : View.INVISIBLE, expectedCount);
   }
 
@@ -84,7 +84,7 @@ public class AssertionUtil {
   }
 
   public static void checkRTCount(Status status, int expectedCount) {
-    checkRTCount(ofStatusView(withText(status.getText())), expectedCount);
+    checkRTCount(ofStatusView(status), expectedCount);
   }
 
   private static void checkRTCount(Matcher<View> matcher, int expectedCount) {
@@ -93,8 +93,7 @@ public class AssertionUtil {
   }
 
   public static void checkHasReplyTo(Status status) {
-    onView(ofStatusView(withText(status.getText())))
-        .check(selectedDescendantsMatch(getHasReplyIcon(), isDisplayed()));
+    onView(ofStatusView(status)).check(selectedDescendantsMatch(getHasReplyIcon(), isDisplayed()));
   }
 
   public static void checkReactionIcon(Matcher<View> root, Matcher<View> icon,

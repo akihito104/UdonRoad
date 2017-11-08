@@ -43,7 +43,6 @@ import static android.support.test.espresso.assertion.ViewAssertions.doesNotExis
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
 import static com.freshdigitable.udonroad.util.PerformUtil.openDrawerNavigation;
 import static com.freshdigitable.udonroad.util.StatusViewMatcher.ofStatusView;
@@ -91,7 +90,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
 
     Espresso.pressBack();
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
-    onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
+    onView(ofStatusView(replied)).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
     checkFFAB(matches(isDisplayed()));
   }
@@ -129,7 +128,7 @@ public class ConversationInstTest extends TimelineInstTestBase {
     onView(withId(R.id.nav_drawer_layout)).check(matches(DrawerMatchers.isClosed()));
     checkFFAB(matches(isDisplayed()));
 
-    onView(ofStatusView(withText(replied.getText()))).check(doesNotExist());
+    onView(ofStatusView(replied)).check(doesNotExist());
     AssertionUtil.checkFavCountDoesNotExist(hasReply);
   }
 

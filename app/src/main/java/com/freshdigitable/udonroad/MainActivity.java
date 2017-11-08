@@ -114,10 +114,11 @@ public class MainActivity extends AppCompatActivity
     if (timelineFragment == null) {
       tlFragment = TimelineFragment.getInstance(HOME);
       configRequestWorker.setup().subscribe(
-          () -> getSupportFragmentManager().beginTransaction()
-              .replace(R.id.main_timeline_container, tlFragment, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
-              .commit(),
+          () -> Log.d(TAG, "setupHomeTimeline: config.setup"),
           throwable -> Log.e(TAG, "config.setup: ", throwable));
+      getSupportFragmentManager().beginTransaction()
+          .replace(R.id.main_timeline_container, tlFragment, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
+          .commit();
     } else {
       tlFragment = timelineFragment;
     }

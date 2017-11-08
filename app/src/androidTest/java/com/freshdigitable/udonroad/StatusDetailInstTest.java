@@ -180,7 +180,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   @Test
   public void deleteQuotedStatus() {
     receiveDeletionNotice(quoted);
-    onView(ofQuotedStatusView(withText(quoted.getText()))).check(matches(not(isDisplayed())));
+    onView(ofQuotedStatusView(quoted)).check(matches(not(isDisplayed())));
   }
 
   @Test

@@ -153,6 +153,15 @@ public abstract class TimelineInstTestBase {
     when(twitter.verifyCredentials()).thenReturn(loginUser);
     when(twitterStream.getId()).thenReturn(userId);
 
+    setupIgnoringUsers();
+
+    appSettings.open();
+    appSettings.storeAccessToken(new AccessToken(userId + "-validToken", "validSecret"));
+    appSettings.setCurrentUserId(userId);
+    appSettings.close();
+  }
+
+  void setupIgnoringUsers() throws TwitterException {
     final IDs ignoringUserIDsMock = mock(IDs.class);
     when(ignoringUserIDsMock.getIDs()).thenReturn(new long[0]);
     when(ignoringUserIDsMock.getNextCursor()).thenReturn(0L);
@@ -161,11 +170,6 @@ public abstract class TimelineInstTestBase {
     when(twitter.getBlocksIDs()).thenReturn(ignoringUserIDsMock);
     when(twitter.getBlocksIDs(anyLong())).thenReturn(ignoringUserIDsMock);
     when(twitter.getMutesIDs(anyLong())).thenReturn(ignoringUserIDsMock);
-
-    appSettings.open();
-    appSettings.storeAccessToken(new AccessToken(userId + "-validToken", "validSecret"));
-    appSettings.setCurrentUserId(userId);
-    appSettings.close();
   }
 
   protected abstract int setupTimeline() throws TwitterException;
@@ -234,10 +238,10 @@ public abstract class TimelineInstTestBase {
         timeline.getAdapter().getItemCount() == expectedCount), () -> {
       for (Status t : target) {
         if (t.isRetweet()) {
-          onView(ofRTStatusView(withText(t.getText()))).check(anywayNotVisible());
+          onView(ofRTStatusView(t)).check(anywayNotVisible());
         } else {
-          onView(ofStatusView(withText(t.getText()))).check(anywayNotVisible());
-          onView(ofQuotedStatusView(withText(t.getText()))).check(anywayNotVisible());
+          onView(ofStatusView(t)).check(anywayNotVisible());
+          onView(ofQuotedStatusView(t)).check(anywayNotVisible());
         }
       }
     });
