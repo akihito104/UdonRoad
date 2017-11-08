@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -47,6 +49,8 @@ import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 
+import java.util.EnumSet;
+
 import javax.inject.Inject;
 
 import io.reactivex.disposables.Disposable;
@@ -62,12 +66,11 @@ import twitter4j.UserList;
 public abstract class TimelineFragment<T> extends Fragment implements ItemSelectable {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
-  private static final String SS_SCROLLED_BY_USER = "ss_scrolledByUser";
-  private static final String SS_STOP_SCROLL = "ss_stopScroll";
   private static final String SS_DONE_FIRST_FETCH = "ss_doneFirstFetch";
   private static final String SS_TOP_ITEM_ID = "ss_topItemId";
   private static final String SS_TOP_ITEM_TOP = "ss_topItemTop";
-  public static final String SS_ADAPTER = "ss_adapter";
+  private static final String SS_ADAPTER = "ss_adapter";
+  private static final String SS_AUTO_SCROLL_STATE = "ss_auto_scroll_state";
   private FragmentTimelineBinding binding;
   TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
@@ -79,6 +82,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
   private ListFetchStrategy fetcher;
+  private MenuItem heading;
 
   @Override
   public void onAttach(Context context) {
@@ -109,6 +113,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     inflater.inflate(R.menu.timeline, menu);
+    heading = menu.findItem(R.id.action_heading);
+    switchHeadingEnabled();
   }
 
   @Override
@@ -127,8 +133,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
                            @Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: " + getStoreName());
     if (savedInstanceState != null) {
-      isScrolledByUser = savedInstanceState.getBoolean(SS_SCROLLED_BY_USER);
-      stopScroll = savedInstanceState.getBoolean(SS_STOP_SCROLL);
+      autoScrollState = savedInstanceState.getParcelable(SS_AUTO_SCROLL_STATE);
       doneFirstFetch = savedInstanceState.getBoolean(SS_DONE_FIRST_FETCH);
       tlAdapter.onRestoreInstanceState(savedInstanceState.getParcelable(SS_ADAPTER));
     }
@@ -146,15 +151,12 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public void onSaveInstanceState(Bundle outState) {
     Log.d(TAG, "onSaveInstanceState: " + getStoreName());
     super.onSaveInstanceState(outState);
-    outState.putBoolean(SS_SCROLLED_BY_USER, isScrolledByUser);
-    outState.putBoolean(SS_STOP_SCROLL, stopScroll);
+    outState.putParcelable(SS_AUTO_SCROLL_STATE, autoScrollState);
     outState.putBoolean(SS_DONE_FIRST_FETCH, doneFirstFetch);
     outState.putLong(SS_TOP_ITEM_ID, topItemId);
     outState.putInt(SS_TOP_ITEM_TOP, firstVisibleItemTopOnStop);
     outState.putParcelable(SS_ADAPTER, tlAdapter.onSaveInstanceState());
   }
-
-  private boolean isScrolledByUser = false;
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -198,11 +200,11 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       if (positionStart != 0) {
         return;
       }
-      if (canScroll()) {
+      if (canAutoScroll()) {
 //        Log.d(TAG, "onItemRangeInserted: ");
         scrollTo(0);
       } else {
-        addedUntilStopped = true;
+        addAutoScrollStopper(AutoScrollStopper.ADDED_UNTIL_STOPPED);
       }
     }
   };
@@ -212,11 +214,15 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
       if (newState == RecyclerView.SCROLL_STATE_IDLE) {
         final int firstVisibleItemPosition = tlLayoutManager.findFirstVisibleItemPosition();
-        isScrolledByUser = firstVisibleItemPosition != 0;
+        if (firstVisibleItemPosition != 0) {
+          addAutoScrollStopper(AutoScrollStopper.SCROLLED_BY_USER);
+        } else {
+          removeAutoScrollStopper(AutoScrollStopper.SCROLLED_BY_USER);
+        }
         // if first visible item is updated, setAddedUntilStopped also should be updated.
         setAddedUntilStopped();
       } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
-        isScrolledByUser = true;
+        addAutoScrollStopper(AutoScrollStopper.SCROLLED_BY_USER);
       }
     }
   };
@@ -244,7 +250,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       tlLayoutManager.scrollToPositionWithOffset(pos, firstVisibleItemTopOnStop);
       topItemId = -1;
       if (pos > 0) {
-        addedUntilStopped = true;
+        addAutoScrollStopper(AutoScrollStopper.ADDED_UNTIL_STOPPED);
       }
     }
     binding.timeline.addOnScrollListener(onScrollListener);
@@ -254,11 +260,13 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
         @Override
         public void onItemSelected(long entityId) {
           showFab();
+          addAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
         }
 
         @Override
         public void onItemUnselected() {
           hideFab();
+          removeAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
         }
       });
     }
@@ -368,37 +376,97 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
-  private boolean stopScroll = false;
-  private boolean addedUntilStopped = false;
+  private AutoScrollState autoScrollState = new AutoScrollState();
 
   private void setAddedUntilStopped() {
-    addedUntilStopped = tlLayoutManager.getChildCount() > 0
-        && tlLayoutManager.findFirstVisibleItemPosition() != 0;
+    if (tlLayoutManager.getChildCount() > 0
+        && tlLayoutManager.findFirstVisibleItemPosition() != 0) {
+      addAutoScrollStopper(AutoScrollStopper.ADDED_UNTIL_STOPPED);
+    } else {
+      removeAutoScrollStopper(AutoScrollStopper.ADDED_UNTIL_STOPPED);
+    }
   }
 
   public void stopScroll() {
-    stopScroll = true;
+    addAutoScrollStopper(AutoScrollStopper.STOP_SCROLL);
   }
 
   public void startScroll() {
-    stopScroll = false;
+    removeAutoScrollStopper(AutoScrollStopper.STOP_SCROLL);
   }
 
-  private boolean canScroll() {
-    return isVisible()
-        && !tlAdapter.isItemSelected()
-        && !stopScroll
-        && !isScrolledByUser
-        && !addedUntilStopped;
+  private boolean canAutoScroll() {
+    return isVisible() && autoScrollState.isAutoScrollEnabled();
   }
 
   public void scrollToTop() {
     clearSelectedItem();
     binding.timeline.setLayoutFrozen(false);
-    stopScroll = false;
-    isScrolledByUser = false;
-    addedUntilStopped = false;
+    enableAutoScroll();
     scrollTo(0);
+  }
+
+  private enum AutoScrollStopper {
+    STOP_SCROLL, SCROLLED_BY_USER, ADDED_UNTIL_STOPPED, ITEM_SELECTED
+  }
+
+  private void addAutoScrollStopper(AutoScrollStopper flag) {
+    autoScrollState.autoScrollFlags.add(flag);
+    switchHeadingEnabled();
+  }
+
+  private void removeAutoScrollStopper(AutoScrollStopper flag) {
+    autoScrollState.autoScrollFlags.remove(flag);
+    switchHeadingEnabled();
+  }
+
+  private void enableAutoScroll() {
+    autoScrollState.autoScrollFlags.clear();
+    switchHeadingEnabled();
+  }
+
+  private void switchHeadingEnabled() {
+    if (heading != null) {
+      heading.setEnabled(!canAutoScroll());
+    }
+  }
+
+  private static class AutoScrollState implements Parcelable {
+    private final EnumSet<AutoScrollStopper> autoScrollFlags;
+
+    AutoScrollState() {
+      autoScrollFlags = EnumSet.noneOf(AutoScrollStopper.class);
+    }
+
+    private boolean isAutoScrollEnabled() {
+      return autoScrollFlags.isEmpty();
+    }
+
+    AutoScrollState(Parcel in) {
+      this.autoScrollFlags = (EnumSet<AutoScrollStopper>) in.readSerializable();
+    }
+
+    public static final Creator<AutoScrollState> CREATOR = new Creator<AutoScrollState>() {
+      @Override
+      public AutoScrollState createFromParcel(Parcel in) {
+        return new AutoScrollState(in);
+      }
+
+      @Override
+      public AutoScrollState[] newArray(int size) {
+        return new AutoScrollState[size];
+      }
+    };
+
+    @Override
+    public int describeContents() {
+      return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+      dest.writeSerializable(autoScrollFlags);
+    }
   }
 
   public void scrollToSelectedItem() {

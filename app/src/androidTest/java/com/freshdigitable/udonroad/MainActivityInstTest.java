@@ -45,6 +45,7 @@ import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
@@ -83,6 +84,7 @@ public class MainActivityInstTest {
       setupCreateFavorite(0, 1);
       // exec.
       PerformUtil.selectItemViewAt(0);
+      checkHeadingIsEnabled(true);
       onView(withId(R.id.ffab)).check(matches(isDisplayed()));
       PerformUtil.favo();
       Espresso.pressBack();
@@ -96,10 +98,12 @@ public class MainActivityInstTest {
       setupRetweetStatus(25000, 1, 0);
       // exec.
       PerformUtil.selectItemViewAt(0);
+      checkHeadingIsEnabled(true);
       onView(withId(R.id.ffab)).check(matches(isDisplayed()));
       performRetweet();
       AssertionUtil.checkRTCountAt(0, 1);
       PerformUtil.clickHeadingOnMenu();
+      checkHeadingIsEnabled(false);
       AssertionUtil.checkRTCountAt(0, 1);
       // TODO tint color check
     }
@@ -123,6 +127,7 @@ public class MainActivityInstTest {
       // exec.
       final Status rtTarget = findByStatusId(20000);
       PerformUtil.selectItemViewAt(0);
+      checkHeadingIsEnabled(true);
       performRetweet();
       final Status target = TwitterResponseMock.createRtStatus(rtTarget, 25000, false);
       PerformUtil.pullDownTimeline();
@@ -140,6 +145,7 @@ public class MainActivityInstTest {
       final Status target = findByStatusId(20000);
       final Status top = findByStatusId(19000);
       PerformUtil.selectItemView(target);
+      checkHeadingIsEnabled(true);
       performRetweet();
       final Status targetRt = TwitterResponseMock.createRtStatus(target, 25000, false);
       receiveDeletionNotice(target, targetRt);
@@ -157,6 +163,7 @@ public class MainActivityInstTest {
       final Status target = findByStatusId(20000);
       final Status top = findByStatusId(19000);
       PerformUtil.selectItemView(target);
+      checkHeadingIsEnabled(true);
       PerformUtil.favo();
       receiveDeletionNotice(target);
 
@@ -181,6 +188,7 @@ public class MainActivityInstTest {
     public void receiveStatusDeletionNoticeForSelectedStatus_then_removedSelectedStatus()
         throws Exception {
       PerformUtil.selectItemViewAt(0);
+      checkHeadingIsEnabled(true);
       final Status target = findByStatusId(20000);
       final Status top = findByStatusId(19000);
       receiveDeletionNotice(target);
@@ -196,9 +204,11 @@ public class MainActivityInstTest {
       setupRetweetStatus(25000, 1, 3);
       // exec.
       PerformUtil.selectItemViewAt(0);
+      checkHeadingIsEnabled(true);
       PerformUtil.fav_retweet();
       // assert
       PerformUtil.clickHeadingOnMenu();
+      checkHeadingIsEnabled(false);
       AssertionUtil.checkFavCountAt(0, 3);
       AssertionUtil.checkRTCountAt(0, 1);
       AssertionUtil.checkFavCountAt(1, 3);
@@ -209,6 +219,7 @@ public class MainActivityInstTest {
     public void receiveStatusUntilShowDetailAndBack_then_showSamePositionOfTimeline() throws Exception {
       final Status target = findByStatusId(20000);
       PerformUtil.selectItemView(target);
+      checkHeadingIsEnabled(true);
       PerformUtil.showDetail();
       final Status status = createStatus(25000);
       receiveStatuses(false, status);
@@ -216,6 +227,7 @@ public class MainActivityInstTest {
       pressBack();
       onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(target)));
       PerformUtil.clickHeadingOnMenu();
+      checkHeadingIsEnabled(false);
       onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(status)));
       onView(ofStatusViewAt(R.id.timeline, 1)).check(matches(ofStatusView(target)));
     }
@@ -251,9 +263,11 @@ public class MainActivityInstTest {
     @Test
     public void heading_then_latestTweetAppears() throws Exception {
       PerformUtil.selectItemViewAt(0);
+      checkHeadingIsEnabled(true);
       final Status received = createStatus(22000);
       receiveStatuses(createStatus(21000), received);
       PerformUtil.clickHeadingOnMenu();
+      checkHeadingIsEnabled(false);
       onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(received)));
       onView(withId(R.id.ffab)).check(matches(not(isDisplayed())));
     }
@@ -262,11 +276,13 @@ public class MainActivityInstTest {
     public void receiveStatusWhenStatusIsSelected_then_timelineIsNotScrolled() throws Exception {
       final Status target = findByStatusId(20000);
       PerformUtil.selectItemViewAt(0).check(matches(ofStatusView(target)));
+      checkHeadingIsEnabled(true);
       final Status received = createStatus(22000);
       receiveStatuses(received);
 
       onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(target)));
       PerformUtil.clickHeadingOnMenu();
+      checkHeadingIsEnabled(false);
       onView(ofStatusViewAt(R.id.timeline, 0)).check(matches(ofStatusView(received)));
       onView(ofStatusViewAt(R.id.timeline, 1)).check(matches(ofStatusView(target)));
     }
@@ -311,6 +327,7 @@ public class MainActivityInstTest {
       when(twitter.createFavorite(anyLong())).thenThrow(twitterException);
       // exec.
       PerformUtil.selectItemView(faved);
+      checkHeadingIsEnabled(true);
       PerformUtil.favo();
       // assert
       onView(withText(R.string.msg_already_fav)).check(matches(isDisplayed()));
@@ -326,6 +343,7 @@ public class MainActivityInstTest {
       when(twitter.retweetStatus(anyLong())).thenThrow(twitterException);
       // exec.
       PerformUtil.selectItemView(rted);
+      checkHeadingIsEnabled(true);
       PerformUtil.retweet();
       // assert
       onView(withText(R.string.msg_already_rt)).check(matches(isDisplayed()));
@@ -342,6 +360,7 @@ public class MainActivityInstTest {
       setupRetweetStatus(25000, 1, EXPECTED_FAV_COUNT);
       // exec.
       PerformUtil.selectItemView(faved);
+      checkHeadingIsEnabled(true);
       PerformUtil.fav_retweet();
       // assert
       PerformUtil.clickHeadingOnMenu();
@@ -481,5 +500,9 @@ public class MainActivityInstTest {
     protected ActivityTestRule<MainActivity> getRule() {
       return rule;
     }
+  }
+
+  private static void checkHeadingIsEnabled(boolean enabled) {
+    onView(withId(R.id.action_heading)).check(matches(enabled ? isEnabled() : not(isEnabled())));
   }
 }
