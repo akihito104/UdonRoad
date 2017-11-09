@@ -22,9 +22,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.repository.ImageRepository;
+
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import twitter4j.User;
 
 /**
  * Created by akihit on 2017/06/14.
@@ -33,17 +36,26 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   private Disposable subscription;
   OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
+  private Disposable iconSubscription;
 
   public ItemViewHolder(View view) {
     super(view);
   }
 
   @CallSuper
-  public void bind(final ListItem item) {
+  public void bind(final ListItem item, ImageRepository imageRepository) {
     itemView.setOnClickListener(v ->
         itemViewClickListener.onItemViewClicked(this, getItemId(), v));
+    final User user = item.getUser();
     getUserIcon().setOnClickListener(
-        v -> userIconClickedListener.onUserIconClicked(v, item.getUser()));
+        v -> userIconClickedListener.onUserIconClicked(v, user));
+    if (iconSubscription != null && !iconSubscription.isDisposed()) {
+      iconSubscription.dispose();
+    }
+    if (user != null) {
+      iconSubscription = imageRepository.queryUserIcon(user.getProfileImageURLHttps(), item.getId())
+          .subscribe(d -> getUserIcon().setImageDrawable(d));
+    }
   }
 
   public abstract ImageView getUserIcon();
@@ -63,6 +75,9 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   public void unsubscribe() {
     if (isSubscribed()) {
       subscription.dispose();
+    }
+    if (iconSubscription != null && !iconSubscription.isDisposed()) {
+      iconSubscription.dispose();
     }
   }
 

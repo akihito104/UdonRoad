@@ -22,19 +22,21 @@ import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 
 /**
  * Created by akihit on 2017/07/12.
  */
 
 public class StatusViewHolder extends ItemViewHolder {
+
   public StatusViewHolder(ViewGroup parent) {
     super(new StatusView(parent.getContext()));
   }
 
   @Override
-  public void bind(ListItem item) {
-    super.bind(item);
+  public void bind(ListItem item, ImageRepository imageRepository) {
+    super.bind(item, imageRepository);
     final TwitterListItem twitterListItem = (TwitterListItem) item;
     getView().bind(twitterListItem);
     StatusViewImageHelper.load(twitterListItem, getView());

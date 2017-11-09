@@ -48,7 +48,7 @@ public class StatusViewImageHelper {
   private static final String TAG = StatusViewImageHelper.class.getSimpleName();
 
   public static <T extends View & StatusItemView> void  load(TwitterListItem item, T statusView) {
-    loadUserIcon(item.getUser(), item.getId(), statusView);
+//    loadUserIcon(item.getUser(), item.getId(), statusView);
     loadRTUserIcon(item, statusView);
     loadMediaView(item, statusView);
     loadQuotedStatusImages(item, statusView.getQuotedStatusView());

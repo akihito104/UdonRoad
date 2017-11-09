@@ -52,6 +52,7 @@ import com.freshdigitable.udonroad.listitem.StatusViewImageHelper;
 import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -80,6 +81,9 @@ public class StatusDetailFragment extends Fragment {
   TypedCache<Status> statusCache;
   private Disposable subscription;
   private Disposable cardSubscription;
+  @Inject
+  ImageRepository imageRepository;
+  private Disposable iconSubscription;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -123,9 +127,13 @@ public class StatusDetailFragment extends Fragment {
     final StatusDetailView statusView = binding.statusView;
     final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
     StatusViewImageHelper.load(item, statusView);
-    final User user = item.getUser();
 
+    final User user = item.getUser();
     final ImageView icon = statusView.getIcon();
+    if (iconSubscription == null) {
+      iconSubscription = imageRepository.queryUserIcon(user.getProfileImageURLHttps(), getStatusId()).subscribe(icon::setImageDrawable);
+    }
+
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     final long rtUserId = item.getRetweetUser().getId();
     statusView.getRtUser().setOnClickListener(
@@ -262,6 +270,9 @@ public class StatusDetailFragment extends Fragment {
     super.onDestroyView();
     final long statusId = getStatusId();
     Picasso.with(getContext()).cancelTag(statusId);
+    if (iconSubscription != null && !iconSubscription.isDisposed()) {
+      iconSubscription.dispose();
+    }
     StatusViewImageHelper.unload(binding.statusView, statusId);
     binding.statusView.reset();
     binding.sdTwitterCard.setVisibility(GONE);

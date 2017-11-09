@@ -34,6 +34,7 @@ import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
+import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.leakcanary.LeakCanary;
@@ -95,6 +96,7 @@ public class MainApplication extends Application {
     return DaggerAppComponent.builder()
         .twitterApiModule(new TwitterApiModule(getApplicationContext()))
         .dataStoreModule(new DataStoreModule(getApplicationContext()))
+        .repositoryModule(new RepositoryModule(getApplicationContext()))
         .build();
   }
 

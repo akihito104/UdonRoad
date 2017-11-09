@@ -19,6 +19,8 @@ package com.freshdigitable.udonroad.listitem;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.repository.ImageRepository;
+
 /**
  * Created by akihit on 2017/07/12.
  */
@@ -29,10 +31,10 @@ public class UserItemViewHolder extends ItemViewHolder {
   }
 
   @Override
-  public void bind(ListItem item) {
-    super.bind(item);
+  public void bind(ListItem item, ImageRepository imageRepository) {
+    super.bind(item, imageRepository);
     getView().bind(item);
-    StatusViewImageHelper.loadUserIcon(item.getUser(), getItemId(), getView());
+//    StatusViewImageHelper.loadUserIcon(item.getUser(), getItemId(), getView());
   }
 
   @Override

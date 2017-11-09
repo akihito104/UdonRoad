@@ -49,6 +49,7 @@ import com.freshdigitable.udonroad.listitem.StatusViewHolder;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
@@ -308,7 +309,7 @@ public class OAuthActivity extends AppCompatActivity
     public void onAttach(Context context) {
       OAuthActivity.inject(this);
       super.onAttach(context);
-      tlAdapter = new DemoTimelineAdapter(sortedCache);
+      tlAdapter = new DemoTimelineAdapter(sortedCache, imageRepository);
     }
 
     @Override
@@ -406,8 +407,8 @@ public class OAuthActivity extends AppCompatActivity
     private static final int TYPE_AUTH = 0;
     private static final int TYPE_TWEET = 1;
 
-    private DemoTimelineAdapter(SortedCache<ListItem> timelineStore) {
-      super(timelineStore);
+    private DemoTimelineAdapter(SortedCache<ListItem> timelineStore, ImageRepository imageRepository) {
+      super(timelineStore, imageRepository);
     }
 
     @Override
@@ -424,7 +425,7 @@ public class OAuthActivity extends AppCompatActivity
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position) {
       if (holder instanceof StatusViewHolder) {
-        holder.bind(super.timelineStore.get(position));
+        holder.bind(super.timelineStore.get(position),imageRepository);
         final ImageView userIcon = holder.getUserIcon();
         final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
         userIcon.setImageDrawable(icon);
