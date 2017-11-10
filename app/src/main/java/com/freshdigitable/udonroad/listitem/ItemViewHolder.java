@@ -36,7 +36,6 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   private Disposable subscription;
   OnItemViewClickListener itemViewClickListener;
   private OnUserIconClickedListener userIconClickedListener;
-  private Disposable iconSubscription;
 
   public ItemViewHolder(View view) {
     super(view);
@@ -49,13 +48,6 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
     final User user = item.getUser();
     getUserIcon().setOnClickListener(
         v -> userIconClickedListener.onUserIconClicked(v, user));
-    if (iconSubscription != null && !iconSubscription.isDisposed()) {
-      iconSubscription.dispose();
-    }
-    if (user != null) {
-      iconSubscription = imageRepository.queryUserIcon(user.getProfileImageURLHttps(), item.getId())
-          .subscribe(d -> getUserIcon().setImageDrawable(d));
-    }
   }
 
   public abstract ImageView getUserIcon();
@@ -75,9 +67,6 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   public void unsubscribe() {
     if (isSubscribed()) {
       subscription.dispose();
-    }
-    if (iconSubscription != null && !iconSubscription.isDisposed()) {
-      iconSubscription.dispose();
     }
   }
 

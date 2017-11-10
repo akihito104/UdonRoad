@@ -126,13 +126,10 @@ public class StatusDetailFragment extends Fragment {
 
     final StatusDetailView statusView = binding.statusView;
     final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
-    StatusViewImageHelper.load(item, statusView);
+    iconSubscription = StatusViewImageHelper.load(item, statusView, imageRepository);
 
     final User user = item.getUser();
     final ImageView icon = statusView.getIcon();
-    if (iconSubscription == null) {
-      iconSubscription = imageRepository.queryUserIcon(user.getProfileImageURLHttps(), getStatusId()).subscribe(icon::setImageDrawable);
-    }
 
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     final long rtUserId = item.getRetweetUser().getId();

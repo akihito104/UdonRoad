@@ -26,4 +26,6 @@ import io.reactivex.Observable;
 
 public interface ImageRepository {
   Observable<Drawable> queryUserIcon(String url, long tag);
+
+  Observable<Drawable> queryRtUserIcon(String url, long tag);
 }

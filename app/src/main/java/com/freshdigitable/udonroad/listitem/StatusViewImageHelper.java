@@ -18,8 +18,6 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
@@ -30,11 +28,13 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
-import com.squareup.picasso.Callback;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
-import com.squareup.picasso.Target;
 
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.internal.disposables.EmptyDisposable;
 import twitter4j.MediaEntity;
 import twitter4j.User;
 
@@ -47,72 +47,40 @@ public class StatusViewImageHelper {
   @SuppressWarnings("unused")
   private static final String TAG = StatusViewImageHelper.class.getSimpleName();
 
-  public static <T extends View & StatusItemView> void  load(TwitterListItem item, T statusView) {
-//    loadUserIcon(item.getUser(), item.getId(), statusView);
-    loadRTUserIcon(item, statusView);
+  public static <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView, ImageRepository imageRepository) {
+    final CompositeDisposable compositeDisposable = new CompositeDisposable();
+    compositeDisposable.add(loadUserIcon(item.getUser(), item.getId(), statusView, imageRepository));
+    compositeDisposable.add(loadRTUserIcon(item, statusView, imageRepository));
     loadMediaView(item, statusView);
     loadQuotedStatusImages(item, statusView.getQuotedStatusView());
+    return compositeDisposable;
   }
 
   public static <T extends View & StatusItemView> void unload(T itemView, long entityId) {
     Picasso.with(itemView.getContext()).cancelTag(entityId);
   }
 
-  static <T extends View & ItemView> void loadUserIcon(User user, final long tagId, final T itemView) {
+  static <T extends View & ItemView> Disposable loadUserIcon(
+      User user, final long tagId, final T itemView, ImageRepository imageRepository) {
     if (user == null) {
-      return;
+      return EmptyDisposable.INSTANCE;
     }
-    getRequest(itemView.getContext(), user.getProfileImageURLHttps(), tagId)
-        .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
-        .placeholder(AppCompatResources.getDrawable(itemView.getContext(), R.drawable.ic_person_outline_black))
-        .into(itemView.getIcon());
+    return imageRepository.queryUserIcon(user.getProfileImageURLHttps(), tagId)
+        .subscribe(d -> itemView.getIcon().setImageDrawable(d));
   }
 
-  private static <T extends View & StatusItemView> void loadRTUserIcon(TwitterListItem item, T itemView) {
+  private static <T extends View & StatusItemView> Disposable loadRTUserIcon(
+      TwitterListItem item, T itemView, ImageRepository imageRepository) {
     if (!item.isRetweet()) {
-      return;
+      return EmptyDisposable.INSTANCE;
     }
-    final Context context = itemView.getContext();
     final User retweetUser = item.getRetweetUser();
+    final String screenName = retweetUser.getScreenName();
     final String miniProfileImageURLHttps = retweetUser.getMiniProfileImageURLHttps();
     final long tag = item.getId();
-
     final RetweetUserView rtUser = itemView.getRtUser();
-    final String screenName = retweetUser.getScreenName();
-    rtUser.bindUser(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black), screenName);
-    final Target target = new Target() {
-      @Override
-      public void onPrepareLoad(Drawable placeHolderDrawable) {
-        rtUser.bindUser(placeHolderDrawable, screenName);
-      }
-
-      @Override
-      public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-        rtUser.bindUser(bitmap, screenName);
-      }
-
-      @Override
-      public void onBitmapFailed(Drawable errorDrawable) {
-      }
-    };
-
-    // workaround: to prevent target object will be garbage collected
-    // because of wrapped with WeakReference.
-    getRequest(context, miniProfileImageURLHttps, tag)
-        .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-        .fetch(new Callback() {
-          @Override
-          public void onSuccess() {
-            getRequest(context, miniProfileImageURLHttps, tag)
-                .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-                .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black))
-                .into(target);
-          }
-
-          @Override
-          public void onError() {
-          }
-        });
+    return imageRepository.queryRtUserIcon(miniProfileImageURLHttps, tag)
+        .subscribe(d -> rtUser.bindUser(d, screenName));
   }
 
   private static void loadMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {

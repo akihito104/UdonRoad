@@ -24,11 +24,15 @@ import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
+import io.reactivex.disposables.Disposable;
+
 /**
  * Created by akihit on 2017/07/12.
  */
 
 public class StatusViewHolder extends ItemViewHolder {
+
+  private Disposable imageSubs;
 
   public StatusViewHolder(ViewGroup parent) {
     super(new StatusView(parent.getContext()));
@@ -39,7 +43,8 @@ public class StatusViewHolder extends ItemViewHolder {
     super.bind(item, imageRepository);
     final TwitterListItem twitterListItem = (TwitterListItem) item;
     getView().bind(twitterListItem);
-    StatusViewImageHelper.load(twitterListItem, getView());
+    disposeImageSubscription();
+    imageSubs = StatusViewImageHelper.load(twitterListItem, getView(), imageRepository);
     setupMediaView(twitterListItem, getView());
     setupQuotedStatusView(twitterListItem, getView().getQuotedStatusView());
   }
@@ -52,6 +57,18 @@ public class StatusViewHolder extends ItemViewHolder {
   @Override
   public void onUpdate(ListItem item) {
     getView().update((TwitterListItem) item);
+  }
+
+  @Override
+  public void unsubscribe() {
+    super.unsubscribe();
+    disposeImageSubscription();
+  }
+
+  private void disposeImageSubscription() {
+    if (imageSubs != null && !imageSubs.isDisposed()) {
+      imageSubs.dispose();
+    }
   }
 
   @Override

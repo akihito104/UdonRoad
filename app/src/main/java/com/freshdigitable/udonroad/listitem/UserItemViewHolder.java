@@ -21,11 +21,16 @@ import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
+import io.reactivex.disposables.Disposable;
+
 /**
  * Created by akihit on 2017/07/12.
  */
 
 public class UserItemViewHolder extends ItemViewHolder {
+
+  private Disposable iconSubscription;
+
   public UserItemViewHolder(ViewGroup parent) {
     super(new UserItemView(parent.getContext()));
   }
@@ -34,7 +39,18 @@ public class UserItemViewHolder extends ItemViewHolder {
   public void bind(ListItem item, ImageRepository imageRepository) {
     super.bind(item, imageRepository);
     getView().bind(item);
-//    StatusViewImageHelper.loadUserIcon(item.getUser(), getItemId(), getView());
+    if (iconSubscription != null && !iconSubscription.isDisposed()) {
+      iconSubscription.dispose();
+    }
+    iconSubscription = StatusViewImageHelper.loadUserIcon(item.getUser(), getItemId(), getView(), imageRepository);
+  }
+
+  @Override
+  public void unsubscribe() {
+    super.unsubscribe();
+    if (iconSubscription != null && !iconSubscription.isDisposed()) {
+      iconSubscription.dispose();
+    }
   }
 
   @Override

@@ -20,10 +20,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.DimenRes;
+import android.support.annotation.NonNull;
 import android.support.v7.content.res.AppCompatResources;
 
 import com.freshdigitable.udonroad.R;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
 import javax.inject.Inject;
@@ -39,46 +42,66 @@ import io.reactivex.disposables.Disposable;
 class ImageRepositoryImpl implements ImageRepository {
 
   private final Picasso client;
-  private final Drawable placeholder;
+  private final Context context;
 
   @Inject
   ImageRepositoryImpl(Context appContext) {
     client = Picasso.with(appContext);
-    placeholder = AppCompatResources.getDrawable(appContext, R.drawable.ic_person_outline_black);
+    context = appContext;
   }
 
   @Override
   public Observable<Drawable> queryUserIcon(String url, long tag) {
-    final ImageObservable imageObservable = new ImageObservable();
-    imageObservable.client = client;
-    imageObservable.placeholder = placeholder;
-    imageObservable.url = url;
-    imageObservable.tag = tag;
-    return imageObservable;
+    return queryUserIcon(url, R.dimen.tweet_user_icon, tag);
+  }
+
+  @Override
+  public Observable<Drawable> queryRtUserIcon(String url, long tag) {
+    return queryUserIcon(url, R.dimen.small_user_icon, tag);
+  }
+
+  private Observable<Drawable> queryUserIcon(String url, @DimenRes int sizeRes, long tag) {
+    final RequestCreator request = client.load(url)
+        .tag(tag)
+        .resizeDimen(sizeRes, sizeRes)
+        .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
+    return ImageObservable.create(request, new Disposable() {
+      boolean disposed = false;
+
+      @Override
+      public void dispose() {
+        if (disposed) {
+          return;
+        }
+        client.cancelTag(tag);
+        disposed = true;
+      }
+
+      @Override
+      public boolean isDisposed() {
+        return disposed;
+      }
+    });
   }
 
   private static class ImageObservable extends Observable<Drawable> {
-    Picasso client;
-    Drawable placeholder;
-    String url;
-    long tag;
+    @NonNull
+    static ImageObservable create(@NonNull RequestCreator request, @NonNull Disposable disposable) {
+      return new ImageObservable(request, disposable);
+    }
+
+    private final RequestCreator request;
+    private final Disposable disposable;
     private Target target;
-    boolean disposed;
+
+    private ImageObservable(RequestCreator request, Disposable disposable) {
+      this.request = request;
+      this.disposable = disposable;
+    }
 
     @Override
     protected void subscribeActual(Observer<? super Drawable> observer) {
-      observer.onSubscribe(new Disposable() {
-        @Override
-        public void dispose() {
-          client.cancelTag(tag);
-          disposed = true;
-        }
-
-        @Override
-        public boolean isDisposed() {
-          return disposed;
-        }
-      });
+      observer.onSubscribe(disposable);
       target = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
@@ -95,11 +118,7 @@ class ImageRepositoryImpl implements ImageRepository {
           observer.onNext(placeHolderDrawable);
         }
       };
-      client.load(url)
-          .tag(tag)
-          .resizeDimen(R.dimen.tweet_user_icon, R.dimen.tweet_user_icon)
-          .placeholder(placeholder)
-          .into(target);
+      request.into(target);
     }
   }
 }
