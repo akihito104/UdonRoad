@@ -84,7 +84,7 @@ public class ThumbnailContainer extends LinearLayout {
       return;
     }
     setThumbCount(thumbCount);
-    thumbWidth = (getWidth() - grid * (thumbCount - 1)) / thumbCount;
+    thumbWidth = calcThumbWidth();
     setVisibility(VISIBLE);
     for (int i = 0; i < thumbCount; i++) {
       final int num = i;
@@ -97,6 +97,10 @@ public class ThumbnailContainer extends LinearLayout {
         mediaClickListener.onMediaClicked(view, num);
       });
     }
+  }
+
+  private int calcThumbWidth() {
+    return (getWidth() - grid * (thumbCount - 1)) / thumbCount;
   }
 
   private void setThumbCount(int count) {
@@ -137,5 +141,11 @@ public class ThumbnailContainer extends LinearLayout {
 
   public interface OnMediaClickListener {
     void onMediaClicked(View view, int index);
+  }
+
+  @Override
+  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    super.onSizeChanged(w, h, oldw, oldh);
+    thumbWidth = calcThumbWidth();
   }
 }

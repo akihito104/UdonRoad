@@ -19,13 +19,17 @@ package com.freshdigitable.udonroad.repository;
 import android.graphics.drawable.Drawable;
 
 import io.reactivex.Observable;
+import twitter4j.MediaEntity;
+import twitter4j.User;
 
 /**
  * Created by akihit on 2017/11/09.
  */
 
 public interface ImageRepository {
-  Observable<Drawable> queryUserIcon(String url, long tag);
+  Observable<Drawable> queryUserIcon(User user, long tag);
 
-  Observable<Drawable> queryRtUserIcon(String url, long tag);
+  Observable<Drawable> querySmallUserIcon(User user, long tag);
+
+  Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, long tag);
 }

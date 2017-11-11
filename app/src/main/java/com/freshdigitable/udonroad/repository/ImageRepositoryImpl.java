@@ -34,6 +34,8 @@ import javax.inject.Inject;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import twitter4j.MediaEntity;
+import twitter4j.User;
 
 /**
  * Created by akihit on 2017/11/09.
@@ -51,13 +53,13 @@ class ImageRepositoryImpl implements ImageRepository {
   }
 
   @Override
-  public Observable<Drawable> queryUserIcon(String url, long tag) {
-    return queryUserIcon(url, R.dimen.tweet_user_icon, tag);
+  public Observable<Drawable> queryUserIcon(User user, long tag) {
+    return queryUserIcon(user.getProfileImageURLHttps(), R.dimen.tweet_user_icon, tag);
   }
 
   @Override
-  public Observable<Drawable> queryRtUserIcon(String url, long tag) {
-    return queryUserIcon(url, R.dimen.small_user_icon, tag);
+  public Observable<Drawable> querySmallUserIcon(User user, long tag) {
+    return queryUserIcon(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag);
   }
 
   private Observable<Drawable> queryUserIcon(String url, @DimenRes int sizeRes, long tag) {
@@ -65,7 +67,21 @@ class ImageRepositoryImpl implements ImageRepository {
         .tag(tag)
         .resizeDimen(sizeRes, sizeRes)
         .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
-    return ImageObservable.create(request, new Disposable() {
+    return ImageObservable.create(request, createDisposable(tag));
+  }
+
+  @Override
+  public Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, long tag) {
+    final RequestCreator request = client.load(entity.getMediaURLHttps() + ":thumb")
+        .tag(tag)
+        .resize(width, height)
+        .centerCrop();
+    return ImageObservable.create(request, createDisposable(tag));
+  }
+
+  @NonNull
+  private Disposable createDisposable(long tag) {
+    return new Disposable() {
       boolean disposed = false;
 
       @Override
@@ -81,7 +97,7 @@ class ImageRepositoryImpl implements ImageRepository {
       public boolean isDisposed() {
         return disposed;
       }
-    });
+    };
   }
 
   private static class ImageObservable extends Observable<Drawable> {
