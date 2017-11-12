@@ -59,8 +59,15 @@ class ImageRepositoryImpl implements ImageRepository {
 
   @Override
   public Observable<Drawable> queryUserIcon(User user, int sizeRes, Object tag) {
-    final RequestCreator request = getRequestCreator(user.getProfileImageURLHttps(), sizeRes, tag)
-        .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
+    return queryUserIcon(user, sizeRes, true, tag);
+  }
+
+  @Override
+  public Observable<Drawable> queryUserIcon(User user, int sizeRes, boolean placeholder, Object tag) {
+    final RequestCreator request = getRequestCreator(user.getProfileImageURLHttps(), sizeRes, tag);
+    if (placeholder) {
+      request.placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
+    }
     return ImageObservable.create(request, createDisposable(tag));
   }
 

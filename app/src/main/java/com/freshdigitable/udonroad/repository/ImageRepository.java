@@ -32,6 +32,8 @@ public interface ImageRepository {
 
   Observable<Drawable> queryUserIcon(User user, @DimenRes int sizeRes, Object tag);
 
+  Observable<Drawable> queryUserIcon(User user, @DimenRes int sizeRes, boolean placeholder, Object tag);
+
   Observable<Drawable> querySmallUserIcon(User user, Object tag);
 
   Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag);

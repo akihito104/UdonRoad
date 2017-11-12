@@ -36,6 +36,7 @@ import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 import com.squareup.picasso.Picasso;
 
@@ -43,6 +44,7 @@ import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Relationship;
 import twitter4j.User;
 
@@ -82,6 +84,8 @@ public class UserInfoFragment extends Fragment {
   TypedCache<User> userCache;
   @Inject
   ConfigStore configStore;
+  @Inject
+  ImageRepository imageRepository;
 
   void onEnterAnimationComplete() {
     configRequestWorker.fetchRelationship(getUserId());
@@ -107,9 +111,7 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
-    }
+    Utils.maybeDispose(subscription);
     userCache.close();
     configStore.close();
   }
@@ -195,22 +197,20 @@ public class UserInfoFragment extends Fragment {
       return;
     }
     Log.d("UserInfoFragment", "showUserInfo: ");
-    loadUserIcon(user.getProfileImageURLHttps());
+    loadUserIcon(user);
     loadBanner(user.getProfileBannerMobileURL());
     binding.userInfoUserInfoView.bindData(user);
   }
 
-  private String userIconUrl = "";
-  private void loadUserIcon(String url) {
-    if (url == null || userIconUrl.equals(url)) {
+  private Disposable iconSubs;
+
+  private void loadUserIcon(@NonNull User user) {
+    if (Utils.isSubscribed(iconSubs)) {
       return;
     }
     Log.d("UserInfoFragment", "loadUserIcon: ");
-    this.userIconUrl = url;
-    Picasso.with(getContext())
-        .load(url)
-        .tag(LOADINGTAG_USER_INFO_IMAGES)
-        .into(binding.userInfoUserInfoView.getIcon());
+    iconSubs = imageRepository.queryUserIcon(user, R.dimen.userInfo_user_icon, false, LOADINGTAG_USER_INFO_IMAGES)
+        .subscribe(d -> binding.userInfoUserInfoView.getIcon().setImageDrawable(d));
   }
 
   private String bannerUrl = "";
@@ -228,6 +228,7 @@ public class UserInfoFragment extends Fragment {
   }
 
   private void dismissUserInfo() {
+    Utils.maybeDispose(iconSubs);
     Picasso.with(getContext()).cancelTag(LOADINGTAG_USER_INFO_IMAGES);
     binding.userInfoUserInfoView.getBanner().setImageDrawable(null);
     binding.userInfoUserInfoView.getIcon().setImageDrawable(null);

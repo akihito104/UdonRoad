@@ -35,8 +35,8 @@
 
     <com.freshdigitable.udonroad.RoundedCornerImageView
         android:id="@+id/user_icon"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="@dimen/userInfo_user_icon"
+        android:layout_height="@dimen/userInfo_user_icon"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"

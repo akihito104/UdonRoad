@@ -10,6 +10,7 @@
     <dimen name="tweet_main_size">12sp</dimen>
     <dimen name="tweet_user_icon">40dp</dimen>
     <dimen name="small_user_icon">16dp</dimen>
+    <dimen name="userInfo_user_icon">72dp</dimen>
     <dimen name="grid_margin">4dp</dimen>
 
     <dimen name="tweet_detail_size">16sp</dimen>
