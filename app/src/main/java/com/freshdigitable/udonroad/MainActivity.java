@@ -46,6 +46,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 
 import java.util.ArrayList;
@@ -76,6 +77,8 @@ public class MainActivity extends AppCompatActivity
   ConfigRequestWorker configRequestWorker;
   @Inject
   AppSettingStore appSetting;
+  @Inject
+  ImageRepository imageRepository;
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private DrawerNavigator drawerNavigator;
   private ToolbarTweetInputToggle toolbarTweetInputToggle;
@@ -152,7 +155,7 @@ public class MainActivity extends AppCompatActivity
 
     final NavHeaderBinding navHeaderBinding = DataBindingUtil.inflate(
         LayoutInflater.from(this), R.layout.nav_header, null, false);
-    drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting);
+    drawerNavigator = new DrawerNavigator(binding.navDrawerLayout, binding.navDrawer, navHeaderBinding, appSetting, imageRepository);
   }
 
   private void setupTweetInputView() {

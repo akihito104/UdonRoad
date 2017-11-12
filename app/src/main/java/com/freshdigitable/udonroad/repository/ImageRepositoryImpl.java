@@ -53,16 +53,17 @@ class ImageRepositoryImpl implements ImageRepository {
   }
 
   @Override
-  public Observable<Drawable> queryUserIcon(User user, long tag) {
+  public Observable<Drawable> queryUserIcon(User user, Object tag) {
     return queryUserIcon(user.getProfileImageURLHttps(), R.dimen.tweet_user_icon, tag);
   }
 
   @Override
-  public Observable<Drawable> querySmallUserIcon(User user, long tag) {
+  public Observable<Drawable> querySmallUserIcon(User user, Object tag) {
     return queryUserIcon(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag);
   }
 
-  private Observable<Drawable> queryUserIcon(String url, @DimenRes int sizeRes, long tag) {
+  @Override
+  public Observable<Drawable> queryUserIcon(String url, @DimenRes int sizeRes, Object tag) {
     final RequestCreator request = client.load(url)
         .tag(tag)
         .resizeDimen(sizeRes, sizeRes)
@@ -71,7 +72,7 @@ class ImageRepositoryImpl implements ImageRepository {
   }
 
   @Override
-  public Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, long tag) {
+  public Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag) {
     final RequestCreator request = client.load(entity.getMediaURLHttps() + ":thumb")
         .tag(tag)
         .resize(width, height)
@@ -80,7 +81,7 @@ class ImageRepositoryImpl implements ImageRepository {
   }
 
   @NonNull
-  private Disposable createDisposable(long tag) {
+  private Disposable createDisposable(Object tag) {
     return new Disposable() {
       boolean disposed = false;
 
