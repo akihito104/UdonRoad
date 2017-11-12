@@ -54,21 +54,34 @@ class ImageRepositoryImpl implements ImageRepository {
 
   @Override
   public Observable<Drawable> queryUserIcon(User user, Object tag) {
-    return queryUserIcon(user.getProfileImageURLHttps(), R.dimen.tweet_user_icon, tag);
+    return queryUserIcon(user, R.dimen.tweet_user_icon, tag);
+  }
+
+  @Override
+  public Observable<Drawable> queryUserIcon(User user, int sizeRes, Object tag) {
+    final RequestCreator request = getRequestCreator(user.getProfileImageURLHttps(), sizeRes, tag)
+        .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
+    return ImageObservable.create(request, createDisposable(tag));
   }
 
   @Override
   public Observable<Drawable> querySmallUserIcon(User user, Object tag) {
-    return queryUserIcon(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag);
+    final RequestCreator request = getRequestCreator(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag)
+        .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
+    return ImageObservable.create(request, createDisposable(tag));
   }
 
   @Override
-  public Observable<Drawable> queryUserIcon(String url, @DimenRes int sizeRes, Object tag) {
-    final RequestCreator request = client.load(url)
-        .tag(tag)
-        .resizeDimen(sizeRes, sizeRes)
-        .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
+  public Observable<Drawable> querySquareImage(String url, @DimenRes int sizeRes, Object tag) {
+    final RequestCreator request = getRequestCreator(url, sizeRes, tag)
+        .centerCrop();
     return ImageObservable.create(request, createDisposable(tag));
+  }
+
+  private RequestCreator getRequestCreator(String url, @DimenRes int sizeRes, Object tag) {
+    return client.load(url)
+        .tag(tag)
+        .resizeDimen(sizeRes, sizeRes);
   }
 
   @Override

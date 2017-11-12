@@ -30,9 +30,11 @@ import twitter4j.User;
 public interface ImageRepository {
   Observable<Drawable> queryUserIcon(User user, Object tag);
 
+  Observable<Drawable> queryUserIcon(User user, @DimenRes int sizeRes, Object tag);
+
   Observable<Drawable> querySmallUserIcon(User user, Object tag);
 
   Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag);
 
-  Observable<Drawable> queryUserIcon(String url, @DimenRes int sizeRes, Object tag);
+  Observable<Drawable> querySquareImage(String url, @DimenRes int sizeRes, Object tag);
 }

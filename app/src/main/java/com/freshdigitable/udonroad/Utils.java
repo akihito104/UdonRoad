@@ -17,9 +17,11 @@
 package com.freshdigitable.udonroad;
 
 import android.content.res.ColorStateList;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 
+import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 
 /**
@@ -38,6 +40,16 @@ public class Utils {
     final ColorStateList linkStateList
         = ContextCompat.getColorStateList(textView.getContext(), R.color.selector_link_text);
     textView.setMovementMethod(ColorStateLinkMovementMethod.getInstance(linkStateList));
+  }
+
+  public static void maybeDispose(@Nullable Disposable disposable) {
+    if (disposable != null && !disposable.isDisposed()) {
+      disposable.dispose();
+    }
+  }
+
+  public static boolean isSubscribed(@Nullable Disposable disposable) {
+    return disposable != null && !disposable.isDisposed();
   }
 
   private Utils() {}

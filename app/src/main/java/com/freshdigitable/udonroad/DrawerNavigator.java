@@ -144,7 +144,7 @@ class DrawerNavigator {
 
   private void setupHeader(User currentUser) {
     disposeUserIconSubscription();
-    userIconSubs = imageRepository.queryUserIcon(currentUser.getProfileImageURLHttps(), R.dimen.nav_drawer_header_icon, "currentUser")
+    userIconSubs = imageRepository.queryUserIcon(currentUser, R.dimen.nav_drawer_header_icon, "currentUser")
         .subscribe(navHeaderBinding.navHeaderIcon::setImageDrawable);
 
     final long userId = currentUser.getId();

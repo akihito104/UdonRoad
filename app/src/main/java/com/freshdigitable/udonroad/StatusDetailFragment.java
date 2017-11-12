@@ -54,7 +54,6 @@ import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -79,11 +78,12 @@ public class StatusDetailFragment extends Fragment {
   private FragmentStatusDetailBinding binding;
   @Inject
   TypedCache<Status> statusCache;
-  private Disposable subscription;
-  private Disposable cardSubscription;
   @Inject
   ImageRepository imageRepository;
+  private Disposable statusSubscription;
+  private Disposable cardSubscription;
   private Disposable iconSubscription;
+  private Disposable cardSummaryImageSubs;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -126,7 +126,9 @@ public class StatusDetailFragment extends Fragment {
 
     final StatusDetailView statusView = binding.statusView;
     final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
-    iconSubscription = StatusViewImageHelper.load(item, statusView, imageRepository);
+    if (!Utils.isSubscribed(iconSubscription)) {
+      iconSubscription = StatusViewImageHelper.load(item, statusView, imageRepository);
+    }
 
     final User user = item.getUser();
     final ImageView icon = statusView.getIcon();
@@ -159,7 +161,7 @@ public class StatusDetailFragment extends Fragment {
         }
       });
     }
-    subscription = statusCache.observeById(statusId)
+    statusSubscription = statusCache.observeById(statusId)
         .map(s -> new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE))
         .subscribe(listItem -> {
               statusView.update(listItem);
@@ -192,17 +194,12 @@ public class StatusDetailFragment extends Fragment {
     if (!this.twitterCard.isValid()) {
       return;
     }
-    final long statusId = getStatusId();
     binding.sdTwitterCard.setVisibility(View.VISIBLE);
     binding.sdTwitterCard.bindData(this.twitterCard);
     final String imageUrl = this.twitterCard.getImageUrl();
-    if (!TextUtils.isEmpty(imageUrl)) {
-      Picasso.with(getContext())
-          .load(imageUrl)
-          .resizeDimen(R.dimen.card_summary_image, R.dimen.card_summary_image)
-          .centerCrop()
-          .tag(statusId)
-          .into(binding.sdTwitterCard.getImage());
+    if (!TextUtils.isEmpty(imageUrl) && !Utils.isSubscribed(cardSummaryImageSubs)) {
+      cardSummaryImageSubs = imageRepository.querySquareImage(imageUrl, R.dimen.card_summary_image, getStatusId())
+          .subscribe(d -> binding.sdTwitterCard.getImage().setImageDrawable(d));
     }
 
     final Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -253,23 +250,16 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.getUserName().setOnClickListener(null);
     binding.statusView.getThumbnailContainer().setOnMediaClickListener(null);
     binding.sdTwitterCard.setOnClickListener(null);
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
-    }
-    if (cardSubscription != null && !cardSubscription.isDisposed()) {
-      cardSubscription.dispose();
-    }
+    Utils.maybeDispose(statusSubscription);
+    Utils.maybeDispose(cardSubscription);
     statusCache.close();
   }
 
   @Override
   public void onDestroyView() {
     super.onDestroyView();
-    final long statusId = getStatusId();
-    Picasso.with(getContext()).cancelTag(statusId);
-    if (iconSubscription != null && !iconSubscription.isDisposed()) {
-      iconSubscription.dispose();
-    }
+    Utils.maybeDispose(iconSubscription);
+    Utils.maybeDispose(cardSummaryImageSubs);
     binding.statusView.reset();
     binding.sdTwitterCard.setVisibility(GONE);
     twitterCard = null;
