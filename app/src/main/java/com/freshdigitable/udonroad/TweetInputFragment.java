@@ -59,6 +59,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
@@ -106,6 +107,9 @@ public class TweetInputFragment extends Fragment {
   TypedCache<Status> statusCache;
   private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
+  @Inject
+  ImageRepository imageRepository;
+  private Disposable iconSubs;
 
   public static TweetInputFragment create() {
     return new TweetInputFragment();
@@ -226,6 +230,9 @@ public class TweetInputFragment extends Fragment {
     if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
       Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
       currentUserSubscription.dispose();
+    }
+    if (iconSubs != null && !iconSubs.isDisposed()) {
+      iconSubs.dispose();
     }
     appSettings.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
@@ -461,11 +468,11 @@ public class TweetInputFragment extends Fragment {
     final TweetInputView inputText = binding.mainTweetInputView;
     currentUserSubscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
       inputText.setUserInfo(currentUser);
-      Picasso.with(inputText.getContext())
-          .load(currentUser.getMiniProfileImageURLHttps())
-          .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-          .tag(LOADINGTAG_TWEET_INPUT_ICON)
-          .into(inputText.getIcon());
+      if (iconSubs != null && !iconSubs.isDisposed()) {
+        iconSubs.dispose();
+      }
+      iconSubs = imageRepository.querySmallUserIcon(currentUser, LOADINGTAG_TWEET_INPUT_ICON)
+          .subscribe(d -> inputText.getIcon().setImageDrawable(d));
     }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
   }
 
