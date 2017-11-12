@@ -100,7 +100,7 @@ public class ThumbnailContainer extends LinearLayout {
   }
 
   private int calcThumbWidth() {
-    return (getWidth() - grid * (thumbCount - 1)) / thumbCount;
+    return thumbCount > 0 ? (getWidth() - grid * (thumbCount - 1)) / thumbCount : 0;
   }
 
   private void setThumbCount(int count) {
