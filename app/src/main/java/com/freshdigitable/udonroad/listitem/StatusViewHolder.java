@@ -59,12 +59,6 @@ public class StatusViewHolder extends ItemViewHolder {
     getView().update((TwitterListItem) item);
   }
 
-  @Override
-  public void unsubscribe() {
-    super.unsubscribe();
-    disposeImageSubscription();
-  }
-
   private void disposeImageSubscription() {
     if (imageSubs != null && !imageSubs.isDisposed()) {
       imageSubs.dispose();
@@ -80,7 +74,7 @@ public class StatusViewHolder extends ItemViewHolder {
     if (quotedStatusView != null && quotedStatusView.getVisibility() == View.VISIBLE) {
       unloadMediaView(quotedStatusView);
     }
-    StatusViewImageHelper.unload(getView(), getItemId());
+    disposeImageSubscription();
   }
 
   @Override

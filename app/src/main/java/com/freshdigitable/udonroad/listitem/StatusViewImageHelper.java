@@ -31,7 +31,6 @@ import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 import com.freshdigitable.udonroad.repository.ImageRepository;
-import com.squareup.picasso.Picasso;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -57,10 +56,6 @@ public class StatusViewImageHelper {
     compositeDisposable.add(loadMediaView(item, statusView, imageRepository));
     compositeDisposable.add(loadQuotedStatusImages(item, statusView.getQuotedStatusView(), imageRepository));
     return compositeDisposable;
-  }
-
-  public static <T extends View & StatusItemView> void unload(T itemView, long entityId) {
-    Picasso.with(itemView.getContext()).cancelTag(entityId);
   }
 
   static <T extends View & ItemView> Disposable loadUserIcon(
@@ -96,11 +91,7 @@ public class StatusViewImageHelper {
     }
 
     final Context context = thumbnailContainer.getContext();
-    final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-    final String key = context.getString(R.string.settings_key_sensitive);
-    final boolean isHideSensitive = sp.getBoolean(key, false);
-
-    if (isHideSensitive && item.isPossiblySensitive()) {
+    if (item.isPossiblySensitive() && isHideSensitive(context)) {
       for (int i = 0; i < mediaCount; i++) {
         final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
         final String type = mediaEntities[i].getType();
@@ -111,6 +102,12 @@ public class StatusViewImageHelper {
     } else {
       return loadThumbnails(mediaEntities, thumbnailContainer, item.getId(), imageRepository);
     }
+  }
+
+  private static boolean isHideSensitive(Context context) {
+    final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+    final String key = context.getString(R.string.settings_key_sensitive);
+    return sp.getBoolean(key, false);
   }
 
   private static Disposable loadThumbnails(

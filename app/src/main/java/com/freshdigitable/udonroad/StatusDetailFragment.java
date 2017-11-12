@@ -270,7 +270,6 @@ public class StatusDetailFragment extends Fragment {
     if (iconSubscription != null && !iconSubscription.isDisposed()) {
       iconSubscription.dispose();
     }
-    StatusViewImageHelper.unload(binding.statusView, statusId);
     binding.statusView.reset();
     binding.sdTwitterCard.setVisibility(GONE);
     twitterCard = null;
