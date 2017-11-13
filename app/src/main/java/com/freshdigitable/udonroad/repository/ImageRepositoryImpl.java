@@ -27,13 +27,16 @@ import android.support.v7.content.res.AppCompatResources;
 import com.freshdigitable.udonroad.R;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
-import com.squareup.picasso.Target;
+
+import java.io.IOException;
 
 import javax.inject.Inject;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import twitter4j.MediaEntity;
 import twitter4j.User;
 
@@ -65,24 +68,36 @@ class ImageRepositoryImpl implements ImageRepository {
   @Override
   public Observable<Drawable> queryUserIcon(User user, int sizeRes, boolean placeholder, Object tag) {
     final RequestCreator request = getRequestCreator(user.getProfileImageURLHttps(), sizeRes, tag);
+    final ImageObservable observable = ImageObservable.create(request, createDisposable(tag));
     if (placeholder) {
-      request.placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
+      final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
+      if (drawable != null) {
+        observable.startWith(drawable);
+      }
     }
-    return ImageObservable.create(request, createDisposable(tag));
+    return observable.subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread());
   }
 
   @Override
   public Observable<Drawable> querySmallUserIcon(User user, Object tag) {
-    final RequestCreator request = getRequestCreator(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag)
-        .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black));
-    return ImageObservable.create(request, createDisposable(tag));
+    final RequestCreator request = getRequestCreator(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag);
+    final ImageObservable observable = ImageObservable.create(request, createDisposable(tag));
+    final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
+    if (drawable != null) {
+      observable.startWith(drawable);
+    }
+    return observable.subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread());
   }
 
   @Override
   public Observable<Drawable> querySquareImage(String url, @DimenRes int sizeRes, Object tag) {
     final RequestCreator request = getRequestCreator(url, sizeRes, tag)
         .centerCrop();
-    return ImageObservable.create(request, createDisposable(tag));
+    return ImageObservable.create(request, createDisposable(tag))
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread());
   }
 
   private RequestCreator getRequestCreator(String url, @DimenRes int sizeRes, Object tag) {
@@ -97,7 +112,16 @@ class ImageRepositoryImpl implements ImageRepository {
         .tag(tag)
         .resize(width, height)
         .centerCrop();
-    return ImageObservable.create(request, createDisposable(tag));
+    return ImageObservable.create(request, createDisposable(tag))
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread());
+  }
+
+  @Override
+  public Observable<Drawable> queryPhotoMedia(String url, Object tag) {
+    return ImageObservable.create(client.load(url).tag(tag), createDisposable(tag))
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread());
   }
 
   @NonNull
@@ -129,7 +153,6 @@ class ImageRepositoryImpl implements ImageRepository {
 
     private final RequestCreator request;
     private final Disposable disposable;
-    private Target target;
 
     private ImageObservable(RequestCreator request, Disposable disposable) {
       this.request = request;
@@ -139,23 +162,12 @@ class ImageRepositoryImpl implements ImageRepository {
     @Override
     protected void subscribeActual(Observer<? super Drawable> observer) {
       observer.onSubscribe(disposable);
-      target = new Target() {
-        @Override
-        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-          observer.onNext(new BitmapDrawable(bitmap));
-        }
-
-        @Override
-        public void onBitmapFailed(Drawable errorDrawable) {
-          observer.onNext(errorDrawable);
-        }
-
-        @Override
-        public void onPrepareLoad(Drawable placeHolderDrawable) {
-          observer.onNext(placeHolderDrawable);
-        }
-      };
-      request.into(target);
+      try {
+        final Bitmap bitmap = request.get();
+        observer.onNext(new BitmapDrawable(bitmap));
+      } catch (IOException e) {
+        observer.onError(e);
+      }
     }
   }
 }

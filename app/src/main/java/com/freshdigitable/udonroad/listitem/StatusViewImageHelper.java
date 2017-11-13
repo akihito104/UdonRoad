@@ -89,13 +89,16 @@ public class StatusViewImageHelper {
     if (mediaCount < 1) {
       return EmptyDisposable.INSTANCE;
     }
+    for (int i = 0; i < mediaCount; i++) {
+      final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
+      final String type = mediaEntities[i].getType();
+      mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
+    }
 
     final Context context = thumbnailContainer.getContext();
     if (item.isPossiblySensitive() && isHideSensitive(context)) {
       for (int i = 0; i < mediaCount; i++) {
         final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
-        final String type = mediaEntities[i].getType();
-        mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
         mediaView.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_whatshot));
       }
       return EmptyDisposable.INSTANCE;
@@ -137,8 +140,6 @@ public class StatusViewImageHelper {
     final int mediaCount = entities.length;
     for (int i = 0; i < mediaCount; i++) {
       final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
-      final String type = entities[i].getType();
-      mediaView.setShowIcon("video".equals(type) || "animated_gif".equals(type));
       final Observable<Drawable> observable = imageRepository.queryMediaThumbnail(entities[i], height, width, statusId);
       compositeDisposable.add(observable.subscribe(mediaView::setImageDrawable));
     }

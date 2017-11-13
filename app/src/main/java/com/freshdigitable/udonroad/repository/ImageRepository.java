@@ -38,5 +38,7 @@ public interface ImageRepository {
 
   Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag);
 
+  Observable<Drawable> queryPhotoMedia(String url, Object tag);
+
   Observable<Drawable> querySquareImage(String url, @DimenRes int sizeRes, Object tag);
 }
