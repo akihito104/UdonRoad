@@ -19,12 +19,10 @@ package com.freshdigitable.udonroad.listitem;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.preference.PreferenceManager;
 import android.view.View;
-import android.view.ViewTreeObserver;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
@@ -33,7 +31,6 @@ import com.freshdigitable.udonroad.media.ThumbnailView;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.internal.disposables.EmptyDisposable;
@@ -124,31 +121,10 @@ public class StatusViewImageHelper {
       final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
       final Observable<Drawable> observable = (width > 0 && height > 0) ?
           imageRepository.queryMediaThumbnail(entities[i], height, width, statusId)
-          : loadThumbnail(imageRepository, entities[i], mediaView, statusId);
+          : imageRepository.queryMediaThumbnail(entities[i], mediaView, statusId);
       compositeDisposable.add(observable.subscribe(mediaView::setImageDrawable));
     }
     return compositeDisposable;
-  }
-
-  private static Observable<Drawable> loadThumbnail(ImageRepository imageRepository,
-                                                    MediaEntity entity, ThumbnailView view, long tag) {
-    return Single.<View>create(e ->
-        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-          @Override
-          public void onGlobalLayout() {
-            if (view.getHeight() <= 0 || view.getWidth() <= 0) {
-              return;
-            }
-            e.onSuccess(view);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-              view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            } else {
-              view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-            }
-          }
-        }))
-        .toObservable()
-        .flatMap(v -> imageRepository.queryMediaThumbnail(entity, v.getHeight(), v.getWidth(), tag));
   }
 
   private static Disposable loadQuotedStatusImages(

@@ -61,8 +61,6 @@ import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -76,6 +74,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -228,7 +227,6 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onStop: ");
     super.onStop();
     if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
-      Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
       currentUserSubscription.dispose();
     }
     if (iconSubs != null && !iconSubs.isDisposed()) {
@@ -565,24 +563,25 @@ public class TweetInputFragment extends Fragment {
 
   private void clearMedia() {
     media.clear();
+    Utils.maybeDispose(uploadedMediaSubs);
     binding.mainTweetInputView.clearMedia();
   }
 
+  private CompositeDisposable uploadedMediaSubs;
+
   private void updateMediaContainer() {
+    Utils.maybeDispose(uploadedMediaSubs);
+
+    uploadedMediaSubs = new CompositeDisposable();
     final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
     mediaContainer.bindMediaEntities(media.size());
     final int thumbCount = mediaContainer.getThumbCount();
     for (int i = 0; i < thumbCount; i++) {
       final Uri uri = media.get(i);
-      final RequestCreator rc = Picasso.with(getContext())
-          .load(uri);
-      if (mediaContainer.getThumbWidth() <= 0 || mediaContainer.getHeight() <= 0) {
-        rc.fit();
-      } else {
-        rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
-      }
       final ImageView imageView = (ImageView) mediaContainer.getChildAt(i);
-      rc.centerCrop().into(imageView);
+      final Disposable d = imageRepository.queryToFit(uri, imageView, true, "upload_media")
+          .subscribe(imageView::setImageDrawable);
+      uploadedMediaSubs.add(d);
 
       imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
         final MenuItem delete = contextMenu.add(0, 1, 0, R.string.media_upload_delete);

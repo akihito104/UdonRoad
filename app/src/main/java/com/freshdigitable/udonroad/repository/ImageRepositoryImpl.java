@@ -22,9 +22,13 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.DimenRes;
 import android.support.annotation.NonNull;
 import android.support.v7.content.res.AppCompatResources;
+import android.view.View;
+import android.view.ViewTreeObserver;
 
 import com.freshdigitable.udonroad.R;
 import com.squareup.picasso.Picasso;
@@ -35,6 +39,7 @@ import javax.inject.Inject;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import twitter4j.MediaEntity;
@@ -108,6 +113,31 @@ class ImageRepositoryImpl implements ImageRepository {
   }
 
   @Override
+  public Observable<Drawable> queryMediaThumbnail(MediaEntity entity, View target, Object tag) {
+    return observeOnGlobalLayout(target)
+        .toObservable()
+        .flatMap(v -> queryMediaThumbnail(entity, v.getHeight(), v.getWidth(), tag));
+  }
+
+  private Single<View> observeOnGlobalLayout(View target) {
+    return Single.create(e ->
+        target.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+          @Override
+          public void onGlobalLayout() {
+            if (target.getHeight() <= 0 || target.getWidth() <= 0) {
+              return;
+            }
+            e.onSuccess(target);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+              target.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            } else {
+              target.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
+          }
+        }));
+  }
+
+  @Override
   public Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag) {
     final RequestCreator request = client.load(entity.getMediaURLHttps() + ":thumb")
         .tag(tag)
@@ -124,6 +154,30 @@ class ImageRepositoryImpl implements ImageRepository {
     return ImageObservable.create(client.load(url).tag(tag), createDisposable(tag))
 //        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread());
+  }
+
+  @Override
+  public Observable<Drawable> queryToFit(Uri uri, View target, boolean centerCrop, Object tag) {
+    final RequestCreator request = client.load(uri)
+        .placeholder(defaultPlaceholder)
+        .tag(tag);
+    if (centerCrop) {
+      request.centerCrop();
+    }
+    if (target.getHeight() > 0 && target.getWidth() > 0) {
+      request.resize(target.getWidth(), target.getHeight());
+      return ImageObservable.create(request, createDisposable(tag));
+    } else {
+      return observeOnGlobalLayout(target)
+          .map(v -> request.resize(v.getWidth(), v.getHeight()))
+          .toObservable()
+          .flatMap(r -> ImageObservable.create(r, createDisposable(tag)));
+    }
+  }
+
+  @Override
+  public Observable<Drawable> queryToFit(String uri, View target, boolean centerCrop, Object tag) {
+    return queryToFit(Uri.parse(uri), target, centerCrop, tag);
   }
 
   @NonNull

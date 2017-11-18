@@ -31,6 +31,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
@@ -38,7 +39,6 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
@@ -202,7 +202,7 @@ public class UserInfoFragment extends Fragment {
     binding.userInfoUserInfoView.bindData(user);
   }
 
-  private Disposable iconSubs;
+  private Disposable iconSubs, bannerSubs;
 
   private void loadUserIcon(@NonNull User user) {
     if (Utils.isSubscribed(iconSubs)) {
@@ -213,23 +213,19 @@ public class UserInfoFragment extends Fragment {
         .subscribe(d -> binding.userInfoUserInfoView.getIcon().setImageDrawable(d));
   }
 
-  private String bannerUrl = "";
   private void loadBanner(String url) {
-    if (url == null || bannerUrl.equals(url)) {
+    if (url == null || Utils.isSubscribed(bannerSubs)) {
       return;
     }
     Log.d("UserInfoFragment", "loadBanner: ");
-    this.bannerUrl = url;
-    Picasso.with(getContext())
-        .load(url)
-        .fit()
-        .tag(LOADINGTAG_USER_INFO_IMAGES)
-        .into(binding.userInfoUserInfoView.getBanner());
+    final ImageView banner = binding.userInfoUserInfoView.getBanner();
+    bannerSubs = imageRepository.queryToFit(url, banner, false, LOADINGTAG_USER_INFO_IMAGES)
+        .subscribe(banner::setImageDrawable);
   }
 
   private void dismissUserInfo() {
     Utils.maybeDispose(iconSubs);
-    Picasso.with(getContext()).cancelTag(LOADINGTAG_USER_INFO_IMAGES);
+    Utils.maybeDispose(bannerSubs);
     binding.userInfoUserInfoView.getBanner().setImageDrawable(null);
     binding.userInfoUserInfoView.getIcon().setImageDrawable(null);
   }

@@ -17,7 +17,9 @@
 package com.freshdigitable.udonroad.repository;
 
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.annotation.DimenRes;
+import android.view.View;
 
 import io.reactivex.Observable;
 import twitter4j.MediaEntity;
@@ -38,7 +40,13 @@ public interface ImageRepository {
 
   Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag);
 
+  Observable<Drawable> queryMediaThumbnail(MediaEntity entity, View target, Object tag);
+
   Observable<Drawable> queryPhotoMedia(String url, Object tag);
 
   Observable<Drawable> querySquareImage(String url, @DimenRes int sizeRes, Object tag);
+
+  Observable<Drawable> queryToFit(Uri uri, View target, boolean centerCrop, Object tag);
+
+  Observable<Drawable> queryToFit(String uri, View target, boolean centerCrop, Object tag);
 }
