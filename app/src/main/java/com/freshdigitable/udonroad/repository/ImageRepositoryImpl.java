@@ -18,7 +18,9 @@ package com.freshdigitable.udonroad.repository;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DimenRes;
 import android.support.annotation.NonNull;
@@ -27,8 +29,7 @@ import android.support.v7.content.res.AppCompatResources;
 import com.freshdigitable.udonroad.R;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
-
-import java.io.IOException;
+import com.squareup.picasso.Target;
 
 import javax.inject.Inject;
 
@@ -36,7 +37,6 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 import twitter4j.MediaEntity;
 import twitter4j.User;
 
@@ -48,6 +48,7 @@ class ImageRepositoryImpl implements ImageRepository {
 
   private final Picasso client;
   private final Context context;
+  private final ColorDrawable defaultPlaceholder = new ColorDrawable(Color.LTGRAY);
 
   @Inject
   ImageRepositoryImpl(Context appContext) {
@@ -72,10 +73,10 @@ class ImageRepositoryImpl implements ImageRepository {
     if (placeholder) {
       final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
       if (drawable != null) {
-        observable.startWith(drawable);
+        request.placeholder(drawable);
       }
     }
-    return observable.subscribeOn(Schedulers.io())
+    return observable//.subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread());
   }
 
@@ -85,9 +86,9 @@ class ImageRepositoryImpl implements ImageRepository {
     final ImageObservable observable = ImageObservable.create(request, createDisposable(tag));
     final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
     if (drawable != null) {
-      observable.startWith(drawable);
+      request.placeholder(drawable);
     }
-    return observable.subscribeOn(Schedulers.io())
+    return observable//.subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread());
   }
 
@@ -96,7 +97,7 @@ class ImageRepositoryImpl implements ImageRepository {
     final RequestCreator request = getRequestCreator(url, sizeRes, tag)
         .centerCrop();
     return ImageObservable.create(request, createDisposable(tag))
-        .subscribeOn(Schedulers.io())
+//        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread());
   }
 
@@ -111,16 +112,17 @@ class ImageRepositoryImpl implements ImageRepository {
     final RequestCreator request = client.load(entity.getMediaURLHttps() + ":thumb")
         .tag(tag)
         .resize(width, height)
+        .placeholder(defaultPlaceholder)
         .centerCrop();
     return ImageObservable.create(request, createDisposable(tag))
-        .subscribeOn(Schedulers.io())
+//        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread());
   }
 
   @Override
   public Observable<Drawable> queryPhotoMedia(String url, Object tag) {
     return ImageObservable.create(client.load(url).tag(tag), createDisposable(tag))
-        .subscribeOn(Schedulers.io())
+//        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread());
   }
 
@@ -153,6 +155,7 @@ class ImageRepositoryImpl implements ImageRepository {
 
     private final RequestCreator request;
     private final Disposable disposable;
+    private Target target;
 
     private ImageObservable(RequestCreator request, Disposable disposable) {
       this.request = request;
@@ -162,12 +165,27 @@ class ImageRepositoryImpl implements ImageRepository {
     @Override
     protected void subscribeActual(Observer<? super Drawable> observer) {
       observer.onSubscribe(disposable);
-      try {
-        final Bitmap bitmap = request.get();
-        observer.onNext(new BitmapDrawable(bitmap));
-      } catch (IOException e) {
-        observer.onError(e);
-      }
+      target = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+          observer.onNext(new BitmapDrawable(bitmap));
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+          if (errorDrawable!=null) {
+            observer.onNext(errorDrawable);
+          }
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+          if (placeHolderDrawable != null) {
+            observer.onNext(placeHolderDrawable);
+          }
+        }
+      };
+      request.into(target);
     }
   }
 }
