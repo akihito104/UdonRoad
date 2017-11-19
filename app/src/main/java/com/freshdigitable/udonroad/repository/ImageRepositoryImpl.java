@@ -39,7 +39,6 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
-import twitter4j.MediaEntity;
 import twitter4j.User;
 
 /**
@@ -55,11 +54,6 @@ class ImageRepositoryImpl implements ImageRepository {
   ImageRepositoryImpl(Context appContext) {
     client = Picasso.with(appContext);
     context = appContext;
-  }
-
-  @Override
-  public Observable<Drawable> queryUserIcon(User user, Object tag) {
-    return queryUserIcon(user, R.dimen.tweet_user_icon, tag);
   }
 
   @Override
@@ -102,13 +96,6 @@ class ImageRepositoryImpl implements ImageRepository {
         .resizeDimen(sizeRes, sizeRes);
   }
 
-  @Override
-  public Observable<Drawable> queryMediaThumbnail(MediaEntity entity, View target, Object tag) {
-    return observeOnGlobalLayout(target)
-        .toObservable()
-        .flatMap(v -> queryMediaThumbnail(entity, v.getHeight(), v.getWidth(), tag));
-  }
-
   private Single<View> observeOnGlobalLayout(View target) {
     return Single.create(e ->
         target.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -125,16 +112,6 @@ class ImageRepositoryImpl implements ImageRepository {
             }
           }
         }));
-  }
-
-  @Override
-  public Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag) {
-    final RequestCreator request = client.load(entity.getMediaURLHttps() + ":thumb")
-        .tag(tag)
-        .resize(width, height)
-        .placeholder(defaultPlaceholder)
-        .centerCrop();
-    return queryImage(request, tag);
   }
 
   @Override
@@ -159,6 +136,25 @@ class ImageRepositoryImpl implements ImageRepository {
           .toObservable()
           .flatMap(r -> queryImage(r, tag));
     }
+  }
+
+  @Override
+  public Observable<Drawable> queryImage(Single<ImageQuery> query) {
+    return query.toObservable().flatMap(this::queryImage);
+  }
+
+  @Override
+  public Observable<Drawable> queryImage(ImageQuery query) {
+    final RequestCreator request = client.load(query.url)
+        .resize(query.width, query.height)
+        .tag(query.tag);
+    if (query.placeholder != null) {
+      request.placeholder(query.placeholder);
+    }
+    if (query.centerCrop) {
+      request.centerCrop();
+    }
+    return queryImage(request, null);
   }
 
   @Override

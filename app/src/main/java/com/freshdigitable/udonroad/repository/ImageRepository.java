@@ -22,7 +22,7 @@ import android.support.annotation.DimenRes;
 import android.view.View;
 
 import io.reactivex.Observable;
-import twitter4j.MediaEntity;
+import io.reactivex.Single;
 import twitter4j.User;
 
 /**
@@ -30,17 +30,12 @@ import twitter4j.User;
  */
 
 public interface ImageRepository {
-  Observable<Drawable> queryUserIcon(User user, Object tag);
 
   Observable<Drawable> queryUserIcon(User user, @DimenRes int sizeRes, Object tag);
 
   Observable<Drawable> queryUserIcon(User user, @DimenRes int sizeRes, boolean placeholder, Object tag);
 
   Observable<Drawable> querySmallUserIcon(User user, Object tag);
-
-  Observable<Drawable> queryMediaThumbnail(MediaEntity entity, int height, int width, Object tag);
-
-  Observable<Drawable> queryMediaThumbnail(MediaEntity entity, View target, Object tag);
 
   Observable<Drawable> queryPhotoMedia(String url, Object tag);
 
@@ -49,4 +44,8 @@ public interface ImageRepository {
   Observable<Drawable> queryToFit(Uri uri, View target, boolean centerCrop, Object tag);
 
   Observable<Drawable> queryToFit(String uri, View target, boolean centerCrop, Object tag);
+
+  Observable<Drawable> queryImage(ImageQuery query);
+
+  Observable<Drawable> queryImage(Single<ImageQuery> query);
 }

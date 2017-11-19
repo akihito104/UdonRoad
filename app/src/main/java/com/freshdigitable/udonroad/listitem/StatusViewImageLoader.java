@@ -18,6 +18,8 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
@@ -28,11 +30,13 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
+import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import javax.inject.Inject;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -58,7 +62,7 @@ public class StatusViewImageLoader {
 
   public <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    compositeDisposable.add(loadUserIcon(item.getUser(), item.getId(), statusView));
+    compositeDisposable.add(loadUserIcon(item.getUser(), statusView));
     compositeDisposable.add(loadRTUserIcon(item, statusView));
     compositeDisposable.add(loadMediaView(item, statusView));
     compositeDisposable.add(loadQuotedStatusImages(item, statusView.getQuotedStatusView()));
@@ -67,11 +71,17 @@ public class StatusViewImageLoader {
 
   private final Consumer<Throwable> emptyError = th -> {};
 
-  <T extends View & ItemView> Disposable loadUserIcon(User user, final long tagId, final T itemView) {
+  <T extends View & ItemView> Disposable loadUserIcon(User user, final T itemView) {
     if (user == null) {
       return EmptyDisposable.INSTANCE;
     }
-    return imageRepository.queryUserIcon(user, tagId)
+    final Context context = itemView.getContext();
+    final ImageQuery query = new ImageQuery.Builder(user.getProfileImageURLHttps())
+        .height(context, R.dimen.tweet_user_icon)
+        .width(context, R.dimen.tweet_user_icon)
+        .placeholder(context, R.drawable.ic_person_outline_black)
+        .build();
+    return imageRepository.queryImage(query)
         .subscribe(d -> itemView.getIcon().setImageDrawable(d), emptyError);
   }
 
@@ -81,9 +91,11 @@ public class StatusViewImageLoader {
     }
     final User retweetUser = item.getRetweetUser();
     final String screenName = retweetUser.getScreenName();
-    final long tag = item.getId();
     final RetweetUserView rtUser = itemView.getRtUser();
-    return imageRepository.querySmallUserIcon(retweetUser, tag)
+
+    final Context context = itemView.getContext();
+    final ImageQuery query = getQueryForSmallIcon(context, retweetUser);
+    return imageRepository.queryImage(query)
         .subscribe(d -> rtUser.bindUser(d, screenName), emptyError);
   }
 
@@ -109,7 +121,7 @@ public class StatusViewImageLoader {
       }
       return EmptyDisposable.INSTANCE;
     } else {
-      return loadThumbnails(mediaEntities, thumbnailContainer, item.getId());
+      return loadThumbnails(mediaEntities, thumbnailContainer);
     }
   }
 
@@ -119,8 +131,7 @@ public class StatusViewImageLoader {
     return sp.getBoolean(key, false);
   }
 
-  private Disposable loadThumbnails(
-      MediaEntity[] entities, ThumbnailContainer thumbnailContainer, long statusId) {
+  private Disposable loadThumbnails(MediaEntity[] entities, ThumbnailContainer thumbnailContainer) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     final int width = thumbnailContainer.getThumbWidth();
     final int height = thumbnailContainer.getHeight();
@@ -128,8 +139,8 @@ public class StatusViewImageLoader {
     for (int i = 0; i < mediaCount; i++) {
       final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
       final Observable<Drawable> observable = (width > 0 && height > 0) ?
-          imageRepository.queryMediaThumbnail(entities[i], height, width, statusId)
-          : imageRepository.queryMediaThumbnail(entities[i], mediaView, statusId);
+          imageRepository.queryImage(getQueryForThumbnail(entities[i], height, width))
+          : imageRepository.queryImage(getQueryForThumbnail(entities[i], mediaView));
       compositeDisposable.add(observable.subscribe(mediaView::setImageDrawable, emptyError));
     }
     return compositeDisposable;
@@ -146,10 +157,36 @@ public class StatusViewImageLoader {
     final User user = quotedStatus.getUser();
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     if (user != null) {
-      compositeDisposable.add(imageRepository.querySmallUserIcon(user, item.getId())
-          .subscribe(d -> quotedStatusView.getIcon().setImageDrawable(d), emptyError));
+      final ImageQuery query = getQueryForSmallIcon(quotedStatusView.getContext(), user);
+      final Disposable subs = imageRepository.queryImage(query)
+          .subscribe(d -> quotedStatusView.getIcon().setImageDrawable(d), emptyError);
+      compositeDisposable.add(subs);
     }
     compositeDisposable.add(loadMediaView((TwitterListItem) quotedStatus, quotedStatusView));
     return compositeDisposable;
+  }
+
+  private static ImageQuery getQueryForSmallIcon(Context context, User user) {
+    return new ImageQuery.Builder(user.getMiniProfileImageURLHttps())
+        .height(context, R.dimen.small_user_icon)
+        .width(context, R.dimen.small_user_icon)
+        .placeholder(context, R.drawable.ic_person_outline_black)
+        .build();
+  }
+
+  private static final ColorDrawable defaultPlaceholder = new ColorDrawable(Color.LTGRAY);
+
+  private static ImageQuery getQueryForThumbnail(MediaEntity entity, int height, int width) {
+    return new ImageQuery.Builder(entity.getMediaURLHttps() + ":thumb")
+        .height(height)
+        .width(width)
+        .placeholder(defaultPlaceholder)
+        .build();
+  }
+
+  private static Single<ImageQuery> getQueryForThumbnail(MediaEntity entity, View view) {
+    return new ImageQuery.Builder(entity.getMediaURLHttps() + ":thumb")
+        .placeholder(defaultPlaceholder)
+        .build(view);
   }
 }

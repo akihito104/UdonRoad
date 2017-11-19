@@ -40,7 +40,7 @@ public class UserItemViewHolder extends ItemViewHolder {
     super.bind(item, imageLoader);
     getView().bind(item);
     Utils.maybeDispose(iconSubscription);
-    iconSubscription = imageLoader.loadUserIcon(item.getUser(), getItemId(), getView());
+    iconSubscription = imageLoader.loadUserIcon(item.getUser(), getView());
   }
 
   @Override
