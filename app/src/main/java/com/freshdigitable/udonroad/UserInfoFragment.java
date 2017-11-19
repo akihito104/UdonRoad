@@ -210,7 +210,7 @@ public class UserInfoFragment extends Fragment {
     }
     Log.d("UserInfoFragment", "loadUserIcon: ");
     iconSubs = imageRepository.queryUserIcon(user, R.dimen.userInfo_user_icon, false, LOADINGTAG_USER_INFO_IMAGES)
-        .subscribe(d -> binding.userInfoUserInfoView.getIcon().setImageDrawable(d));
+        .subscribe(d -> binding.userInfoUserInfoView.getIcon().setImageDrawable(d), th -> {});
   }
 
   private void loadBanner(String url) {
@@ -220,7 +220,7 @@ public class UserInfoFragment extends Fragment {
     Log.d("UserInfoFragment", "loadBanner: ");
     final ImageView banner = binding.userInfoUserInfoView.getBanner();
     bannerSubs = imageRepository.queryToFit(url, banner, false, LOADINGTAG_USER_INFO_IMAGES)
-        .subscribe(banner::setImageDrawable);
+        .subscribe(banner::setImageDrawable, th -> {});
   }
 
   private void dismissUserInfo() {

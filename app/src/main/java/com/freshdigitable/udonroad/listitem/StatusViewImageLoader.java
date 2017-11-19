@@ -30,42 +30,52 @@ import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
+import javax.inject.Inject;
+
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.internal.disposables.EmptyDisposable;
 import twitter4j.MediaEntity;
 import twitter4j.User;
 
 /**
- * StatusViewImageHelper provides image loader for StatusView.
+ * StatusViewImageLoader provides image loader for StatusView.
  *
  * Created by akihit on 2016/08/20.
  */
-public class StatusViewImageHelper {
+public class StatusViewImageLoader {
   @SuppressWarnings("unused")
-  private static final String TAG = StatusViewImageHelper.class.getSimpleName();
+  private static final String TAG = StatusViewImageLoader.class.getSimpleName();
 
-  public static <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView, ImageRepository imageRepository) {
+  private final ImageRepository imageRepository;
+
+  @Inject
+  StatusViewImageLoader(ImageRepository imageRepository) {
+    this.imageRepository = imageRepository;
+  }
+
+  public <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    compositeDisposable.add(loadUserIcon(item.getUser(), item.getId(), statusView, imageRepository));
-    compositeDisposable.add(loadRTUserIcon(item, statusView, imageRepository));
-    compositeDisposable.add(loadMediaView(item, statusView, imageRepository));
-    compositeDisposable.add(loadQuotedStatusImages(item, statusView.getQuotedStatusView(), imageRepository));
+    compositeDisposable.add(loadUserIcon(item.getUser(), item.getId(), statusView));
+    compositeDisposable.add(loadRTUserIcon(item, statusView));
+    compositeDisposable.add(loadMediaView(item, statusView));
+    compositeDisposable.add(loadQuotedStatusImages(item, statusView.getQuotedStatusView()));
     return compositeDisposable;
   }
 
-  static <T extends View & ItemView> Disposable loadUserIcon(
-      User user, final long tagId, final T itemView, ImageRepository imageRepository) {
+  private final Consumer<Throwable> emptyError = th -> {};
+
+  <T extends View & ItemView> Disposable loadUserIcon(User user, final long tagId, final T itemView) {
     if (user == null) {
       return EmptyDisposable.INSTANCE;
     }
     return imageRepository.queryUserIcon(user, tagId)
-        .subscribe(d -> itemView.getIcon().setImageDrawable(d));
+        .subscribe(d -> itemView.getIcon().setImageDrawable(d), emptyError);
   }
 
-  private static <T extends View & StatusItemView> Disposable loadRTUserIcon(
-      TwitterListItem item, T itemView, ImageRepository imageRepository) {
+  private <T extends View & StatusItemView> Disposable loadRTUserIcon(TwitterListItem item, T itemView) {
     if (!item.isRetweet()) {
       return EmptyDisposable.INSTANCE;
     }
@@ -74,11 +84,10 @@ public class StatusViewImageHelper {
     final long tag = item.getId();
     final RetweetUserView rtUser = itemView.getRtUser();
     return imageRepository.querySmallUserIcon(retweetUser, tag)
-        .subscribe(d -> rtUser.bindUser(d, screenName));
+        .subscribe(d -> rtUser.bindUser(d, screenName), emptyError);
   }
 
-  private static Disposable loadMediaView(
-      final TwitterListItem item, final ThumbnailCapable statusView, ImageRepository imageRepository) {
+  private Disposable loadMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {
     final MediaEntity[] mediaEntities = item.getMediaEntities();
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
     thumbnailContainer.bindMediaEntities(mediaEntities);
@@ -100,7 +109,7 @@ public class StatusViewImageHelper {
       }
       return EmptyDisposable.INSTANCE;
     } else {
-      return loadThumbnails(mediaEntities, thumbnailContainer, item.getId(), imageRepository);
+      return loadThumbnails(mediaEntities, thumbnailContainer, item.getId());
     }
   }
 
@@ -110,9 +119,8 @@ public class StatusViewImageHelper {
     return sp.getBoolean(key, false);
   }
 
-  private static Disposable loadThumbnails(
-      MediaEntity[] entities, ThumbnailContainer thumbnailContainer, long statusId,
-      ImageRepository imageRepository) {
+  private Disposable loadThumbnails(
+      MediaEntity[] entities, ThumbnailContainer thumbnailContainer, long statusId) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     final int width = thumbnailContainer.getThumbWidth();
     final int height = thumbnailContainer.getHeight();
@@ -122,13 +130,12 @@ public class StatusViewImageHelper {
       final Observable<Drawable> observable = (width > 0 && height > 0) ?
           imageRepository.queryMediaThumbnail(entities[i], height, width, statusId)
           : imageRepository.queryMediaThumbnail(entities[i], mediaView, statusId);
-      compositeDisposable.add(observable.subscribe(mediaView::setImageDrawable));
+      compositeDisposable.add(observable.subscribe(mediaView::setImageDrawable, emptyError));
     }
     return compositeDisposable;
   }
 
-  private static Disposable loadQuotedStatusImages(
-      TwitterListItem item, @Nullable QuotedStatusView quotedStatusView, ImageRepository imageRepository) {
+  private Disposable loadQuotedStatusImages(TwitterListItem item, @Nullable QuotedStatusView quotedStatusView) {
     if (quotedStatusView == null) {
       return EmptyDisposable.INSTANCE;
     }
@@ -140,13 +147,9 @@ public class StatusViewImageHelper {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     if (user != null) {
       compositeDisposable.add(imageRepository.querySmallUserIcon(user, item.getId())
-          .subscribe(d -> quotedStatusView.getIcon().setImageDrawable(d)));
+          .subscribe(d -> quotedStatusView.getIcon().setImageDrawable(d), emptyError));
     }
-    compositeDisposable.add(loadMediaView((TwitterListItem) quotedStatus, quotedStatusView, imageRepository));
+    compositeDisposable.add(loadMediaView((TwitterListItem) quotedStatus, quotedStatusView));
     return compositeDisposable;
-  }
-
-  private StatusViewImageHelper() {
-    throw new AssertionError();
   }
 }

@@ -19,7 +19,7 @@ package com.freshdigitable.udonroad.listitem;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.repository.ImageRepository;
+import com.freshdigitable.udonroad.Utils;
 
 import io.reactivex.disposables.Disposable;
 
@@ -36,21 +36,17 @@ public class UserItemViewHolder extends ItemViewHolder {
   }
 
   @Override
-  public void bind(ListItem item, ImageRepository imageRepository) {
-    super.bind(item, imageRepository);
+  public void bind(ListItem item, StatusViewImageLoader imageLoader) {
+    super.bind(item, imageLoader);
     getView().bind(item);
-    if (iconSubscription != null && !iconSubscription.isDisposed()) {
-      iconSubscription.dispose();
-    }
-    iconSubscription = StatusViewImageHelper.loadUserIcon(item.getUser(), getItemId(), getView(), imageRepository);
+    Utils.maybeDispose(iconSubscription);
+    iconSubscription = imageLoader.loadUserIcon(item.getUser(), getItemId(), getView());
   }
 
   @Override
   public void unsubscribe() {
     super.unsubscribe();
-    if (iconSubscription != null && !iconSubscription.isDisposed()) {
-      iconSubscription.dispose();
-    }
+    Utils.maybeDispose(iconSubscription);
   }
 
   @Override

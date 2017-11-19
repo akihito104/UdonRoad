@@ -580,7 +580,7 @@ public class TweetInputFragment extends Fragment {
       final Uri uri = media.get(i);
       final ImageView imageView = (ImageView) mediaContainer.getChildAt(i);
       final Disposable d = imageRepository.queryToFit(uri, imageView, true, "upload_media")
-          .subscribe(imageView::setImageDrawable);
+          .subscribe(imageView::setImageDrawable, th -> {});
       uploadedMediaSubs.add(d);
 
       imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {

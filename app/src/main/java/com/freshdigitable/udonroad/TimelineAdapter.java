@@ -32,10 +32,10 @@ import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
+import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.UserItemViewHolder;
 import com.freshdigitable.udonroad.listitem.UserListItem;
 import com.freshdigitable.udonroad.media.ThumbnailView;
-import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -56,11 +56,11 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
   final SortedCache<T> timelineStore;
-  final ImageRepository imageRepository;
+  final StatusViewImageLoader imageLoader;
 
-  TimelineAdapter(SortedCache<T> timelineStore, ImageRepository imageRepository) {
+  TimelineAdapter(SortedCache<T> timelineStore, StatusViewImageLoader imageLoader) {
     this.timelineStore = timelineStore;
-    this.imageRepository = imageRepository;
+    this.imageLoader = imageLoader;
     setHasStableIds(true);
   }
 
@@ -74,7 +74,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final T elem = timelineStore.get(position);
-    holder.bind(wrapListItem(elem), imageRepository);
+    holder.bind(wrapListItem(elem), imageLoader);
     final Observable<ListItem> observable = timelineStore.observeById(elem).map(this::wrapListItem);
     holder.subscribe(observable);
 
@@ -285,8 +285,8 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public static class StatusTimelineAdapter extends TimelineAdapter<Status> {
-    StatusTimelineAdapter(SortedCache<Status> timelineStore, ImageRepository imageRepository) {
-      super(timelineStore, imageRepository);
+    StatusTimelineAdapter(SortedCache<Status> timelineStore, StatusViewImageLoader imageLoader) {
+      super(timelineStore, imageLoader);
     }
 
     @Override
@@ -302,7 +302,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
       if (item.getQuotedItem() != null && !statusViewHolder.hasQuotedView()) {
         statusViewHolder.attachQuotedView(getQuotedView(holder.itemView.getContext()));
       }
-      holder.bind(item, imageRepository);
+      holder.bind(item, imageLoader);
       final Observable<ListItem> observable = timelineStore.observeById(elem).map(this::wrapListItem);
       holder.subscribe(observable);
 
@@ -343,8 +343,8 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public static class UserListAdapter extends TimelineAdapter<User> {
-    UserListAdapter(SortedCache<User> timelineStore, ImageRepository imageRepository) {
-      super(timelineStore, imageRepository);
+    UserListAdapter(SortedCache<User> timelineStore, StatusViewImageLoader imageLoader) {
+      super(timelineStore, imageLoader);
     }
 
     @Override
@@ -359,8 +359,8 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public static class ListListAdapter extends TimelineAdapter<UserList> {
-    ListListAdapter(SortedCache<UserList> timelineStore, ImageRepository imageRepository) {
-      super(timelineStore, imageRepository);
+    ListListAdapter(SortedCache<UserList> timelineStore, StatusViewImageLoader imageLoader) {
+      super(timelineStore, imageLoader);
     }
 
     @Override

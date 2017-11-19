@@ -22,8 +22,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.repository.ImageRepository;
-
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -42,7 +40,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   @CallSuper
-  public void bind(final ListItem item, ImageRepository imageRepository) {
+  public void bind(final ListItem item, StatusViewImageLoader imageLoader) {
     itemView.setOnClickListener(v ->
         itemViewClickListener.onItemViewClicked(this, getItemId(), v));
     final User user = item.getUser();

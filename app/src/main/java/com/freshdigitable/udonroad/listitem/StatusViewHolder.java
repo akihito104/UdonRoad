@@ -20,9 +20,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
-import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import io.reactivex.disposables.Disposable;
 
@@ -39,12 +39,14 @@ public class StatusViewHolder extends ItemViewHolder {
   }
 
   @Override
-  public void bind(ListItem item, ImageRepository imageRepository) {
-    super.bind(item, imageRepository);
+  public void bind(ListItem item, StatusViewImageLoader imageLoader) {
+    super.bind(item, imageLoader);
     final TwitterListItem twitterListItem = (TwitterListItem) item;
     getView().bind(twitterListItem);
-    disposeImageSubscription();
-    imageSubs = StatusViewImageHelper.load(twitterListItem, getView(), imageRepository);
+    Utils.maybeDispose(imageSubs);
+    if (imageLoader != null) {
+      imageSubs = imageLoader.load(twitterListItem, getView());
+    }
     setupMediaView(twitterListItem, getView());
     setupQuotedStatusView(twitterListItem, getView().getQuotedStatusView());
   }
@@ -59,12 +61,6 @@ public class StatusViewHolder extends ItemViewHolder {
     getView().update((TwitterListItem) item);
   }
 
-  private void disposeImageSubscription() {
-    if (imageSubs != null && !imageSubs.isDisposed()) {
-      imageSubs.dispose();
-    }
-  }
-
   @Override
   public void recycle() {
     super.recycle();
@@ -74,7 +70,7 @@ public class StatusViewHolder extends ItemViewHolder {
     if (quotedStatusView != null && quotedStatusView.getVisibility() == View.VISIBLE) {
       unloadMediaView(quotedStatusView);
     }
-    disposeImageSubscription();
+    Utils.maybeDispose(imageSubs);
   }
 
   @Override

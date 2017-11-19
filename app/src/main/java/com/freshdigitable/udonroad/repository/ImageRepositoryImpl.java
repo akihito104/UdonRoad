@@ -35,12 +35,9 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
-import javax.inject.Inject;
-
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import twitter4j.MediaEntity;
 import twitter4j.User;
@@ -55,7 +52,6 @@ class ImageRepositoryImpl implements ImageRepository {
   private final Context context;
   private final ColorDrawable defaultPlaceholder = new ColorDrawable(Color.LTGRAY);
 
-  @Inject
   ImageRepositoryImpl(Context appContext) {
     client = Picasso.with(appContext);
     context = appContext;
@@ -74,36 +70,30 @@ class ImageRepositoryImpl implements ImageRepository {
   @Override
   public Observable<Drawable> queryUserIcon(User user, int sizeRes, boolean placeholder, Object tag) {
     final RequestCreator request = getRequestCreator(user.getProfileImageURLHttps(), sizeRes, tag);
-    final ImageObservable observable = ImageObservable.create(request, createDisposable(tag));
     if (placeholder) {
       final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
       if (drawable != null) {
         request.placeholder(drawable);
       }
     }
-    return observable//.subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread());
+    return queryImage(request, tag);
   }
 
   @Override
   public Observable<Drawable> querySmallUserIcon(User user, Object tag) {
     final RequestCreator request = getRequestCreator(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag);
-    final ImageObservable observable = ImageObservable.create(request, createDisposable(tag));
     final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
     if (drawable != null) {
       request.placeholder(drawable);
     }
-    return observable//.subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread());
+    return queryImage(request, tag);
   }
 
   @Override
   public Observable<Drawable> querySquareImage(String url, @DimenRes int sizeRes, Object tag) {
     final RequestCreator request = getRequestCreator(url, sizeRes, tag)
         .centerCrop();
-    return ImageObservable.create(request, createDisposable(tag))
-//        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread());
+    return queryImage(request, tag);
   }
 
   private RequestCreator getRequestCreator(String url, @DimenRes int sizeRes, Object tag) {
@@ -144,16 +134,12 @@ class ImageRepositoryImpl implements ImageRepository {
         .resize(width, height)
         .placeholder(defaultPlaceholder)
         .centerCrop();
-    return ImageObservable.create(request, createDisposable(tag))
-//        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread());
+    return queryImage(request, tag);
   }
 
   @Override
   public Observable<Drawable> queryPhotoMedia(String url, Object tag) {
-    return ImageObservable.create(client.load(url).tag(tag), createDisposable(tag))
-//        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread());
+    return queryImage(client.load(url).tag(tag), tag);
   }
 
   @Override
@@ -166,18 +152,22 @@ class ImageRepositoryImpl implements ImageRepository {
     }
     if (target.getHeight() > 0 && target.getWidth() > 0) {
       request.resize(target.getWidth(), target.getHeight());
-      return ImageObservable.create(request, createDisposable(tag));
+      return queryImage(request, tag);
     } else {
       return observeOnGlobalLayout(target)
           .map(v -> request.resize(v.getWidth(), v.getHeight()))
           .toObservable()
-          .flatMap(r -> ImageObservable.create(r, createDisposable(tag)));
+          .flatMap(r -> queryImage(r, tag));
     }
   }
 
   @Override
   public Observable<Drawable> queryToFit(String uri, View target, boolean centerCrop, Object tag) {
     return queryToFit(Uri.parse(uri), target, centerCrop, tag);
+  }
+
+  private Observable<Drawable> queryImage(RequestCreator request, Object tag) {
+    return ImageObservable.create(request, createDisposable(tag));
   }
 
   @NonNull
@@ -227,9 +217,10 @@ class ImageRepositoryImpl implements ImageRepository {
 
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
-          if (errorDrawable!=null) {
+          if (errorDrawable != null) {
             observer.onNext(errorDrawable);
           }
+          observer.onError(new RuntimeException());
         }
 
         @Override

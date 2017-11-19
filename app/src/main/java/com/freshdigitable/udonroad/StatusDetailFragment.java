@@ -48,7 +48,7 @@ import com.freshdigitable.udonroad.listitem.StatusDetailView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem.TextType;
 import com.freshdigitable.udonroad.listitem.StatusListItem.TimeTextType;
-import com.freshdigitable.udonroad.listitem.StatusViewImageHelper;
+import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -80,6 +80,8 @@ public class StatusDetailFragment extends Fragment {
   TypedCache<Status> statusCache;
   @Inject
   ImageRepository imageRepository;
+  @Inject
+  StatusViewImageLoader imageLoader;
   private Disposable statusSubscription;
   private Disposable cardSubscription;
   private Disposable iconSubscription;
@@ -127,7 +129,7 @@ public class StatusDetailFragment extends Fragment {
     final StatusDetailView statusView = binding.statusView;
     final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
     if (!Utils.isSubscribed(iconSubscription)) {
-      iconSubscription = StatusViewImageHelper.load(item, statusView, imageRepository);
+      iconSubscription = imageLoader.load(item, statusView);
     }
 
     final User user = item.getUser();
@@ -199,7 +201,7 @@ public class StatusDetailFragment extends Fragment {
     final String imageUrl = this.twitterCard.getImageUrl();
     if (!TextUtils.isEmpty(imageUrl) && !Utils.isSubscribed(cardSummaryImageSubs)) {
       cardSummaryImageSubs = imageRepository.querySquareImage(imageUrl, R.dimen.card_summary_image, getStatusId())
-          .subscribe(d -> binding.sdTwitterCard.getImage().setImageDrawable(d));
+          .subscribe(d -> binding.sdTwitterCard.getImage().setImageDrawable(d), th -> {});
     }
 
     final Intent intent = new Intent(Intent.ACTION_VIEW);
