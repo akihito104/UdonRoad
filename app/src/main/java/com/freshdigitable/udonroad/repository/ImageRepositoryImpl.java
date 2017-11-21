@@ -57,11 +57,6 @@ class ImageRepositoryImpl implements ImageRepository {
   }
 
   @Override
-  public Observable<Drawable> queryUserIcon(User user, int sizeRes, Object tag) {
-    return queryUserIcon(user, sizeRes, true, tag);
-  }
-
-  @Override
   public Observable<Drawable> queryUserIcon(User user, int sizeRes, boolean placeholder, Object tag) {
     final RequestCreator request = getRequestCreator(user.getProfileImageURLHttps(), sizeRes, tag);
     if (placeholder) {

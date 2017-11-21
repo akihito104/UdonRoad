@@ -31,8 +31,6 @@ import twitter4j.User;
 
 public interface ImageRepository {
 
-  Observable<Drawable> queryUserIcon(User user, @DimenRes int sizeRes, Object tag);
-
   Observable<Drawable> queryUserIcon(User user, @DimenRes int sizeRes, boolean placeholder, Object tag);
 
   Observable<Drawable> querySmallUserIcon(User user, Object tag);

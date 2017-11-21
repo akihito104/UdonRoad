@@ -35,6 +35,7 @@ import android.view.View;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
+import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import java.util.List;
@@ -144,7 +145,13 @@ class DrawerNavigator {
 
   private void setupHeader(User currentUser) {
     disposeUserIconSubscription();
-    userIconSubs = imageRepository.queryUserIcon(currentUser, R.dimen.nav_drawer_header_icon, "currentUser")
+    final Context context = getContext();
+    final ImageQuery query = new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
+        .height(context, R.dimen.nav_drawer_header_icon)
+        .width(context, R.dimen.nav_drawer_header_icon)
+        .placeholder(context, R.drawable.ic_person_outline_black)
+        .build();
+    userIconSubs = imageRepository.queryImage(query)
         .subscribe(navHeaderBinding.navHeaderIcon::setImageDrawable, th -> {});
 
     final long userId = currentUser.getId();
@@ -242,5 +249,9 @@ class DrawerNavigator {
 
   void setOnAccountItemSelectedListener(OnAccountItemSelectedListener listener) {
     this.accountItemSelectedListener = listener != null ? listener : (item, user) -> {};
+  }
+
+  private Context getContext() {
+    return drawerLayout.getContext();
   }
 }
