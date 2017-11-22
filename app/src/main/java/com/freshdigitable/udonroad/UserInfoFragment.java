@@ -37,11 +37,13 @@ import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 
 import javax.inject.Inject;
 
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
@@ -54,7 +56,6 @@ import twitter4j.User;
  * Created by akihit on 2016/02/07.
  */
 public class UserInfoFragment extends Fragment {
-  private static final String LOADINGTAG_USER_INFO_IMAGES = "UserInfoImages";
   private FragmentUserInfoBinding binding;
   private CompositeDisposable subscription;
 
@@ -209,7 +210,11 @@ public class UserInfoFragment extends Fragment {
       return;
     }
     Log.d("UserInfoFragment", "loadUserIcon: ");
-    iconSubs = imageRepository.queryUserIcon(user, R.dimen.userInfo_user_icon, false, LOADINGTAG_USER_INFO_IMAGES)
+    final ImageQuery query = new ImageQuery.Builder(user.getProfileImageURLHttps())
+        .height(getContext(), R.dimen.userInfo_user_icon)
+        .width(getContext(), R.dimen.userInfo_user_icon)
+        .build();
+    iconSubs = imageRepository.queryImage(query)
         .subscribe(d -> binding.userInfoUserInfoView.getIcon().setImageDrawable(d), th -> {});
   }
 
@@ -219,7 +224,9 @@ public class UserInfoFragment extends Fragment {
     }
     Log.d("UserInfoFragment", "loadBanner: ");
     final ImageView banner = binding.userInfoUserInfoView.getBanner();
-    bannerSubs = imageRepository.queryToFit(url, banner, false, LOADINGTAG_USER_INFO_IMAGES)
+    final Single<ImageQuery> query = new ImageQuery.Builder(url)
+        .build(banner);
+    bannerSubs = imageRepository.queryImage(query)
         .subscribe(banner::setImageDrawable, th -> {});
   }
 

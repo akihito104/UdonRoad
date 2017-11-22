@@ -57,18 +57,6 @@ class ImageRepositoryImpl implements ImageRepository {
   }
 
   @Override
-  public Observable<Drawable> queryUserIcon(User user, int sizeRes, boolean placeholder, Object tag) {
-    final RequestCreator request = getRequestCreator(user.getProfileImageURLHttps(), sizeRes, tag);
-    if (placeholder) {
-      final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
-      if (drawable != null) {
-        request.placeholder(drawable);
-      }
-    }
-    return queryImage(request, tag);
-  }
-
-  @Override
   public Observable<Drawable> querySmallUserIcon(User user, Object tag) {
     final RequestCreator request = getRequestCreator(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag);
     final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
@@ -150,11 +138,6 @@ class ImageRepositoryImpl implements ImageRepository {
       request.centerCrop();
     }
     return queryImage(request, null);
-  }
-
-  @Override
-  public Observable<Drawable> queryToFit(String uri, View target, boolean centerCrop, Object tag) {
-    return queryToFit(Uri.parse(uri), target, centerCrop, tag);
   }
 
   private Observable<Drawable> queryImage(RequestCreator request, Object tag) {
