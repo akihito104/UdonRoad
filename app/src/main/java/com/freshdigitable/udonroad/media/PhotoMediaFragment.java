@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import javax.inject.Inject;
@@ -72,9 +73,9 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onStart();
     imageView.setOnClickListener(super.getOnClickListener());
     imageView.setOnTouchListener(super.getTouchListener());
-    final Toast toast = Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG);
     if (!Utils.isSubscribed(imageSubs)) {
-      imageSubs = imageRepository.queryPhotoMedia(getUrl(), getUrl())
+      final Toast toast = Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG);
+      imageSubs = imageRepository.queryImage(new ImageQuery.Builder(getUrl()).build())
           .subscribe(d -> {
             imageView.setImageDrawable(d);
             progressBar.setVisibility(View.GONE);

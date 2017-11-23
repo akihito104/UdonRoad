@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.repository;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
@@ -32,7 +33,7 @@ import io.reactivex.Single;
  * Created by akihit on 2017/11/19.
  */
 public class ImageQuery {
-  final String url;
+  final Uri uri;
   final Drawable placeholder;
   final int width;
   final int height;
@@ -40,7 +41,7 @@ public class ImageQuery {
   final long tag = System.nanoTime();
 
   private ImageQuery(Builder builder) {
-    url = builder.url;
+    uri = builder.uri;
     placeholder = builder.placeholder;
     width = builder.width;
     height = builder.height;
@@ -48,14 +49,18 @@ public class ImageQuery {
   }
 
   public static class Builder {
-    private final String url;
+    private final Uri uri;
     Drawable placeholder;
     int width;
     int height;
     boolean centerCrop = false;
 
     public Builder(String url) {
-      this.url = url;
+      this(url != null ? Uri.parse(url) : null);
+    }
+
+    public Builder(Uri uri) {
+      this.uri = uri;
     }
 
     public Builder placeholder(Drawable placeholder) {
@@ -85,8 +90,8 @@ public class ImageQuery {
       return height(context.getResources().getDimensionPixelSize(heightRes));
     }
 
-    public Builder centerCrop(boolean centerCrop) {
-      this.centerCrop = centerCrop;
+    public Builder centerCrop() {
+      this.centerCrop = true;
       return this;
     }
 
@@ -95,11 +100,16 @@ public class ImageQuery {
     }
 
     public Single<ImageQuery> build(View view) {
+      if (view.getWidth() > 0 && view.getHeight() > 0) {
+        width(view.getWidth());
+        height(view.getHeight());
+        return Single.just(build());
+      }
       return observeOnGlobalLayout(view)
           .map(v -> {
             this.width(v.getWidth());
             this.height(v.getHeight());
-            return new ImageQuery(this);
+            return this.build();
           });
     }
   }

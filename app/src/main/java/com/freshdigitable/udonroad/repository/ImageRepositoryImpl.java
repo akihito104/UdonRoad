@@ -18,19 +18,10 @@ package com.freshdigitable.udonroad.repository;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Build;
-import android.support.annotation.DimenRes;
 import android.support.annotation.NonNull;
-import android.support.v7.content.res.AppCompatResources;
-import android.view.View;
-import android.view.ViewTreeObserver;
 
-import com.freshdigitable.udonroad.R;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
@@ -39,7 +30,6 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
-import twitter4j.User;
 
 /**
  * Created by akihit on 2017/11/09.
@@ -48,77 +38,9 @@ import twitter4j.User;
 class ImageRepositoryImpl implements ImageRepository {
 
   private final Picasso client;
-  private final Context context;
-  private final ColorDrawable defaultPlaceholder = new ColorDrawable(Color.LTGRAY);
 
   ImageRepositoryImpl(Context appContext) {
     client = Picasso.with(appContext);
-    context = appContext;
-  }
-
-  @Override
-  public Observable<Drawable> querySmallUserIcon(User user, Object tag) {
-    final RequestCreator request = getRequestCreator(user.getMiniProfileImageURLHttps(), R.dimen.small_user_icon, tag);
-    final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ic_person_outline_black);
-    if (drawable != null) {
-      request.placeholder(drawable);
-    }
-    return queryImage(request, tag);
-  }
-
-  @Override
-  public Observable<Drawable> querySquareImage(String url, @DimenRes int sizeRes, Object tag) {
-    final RequestCreator request = getRequestCreator(url, sizeRes, tag)
-        .centerCrop();
-    return queryImage(request, tag);
-  }
-
-  private RequestCreator getRequestCreator(String url, @DimenRes int sizeRes, Object tag) {
-    return client.load(url)
-        .tag(tag)
-        .resizeDimen(sizeRes, sizeRes);
-  }
-
-  private Single<View> observeOnGlobalLayout(View target) {
-    return Single.create(e ->
-        target.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-          @Override
-          public void onGlobalLayout() {
-            if (target.getHeight() <= 0 || target.getWidth() <= 0) {
-              return;
-            }
-            e.onSuccess(target);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-              target.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            } else {
-              target.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-            }
-          }
-        }));
-  }
-
-  @Override
-  public Observable<Drawable> queryPhotoMedia(String url, Object tag) {
-    return queryImage(client.load(url).tag(tag), tag);
-  }
-
-  @Override
-  public Observable<Drawable> queryToFit(Uri uri, View target, boolean centerCrop, Object tag) {
-    final RequestCreator request = client.load(uri)
-        .placeholder(defaultPlaceholder)
-        .tag(tag);
-    if (centerCrop) {
-      request.centerCrop();
-    }
-    if (target.getHeight() > 0 && target.getWidth() > 0) {
-      request.resize(target.getWidth(), target.getHeight());
-      return queryImage(request, tag);
-    } else {
-      return observeOnGlobalLayout(target)
-          .map(v -> request.resize(v.getWidth(), v.getHeight()))
-          .toObservable()
-          .flatMap(r -> queryImage(r, tag));
-    }
   }
 
   @Override
@@ -128,20 +50,18 @@ class ImageRepositoryImpl implements ImageRepository {
 
   @Override
   public Observable<Drawable> queryImage(ImageQuery query) {
-    final RequestCreator request = client.load(query.url)
-        .resize(query.width, query.height)
+    final RequestCreator request = client.load(query.uri)
         .tag(query.tag);
+    if (query.height > 0 && query.width > 0) {
+      request.resize(query.width, query.height);
+    }
     if (query.placeholder != null) {
       request.placeholder(query.placeholder);
     }
     if (query.centerCrop) {
       request.centerCrop();
     }
-    return queryImage(request, null);
-  }
-
-  private Observable<Drawable> queryImage(RequestCreator request, Object tag) {
-    return ImageObservable.create(request, createDisposable(tag));
+    return ImageObservable.create(request, createDisposable(query.tag));
   }
 
   @NonNull

@@ -52,6 +52,7 @@ import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
@@ -200,7 +201,12 @@ public class StatusDetailFragment extends Fragment {
     binding.sdTwitterCard.bindData(this.twitterCard);
     final String imageUrl = this.twitterCard.getImageUrl();
     if (!TextUtils.isEmpty(imageUrl) && !Utils.isSubscribed(cardSummaryImageSubs)) {
-      cardSummaryImageSubs = imageRepository.querySquareImage(imageUrl, R.dimen.card_summary_image, getStatusId())
+      final ImageQuery query = new ImageQuery.Builder(imageUrl)
+          .height(getContext(), R.dimen.card_summary_image)
+          .width(getContext(), R.dimen.card_summary_image)
+          .centerCrop()
+          .build();
+      cardSummaryImageSubs = imageRepository.queryImage(query)
           .subscribe(d -> binding.sdTwitterCard.getImage().setImageDrawable(d), th -> {});
     }
 

@@ -181,12 +181,14 @@ public class StatusViewImageLoader {
         .height(height)
         .width(width)
         .placeholder(defaultPlaceholder)
+        .centerCrop()
         .build();
   }
 
   private static Single<ImageQuery> getQueryForThumbnail(MediaEntity entity, View view) {
     return new ImageQuery.Builder(entity.getMediaURLHttps() + ":thumb")
         .placeholder(defaultPlaceholder)
+        .centerCrop()
         .build(view);
   }
 }
