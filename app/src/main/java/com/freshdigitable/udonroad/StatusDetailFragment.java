@@ -202,8 +202,7 @@ public class StatusDetailFragment extends Fragment {
     final String imageUrl = this.twitterCard.getImageUrl();
     if (!TextUtils.isEmpty(imageUrl) && !Utils.isSubscribed(cardSummaryImageSubs)) {
       final ImageQuery query = new ImageQuery.Builder(imageUrl)
-          .height(getContext(), R.dimen.card_summary_image)
-          .width(getContext(), R.dimen.card_summary_image)
+          .sizeForSquare(getContext(), R.dimen.card_summary_image)
           .centerCrop()
           .build();
       cardSummaryImageSubs = imageRepository.queryImage(query)

@@ -147,8 +147,7 @@ class DrawerNavigator {
     disposeUserIconSubscription();
     final Context context = getContext();
     final ImageQuery query = new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
-        .height(context, R.dimen.nav_drawer_header_icon)
-        .width(context, R.dimen.nav_drawer_header_icon)
+        .sizeForSquare(context, R.dimen.nav_drawer_header_icon)
         .placeholder(context, R.drawable.ic_person_outline_black)
         .build();
     userIconSubs = imageRepository.queryImage(query)

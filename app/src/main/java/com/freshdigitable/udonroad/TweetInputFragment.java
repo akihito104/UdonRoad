@@ -462,8 +462,7 @@ public class TweetInputFragment extends Fragment {
       inputText.setUserInfo(currentUser);
       Utils.maybeDispose(iconSubs);
       final ImageQuery query = new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
-          .width(getContext(), R.dimen.small_user_icon)
-          .height(getContext(), R.dimen.small_user_icon)
+          .sizeForSquare(getContext(), R.dimen.small_user_icon)
           .placeholder(getContext(), R.drawable.ic_person_outline_black)
           .build();
       iconSubs = imageRepository.queryImage(query)

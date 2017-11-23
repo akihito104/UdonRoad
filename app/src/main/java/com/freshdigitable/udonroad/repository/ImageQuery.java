@@ -90,6 +90,17 @@ public class ImageQuery {
       return height(context.getResources().getDimensionPixelSize(heightRes));
     }
 
+    public Builder sizeForSquare(int size) {
+      width(size);
+      height(size);
+      return this;
+    }
+
+    public Builder sizeForSquare(Context context, @DimenRes int sizeRes) {
+      final int size = context.getResources().getDimensionPixelSize(sizeRes);
+      return sizeForSquare(size);
+    }
+
     public Builder centerCrop() {
       this.centerCrop = true;
       return this;

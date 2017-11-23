@@ -211,8 +211,7 @@ public class UserInfoFragment extends Fragment {
     }
     Log.d("UserInfoFragment", "loadUserIcon: ");
     final ImageQuery query = new ImageQuery.Builder(user.getProfileImageURLHttps())
-        .height(getContext(), R.dimen.userInfo_user_icon)
-        .width(getContext(), R.dimen.userInfo_user_icon)
+        .sizeForSquare(getContext(), R.dimen.userInfo_user_icon)
         .build();
     iconSubs = imageRepository.queryImage(query)
         .subscribe(d -> binding.userInfoUserInfoView.getIcon().setImageDrawable(d), th -> {});

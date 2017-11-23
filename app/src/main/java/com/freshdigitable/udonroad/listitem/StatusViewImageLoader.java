@@ -77,8 +77,7 @@ public class StatusViewImageLoader {
     }
     final Context context = itemView.getContext();
     final ImageQuery query = new ImageQuery.Builder(user.getProfileImageURLHttps())
-        .height(context, R.dimen.tweet_user_icon)
-        .width(context, R.dimen.tweet_user_icon)
+        .sizeForSquare(context, R.dimen.tweet_user_icon)
         .placeholder(context, R.drawable.ic_person_outline_black)
         .build();
     return imageRepository.queryImage(query)
@@ -168,8 +167,7 @@ public class StatusViewImageLoader {
 
   private static ImageQuery getQueryForSmallIcon(Context context, User user) {
     return new ImageQuery.Builder(user.getMiniProfileImageURLHttps())
-        .height(context, R.dimen.small_user_icon)
-        .width(context, R.dimen.small_user_icon)
+        .sizeForSquare(context, R.dimen.small_user_icon)
         .placeholder(context, R.drawable.ic_person_outline_black)
         .build();
   }
