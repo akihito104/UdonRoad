@@ -65,7 +65,6 @@ import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.User;
 
-import static android.view.View.GONE;
 import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
 /**
@@ -267,8 +266,6 @@ public class StatusDetailFragment extends Fragment {
     super.onDestroyView();
     Utils.maybeDispose(iconSubscription);
     Utils.maybeDispose(cardSummaryImageSubs);
-    binding.statusView.reset();
-    binding.sdTwitterCard.setVisibility(GONE);
     twitterCard = null;
   }
 

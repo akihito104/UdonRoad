@@ -74,13 +74,13 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     imageView.setOnClickListener(super.getOnClickListener());
     imageView.setOnTouchListener(super.getTouchListener());
     if (!Utils.isSubscribed(imageSubs)) {
-      final Toast toast = Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG);
+      progressBar.setVisibility(View.VISIBLE);
       imageSubs = imageRepository.queryImage(new ImageQuery.Builder(getUrl()).build())
           .subscribe(d -> {
-            imageView.setImageDrawable(d);
             progressBar.setVisibility(View.GONE);
+            imageView.setImageDrawable(d);
           }, th -> {
-            toast.show();
+            Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG).show();
             progressBar.setVisibility(View.GONE);
           });
     }
@@ -91,7 +91,7 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onStop();
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
-    imageView.setImageDrawable(null);
+    progressBar.setVisibility(View.GONE);
   }
 
   @Override
