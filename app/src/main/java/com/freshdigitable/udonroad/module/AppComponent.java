@@ -29,6 +29,8 @@ import com.freshdigitable.udonroad.UserInfoPagerFragment;
 import com.freshdigitable.udonroad.UserSettingsActivity;
 import com.freshdigitable.udonroad.UserStreamUtil;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
+import com.freshdigitable.udonroad.media.PhotoMediaFragment;
+import com.freshdigitable.udonroad.repository.RepositoryModule;
 
 import javax.inject.Singleton;
 
@@ -40,7 +42,7 @@ import dagger.Component;
  * Created by akihit on 2016/06/16.
  */
 @Singleton
-@Component(modules = {TwitterApiModule.class, DataStoreModule.class})
+@Component(modules = {TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class})
 public interface AppComponent {
   void inject(OAuthActivity oAuthActivity);
 
@@ -71,4 +73,6 @@ public interface AppComponent {
   void inject(TimelineFragment.ListsListFragment listsListFragment);
 
   void inject(UserSettingsActivity.SettingsFragment settingsFragment);
+
+  void inject(PhotoMediaFragment photoMediaFragment);
 }

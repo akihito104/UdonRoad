@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.media;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -26,9 +27,14 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.freshdigitable.udonroad.R;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
+import com.freshdigitable.udonroad.Utils;
+import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 
+import javax.inject.Inject;
+
+import io.reactivex.disposables.Disposable;
 import twitter4j.MediaEntity;
 
 /**
@@ -41,6 +47,15 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
   private static final String TAG = PhotoMediaFragment.class.getSimpleName();
   private ImageView imageView;
   private ProgressBar progressBar;
+  @Inject
+  ImageRepository imageRepository;
+  private Disposable imageSubs;
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
+  }
 
   @Nullable
   @Override
@@ -58,30 +73,31 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
     super.onStart();
     imageView.setOnClickListener(super.getOnClickListener());
     imageView.setOnTouchListener(super.getTouchListener());
-    final Toast toast = Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG);
-    Picasso.with(getContext())
-        .load(getUrl())
-        .into(imageView, new Callback() {
-          @Override
-          public void onSuccess() {
+    if (!Utils.isSubscribed(imageSubs)) {
+      progressBar.setVisibility(View.VISIBLE);
+      imageSubs = imageRepository.queryImage(new ImageQuery.Builder(getUrl()).build())
+          .subscribe(d -> {
             progressBar.setVisibility(View.GONE);
-          }
-
-          @Override
-          public void onError() {
-            toast.show();
+            imageView.setImageDrawable(d);
+          }, th -> {
+            Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG).show();
             progressBar.setVisibility(View.GONE);
-          }
-        });
+          });
+    }
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    Picasso.with(getContext()).cancelRequest(imageView);
     imageView.setOnClickListener(null);
     imageView.setOnTouchListener(null);
-    imageView.setImageDrawable(null);
+    progressBar.setVisibility(View.GONE);
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    Utils.maybeDispose(imageSubs);
   }
 
   private static final String ARGS_URL = "url";

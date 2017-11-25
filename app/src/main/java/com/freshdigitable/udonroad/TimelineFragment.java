@@ -45,6 +45,7 @@ import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
+import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
 import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
@@ -83,6 +84,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private TimelineAnimator timelineAnimator;
   private ListFetchStrategy fetcher;
   private MenuItem heading;
+  @Inject
+  StatusViewImageLoader imageLoader;
 
   @Override
   public void onAttach(Context context) {
@@ -582,7 +585,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.StatusTimelineAdapter(super.sortedCache);
+      super.tlAdapter = new TimelineAdapter.StatusTimelineAdapter(sortedCache, imageLoader);
     }
 
     @Override
@@ -633,7 +636,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.UserListAdapter(super.sortedCache);
+      super.tlAdapter = new TimelineAdapter.UserListAdapter(sortedCache, imageLoader);
     }
 
     @Override
@@ -659,7 +662,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.ListListAdapter(super.sortedCache);
+      super.tlAdapter = new TimelineAdapter.ListListAdapter(sortedCache, imageLoader);
     }
 
     @Override

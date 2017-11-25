@@ -19,20 +19,34 @@ package com.freshdigitable.udonroad.listitem;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.Utils;
+
+import io.reactivex.disposables.Disposable;
+
 /**
  * Created by akihit on 2017/07/12.
  */
 
 public class UserItemViewHolder extends ItemViewHolder {
+
+  private Disposable iconSubscription;
+
   public UserItemViewHolder(ViewGroup parent) {
     super(new UserItemView(parent.getContext()));
   }
 
   @Override
-  public void bind(ListItem item) {
-    super.bind(item);
+  public void bind(ListItem item, StatusViewImageLoader imageLoader) {
+    super.bind(item, imageLoader);
     getView().bind(item);
-    StatusViewImageHelper.loadUserIcon(item.getUser(), getItemId(), getView());
+    Utils.maybeDispose(iconSubscription);
+    iconSubscription = imageLoader.loadUserIcon(item.getUser(), getView());
+  }
+
+  @Override
+  public void unsubscribe() {
+    super.unsubscribe();
+    Utils.maybeDispose(iconSubscription);
   }
 
   @Override

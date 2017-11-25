@@ -31,18 +31,22 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import twitter4j.Relationship;
 import twitter4j.User;
 
@@ -52,7 +56,6 @@ import twitter4j.User;
  * Created by akihit on 2016/02/07.
  */
 public class UserInfoFragment extends Fragment {
-  private static final String LOADINGTAG_USER_INFO_IMAGES = "UserInfoImages";
   private FragmentUserInfoBinding binding;
   private CompositeDisposable subscription;
 
@@ -82,6 +85,8 @@ public class UserInfoFragment extends Fragment {
   TypedCache<User> userCache;
   @Inject
   ConfigStore configStore;
+  @Inject
+  ImageRepository imageRepository;
 
   void onEnterAnimationComplete() {
     configRequestWorker.fetchRelationship(getUserId());
@@ -107,9 +112,7 @@ public class UserInfoFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
-    }
+    Utils.maybeDispose(subscription);
     userCache.close();
     configStore.close();
   }
@@ -195,40 +198,40 @@ public class UserInfoFragment extends Fragment {
       return;
     }
     Log.d("UserInfoFragment", "showUserInfo: ");
-    loadUserIcon(user.getProfileImageURLHttps());
+    loadUserIcon(user);
     loadBanner(user.getProfileBannerMobileURL());
     binding.userInfoUserInfoView.bindData(user);
   }
 
-  private String userIconUrl = "";
-  private void loadUserIcon(String url) {
-    if (url == null || userIconUrl.equals(url)) {
+  private Disposable iconSubs, bannerSubs;
+
+  private void loadUserIcon(@NonNull User user) {
+    if (Utils.isSubscribed(iconSubs)) {
       return;
     }
     Log.d("UserInfoFragment", "loadUserIcon: ");
-    this.userIconUrl = url;
-    Picasso.with(getContext())
-        .load(url)
-        .tag(LOADINGTAG_USER_INFO_IMAGES)
-        .into(binding.userInfoUserInfoView.getIcon());
+    final ImageQuery query = new ImageQuery.Builder(user.getProfileImageURLHttps())
+        .sizeForSquare(getContext(), R.dimen.userInfo_user_icon)
+        .build();
+    iconSubs = imageRepository.queryImage(query)
+        .subscribe(d -> binding.userInfoUserInfoView.getIcon().setImageDrawable(d), th -> {});
   }
 
-  private String bannerUrl = "";
   private void loadBanner(String url) {
-    if (url == null || bannerUrl.equals(url)) {
+    if (url == null || Utils.isSubscribed(bannerSubs)) {
       return;
     }
     Log.d("UserInfoFragment", "loadBanner: ");
-    this.bannerUrl = url;
-    Picasso.with(getContext())
-        .load(url)
-        .fit()
-        .tag(LOADINGTAG_USER_INFO_IMAGES)
-        .into(binding.userInfoUserInfoView.getBanner());
+    final ImageView banner = binding.userInfoUserInfoView.getBanner();
+    final Single<ImageQuery> query = new ImageQuery.Builder(url)
+        .build(banner);
+    bannerSubs = imageRepository.queryImage(query)
+        .subscribe(banner::setImageDrawable, th -> {});
   }
 
   private void dismissUserInfo() {
-    Picasso.with(getContext()).cancelTag(LOADINGTAG_USER_INFO_IMAGES);
+    Utils.maybeDispose(iconSubs);
+    Utils.maybeDispose(bannerSubs);
     binding.userInfoUserInfoView.getBanner().setImageDrawable(null);
     binding.userInfoUserInfoView.getIcon().setImageDrawable(null);
   }

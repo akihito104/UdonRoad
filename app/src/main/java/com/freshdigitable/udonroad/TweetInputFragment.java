@@ -25,6 +25,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -59,9 +61,9 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -75,6 +77,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -94,7 +97,6 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
  */
 public class TweetInputFragment extends Fragment {
   private static final String TAG = TweetInputFragment.class.getSimpleName();
-  private static final String LOADINGTAG_TWEET_INPUT_ICON = "TweetInputIcon";
   private static final int REQUEST_CODE_MEDIA_CHOOSER = 40;
   private static final int REQUEST_CODE_WRITE_EXTERNAL_PERMISSION = 50;
   private FragmentTweetInputBinding binding;
@@ -106,6 +108,9 @@ public class TweetInputFragment extends Fragment {
   TypedCache<Status> statusCache;
   private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
+  @Inject
+  ImageRepository imageRepository;
+  private Disposable iconSubs;
 
   public static TweetInputFragment create() {
     return new TweetInputFragment();
@@ -223,10 +228,8 @@ public class TweetInputFragment extends Fragment {
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
-    if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
-      Picasso.with(getContext()).cancelTag(LOADINGTAG_TWEET_INPUT_ICON);
-      currentUserSubscription.dispose();
-    }
+    Utils.maybeDispose(currentUserSubscription);
+    Utils.maybeDispose(iconSubs);
     appSettings.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
@@ -235,9 +238,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onDetach() {
     super.onDetach();
-    if (updateStatusTask != null && !updateStatusTask.isDisposed()) {
-      updateStatusTask.dispose();
-    }
+    Utils.maybeDispose(updateStatusTask);
     menuItems.clear();
   }
 
@@ -260,7 +261,7 @@ public class TweetInputFragment extends Fragment {
 
   public boolean isNewTweetCreatable() {
     return !isTweetInputViewVisible()
-        && (updateStatusTask == null || updateStatusTask.isDisposed())
+        && !Utils.isSubscribed(updateStatusTask)
         && isCleared();
   }
 
@@ -455,17 +456,17 @@ public class TweetInputFragment extends Fragment {
   }
 
   public void changeCurrentUser() {
-    if (currentUserSubscription != null && !currentUserSubscription.isDisposed()) {
-      currentUserSubscription.dispose();
-    }
+    Utils.maybeDispose(currentUserSubscription);
     final TweetInputView inputText = binding.mainTweetInputView;
     currentUserSubscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
       inputText.setUserInfo(currentUser);
-      Picasso.with(inputText.getContext())
-          .load(currentUser.getMiniProfileImageURLHttps())
-          .resizeDimen(R.dimen.small_user_icon, R.dimen.small_user_icon)
-          .tag(LOADINGTAG_TWEET_INPUT_ICON)
-          .into(inputText.getIcon());
+      Utils.maybeDispose(iconSubs);
+      final ImageQuery query = new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
+          .sizeForSquare(getContext(), R.dimen.small_user_icon)
+          .placeholder(getContext(), R.drawable.ic_person_outline_black)
+          .build();
+      iconSubs = imageRepository.queryImage(query)
+          .subscribe(d -> inputText.getIcon().setImageDrawable(d), th -> {});
     }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
   }
 
@@ -558,24 +559,29 @@ public class TweetInputFragment extends Fragment {
 
   private void clearMedia() {
     media.clear();
+    Utils.maybeDispose(uploadedMediaSubs);
     binding.mainTweetInputView.clearMedia();
   }
 
+  private CompositeDisposable uploadedMediaSubs;
+
   private void updateMediaContainer() {
+    Utils.maybeDispose(uploadedMediaSubs);
+
+    uploadedMediaSubs = new CompositeDisposable();
     final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
     mediaContainer.bindMediaEntities(media.size());
     final int thumbCount = mediaContainer.getThumbCount();
     for (int i = 0; i < thumbCount; i++) {
       final Uri uri = media.get(i);
-      final RequestCreator rc = Picasso.with(getContext())
-          .load(uri);
-      if (mediaContainer.getThumbWidth() <= 0 || mediaContainer.getHeight() <= 0) {
-        rc.fit();
-      } else {
-        rc.resize(mediaContainer.getThumbWidth(), mediaContainer.getHeight());
-      }
       final ImageView imageView = (ImageView) mediaContainer.getChildAt(i);
-      rc.centerCrop().into(imageView);
+      final Single<ImageQuery> query = new ImageQuery.Builder(uri)
+          .placeholder(new ColorDrawable(Color.LTGRAY))
+          .centerCrop()
+          .build(imageView);
+      final Disposable d = imageRepository.queryImage(query)
+          .subscribe(imageView::setImageDrawable, th -> {});
+      uploadedMediaSubs.add(d);
 
       imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
         final MenuItem delete = contextMenu.add(0, 1, 0, R.string.media_upload_delete);

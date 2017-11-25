@@ -35,7 +35,8 @@ import android.view.View;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
-import com.squareup.picasso.Picasso;
+import com.freshdigitable.udonroad.repository.ImageQuery;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import java.util.List;
 
@@ -53,6 +54,7 @@ class DrawerNavigator {
   private final NavHeaderBinding navHeaderBinding;
   private final Drawable upArrow, downArrow;
   private final AppSettingStore appSettings;
+  private final ImageRepository imageRepository;
   private final DrawerListener drawerListener = new SimpleDrawerListener() {
     @Override
     public void onDrawerClosed(View drawerView) {
@@ -64,11 +66,13 @@ class DrawerNavigator {
   private boolean navMenuPerforming = false;
 
   DrawerNavigator(@NonNull DrawerLayout drawerLayout, @NonNull NavigationView navigationView,
-                  @NonNull NavHeaderBinding navHeaderBinding, @NonNull AppSettingStore appSetting) {
+                  @NonNull NavHeaderBinding navHeaderBinding, @NonNull AppSettingStore appSetting,
+                  @NonNull ImageRepository imageRepository) {
     this.drawerLayout = drawerLayout;
     this.navigationView = navigationView;
     this.navHeaderBinding = navHeaderBinding;
     this.appSettings = appSetting;
+    this.imageRepository = imageRepository;
 
     final Context context = drawerLayout.getContext();
     downArrow = AppCompatResources.getDrawable(context, R.drawable.ic_arrow_drop_down);
@@ -123,6 +127,7 @@ class DrawerNavigator {
   }
 
   private Disposable subscription;
+  private Disposable userIconSubs;
 
   void changeCurrentUser() {
     unsubscribeCurrentUser();
@@ -139,10 +144,14 @@ class DrawerNavigator {
   }
 
   private void setupHeader(User currentUser) {
-    Picasso.with(navigationView.getContext())
-        .load(currentUser.getProfileImageURLHttps())
-        .resizeDimen(R.dimen.nav_drawer_header_icon, R.dimen.nav_drawer_header_icon)
-        .into(navHeaderBinding.navHeaderIcon);
+    disposeUserIconSubscription();
+    final Context context = getContext();
+    final ImageQuery query = new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
+        .sizeForSquare(context, R.dimen.nav_drawer_header_icon)
+        .placeholder(context, R.drawable.ic_person_outline_black)
+        .build();
+    userIconSubs = imageRepository.queryImage(query)
+        .subscribe(navHeaderBinding.navHeaderIcon::setImageDrawable, th -> {});
 
     final long userId = currentUser.getId();
     navHeaderBinding.navHeaderIcon.setOnClickListener(v ->
@@ -167,6 +176,12 @@ class DrawerNavigator {
         setMenuByGroupId(R.id.drawer_menu_default);
       }
     });
+  }
+
+  private void disposeUserIconSubscription() {
+    if (userIconSubs != null && !userIconSubs.isDisposed()) {
+      userIconSubs.dispose();
+    }
   }
 
   private void setAccountList() {
@@ -206,7 +221,7 @@ class DrawerNavigator {
 
   void release() {
     final RoundedCornerImageView navHeaderIcon = navHeaderBinding.navHeaderIcon;
-    Picasso.with(navHeaderIcon.getContext()).cancelRequest(navHeaderIcon);
+    disposeUserIconSubscription();
     navHeaderIcon.setOnClickListener(null);
     navHeaderBinding.navHeaderAccount.setOnClickListener(null);
     setOnDefaultItemSelectedListener(null);
@@ -233,5 +248,9 @@ class DrawerNavigator {
 
   void setOnAccountItemSelectedListener(OnAccountItemSelectedListener listener) {
     this.accountItemSelectedListener = listener != null ? listener : (item, user) -> {};
+  }
+
+  private Context getContext() {
+    return drawerLayout.getContext();
   }
 }

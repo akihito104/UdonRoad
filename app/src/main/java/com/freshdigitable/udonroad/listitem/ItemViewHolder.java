@@ -25,6 +25,7 @@ import android.widget.ImageView;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import twitter4j.User;
 
 /**
  * Created by akihit on 2017/06/14.
@@ -39,11 +40,12 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   @CallSuper
-  public void bind(final ListItem item) {
+  public void bind(final ListItem item, StatusViewImageLoader imageLoader) {
     itemView.setOnClickListener(v ->
         itemViewClickListener.onItemViewClicked(this, getItemId(), v));
+    final User user = item.getUser();
     getUserIcon().setOnClickListener(
-        v -> userIconClickedListener.onUserIconClicked(v, item.getUser()));
+        v -> userIconClickedListener.onUserIconClicked(v, user));
   }
 
   public abstract ImageView getUserIcon();

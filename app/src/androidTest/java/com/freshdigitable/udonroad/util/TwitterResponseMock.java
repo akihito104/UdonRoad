@@ -120,6 +120,7 @@ public class TwitterResponseMock {
     when(hasImage.isPossiblySensitive()).thenReturn(true);
     final MediaEntity media = mock(MediaEntity.class);
     when(media.getURL()).thenReturn("");
+    when(media.getMediaURLHttps()).thenReturn("https://localhost/");
     when(media.getType()).thenReturn("photo");
     when(media.getVideoVariants()).thenReturn(new MediaEntity.Variant[0]);
     when(hasImage.getMediaEntities()).thenReturn(new MediaEntity[]{media});

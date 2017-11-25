@@ -20,24 +20,33 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
+
+import io.reactivex.disposables.Disposable;
 
 /**
  * Created by akihit on 2017/07/12.
  */
 
 public class StatusViewHolder extends ItemViewHolder {
+
+  private Disposable imageSubs;
+
   public StatusViewHolder(ViewGroup parent) {
     super(new StatusView(parent.getContext()));
   }
 
   @Override
-  public void bind(ListItem item) {
-    super.bind(item);
+  public void bind(ListItem item, StatusViewImageLoader imageLoader) {
+    super.bind(item, imageLoader);
     final TwitterListItem twitterListItem = (TwitterListItem) item;
     getView().bind(twitterListItem);
-    StatusViewImageHelper.load(twitterListItem, getView());
+    Utils.maybeDispose(imageSubs);
+    if (imageLoader != null) {
+      imageSubs = imageLoader.load(twitterListItem, getView());
+    }
     setupMediaView(twitterListItem, getView());
     setupQuotedStatusView(twitterListItem, getView().getQuotedStatusView());
   }
@@ -61,7 +70,7 @@ public class StatusViewHolder extends ItemViewHolder {
     if (quotedStatusView != null && quotedStatusView.getVisibility() == View.VISIBLE) {
       unloadMediaView(quotedStatusView);
     }
-    StatusViewImageHelper.unload(getView(), getItemId());
+    Utils.maybeDispose(imageSubs);
   }
 
   @Override
