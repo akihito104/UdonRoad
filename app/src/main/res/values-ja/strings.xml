@@ -138,4 +138,5 @@
     <string name="action_sendTweet">ツイートを送る</string>
     <string name="navDesc_cancelTweet">入力を取り消す</string>
     <string name="action_resumeTweet">ツイートの再送信</string>
+    <string name="settings_title_version">バージョン情報</string>
 </resources>
