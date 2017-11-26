@@ -127,7 +127,7 @@ public class StatusViewImageLoader {
   private static boolean isHideSensitive(Context context) {
     final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
     final String key = context.getString(R.string.settings_key_sensitive);
-    return sp.getBoolean(key, false);
+    return sp.getBoolean(key, context.getResources().getBoolean(R.bool.settings_sensitive_default));
   }
 
   private Disposable loadThumbnails(MediaEntity[] entities, ThumbnailContainer thumbnailContainer) {

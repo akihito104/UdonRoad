@@ -130,6 +130,7 @@
 
     <string name="settings_title_sensitive">hide sensitive thumbnail</string>
     <string name="settings_key_sensitive" translatable="false">key_hide_sensitive_thumb</string>
+    <bool name="settings_sensitive_default">true</bool>
     <string name="settings_key_loginUser" translatable="false">key_login_user</string>
     <string name="settings_title_loginUser">login account on launching</string>
     <string name="settings_loginUser_default" translatable="false">-1</string>
