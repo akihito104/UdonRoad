@@ -19,11 +19,15 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.ListPreference;
+import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
+import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -89,6 +93,15 @@ public class UserSettingsActivity extends AppCompatActivity {
       p.setEntries(entries);
       p.setEntryValues(entryValues);
       p.setSummary(p.getEntry());
+
+      try {
+        final String packageName = getActivity().getPackageName();
+        final PackageInfo packageInfo = getActivity().getPackageManager().getPackageInfo(packageName, PackageManager.GET_META_DATA);
+        final Preference version = findPreference(getString(R.string.settings_key_version));
+        version.setSummary(packageInfo.versionName);
+      } catch (PackageManager.NameNotFoundException e) {
+        Log.e(getClass().getSimpleName(), "onCreatePreferences: ");
+      }
     }
 
     @Override

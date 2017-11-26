@@ -93,6 +93,7 @@
     <string name="action_r4s">report for spam</string>
     <string name="action_unblock">unblock</string>
     <string name="action_unblock_retweet">unblock RT</string>
+    <string name="action_resumeTweet">Resume Tweet</string>
 
     <string name="user_following">following</string>
     <string name="user_muting">muting</string>
@@ -132,7 +133,8 @@
     <string name="settings_key_loginUser" translatable="false">key_login_user</string>
     <string name="settings_title_loginUser">login account on launching</string>
     <string name="settings_loginUser_default" translatable="false">-1</string>
-    <string name="action_resumeTweet">Resume Tweet</string>
+    <string name="settings_title_version">version</string>
+    <string name="settings_key_version" translatable="false">key_version</string>
     <string-array name="settings_loginUser_entries">
         <item>last logged in</item>
     </string-array>
