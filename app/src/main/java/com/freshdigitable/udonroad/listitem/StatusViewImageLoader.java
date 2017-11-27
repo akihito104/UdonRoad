@@ -172,20 +172,18 @@ public class StatusViewImageLoader {
         .build();
   }
 
-  private static final ColorDrawable defaultPlaceholder = new ColorDrawable(Color.LTGRAY);
-
   private static ImageQuery getQueryForThumbnail(MediaEntity entity, int height, int width) {
     return new ImageQuery.Builder(entity.getMediaURLHttps() + ":thumb")
         .height(height)
         .width(width)
-        .placeholder(defaultPlaceholder)
+        .placeholder(new ColorDrawable(Color.LTGRAY))
         .centerCrop()
         .build();
   }
 
   private static Single<ImageQuery> getQueryForThumbnail(MediaEntity entity, View view) {
     return new ImageQuery.Builder(entity.getMediaURLHttps() + ":thumb")
-        .placeholder(defaultPlaceholder)
+        .placeholder(new ColorDrawable(Color.LTGRAY))
         .centerCrop()
         .build(view);
   }

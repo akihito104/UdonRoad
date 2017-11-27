@@ -27,7 +27,6 @@ import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 
@@ -36,7 +35,8 @@ import io.reactivex.disposables.Disposable;
  */
 
 class ImageRepositoryImpl implements ImageRepository {
-
+  @SuppressWarnings("unused")
+  private static final String TAG = ImageRepositoryImpl.class.getSimpleName();
   private final Picasso client;
 
   ImageRepositoryImpl(Context appContext) {
@@ -61,7 +61,7 @@ class ImageRepositoryImpl implements ImageRepository {
     if (query.centerCrop) {
       request.centerCrop();
     }
-    return ImageObservable.create(request, createDisposable(query.tag));
+    return create(request, createDisposable(query.tag));
   }
 
   @NonNull
@@ -85,46 +85,31 @@ class ImageRepositoryImpl implements ImageRepository {
     };
   }
 
-  private static class ImageObservable extends Observable<Drawable> {
-    @NonNull
-    static ImageObservable create(@NonNull RequestCreator request, @NonNull Disposable disposable) {
-      return new ImageObservable(request, disposable);
-    }
-
-    private final RequestCreator request;
-    private final Disposable disposable;
-    private Target target;
-
-    private ImageObservable(RequestCreator request, Disposable disposable) {
-      this.request = request;
-      this.disposable = disposable;
-    }
-
-    @Override
-    protected void subscribeActual(Observer<? super Drawable> observer) {
-      observer.onSubscribe(disposable);
-      target = new Target() {
+  @NonNull
+  private static Observable<Drawable> create(@NonNull RequestCreator request, @NonNull Disposable disposable) {
+    return Observable.create(e -> {
+      e.setDisposable(disposable);
+      request.into(new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-          observer.onNext(new BitmapDrawable(bitmap));
+          e.onNext(new BitmapDrawable(bitmap));
         }
 
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
           if (errorDrawable != null) {
-            observer.onNext(errorDrawable);
+            e.onNext(errorDrawable);
           }
-          observer.onError(new RuntimeException());
+          e.onError(new RuntimeException());
         }
 
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
           if (placeHolderDrawable != null) {
-            observer.onNext(placeHolderDrawable);
+            e.onNext(placeHolderDrawable);
           }
         }
-      };
-      request.into(target);
-    }
+      });
+    });
   }
 }
