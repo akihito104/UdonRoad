@@ -50,8 +50,7 @@ class ImageRepositoryImpl implements ImageRepository {
 
   @Override
   public Observable<Drawable> queryImage(ImageQuery query) {
-    final RequestCreator request = client.load(query.uri)
-        .tag(query.tag);
+    final RequestCreator request = client.load(query.uri);
     if (query.height > 0 && query.width > 0) {
       request.resize(query.width, query.height);
     }
@@ -61,35 +60,13 @@ class ImageRepositoryImpl implements ImageRepository {
     if (query.centerCrop) {
       request.centerCrop();
     }
-    return create(request, createDisposable(query.tag));
+    return create(client, request);
   }
 
   @NonNull
-  private Disposable createDisposable(Object tag) {
-    return new Disposable() {
-      boolean disposed = false;
-
-      @Override
-      public void dispose() {
-        if (disposed) {
-          return;
-        }
-        client.cancelTag(tag);
-        disposed = true;
-      }
-
-      @Override
-      public boolean isDisposed() {
-        return disposed;
-      }
-    };
-  }
-
-  @NonNull
-  private static Observable<Drawable> create(@NonNull RequestCreator request, @NonNull Disposable disposable) {
+  private static Observable<Drawable> create(Picasso client, @NonNull RequestCreator request) {
     return Observable.create(e -> {
-      e.setDisposable(disposable);
-      request.into(new Target() {
+      final Target target = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
           e.onNext(new BitmapDrawable(bitmap));
@@ -109,7 +86,24 @@ class ImageRepositoryImpl implements ImageRepository {
             e.onNext(placeHolderDrawable);
           }
         }
+      };
+      e.setDisposable(new Disposable() {
+        private boolean disposed = false;
+
+        @Override
+        public void dispose() {
+          if(!disposed) {
+            client.cancelRequest(target);
+            disposed = true;
+          }
+        }
+
+        @Override
+        public boolean isDisposed() {
+          return disposed;
+        }
       });
+      request.into(target);
     });
   }
 }

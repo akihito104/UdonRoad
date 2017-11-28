@@ -38,7 +38,6 @@ public class ImageQuery {
   final int width;
   final int height;
   final boolean centerCrop;
-  final long tag = System.nanoTime();
 
   private ImageQuery(Builder builder) {
     uri = builder.uri;
