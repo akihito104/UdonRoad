@@ -27,7 +27,6 @@ import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 
@@ -36,7 +35,8 @@ import io.reactivex.disposables.Disposable;
  */
 
 class ImageRepositoryImpl implements ImageRepository {
-
+  @SuppressWarnings("unused")
+  private static final String TAG = ImageRepositoryImpl.class.getSimpleName();
   private final Picasso client;
 
   ImageRepositoryImpl(Context appContext) {
@@ -50,8 +50,7 @@ class ImageRepositoryImpl implements ImageRepository {
 
   @Override
   public Observable<Drawable> queryImage(ImageQuery query) {
-    final RequestCreator request = client.load(query.uri)
-        .tag(query.tag);
+    final RequestCreator request = client.load(query.uri);
     if (query.height > 0 && query.width > 0) {
       request.resize(query.width, query.height);
     }
@@ -61,70 +60,50 @@ class ImageRepositoryImpl implements ImageRepository {
     if (query.centerCrop) {
       request.centerCrop();
     }
-    return ImageObservable.create(request, createDisposable(query.tag));
+    return create(client, request);
   }
 
   @NonNull
-  private Disposable createDisposable(Object tag) {
-    return new Disposable() {
-      boolean disposed = false;
-
-      @Override
-      public void dispose() {
-        if (disposed) {
-          return;
-        }
-        client.cancelTag(tag);
-        disposed = true;
-      }
-
-      @Override
-      public boolean isDisposed() {
-        return disposed;
-      }
-    };
-  }
-
-  private static class ImageObservable extends Observable<Drawable> {
-    @NonNull
-    static ImageObservable create(@NonNull RequestCreator request, @NonNull Disposable disposable) {
-      return new ImageObservable(request, disposable);
-    }
-
-    private final RequestCreator request;
-    private final Disposable disposable;
-    private Target target;
-
-    private ImageObservable(RequestCreator request, Disposable disposable) {
-      this.request = request;
-      this.disposable = disposable;
-    }
-
-    @Override
-    protected void subscribeActual(Observer<? super Drawable> observer) {
-      observer.onSubscribe(disposable);
-      target = new Target() {
+  private static Observable<Drawable> create(Picasso client, @NonNull RequestCreator request) {
+    return Observable.create(e -> {
+      final Target target = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-          observer.onNext(new BitmapDrawable(bitmap));
+          e.onNext(new BitmapDrawable(bitmap));
         }
 
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
           if (errorDrawable != null) {
-            observer.onNext(errorDrawable);
+            e.onNext(errorDrawable);
           }
-          observer.onError(new RuntimeException());
+          e.onError(new RuntimeException());
         }
 
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
           if (placeHolderDrawable != null) {
-            observer.onNext(placeHolderDrawable);
+            e.onNext(placeHolderDrawable);
           }
         }
       };
+      e.setDisposable(new Disposable() {
+        private boolean disposed = false;
+
+        @Override
+        public void dispose() {
+          if(!disposed) {
+            client.cancelRequest(target);
+            disposed = true;
+          }
+        }
+
+        @Override
+        public boolean isDisposed() {
+          return disposed;
+        }
+      });
       request.into(target);
-    }
+    });
   }
 }
