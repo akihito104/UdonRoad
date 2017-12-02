@@ -39,7 +39,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetInputListener;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
@@ -53,9 +53,9 @@ import javax.inject.Inject;
 
 import twitter4j.User;
 
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
-import static com.freshdigitable.udonroad.TweetInputFragment.TweetType;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_QUOTE;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 
 /**
  * UserInfoActivity shows information and tweets of specified user.

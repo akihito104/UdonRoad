@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.input;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -56,14 +56,12 @@ import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
-import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
-import com.freshdigitable.udonroad.repository.ImageRepository;
-import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -81,7 +79,6 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
-import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -101,15 +98,9 @@ public class TweetInputFragment extends Fragment {
   private static final int REQUEST_CODE_WRITE_EXTERNAL_PERMISSION = 50;
   private FragmentTweetInputBinding binding;
   @Inject
-  StatusRequestWorker statusRequestWorker;
-  @Inject
-  AppSettingStore appSettings;
-  @Inject
-  TypedCache<Status> statusCache;
+  TweetInputUseCase useCase;
   private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
-  @Inject
-  ImageRepository imageRepository;
   private Disposable iconSubs;
 
   public static TweetInputFragment create() {
@@ -120,6 +111,7 @@ public class TweetInputFragment extends Fragment {
   public void onAttach(Context context) {
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
+    getLifecycle().addObserver(useCase);
   }
 
   @Override
@@ -204,8 +196,6 @@ public class TweetInputFragment extends Fragment {
   public void onStart() {
     Log.d(TAG, "onStart: ");
     super.onStart();
-    appSettings.open();
-    changeCurrentUser();
 
     final TweetInputView inputText = binding.mainTweetInputView;
     inputText.getAppendImageButton().setOnClickListener(v -> {
@@ -225,12 +215,17 @@ public class TweetInputFragment extends Fragment {
   }
 
   @Override
+  public void onResume() {
+    super.onResume();
+    changeCurrentUser();
+  }
+
+  @Override
   public void onStop() {
     Log.d(TAG, "onStop: ");
     super.onStop();
     Utils.maybeDispose(currentUserSubscription);
     Utils.maybeDispose(iconSubs);
-    appSettings.close();
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
   }
@@ -287,14 +282,11 @@ public class TweetInputFragment extends Fragment {
   private ReplyEntity replyEntity;
 
   private void setupReplyEntity(long inReplyToStatusId) {
-    statusCache.open();
-    final Status inReplyTo = statusCache.find(inReplyToStatusId);
-    if (inReplyTo != null) {
-      replyEntity = ReplyEntity.create(inReplyTo, appSettings.getCurrentUserId());
-      binding.mainTweetInputView.addText(replyEntity.createReplyString());
+    replyEntity = useCase.getReplyEntity(inReplyToStatusId);
+    if (replyEntity != null) {
+      binding.mainTweetInputView.addText(this.replyEntity.createReplyString());
       binding.mainTweetInputView.setInReplyTo();
     }
-    statusCache.close();
   }
 
   private void setupQuote(long quotedStatus) {
@@ -303,10 +295,7 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void expandTweetInputView() {
-    final TwitterAPIConfiguration twitterAPIConfig = appSettings.getTwitterAPIConfig();
-    if (twitterAPIConfig != null) {
-      binding.mainTweetInputView.setShortUrlLength(twitterAPIConfig.getShortURLLengthHttps());
-    }
+    binding.mainTweetInputView.setShortUrlLength(useCase.getUrlLength());
     setupExpandAnimation(binding.mainTweetInputView);
     setupMenuVisibility(R.id.action_sendTweet);
   }
@@ -374,26 +363,12 @@ public class TweetInputFragment extends Fragment {
   private Single<Status> createSendObservable() {
     final String sendingText = binding.mainTweetInputView.getText().toString();
     if (!isStatusUpdateNeeded()) {
-      return statusRequestWorker.observeUpdateStatus(sendingText);
+      return useCase.createSendTask(sendingText);
     }
-    StringBuilder s = new StringBuilder(sendingText);
-    statusCache.open();
-    for (long q : quoteStatusIds) {
-      final Status status = statusCache.find(q);
-      if (status == null) {
-        continue;
-      }
-      s.append(" https://twitter.com/")
-          .append(status.getUser().getScreenName()).append("/status/").append(q);
-    }
-    statusCache.close();
-    final StatusUpdate statusUpdate = new StatusUpdate(s.toString());
-    if (replyEntity != null) {
-      statusUpdate.setInReplyToStatusId(replyEntity.inReplyToStatusId);
-    }
+    final StatusUpdate statusUpdate = useCase.createStatusUpdate(sendingText, quoteStatusIds, replyEntity);
     return media.size() > 0 ?
-        statusRequestWorker.observeUpdateStatus(getContext(), statusUpdate, media)
-        : statusRequestWorker.observeUpdateStatus(statusUpdate);
+        useCase.createSendTask(getContext(), statusUpdate, media)
+        : useCase.createSendTask(statusUpdate);
   }
 
   private boolean isStatusUpdateNeeded() {
@@ -458,19 +433,20 @@ public class TweetInputFragment extends Fragment {
   public void changeCurrentUser() {
     Utils.maybeDispose(currentUserSubscription);
     final TweetInputView inputText = binding.mainTweetInputView;
-    currentUserSubscription = appSettings.observeCurrentUser().subscribe(currentUser -> {
-      inputText.setUserInfo(currentUser);
-      Utils.maybeDispose(iconSubs);
-      final ImageQuery query = new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
-          .sizeForSquare(getContext(), R.dimen.small_user_icon)
-          .placeholder(getContext(), R.drawable.ic_person_outline_black)
-          .build();
-      iconSubs = imageRepository.queryImage(query)
-          .subscribe(d -> inputText.getIcon().setImageDrawable(d), th -> {});
-    }, e -> Log.e(TAG, "setUpTweetInputView: ", e));
+    currentUserSubscription = useCase.observeCurrentUser()
+        .subscribe(inputText::setUserInfo, e -> Log.e(TAG, "setUpTweetInputView: ", e));
+
+    Utils.maybeDispose(iconSubs);
+    iconSubs = useCase.observeCurrentUser().map(currentUser ->
+        new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
+            .sizeForSquare(getContext(), R.dimen.small_user_icon)
+            .placeholder(getContext(), R.drawable.ic_person_outline_black)
+            .build())
+        .flatMap(useCase::queryImage)
+        .subscribe(d -> inputText.getIcon().setImageDrawable(d), th -> {});
   }
 
-  interface TweetInputListener {
+  public interface TweetInputListener {
     void onSendCompleted();
   }
 
@@ -493,7 +469,7 @@ public class TweetInputFragment extends Fragment {
   public @interface TweetType {
   }
 
-  private static class ReplyEntity {
+  static class ReplyEntity {
     final long inReplyToStatusId;
     final Set<String> screenNames;
 
@@ -579,7 +555,7 @@ public class TweetInputFragment extends Fragment {
           .placeholder(new ColorDrawable(Color.LTGRAY))
           .centerCrop()
           .build(imageView);
-      final Disposable d = imageRepository.queryImage(query)
+      final Disposable d = useCase.queryImage(query)
           .subscribe(imageView::setImageDrawable, th -> {});
       uploadedMediaSubs.add(d);
 

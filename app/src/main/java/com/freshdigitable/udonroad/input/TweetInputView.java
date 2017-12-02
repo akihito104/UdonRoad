@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.input;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -30,6 +30,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 

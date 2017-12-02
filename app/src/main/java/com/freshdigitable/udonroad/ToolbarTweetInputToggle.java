@@ -24,11 +24,12 @@ import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_NONE;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_NONE;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_QUOTE;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
 
 /**
  * Created by akihit on 2017/09/24.

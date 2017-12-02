@@ -22,7 +22,7 @@ import com.freshdigitable.udonroad.OAuthActivity;
 import com.freshdigitable.udonroad.ReplyActivity;
 import com.freshdigitable.udonroad.StatusDetailFragment;
 import com.freshdigitable.udonroad.TimelineFragment;
-import com.freshdigitable.udonroad.TweetInputFragment;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.UserInfoFragment;
 import com.freshdigitable.udonroad.UserInfoPagerFragment;
