@@ -30,7 +30,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.support.annotation.IdRes;
@@ -66,21 +65,14 @@ import com.freshdigitable.udonroad.repository.ImageQuery;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 
 import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import twitter4j.Status;
-import twitter4j.StatusUpdate;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_OK;
@@ -98,10 +90,11 @@ public class TweetInputFragment extends Fragment {
   private static final int REQUEST_CODE_WRITE_EXTERNAL_PERMISSION = 50;
   private FragmentTweetInputBinding binding;
   @Inject
-  TweetInputUseCase useCase;
+  TweetInputViewModel viewModel;
   private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
   private Disposable iconSubs;
+  private Disposable mediaSubs;
 
   public static TweetInputFragment create() {
     return new TweetInputFragment();
@@ -111,7 +104,7 @@ public class TweetInputFragment extends Fragment {
   public void onAttach(Context context) {
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
-    getLifecycle().addObserver(useCase);
+    getLifecycle().addObserver(viewModel);
   }
 
   @Override
@@ -172,7 +165,7 @@ public class TweetInputFragment extends Fragment {
     if (itemId == R.id.action_sendTweet) {
       menuItems.get(R.id.action_sendTweet).setEnabled(false);
       final TweetInputListener tweetInputListener = getTweetInputListener();
-      updateStatusTask = createSendObservable().subscribe(s -> {
+      updateStatusTask = viewModel.createSendObservable(getContext(), binding.mainTweetInputView.getText().toString()).subscribe(s -> {
         tweetInputListener.onSendCompleted();
         clear();
         setupMenuVisibility(R.id.action_writeTweet);
@@ -212,6 +205,7 @@ public class TweetInputFragment extends Fragment {
       showMediaChooser();
     });
     inputText.addTextWatcher(textWatcher);
+    mediaSubs = viewModel.observeMedia().subscribe(this::updateMediaContainer);
   }
 
   @Override
@@ -226,6 +220,7 @@ public class TweetInputFragment extends Fragment {
     super.onStop();
     Utils.maybeDispose(currentUserSubscription);
     Utils.maybeDispose(iconSubs);
+    Utils.maybeDispose(mediaSubs);
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
   }
@@ -252,8 +247,6 @@ public class TweetInputFragment extends Fragment {
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
   };
 
-  private final List<Long> quoteStatusIds = new ArrayList<>(4);
-
   public boolean isNewTweetCreatable() {
     return !isTweetInputViewVisible()
         && !Utils.isSubscribed(updateStatusTask)
@@ -279,23 +272,21 @@ public class TweetInputFragment extends Fragment {
     expandTweetInputView();
   }
 
-  private ReplyEntity replyEntity;
-
   private void setupReplyEntity(long inReplyToStatusId) {
-    replyEntity = useCase.getReplyEntity(inReplyToStatusId);
-    if (replyEntity != null) {
-      binding.mainTweetInputView.addText(this.replyEntity.createReplyString());
+    viewModel.setReplyToStatusId(inReplyToStatusId);
+    if (viewModel.hasReplyEntity()) {
+      binding.mainTweetInputView.addText(viewModel.createReplyString());
       binding.mainTweetInputView.setInReplyTo();
     }
   }
 
   private void setupQuote(long quotedStatus) {
-    quoteStatusIds.add(quotedStatus);
+    viewModel.addQuoteId(quotedStatus);
     binding.mainTweetInputView.setQuote();
   }
 
   private void expandTweetInputView() {
-    binding.mainTweetInputView.setShortUrlLength(useCase.getUrlLength());
+    binding.mainTweetInputView.setShortUrlLength(viewModel.getUrlLength());
     setupExpandAnimation(binding.mainTweetInputView);
     setupMenuVisibility(R.id.action_sendTweet);
   }
@@ -360,23 +351,6 @@ public class TweetInputFragment extends Fragment {
     this.valueAnimator.start();
   }
 
-  private Single<Status> createSendObservable() {
-    final String sendingText = binding.mainTweetInputView.getText().toString();
-    if (!isStatusUpdateNeeded()) {
-      return useCase.createSendTask(sendingText);
-    }
-    final StatusUpdate statusUpdate = useCase.createStatusUpdate(sendingText, quoteStatusIds, replyEntity);
-    return media.size() > 0 ?
-        useCase.createSendTask(getContext(), statusUpdate, media)
-        : useCase.createSendTask(statusUpdate);
-  }
-
-  private boolean isStatusUpdateNeeded() {
-    return replyEntity != null
-        || quoteStatusIds.size() > 0
-        || media.size() > 0;
-  }
-
   public void collapseStatusInputView() {
     animateToCollapse(binding.mainTweetInputView);
   }
@@ -415,14 +389,12 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void clear() {
-    replyEntity = null;
-    quoteStatusIds.clear();
-    clearMedia();
+    viewModel.clear();
     binding.mainTweetInputView.reset();
   }
 
   private boolean isCleared() {
-    return replyEntity == null && quoteStatusIds.isEmpty() && media.isEmpty()
+    return viewModel.isCleared()
         && (binding == null || binding.mainTweetInputView.getText().length() <= 0);
   }
 
@@ -433,16 +405,16 @@ public class TweetInputFragment extends Fragment {
   public void changeCurrentUser() {
     Utils.maybeDispose(currentUserSubscription);
     final TweetInputView inputText = binding.mainTweetInputView;
-    currentUserSubscription = useCase.observeCurrentUser()
+    currentUserSubscription = viewModel.observeCurrentUser()
         .subscribe(inputText::setUserInfo, e -> Log.e(TAG, "setUpTweetInputView: ", e));
 
     Utils.maybeDispose(iconSubs);
-    iconSubs = useCase.observeCurrentUser().map(currentUser ->
+    iconSubs = viewModel.observeCurrentUser().map(currentUser ->
         new ImageQuery.Builder(currentUser.getMiniProfileImageURLHttps())
             .sizeForSquare(getContext(), R.dimen.small_user_icon)
             .placeholder(getContext(), R.drawable.ic_person_outline_black)
             .build())
-        .flatMap(useCase::queryImage)
+        .flatMap(viewModel::queryImage)
         .subscribe(d -> inputText.getIcon().setImageDrawable(d), th -> {});
   }
 
@@ -469,80 +441,12 @@ public class TweetInputFragment extends Fragment {
   public @interface TweetType {
   }
 
-  static class ReplyEntity {
-    final long inReplyToStatusId;
-    final Set<String> screenNames;
-
-    static ReplyEntity create(@NonNull Status status, long fromUserId) {
-      final Set<String> screenNames = new LinkedHashSet<>();
-      final UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-      for (UserMentionEntity u : userMentionEntities) {
-        if (u.getId() != fromUserId) {
-          screenNames.add(u.getScreenName());
-        }
-      }
-
-      if (status.isRetweet()) {
-        final Status retweetedStatus = status.getRetweetedStatus();
-        final User user = retweetedStatus.getUser();
-        if (user.getId() != fromUserId) {
-          screenNames.add(user.getScreenName());
-        }
-      }
-
-      final User user = status.getUser();
-      if (user.getId() != fromUserId) {
-        screenNames.add(user.getScreenName());
-      }
-      return new ReplyEntity(status.getId(), screenNames);
-    }
-
-    private ReplyEntity(long replyToStatusId, Set<String> replyToUsers) {
-      this.inReplyToStatusId = replyToStatusId;
-      this.screenNames = replyToUsers;
-    }
-
-    String createReplyString() {
-      StringBuilder s = new StringBuilder();
-      for (String sn : screenNames) {
-        s.append("@").append(sn).append(" ");
-      }
-      return s.toString();
-    }
-  }
-
-  private Uri cameraPicUri;
-  private final List<Uri> media = new ArrayList<>(4);
-
-  private void addMedia(Uri uri) {
-    if (uri == null) {
-      return;
-    }
-    addAllMedia(Collections.singletonList(uri));
-  }
-
-  private void addAllMedia(Collection<Uri> uris) {
-    media.addAll(uris);
-    updateMediaContainer();
-    menuItems.get(R.id.action_sendTweet).setEnabled(true);
-  }
-
-  private void removeMedia(Uri uri) {
-    media.remove(uri);
-    updateMediaContainer();
-    menuItems.get(R.id.action_sendTweet).setEnabled(!media.isEmpty());
-  }
-
-  private void clearMedia() {
-    media.clear();
-    Utils.maybeDispose(uploadedMediaSubs);
-    binding.mainTweetInputView.clearMedia();
-  }
-
   private CompositeDisposable uploadedMediaSubs;
 
-  private void updateMediaContainer() {
+  private void updateMediaContainer(List<Uri> media) {
     Utils.maybeDispose(uploadedMediaSubs);
+    binding.mainTweetInputView.clearMedia();
+    menuItems.get(R.id.action_sendTweet).setEnabled(!media.isEmpty());
 
     uploadedMediaSubs = new CompositeDisposable();
     final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
@@ -555,14 +459,14 @@ public class TweetInputFragment extends Fragment {
           .placeholder(new ColorDrawable(Color.LTGRAY))
           .centerCrop()
           .build(imageView);
-      final Disposable d = useCase.queryImage(query)
+      final Disposable d = viewModel.queryImage(query)
           .subscribe(imageView::setImageDrawable, th -> {});
       uploadedMediaSubs.add(d);
 
       imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
         final MenuItem delete = contextMenu.add(0, 1, 0, R.string.media_upload_delete);
         delete.setOnMenuItemClickListener(menuItem -> {
-          removeMedia(uri);
+          viewModel.removeMedia(uri);
           return true;
         });
       });
@@ -576,15 +480,15 @@ public class TweetInputFragment extends Fragment {
       if (resultCode == RESULT_OK) {
         final List<Uri> uris = parseMediaData(data);
         if (uris.isEmpty()) {
-          addMedia(cameraPicUri);
+          viewModel.addMedia(viewModel.getCameraPicUri());
         } else {
-          addAllMedia(uris);
-          removeFromContentResolver(getContext(), cameraPicUri);
+          viewModel.addAllMedia(uris);
+          removeFromContentResolver(getContext(), viewModel.getCameraPicUri());
         }
       } else {
-        removeFromContentResolver(getContext(), cameraPicUri);
+        removeFromContentResolver(getContext(), viewModel.getCameraPicUri());
       }
-      cameraPicUri = null;
+      viewModel.setCameraPicUri(null);
     }
     super.onActivityResult(requestCode, resultCode, data);
   }
@@ -641,7 +545,7 @@ public class TweetInputFragment extends Fragment {
     contentValues.put(Media.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
 
     final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-    Uri cameraPicUri = context.getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, contentValues);
+    final Uri cameraPicUri = context.getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, contentValues);
     intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraPicUri);
     return intent;
   }
@@ -669,7 +573,7 @@ public class TweetInputFragment extends Fragment {
   private void showMediaChooser() {
     final Intent pickMediaIntent = getPickMediaIntent();
     final Intent cameraIntent = getCameraIntent(getContext());
-    cameraPicUri = cameraIntent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
+    viewModel.setCameraPicUri(cameraIntent.getParcelableExtra(MediaStore.EXTRA_OUTPUT));
     final Intent chooser = Intent.createChooser(pickMediaIntent, getString(R.string.media_chooser_title));
     chooser.putExtra(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
             Intent.EXTRA_ALTERNATE_INTENTS : Intent.EXTRA_INITIAL_INTENTS,
@@ -677,11 +581,6 @@ public class TweetInputFragment extends Fragment {
     startActivityForResult(chooser, REQUEST_CODE_MEDIA_CHOOSER);
   }
 
-  private static final String SS_MEDIA = "ss_media";
-  private static final String SS_QUOTED_STATUS_IDS = "ss_quotedStatusIds";
-  private static final String SS_CAMERA_PIC_URI = "ss_cameraPicUri";
-  private static final String SS_REPLIED_STATUS_ID = "ss_repliedStatusId";
-  private static final String SS_REPLIED_USER_NAMES = "ss_repliedUserNames";
   private static final String SS_TWEET_INPUT_VIEW_VISIBILITY = "ss_tweetInputView.visibility";
 
   @Override
@@ -689,18 +588,7 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onSaveInstanceState: ");
     super.onSaveInstanceState(outState);
     outState.putInt(SS_TWEET_INPUT_VIEW_VISIBILITY, binding.mainTweetInputView.getVisibility());
-    outState.putParcelableArray(SS_MEDIA, media.toArray(new Uri[media.size()]));
-    final long[] qIds = new long[quoteStatusIds.size()];
-    for (int i = 0; i < quoteStatusIds.size(); i++) {
-      qIds[i] = quoteStatusIds.get(i);
-    }
-    outState.putLongArray(SS_QUOTED_STATUS_IDS, qIds);
-    outState.putParcelable(SS_CAMERA_PIC_URI, cameraPicUri);
-    if (replyEntity != null) {
-      outState.putLong(SS_REPLIED_STATUS_ID, replyEntity.inReplyToStatusId);
-      outState.putStringArray(SS_REPLIED_USER_NAMES,
-          replyEntity.screenNames.toArray(new String[replyEntity.screenNames.size()]));
-    }
+    viewModel.onSaveInstanceState(outState);
   }
 
   @Override
@@ -711,38 +599,14 @@ public class TweetInputFragment extends Fragment {
     }
     final int visibility = savedInstanceState.getInt(SS_TWEET_INPUT_VIEW_VISIBILITY);
     binding.mainTweetInputView.setVisibility(visibility);
-    final Parcelable[] uris = savedInstanceState.getParcelableArray(SS_MEDIA);
-    if (uris != null && uris.length > 0) {
-      for (Parcelable p : uris) {
-        media.add((Uri) p);
-      }
-    }
 
-    final long[] qIds = savedInstanceState.getLongArray(SS_QUOTED_STATUS_IDS);
-    if (qIds != null) {
-      for (long qId : qIds) {
-        quoteStatusIds.add(qId);
-      }
-    }
-    if (!quoteStatusIds.isEmpty()) {
+    viewModel.onViewStateRestored(savedInstanceState);
+    if (viewModel.hasQuoteStatus()) {
       binding.mainTweetInputView.setQuote();
     }
-
-    cameraPicUri = savedInstanceState.getParcelable(SS_CAMERA_PIC_URI);
-
-    final long repliedStatusId = savedInstanceState.getLong(SS_REPLIED_STATUS_ID, -1);
-    if (repliedStatusId != -1) {
-      final String[] repliedUserNames = savedInstanceState.getStringArray(SS_REPLIED_USER_NAMES);
-      final LinkedHashSet<String> userNames = new LinkedHashSet<>();
-      if (repliedUserNames != null) {
-        Collections.addAll(userNames, repliedUserNames);
-      }
-      replyEntity = new ReplyEntity(repliedStatusId, userNames);
-    }
-    if (replyEntity != null) {
+    if (viewModel.hasReplyEntity()) {
       binding.mainTweetInputView.setInReplyTo();
     }
-
     setupMenuVisibility();
   }
 }
