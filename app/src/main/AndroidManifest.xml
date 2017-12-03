@@ -66,6 +66,11 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
             />
+        <activity
+            android:name=".input.TweetInputActivity"
+            android:label="input tweet"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            />
     </application>
 
 </manifest>
