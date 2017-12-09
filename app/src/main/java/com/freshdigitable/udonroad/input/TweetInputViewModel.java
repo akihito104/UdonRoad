@@ -19,14 +19,21 @@ package com.freshdigitable.udonroad.input;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.OnLifecycleEvent;
+import android.content.ClipData;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.repository.ImageQuery;
@@ -35,6 +42,7 @@ import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -46,6 +54,8 @@ import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by akihit on 2017/12/02.
@@ -63,14 +73,6 @@ class TweetInputViewModel implements LifecycleObserver {
   private PublishSubject<List<Uri>> mediaEmitter;
   private Uri cameraPicUri;
 
-  Uri getCameraPicUri() {
-    return cameraPicUri;
-  }
-
-  void setCameraPicUri(Uri cameraPicUri) {
-    this.cameraPicUri = cameraPicUri;
-  }
-
   @OnLifecycleEvent(Lifecycle.Event.ON_START)
   public void onStart() {
     appSettings.open();
@@ -79,6 +81,13 @@ class TweetInputViewModel implements LifecycleObserver {
   @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
   public void onStop() {
     appSettings.close();
+  }
+
+  @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+  public void onDestroy() {
+    if (mediaEmitter != null && mediaEmitter.hasObservers()) {
+      mediaEmitter.onComplete();
+    }
   }
 
   @Inject
@@ -159,12 +168,100 @@ class TweetInputViewModel implements LifecycleObserver {
     return mediaEmitter.publish();
   }
 
-  void addMedia(Uri uri) {
+  Intent getMediaChooserIntent(Context context) {
+    final Intent pickMediaIntent = getPickMediaIntent();
+    final Intent cameraIntent = getCameraIntent(context);
+    cameraPicUri = cameraIntent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
+    final Intent chooser = Intent.createChooser(pickMediaIntent, context.getString(R.string.media_chooser_title));
+    chooser.putExtra(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+            Intent.EXTRA_ALTERNATE_INTENTS : Intent.EXTRA_INITIAL_INTENTS,
+        new Intent[]{cameraIntent});
+    return chooser;
+  }
+
+  @NonNull
+  private static Intent getPickMediaIntent() {
+    final Intent intent;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      intent.addCategory(Intent.CATEGORY_OPENABLE);
+    } else {
+      intent = new Intent(Intent.ACTION_GET_CONTENT);
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+    }
+    intent.setType("image/*");
+    return intent;
+  }
+
+  @NonNull
+  private static Intent getCameraIntent(Context context) {
+    final ContentValues contentValues = new ContentValues();
+    contentValues.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+    final long timeStamp = System.currentTimeMillis();
+    contentValues.put(MediaStore.Images.Media.TITLE, timeStamp + ".jpg");
+    contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, timeStamp + ".jpg");
+
+    final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    final Uri cameraPicUri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+    intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraPicUri);
+    return intent;
+  }
+
+  void onMediaChooserResult(Context context, int resultCode, Intent data) {
+    if (resultCode == RESULT_OK) {
+      final List<Uri> uris = parseMediaData(data);
+      if (uris.isEmpty()) {
+        addMedia(cameraPicUri);
+      } else {
+        addAllMedia(uris);
+        removeFromContentResolver(context, cameraPicUri);
+      }
+    } else {
+      removeFromContentResolver(context, cameraPicUri);
+    }
+    cameraPicUri = null;
+  }
+
+  private List<Uri> parseMediaData(Intent data) {
+    if (data != null && data.getData() != null) {
+      return Collections.singletonList(data.getData());
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+      return parseClipData(data);
+    }
+    return Collections.emptyList();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+  private static List<Uri> parseClipData(Intent data) {
+    if (data == null || data.getClipData() == null) {
+      return Collections.emptyList();
+    }
+    final ClipData clipData = data.getClipData();
+    final int itemCount = clipData.getItemCount();
+    final ArrayList<Uri> res = new ArrayList<>(itemCount);
+    for (int i = 0; i < itemCount; i++) {
+      final ClipData.Item item = clipData.getItemAt(i);
+      res.add(item.getUri());
+    }
+    return res;
+  }
+
+  private static void removeFromContentResolver(@NonNull Context context, Uri cameraPicUri) {
+    if (cameraPicUri == null) {
+      return;
+    }
+    context.getContentResolver().delete(cameraPicUri, null, null);
+  }
+
+  private void addMedia(Uri uri) {
     media.add(uri);
     mediaEmitter.onNext(media);
   }
 
-  void addAllMedia(Collection<Uri> uris) {
+  private void addAllMedia(Collection<Uri> uris) {
     media.addAll(uris);
     mediaEmitter.onNext(media);
   }

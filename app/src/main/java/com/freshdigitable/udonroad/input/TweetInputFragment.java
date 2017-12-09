@@ -19,8 +19,6 @@ package com.freshdigitable.udonroad.input;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.content.ClipData;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -28,15 +26,11 @@ import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.provider.MediaStore.Images.Media;
 import android.support.annotation.IdRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -64,8 +58,6 @@ import com.freshdigitable.udonroad.repository.ImageQuery;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -75,7 +67,6 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static android.app.Activity.RESULT_OK;
 import static android.content.Context.INPUT_METHOD_SERVICE;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
@@ -477,84 +468,9 @@ public class TweetInputFragment extends Fragment {
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     Log.d(TAG, "onActivityResult: " + requestCode);
     if (requestCode == REQUEST_CODE_MEDIA_CHOOSER) {
-      if (resultCode == RESULT_OK) {
-        final List<Uri> uris = parseMediaData(data);
-        if (uris.isEmpty()) {
-          viewModel.addMedia(viewModel.getCameraPicUri());
-        } else {
-          viewModel.addAllMedia(uris);
-          removeFromContentResolver(getContext(), viewModel.getCameraPicUri());
-        }
-      } else {
-        removeFromContentResolver(getContext(), viewModel.getCameraPicUri());
-      }
-      viewModel.setCameraPicUri(null);
+      viewModel.onMediaChooserResult(getContext(), resultCode, data);
     }
     super.onActivityResult(requestCode, resultCode, data);
-  }
-
-  private List<Uri> parseMediaData(Intent data) {
-    if (data != null && data.getData() != null) {
-      return Collections.singletonList(data.getData());
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      return parseClipData(data);
-    }
-    return Collections.emptyList();
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-  private static List<Uri> parseClipData(Intent data) {
-    if (data == null || data.getClipData() == null) {
-      return Collections.emptyList();
-    }
-    final ClipData clipData = data.getClipData();
-    final int itemCount = clipData.getItemCount();
-    final ArrayList<Uri> res = new ArrayList<>(itemCount);
-    for (int i = 0; i < itemCount; i++) {
-      final ClipData.Item item = clipData.getItemAt(i);
-      res.add(item.getUri());
-    }
-    return res;
-  }
-
-  @NonNull
-  private static Intent getPickMediaIntent() {
-    final Intent intent;
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-      intent.addCategory(Intent.CATEGORY_OPENABLE);
-    } else {
-      intent = new Intent(Intent.ACTION_GET_CONTENT);
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-    }
-    intent.setType("image/*");
-    return intent;
-  }
-
-  @NonNull
-  private static Intent getCameraIntent(Context context) {
-    if (isPermissionNeed(context)) {
-      return new Intent();
-    }
-    final ContentValues contentValues = new ContentValues();
-    contentValues.put(Media.MIME_TYPE, "image/jpeg");
-    contentValues.put(Media.TITLE, System.currentTimeMillis() + ".jpg");
-    contentValues.put(Media.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
-
-    final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-    final Uri cameraPicUri = context.getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, contentValues);
-    intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraPicUri);
-    return intent;
-  }
-
-  private static void removeFromContentResolver(@NonNull Context context, Uri cameraPicUri) {
-    if (cameraPicUri == null) {
-      return;
-    }
-    context.getContentResolver().delete(cameraPicUri, null, null);
   }
 
   private static boolean isPermissionNeed(Context context) {
@@ -571,13 +487,7 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void showMediaChooser() {
-    final Intent pickMediaIntent = getPickMediaIntent();
-    final Intent cameraIntent = getCameraIntent(getContext());
-    viewModel.setCameraPicUri(cameraIntent.getParcelableExtra(MediaStore.EXTRA_OUTPUT));
-    final Intent chooser = Intent.createChooser(pickMediaIntent, getString(R.string.media_chooser_title));
-    chooser.putExtra(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
-            Intent.EXTRA_ALTERNATE_INTENTS : Intent.EXTRA_INITIAL_INTENTS,
-        new Intent[]{cameraIntent});
+    final Intent chooser = viewModel.getMediaChooserIntent(getContext());
     startActivityForResult(chooser, REQUEST_CODE_MEDIA_CHOOSER);
   }
 
