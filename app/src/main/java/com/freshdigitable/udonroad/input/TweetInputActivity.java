@@ -16,8 +16,10 @@
 
 package com.freshdigitable.udonroad.input;
 
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -32,7 +34,6 @@ import javax.inject.Inject;
  */
 
 public class TweetInputActivity extends AppCompatActivity {
-
   private ActivityTweetInputBinding binding;
   @Inject
   TweetInputViewModel viewModel;
@@ -53,20 +54,49 @@ public class TweetInputActivity extends AppCompatActivity {
     return super.onCreateOptionsMenu(menu);
   }
 
+  private MediaChooserController mediaChooserController = new MediaChooserController();
+
   @Override
   protected void onStart() {
     super.onStart();
+    binding.tweetInputAddImage.setOnClickListener(v ->
+        mediaChooserController.switchSoftKeyboardToMediaChooser(v, this));
   }
+
+  @Override
+  protected void onStop() {
+    super.onStop();
+    binding.tweetInputAddImage.setOnClickListener(null);
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    mediaChooserController.onRequestWriteExternalStoragePermissionResult(this, requestCode);
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    mediaChooserController.onMediaChooserResult(this, requestCode, resultCode, data);
+  }
+
+  private static final String SS_MEDIA_CHOOSER = "ss_mediaChooser";
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
     viewModel.onSaveInstanceState(outState);
+    outState.putParcelable(SS_MEDIA_CHOOSER, mediaChooserController);
   }
 
   @Override
   protected void onRestoreInstanceState(Bundle savedInstanceState) {
     super.onRestoreInstanceState(savedInstanceState);
+    if (savedInstanceState == null) {
+      return;
+    }
+    mediaChooserController = savedInstanceState.getParcelable(SS_MEDIA_CHOOSER);
     viewModel.onViewStateRestored(savedInstanceState);
   }
 }

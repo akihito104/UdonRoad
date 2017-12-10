@@ -21,14 +21,13 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
@@ -43,7 +42,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.inputmethod.InputMethodManager;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
@@ -53,13 +51,12 @@ import com.freshdigitable.udonroad.repository.ImageQuery;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Collection;
 
 import javax.inject.Inject;
 
 import io.reactivex.disposables.Disposable;
 
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static android.content.Context.INPUT_METHOD_SERVICE;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 /**
@@ -69,11 +66,10 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
  */
 public class TweetInputFragment extends Fragment {
   private static final String TAG = TweetInputFragment.class.getSimpleName();
-  private static final int REQUEST_CODE_MEDIA_CHOOSER = 40;
-  private static final int REQUEST_CODE_WRITE_EXTERNAL_PERMISSION = 50;
   private FragmentTweetInputBinding binding;
   @Inject
   TweetInputViewModel viewModel;
+  private MediaChooserController mediaChooserController = new MediaChooserController();
   private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
   private Disposable iconSubs;
@@ -176,19 +172,8 @@ public class TweetInputFragment extends Fragment {
     super.onStart();
 
     final TweetInputView inputText = binding.mainTweetInputView;
-    inputText.getAppendImageButton().setOnClickListener(v -> {
-      final Context context = v.getContext();
-      final InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-      if (imm != null) {
-        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-      }
-
-      if (isPermissionNeed(context)) {
-        requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_PERMISSION);
-      } else {
-        showMediaChooser();
-      }
-    });
+    inputText.getAppendImageButton().setOnClickListener(v ->
+        mediaChooserController.switchSoftKeyboardToMediaChooser(v, this));
     inputText.addTextWatcher(textWatcher);
   }
 
@@ -427,31 +412,19 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     Log.d(TAG, "onActivityResult: " + requestCode);
-    if (requestCode == REQUEST_CODE_MEDIA_CHOOSER) {
-      viewModel.onMediaChooserResult(getContext(), resultCode, data);
-    }
+    final Collection<Uri> uris = mediaChooserController.onMediaChooserResult(getContext(), requestCode, resultCode, data);
+    viewModel.addAllMedia(uris);
     super.onActivityResult(requestCode, resultCode, data);
-  }
-
-  private static boolean isPermissionNeed(Context context) {
-    return ActivityCompat.checkSelfPermission(context, WRITE_EXTERNAL_STORAGE)
-        != PackageManager.PERMISSION_GRANTED;
   }
 
   @Override
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    if (requestCode == REQUEST_CODE_WRITE_EXTERNAL_PERMISSION) {
-      showMediaChooser();
-    }
-  }
-
-  private void showMediaChooser() {
-    final Intent chooser = viewModel.getMediaChooserIntent(getContext());
-    startActivityForResult(chooser, REQUEST_CODE_MEDIA_CHOOSER);
+    mediaChooserController.onRequestWriteExternalStoragePermissionResult(this, requestCode);
   }
 
   private static final String SS_TWEET_INPUT_VIEW_VISIBILITY = "ss_tweetInputView.visibility";
+  private static final String SS_MEDIA_CHOOSER = "ss_mediaChooser";
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
@@ -459,6 +432,7 @@ public class TweetInputFragment extends Fragment {
     super.onSaveInstanceState(outState);
     outState.putInt(SS_TWEET_INPUT_VIEW_VISIBILITY, binding.mainTweetInputView.getVisibility());
     viewModel.onSaveInstanceState(outState);
+    outState.putParcelable(SS_MEDIA_CHOOSER, mediaChooserController);
   }
 
   @Override
@@ -469,6 +443,8 @@ public class TweetInputFragment extends Fragment {
     }
     final int visibility = savedInstanceState.getInt(SS_TWEET_INPUT_VIEW_VISIBILITY);
     binding.mainTweetInputView.setVisibility(visibility);
+
+    mediaChooserController = savedInstanceState.getParcelable(SS_MEDIA_CHOOSER);
 
     viewModel.onViewStateRestored(savedInstanceState);
     if (viewModel.hasQuoteStatus()) {
