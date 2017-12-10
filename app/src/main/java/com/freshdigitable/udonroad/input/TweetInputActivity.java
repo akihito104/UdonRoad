@@ -20,6 +20,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.databinding.ActivityTweetInputBinding;
@@ -41,5 +42,31 @@ public class TweetInputActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_tweet_input);
     getLifecycle().addObserver(viewModel);
+    final MediaContainerPresenter mediaContainerPresenter
+        = new MediaContainerPresenter(binding.tweetInputImageContainer, viewModel);
+    getLifecycle().addObserver(mediaContainerPresenter);
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.tweet_input, menu);
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    viewModel.onSaveInstanceState(outState);
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    super.onRestoreInstanceState(savedInstanceState);
+    viewModel.onViewStateRestored(savedInstanceState);
   }
 }

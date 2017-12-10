@@ -27,7 +27,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -67,9 +66,7 @@ class TweetInputViewModel implements LifecycleObserver {
   private final TypedCache<Status> statusCache;
   private final ImageRepository imageRepository;
 
-  private ReplyEntity replyEntity;
-  private final List<Uri> media = new ArrayList<>(4);
-  private final List<Long> quoteStatusIds = new ArrayList<>(4);
+  private TweetInputModel model = new TweetInputModel();
   private PublishSubject<List<Uri>> mediaEmitter;
   private Uri cameraPicUri;
 
@@ -104,7 +101,7 @@ class TweetInputViewModel implements LifecycleObserver {
     statusCache.open();
     final Status inReplyTo = statusCache.find(inReplyToStatusId);
     if (inReplyTo != null) {
-      replyEntity = ReplyEntity.create(inReplyTo, appSettings.getCurrentUserId());
+      model.setReplyEntity(ReplyEntity.create(inReplyTo, appSettings.getCurrentUserId()));
     }
     statusCache.close();
   }
@@ -115,7 +112,7 @@ class TweetInputViewModel implements LifecycleObserver {
   }
 
   void addQuoteId(long quoteId) {
-    quoteStatusIds.add(quoteId);
+    model.addQuoteId(quoteId);
   }
 
   Observable<User> observeCurrentUser() {
@@ -131,35 +128,28 @@ class TweetInputViewModel implements LifecycleObserver {
   }
 
   Single<Status> createSendObservable(Context context, String sendingText) {
-    if (!isStatusUpdateNeeded()) {
+    if (!model.isStatusUpdateNeeded()) {
       return statusRequestWorker.observeUpdateStatus(sendingText);
     }
     final StatusUpdate statusUpdate = createStatusUpdate(sendingText);
-    return media.size() > 0 ? statusRequestWorker.observeUpdateStatus(context, statusUpdate, media)
+    return model.hasMedia() ? statusRequestWorker.observeUpdateStatus(context, statusUpdate, model.getMedia())
         : statusRequestWorker.observeUpdateStatus(statusUpdate);
-  }
-
-  private boolean isStatusUpdateNeeded() {
-    return replyEntity != null
-        || quoteStatusIds.size() > 0
-        || media.size() > 0;
   }
 
   private StatusUpdate createStatusUpdate(@NonNull String sendingText) {
     final StringBuilder s = new StringBuilder(sendingText);
     statusCache.open();
-    for (long q : quoteStatusIds) {
+    for (long q : model.getQuoteIds()) {
       final Status status = statusCache.find(q);
-      if (status == null) {
-        continue;
+      if (status != null) {
+        s.append(" https://twitter.com/")
+            .append(status.getUser().getScreenName()).append("/status/").append(q);
       }
-      s.append(" https://twitter.com/")
-          .append(status.getUser().getScreenName()).append("/status/").append(q);
     }
     statusCache.close();
     final StatusUpdate statusUpdate = new StatusUpdate(s.toString());
-    if (replyEntity != null) {
-      statusUpdate.setInReplyToStatusId(replyEntity.getInReplyToStatusId());
+    if (model.hasReplyEntity()) {
+      statusUpdate.setInReplyToStatusId(model.getReplyEntity().getInReplyToStatusId());
     }
     return statusUpdate;
   }
@@ -257,84 +247,53 @@ class TweetInputViewModel implements LifecycleObserver {
   }
 
   private void addMedia(Uri uri) {
-    media.add(uri);
-    mediaEmitter.onNext(media);
+    model.addMedia(uri);
+    mediaEmitter.onNext(model.getMedia());
   }
 
   private void addAllMedia(Collection<Uri> uris) {
-    media.addAll(uris);
-    mediaEmitter.onNext(media);
+    model.addMediaAll(uris);
+    mediaEmitter.onNext(model.getMedia());
   }
 
   void removeMedia(Uri uri) {
-    media.remove(uri);
-    mediaEmitter.onNext(media);
+    model.removeMedia(uri);
+    mediaEmitter.onNext(model.getMedia());
   }
 
   void clear() {
-    replyEntity = null;
-    quoteStatusIds.clear();
-    clearMedia();
-  }
-
-  private void clearMedia() {
-    media.clear();
-    mediaEmitter.onNext(media);
+    model.clear();
+    mediaEmitter.onNext(model.getMedia());
   }
 
   boolean isCleared() {
-    return replyEntity == null && quoteStatusIds.isEmpty() && media.isEmpty();
+    return model.isCleared();
   }
 
   boolean hasQuoteStatus() {
-    return !quoteStatusIds.isEmpty();
+    return model.hasQuoteId();
   }
 
   boolean hasReplyEntity() {
-    return replyEntity != null;
+    return model.hasReplyEntity();
   }
 
   String createReplyString() {
-    return replyEntity != null ? replyEntity.createReplyString() : "";
+    return model.hasReplyEntity() ? model.getReplyEntity().createReplyString() : "";
   }
 
-  private static final String SS_MEDIA = "ss_media";
-  private static final String SS_QUOTED_STATUS_IDS = "ss_quotedStatusIds";
   private static final String SS_CAMERA_PIC_URI = "ss_cameraPicUri";
-  private static final String SS_REPLY_ENTITY = "ss_replyEntity";
 
   void onSaveInstanceState(Bundle outState) {
-    outState.putParcelableArray(SS_MEDIA, media.toArray(new Uri[media.size()]));
-    final long[] qIds = new long[quoteStatusIds.size()];
-    for (int i = 0; i < quoteStatusIds.size(); i++) {
-      qIds[i] = quoteStatusIds.get(i);
-    }
-    outState.putLongArray(SS_QUOTED_STATUS_IDS, qIds);
     outState.putParcelable(SS_CAMERA_PIC_URI, cameraPicUri);
-    if (replyEntity != null) {
-      outState.putParcelable(SS_REPLY_ENTITY, replyEntity);
-    }
+    outState.putParcelable("ss_model", model);
   }
 
   void onViewStateRestored(@Nullable Bundle savedInstanceState) {
     if (savedInstanceState == null) {
       return;
     }
-    final Parcelable[] uris = savedInstanceState.getParcelableArray(SS_MEDIA);
-    if (uris != null && uris.length > 0) {
-      for (Parcelable p : uris) {
-        media.add((Uri) p);
-      }
-    }
-
-    final long[] qIds = savedInstanceState.getLongArray(SS_QUOTED_STATUS_IDS);
-    if (qIds != null) {
-      for (long qId : qIds) {
-        quoteStatusIds.add(qId);
-      }
-    }
-
     cameraPicUri = savedInstanceState.getParcelable(SS_CAMERA_PIC_URI);
-    replyEntity = savedInstanceState.getParcelable(SS_REPLY_ENTITY);
+    model = savedInstanceState.getParcelable("ss_model");
   }
 }

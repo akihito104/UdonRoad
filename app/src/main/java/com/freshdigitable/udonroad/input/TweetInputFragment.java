@@ -23,9 +23,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.IntDef;
@@ -47,23 +44,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
-import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Single;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -85,7 +77,6 @@ public class TweetInputFragment extends Fragment {
   private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
   private Disposable iconSubs;
-  private Disposable mediaSubs;
 
   public static TweetInputFragment create() {
     return new TweetInputFragment();
@@ -172,6 +163,9 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onCreateView: ");
     if (binding == null) {
       binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
+      MediaContainerPresenter mediaContainerPresenter
+          = new MediaContainerPresenter(binding.mainTweetInputView.getMediaContainer(), viewModel);
+      getLifecycle().addObserver(mediaContainerPresenter);
     }
     return binding.getRoot();
   }
@@ -191,12 +185,11 @@ public class TweetInputFragment extends Fragment {
 
       if (isPermissionNeed(context)) {
         requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_PERMISSION);
-        return;
+      } else {
+        showMediaChooser();
       }
-      showMediaChooser();
     });
     inputText.addTextWatcher(textWatcher);
-    mediaSubs = viewModel.observeMedia().subscribe(this::updateMediaContainer);
   }
 
   @Override
@@ -211,7 +204,6 @@ public class TweetInputFragment extends Fragment {
     super.onStop();
     Utils.maybeDispose(currentUserSubscription);
     Utils.maybeDispose(iconSubs);
-    Utils.maybeDispose(mediaSubs);
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
     binding.mainTweetInputView.removeTextWatcher(textWatcher);
   }
@@ -430,38 +422,6 @@ public class TweetInputFragment extends Fragment {
   @Retention(RetentionPolicy.SOURCE)
   @IntDef(value = {TYPE_DEFAULT, TYPE_REPLY, TYPE_QUOTE, TYPE_NONE})
   public @interface TweetType {
-  }
-
-  private CompositeDisposable uploadedMediaSubs;
-
-  private void updateMediaContainer(List<Uri> media) {
-    Utils.maybeDispose(uploadedMediaSubs);
-    binding.mainTweetInputView.clearMedia();
-    menuItems.get(R.id.action_sendTweet).setEnabled(!media.isEmpty());
-
-    uploadedMediaSubs = new CompositeDisposable();
-    final ThumbnailContainer mediaContainer = binding.mainTweetInputView.getMediaContainer();
-    mediaContainer.bindMediaEntities(media.size());
-    final int thumbCount = mediaContainer.getThumbCount();
-    for (int i = 0; i < thumbCount; i++) {
-      final Uri uri = media.get(i);
-      final ImageView imageView = (ImageView) mediaContainer.getChildAt(i);
-      final Single<ImageQuery> query = new ImageQuery.Builder(uri)
-          .placeholder(new ColorDrawable(Color.LTGRAY))
-          .centerCrop()
-          .build(imageView);
-      final Disposable d = viewModel.queryImage(query)
-          .subscribe(imageView::setImageDrawable, th -> {});
-      uploadedMediaSubs.add(d);
-
-      imageView.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
-        final MenuItem delete = contextMenu.add(0, 1, 0, R.string.media_upload_delete);
-        delete.setOnMenuItemClickListener(menuItem -> {
-          viewModel.removeMedia(uri);
-          return true;
-        });
-      });
-    }
   }
 
   @Override
