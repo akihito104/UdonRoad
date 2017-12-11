@@ -33,7 +33,6 @@ import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -56,7 +55,7 @@ class TweetInputViewModel implements LifecycleObserver {
   private final ImageRepository imageRepository;
 
   private TweetInputModel model = new TweetInputModel();
-  private PublishSubject<List<Uri>> mediaEmitter;
+  private PublishSubject<TweetInputModel> modelEmitter;
 
   @OnLifecycleEvent(Lifecycle.Event.ON_START)
   public void onStart() {
@@ -70,8 +69,8 @@ class TweetInputViewModel implements LifecycleObserver {
 
   @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
   public void onDestroy() {
-    if (mediaEmitter != null && mediaEmitter.hasObservers()) {
-      mediaEmitter.onComplete();
+    if (modelEmitter != null && modelEmitter.hasObservers()) {
+      modelEmitter.onComplete();
     }
   }
 
@@ -82,7 +81,7 @@ class TweetInputViewModel implements LifecycleObserver {
     this.statusCache = statusCache;
     this.imageRepository = imageRepository;
     this.statusRequestWorker = statusRequestWorker;
-    mediaEmitter = PublishSubject.create();
+    modelEmitter = PublishSubject.create();
   }
 
   void setReplyToStatusId(long inReplyToStatusId) {
@@ -90,6 +89,7 @@ class TweetInputViewModel implements LifecycleObserver {
     final Status inReplyTo = statusCache.find(inReplyToStatusId);
     if (inReplyTo != null) {
       model.setReplyEntity(ReplyEntity.create(inReplyTo, appSettings.getCurrentUserId()));
+      modelEmitter.onNext(model);
     }
     statusCache.close();
   }
@@ -101,6 +101,7 @@ class TweetInputViewModel implements LifecycleObserver {
 
   void addQuoteId(long quoteId) {
     model.addQuoteId(quoteId);
+    modelEmitter.onNext(model);
   }
 
   Observable<User> observeCurrentUser() {
@@ -142,23 +143,23 @@ class TweetInputViewModel implements LifecycleObserver {
     return statusUpdate;
   }
 
-  Observable<List<Uri>> observeMedia() {
-    return mediaEmitter.publish();
+  Observable<TweetInputModel> observeModel() {
+    return modelEmitter.publish();
   }
 
   void addAllMedia(Collection<Uri> uris) {
     model.addMediaAll(uris);
-    mediaEmitter.onNext(model.getMedia());
+    modelEmitter.onNext(model);
   }
 
   void removeMedia(Uri uri) {
     model.removeMedia(uri);
-    mediaEmitter.onNext(model.getMedia());
+    modelEmitter.onNext(model);
   }
 
   void clear() {
     model.clear();
-    mediaEmitter.onNext(model.getMedia());
+    modelEmitter.onNext(model);
   }
 
   boolean isCleared() {

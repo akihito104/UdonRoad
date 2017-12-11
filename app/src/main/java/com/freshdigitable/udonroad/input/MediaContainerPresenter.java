@@ -54,8 +54,11 @@ class MediaContainerPresenter implements LifecycleObserver {
   @OnLifecycleEvent(Lifecycle.Event.ON_START)
   void onStart() {
     if(!Utils.isSubscribed(mediaUpdateSubs)) {
-      mediaUpdateSubs = this.viewModel.observeMedia().subscribe(this::updateMediaContainer,
-          th -> Log.e(this.getClass().getSimpleName(), "mediaUpdate: ", th));
+      mediaUpdateSubs = this.viewModel.observeModel()
+          .map(TweetInputModel::getMedia)
+          .distinctUntilChanged()
+          .subscribe(this::updateMediaContainer,
+              th -> Log.e(this.getClass().getSimpleName(), "mediaUpdate: ", th));
     }
   }
 
