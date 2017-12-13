@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.input;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +33,15 @@ class TweetInputModel implements Parcelable {
   private ReplyEntity replyEntity;
   private final List<Uri> media;
   private final List<Long> quoteStatusIds;
+  private String text;
+
+  void setText(String text) {
+    this.text = text;
+  }
+
+  String getText() {
+    return text;
+  }
 
   void setReplyEntity(ReplyEntity replyEntity) {
     this.replyEntity = replyEntity;
@@ -63,10 +73,6 @@ class TweetInputModel implements Parcelable {
     return !quoteStatusIds.isEmpty();
   }
 
-  void addMedia(Uri uri) {
-    media.add(uri);
-  }
-
   public List<Uri> getMedia() {
     return media;
   }
@@ -84,13 +90,15 @@ class TweetInputModel implements Parcelable {
   }
 
   boolean isCleared() {
-    return replyEntity == null && quoteStatusIds.isEmpty() && media.isEmpty();
+    return TextUtils.isEmpty(text) && replyEntity == null
+        && quoteStatusIds.isEmpty() && media.isEmpty();
   }
 
   void clear() {
     replyEntity = null;
     quoteStatusIds.clear();
     media.clear();
+    text = "";
   }
 
   @Override
@@ -108,6 +116,7 @@ class TweetInputModel implements Parcelable {
     media = in.createTypedArrayList(Uri.CREATOR);
     quoteStatusIds = new ArrayList<>();
     in.readList(quoteStatusIds, this.getClass().getClassLoader());
+    text = in.readString();
   }
 
   @Override
@@ -115,6 +124,7 @@ class TweetInputModel implements Parcelable {
     dest.writeParcelable(replyEntity, flags);
     dest.writeTypedList(media);
     dest.writeList(quoteStatusIds);
+    dest.writeString(text);
   }
 
   public static final Creator<TweetInputModel> CREATOR = new Creator<TweetInputModel>() {

@@ -84,6 +84,11 @@ class TweetInputViewModel implements LifecycleObserver {
     modelEmitter = PublishSubject.create();
   }
 
+  void setText(String text) {
+    model.setText(text);
+    modelEmitter.onNext(model);
+  }
+
   void setReplyToStatusId(long inReplyToStatusId) {
     statusCache.open();
     final Status inReplyTo = statusCache.find(inReplyToStatusId);
@@ -187,5 +192,9 @@ class TweetInputViewModel implements LifecycleObserver {
       return;
     }
     model = savedInstanceState.getParcelable("ss_model");
+  }
+
+  TweetInputModel getModel() {
+    return model;
   }
 }

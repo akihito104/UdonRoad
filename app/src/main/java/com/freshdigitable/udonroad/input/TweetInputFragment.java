@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -34,7 +33,6 @@ import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -73,6 +71,7 @@ public class TweetInputFragment extends Fragment {
   private Disposable currentUserSubscription;
   private Disposable updateStatusTask;
   private Disposable iconSubs;
+  private TweetSendPresenter tweetSendPresenter;
 
   public static TweetInputFragment create() {
     return new TweetInputFragment();
@@ -91,16 +90,11 @@ public class TweetInputFragment extends Fragment {
     setHasOptionsMenu(true);
   }
 
-  private final SparseArray<MenuItem> menuItems = new SparseArray<>();
-
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     Log.d(TAG, "onCreateOptionsMenu: ");
     super.onCreateOptionsMenu(menu, inflater);
-    inflater.inflate(R.menu.tweet_input, menu);
-    for (@IdRes int resId : new int[]{R.id.action_writeTweet, R.id.action_sendTweet, R.id.action_resumeTweet}) {
-      menuItems.put(resId, menu.findItem(resId));
-    }
+    tweetSendPresenter = new TweetSendPresenter(menu, inflater, viewModel);
     setupMenuVisibility();
   }
 
@@ -109,46 +103,26 @@ public class TweetInputFragment extends Fragment {
       return;
     }
     if (binding.mainTweetInputView.isVisible()) {
-      setupMenuVisibility(R.id.action_sendTweet);
+      tweetSendPresenter.setupMenuAvailability(R.id.action_sendTweet);
     } else {
-      setupMenuVisibility(isCleared() ?
+      tweetSendPresenter.setupMenuAvailability(isCleared() ?
           R.id.action_writeTweet : R.id.action_resumeTweet);
-    }
-  }
-
-  private void setupMenuVisibility(@IdRes int visibleItemId) {
-    for (int i = 0; i < menuItems.size(); i++) {
-      final MenuItem item = menuItems.valueAt(i);
-      item.setVisible(item.getItemId() == visibleItemId);
-      setupItemEnable(item);
-    }
-  }
-
-  private void setupItemEnable(@NonNull MenuItem item) {
-    final int itemId = item.getItemId();
-    if (!item.isVisible()) {
-      return;
-    }
-    if (itemId == R.id.action_writeTweet) {
-      item.setEnabled(isCleared());
-    } else if (itemId == R.id.action_sendTweet) {
-      item.setEnabled(binding.mainTweetInputView.getText().length() > 0);
     }
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Log.d(TAG, "onOptionsItemSelected: ");
+    tweetSendPresenter.onItemClicked(item);
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
-      menuItems.get(R.id.action_sendTweet).setEnabled(false);
       final TweetInputListener tweetInputListener = getTweetInputListener();
       updateStatusTask = viewModel.createSendObservable(getContext(), binding.mainTweetInputView.getText().toString()).subscribe(s -> {
         tweetInputListener.onSendCompleted();
         clear();
-        setupMenuVisibility(R.id.action_writeTweet);
+        tweetSendPresenter.setupMenuAvailability(R.id.action_writeTweet);
       }, e ->
-          setupMenuVisibility(R.id.action_resumeTweet));
+          tweetSendPresenter.setupMenuAvailability(R.id.action_resumeTweet));
     }
     return false;
   }
@@ -197,16 +171,12 @@ public class TweetInputFragment extends Fragment {
   public void onDetach() {
     super.onDetach();
     Utils.maybeDispose(updateStatusTask);
-    menuItems.clear();
   }
 
   private final TextWatcher textWatcher = new TextWatcher() {
     @Override
     public void afterTextChanged(Editable editable) {
-      final MenuItem sendTweetItem = menuItems.get(R.id.action_sendTweet);
-      if (sendTweetItem != null) {
-        sendTweetItem.setEnabled(editable.length() >= 1);
-      }
+      viewModel.setText(editable.toString());
     }
 
     @Override
@@ -256,7 +226,7 @@ public class TweetInputFragment extends Fragment {
   private void expandTweetInputView() {
     binding.mainTweetInputView.setShortUrlLength(viewModel.getUrlLength());
     setupExpandAnimation(binding.mainTweetInputView);
-    setupMenuVisibility(R.id.action_sendTweet);
+    tweetSendPresenter.setupMenuAvailability(R.id.action_sendTweet);
   }
 
   private static final int ANIM_DURATION = 200;
@@ -353,7 +323,7 @@ public class TweetInputFragment extends Fragment {
   public void cancelInput() {
     clear();
     collapseStatusInputView();
-    setupMenuVisibility(R.id.action_writeTweet);
+    tweetSendPresenter.setupMenuAvailability(R.id.action_writeTweet);
   }
 
   private void clear() {
@@ -453,6 +423,5 @@ public class TweetInputFragment extends Fragment {
     if (viewModel.hasReplyEntity()) {
       binding.mainTweetInputView.setInReplyTo();
     }
-    setupMenuVisibility();
   }
 }
