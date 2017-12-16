@@ -30,8 +30,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -71,6 +69,7 @@ public class TweetInputFragment extends Fragment {
   private Disposable currentUserSubscription;
   private Disposable iconSubs;
   private TweetSendPresenter tweetSendPresenter;
+  private Disposable modelSubs;
 
   public static TweetInputFragment create() {
     return new TweetInputFragment();
@@ -103,9 +102,6 @@ public class TweetInputFragment extends Fragment {
     }
     if (binding.mainTweetInputView.isVisible()) {
       viewModel.setState(TweetInputModel.State.WRITING);
-    } else {
-      viewModel.setState(isCleared() ? TweetInputModel.State.DEFAULT
-          : TweetInputModel.State.RESUMED);
     }
   }
 
@@ -129,7 +125,7 @@ public class TweetInputFragment extends Fragment {
     Log.d(TAG, "onCreateView: ");
     if (binding == null) {
       binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
-      MediaContainerPresenter mediaContainerPresenter
+      final MediaContainerPresenter mediaContainerPresenter
           = new MediaContainerPresenter(binding.mainTweetInputView.getMediaContainer(), viewModel);
       getLifecycle().addObserver(mediaContainerPresenter);
     }
@@ -144,13 +140,31 @@ public class TweetInputFragment extends Fragment {
     final TweetInputView inputText = binding.mainTweetInputView;
     inputText.getAppendImageButton().setOnClickListener(v ->
         mediaChooserController.switchSoftKeyboardToMediaChooser(v, this));
-    inputText.addTextWatcher(textWatcher);
+    inputText.addTextWatcher(viewModel.textWatcher);
   }
 
   @Override
   public void onResume() {
     super.onResume();
     changeCurrentUser();
+    modelSubs = viewModel.observeModel().subscribe(this::updateView);
+    updateView(viewModel.getModel());
+  }
+
+  private void updateView(TweetInputModel model) {
+    if (model.hasReplyEntity()) {
+      binding.mainTweetInputView.setInReplyTo();
+    }
+    if (model.hasQuoteId()) {
+      binding.mainTweetInputView.setQuote();
+    }
+    binding.mainTweetInputView.setText(model.getText());
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    Utils.maybeDispose(modelSubs);
   }
 
   @Override
@@ -160,7 +174,7 @@ public class TweetInputFragment extends Fragment {
     Utils.maybeDispose(currentUserSubscription);
     Utils.maybeDispose(iconSubs);
     binding.mainTweetInputView.getAppendImageButton().setOnClickListener(null);
-    binding.mainTweetInputView.removeTextWatcher(textWatcher);
+    binding.mainTweetInputView.removeTextWatcher(viewModel.textWatcher);
   }
 
   @Override
@@ -168,26 +182,14 @@ public class TweetInputFragment extends Fragment {
     super.onDetach();
   }
 
-  private final TextWatcher textWatcher = new TextWatcher() {
-    @Override
-    public void afterTextChanged(Editable editable) {
-      viewModel.setText(editable.toString());
-    }
-
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-  };
-
   public boolean isNewTweetCreatable() {
     return !isTweetInputViewVisible()
         && (tweetSendPresenter == null || !tweetSendPresenter.isStatusUpdating())
-        && isCleared();
+        && viewModel.isCleared();
   }
 
   public void expandForResume() {
-    if (isCleared()) {
+    if (viewModel.isCleared()) {
       throw new IllegalStateException("there is no tweet for resume...");
     }
     expandTweetInputView();
@@ -207,15 +209,10 @@ public class TweetInputFragment extends Fragment {
 
   private void setupReplyEntity(long inReplyToStatusId) {
     viewModel.setReplyToStatusId(inReplyToStatusId);
-    if (viewModel.hasReplyEntity()) {
-      binding.mainTweetInputView.addText(viewModel.createReplyString());
-      binding.mainTweetInputView.setInReplyTo();
-    }
   }
 
   private void setupQuote(long quotedStatus) {
     viewModel.addQuoteId(quotedStatus);
-    binding.mainTweetInputView.setQuote();
   }
 
   private void expandTweetInputView() {
@@ -326,11 +323,6 @@ public class TweetInputFragment extends Fragment {
     binding.mainTweetInputView.reset();
   }
 
-  private boolean isCleared() {
-    return viewModel.isCleared()
-        && (binding == null || binding.mainTweetInputView.getText().length() <= 0);
-  }
-
   public boolean isTweetInputViewVisible() {
     return binding.mainTweetInputView.isVisible();
   }
@@ -412,11 +404,5 @@ public class TweetInputFragment extends Fragment {
     mediaChooserController = savedInstanceState.getParcelable(SS_MEDIA_CHOOSER);
 
     viewModel.onViewStateRestored(savedInstanceState);
-    if (viewModel.hasQuoteStatus()) {
-      binding.mainTweetInputView.setQuote();
-    }
-    if (viewModel.hasReplyEntity()) {
-      binding.mainTweetInputView.setInReplyTo();
-    }
   }
 }

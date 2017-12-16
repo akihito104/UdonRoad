@@ -45,6 +45,7 @@ class TweetInputModel implements Parcelable {
 
   void setReplyEntity(ReplyEntity replyEntity) {
     this.replyEntity = replyEntity;
+    this.text += replyEntity != null ? replyEntity.createReplyString() : "";
   }
 
   ReplyEntity getReplyEntity() {

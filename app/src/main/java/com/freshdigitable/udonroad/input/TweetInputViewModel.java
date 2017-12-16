@@ -25,6 +25,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -171,18 +173,6 @@ class TweetInputViewModel implements LifecycleObserver {
     return model.isCleared();
   }
 
-  boolean hasQuoteStatus() {
-    return model.hasQuoteId();
-  }
-
-  boolean hasReplyEntity() {
-    return model.hasReplyEntity();
-  }
-
-  String createReplyString() {
-    return model.hasReplyEntity() ? model.getReplyEntity().createReplyString() : "";
-  }
-
   void onSaveInstanceState(Bundle outState) {
     outState.putParcelable("ss_model", model);
   }
@@ -192,6 +182,7 @@ class TweetInputViewModel implements LifecycleObserver {
       return;
     }
     model = savedInstanceState.getParcelable("ss_model");
+    modelEmitter.onNext(model);
   }
 
   TweetInputModel getModel() {
@@ -205,4 +196,16 @@ class TweetInputViewModel implements LifecycleObserver {
     model.setState(state);
     modelEmitter.onNext(model);
   }
+
+  final TextWatcher textWatcher = new TextWatcher() {
+    @Override
+    public void afterTextChanged(Editable editable) {
+      setText(editable.toString());
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+  };
 }

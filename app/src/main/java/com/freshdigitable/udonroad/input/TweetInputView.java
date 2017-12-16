@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.input;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.constraint.ConstraintLayout;
@@ -126,8 +127,11 @@ public class TweetInputView extends ConstraintLayout {
     inputText.removeTextChangedListener(textWatcher);
   }
 
-  public void addText(String text) {
-    inputText.append(text);
+  public void setText(String text) {
+    if (inputText.getText().toString().equals(text)) {
+      return;
+    }
+    inputText.setText(text);
   }
 
   public void setInReplyTo() {
@@ -165,6 +169,7 @@ public class TweetInputView extends ConstraintLayout {
     }
   };
 
+  @SuppressLint("SetTextI18n")
   private void updateTextCounter(Editable editable) {
     int length = editable.length();
     if (quoteMark.getVisibility() == VISIBLE) {
@@ -209,14 +214,5 @@ public class TweetInputView extends ConstraintLayout {
 
   public ThumbnailContainer getMediaContainer() {
     return mediaContainer;
-  }
-
-  public void clearMedia() {
-    mediaContainer.reset();
-    mediaContainer.setVisibility(INVISIBLE);
-    final int childCount = mediaContainer.getChildCount();
-    for (int i = 0; i < childCount; i++) {
-      mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);
-    }
   }
 }
