@@ -22,36 +22,134 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.SnackbarCapable;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.ActivityTweetInputBinding;
+import com.freshdigitable.udonroad.databinding.ViewAccountSpinnerBinding;
+import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
+import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
+
+import io.reactivex.disposables.Disposable;
+import twitter4j.User;
 
 /**
  * Created by akihit on 2017/12/03.
  */
 
-public class TweetInputActivity extends AppCompatActivity {
+public class TweetInputActivity extends AppCompatActivity implements SnackbarCapable {
   private ActivityTweetInputBinding binding;
   @Inject
   TweetInputViewModel viewModel;
+  private TweetSendPresenter tweetSendPresenter;
+  private ArrayAdapter<User> adapter;
+  private Disposable modelSubs;
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_tweet_input);
+    InjectionUtil.getComponent(this).inject(this);
+
     getLifecycle().addObserver(viewModel);
     final MediaContainerPresenter mediaContainerPresenter
         = new MediaContainerPresenter(binding.tweetInputImageContainer, viewModel);
     getLifecycle().addObserver(mediaContainerPresenter);
+    final LayoutInflater inflater = LayoutInflater.from(this);
+    adapter = new ArrayAdapter<User>(this, R.layout.view_account_spinner) {
+      private final Map<String, Disposable> iconSubsMap = new HashMap<>();
+
+      @NonNull
+      @Override
+      public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        return createView(position, convertView, parent);
+      }
+
+      private View createView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        final ViewAccountSpinnerBinding accountBinding = convertView == null ?
+            DataBindingUtil.inflate(inflater, R.layout.view_account_spinner, parent, false)
+            : DataBindingUtil.bind(convertView);
+        final User item = getItem(position);
+        if (item == null) {
+          throw new IllegalStateException();
+        }
+        accountBinding.accountSpinnerName.setNames(new TwitterCombinedName(item));
+        final String miniProfileImageURLHttps = item.getMiniProfileImageURLHttps();
+        final Disposable d = iconSubsMap.remove(miniProfileImageURLHttps);
+        Utils.maybeDispose(d);
+
+        final ImageQuery query = new ImageQuery.Builder(miniProfileImageURLHttps)
+            .sizeForSquare(getContext(), R.dimen.small_user_icon)
+            .placeholder(getContext(), R.drawable.ic_person_outline_black)
+            .build();
+        final Disposable iconSubs = viewModel.queryImage(query)
+            .subscribe(accountBinding.accountSpinnerIcon::setImageDrawable);
+        iconSubsMap.put(miniProfileImageURLHttps, iconSubs);
+        return accountBinding.getRoot();
+      }
+
+      @Override
+      public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        return createView(position, convertView, parent);
+      }
+
+      @Override
+      public void clear() {
+        super.clear();
+        for (Map.Entry<String, Disposable> entry : iconSubsMap.entrySet()) {
+          Utils.maybeDispose(entry.getValue());
+        }
+        iconSubsMap.clear();
+      }
+    };
+    binding.tweetInputAccount.setAdapter(adapter);
+
+    final String text = parseShareText();
+    viewModel.setText(text);
+  }
+
+  private String parseShareText() {
+    final Intent intent = getIntent();
+    if (intent == null) {
+      return "";
+    }
+    Log.d(getClass().getSimpleName(), "parseShareText: " + intent.toString());
+    if (Intent.ACTION_SEND.equals(intent.getAction())) {
+      return intent.getStringExtra(Intent.EXTRA_TEXT);
+    }
+    return "";
   }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.tweet_input, menu);
+    tweetSendPresenter = new TweetSendPresenter(menu, getMenuInflater(), viewModel);
+    viewModel.setState(TweetInputModel.State.WRITING);
     return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    final int itemId = item.getItemId();
+    if (itemId == R.id.action_sendTweet) {
+      tweetSendPresenter.onSendTweetClicked(this, s -> viewModel.clear(), th -> {});
+      return true;
+    }
+    return false;
   }
 
   private MediaChooserController mediaChooserController = new MediaChooserController();
@@ -61,12 +159,31 @@ public class TweetInputActivity extends AppCompatActivity {
     super.onStart();
     binding.tweetInputAddImage.setOnClickListener(v ->
         mediaChooserController.switchSoftKeyboardToMediaChooser(v, this));
+    binding.tweetInputText.addTextChangedListener(viewModel.textWatcher);
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    final List<? extends User> users = viewModel.getAllAuthenticatedUsers();
+    adapter.addAll(users);
+    modelSubs = viewModel.observeModel()
+        .filter(model -> !binding.tweetInputText.getText().toString().equals(model.getText()))
+        .subscribe(model -> binding.tweetInputText.setText(model.getText()));
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    adapter.clear();
+    Utils.maybeDispose(modelSubs);
   }
 
   @Override
   protected void onStop() {
     super.onStop();
     binding.tweetInputAddImage.setOnClickListener(null);
+    binding.tweetInputText.removeTextChangedListener(viewModel.textWatcher);
   }
 
   @Override
@@ -98,5 +215,10 @@ public class TweetInputActivity extends AppCompatActivity {
     }
     mediaChooserController = savedInstanceState.getParcelable(SS_MEDIA_CHOOSER);
     viewModel.onViewStateRestored(savedInstanceState);
+  }
+
+  @Override
+  public View getRootView() {
+    return binding.getRoot();
   }
 }

@@ -14,37 +14,39 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<android.support.constraint.ConstraintLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     >
-    <com.freshdigitable.udonroad.RoundedCornerImageView
-        android:id="@+id/accountSpinner_icon"
-        android:layout_width="@dimen/small_user_icon"
-        android:layout_height="@dimen/small_user_icon"
-        android:contentDescription="@string/desc_icon"
-        android:layout_marginRight="@dimen/grid_margin"
-        android:layout_marginEnd="@dimen/grid_margin"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/accountSpinner_name"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:maskerShape="@drawable/s_rounded_mask_small"
-        />
-    <com.freshdigitable.udonroad.CombinedScreenNameTextView
-        android:id="@+id/accountSpinner_name"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/accountSpinner_icon"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/accountSpinner_icon"
-        app:layout_constraintBottom_toBottomOf="@id/accountSpinner_icon"
-        android:textSize="@dimen/tweet_small_fontsize"
-        tools:text="name @screenname"
-        />
-</android.support.constraint.ConstraintLayout>
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+        <com.freshdigitable.udonroad.RoundedCornerImageView
+            android:id="@+id/accountSpinner_icon"
+            android:layout_width="@dimen/small_user_icon"
+            android:layout_height="@dimen/small_user_icon"
+            android:contentDescription="@string/desc_icon"
+            android:layout_marginRight="@dimen/grid_margin"
+            android:layout_marginEnd="@dimen/grid_margin"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/accountSpinner_name"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:maskerShape="@drawable/s_rounded_mask_small"
+            />
+        <com.freshdigitable.udonroad.CombinedScreenNameTextView
+            android:id="@+id/accountSpinner_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/accountSpinner_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/accountSpinner_icon"
+            app:layout_constraintBottom_toBottomOf="@id/accountSpinner_icon"
+            android:textSize="@dimen/tweet_small_fontsize"
+            tools:text="name @screenname"
+            />
+    </android.support.constraint.ConstraintLayout>
+</layout>

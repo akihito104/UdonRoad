@@ -33,7 +33,7 @@ class TweetInputModel implements Parcelable {
   private ReplyEntity replyEntity;
   private final List<Uri> media;
   private final List<Long> quoteStatusIds;
-  private String text;
+  private String text = "";
 
   void setText(String text) {
     this.text = text;

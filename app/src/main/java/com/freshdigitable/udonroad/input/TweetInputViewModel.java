@@ -35,6 +35,7 @@ import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -87,6 +88,9 @@ class TweetInputViewModel implements LifecycleObserver {
   }
 
   void setText(String text) {
+    if (model.getText().equals(text)) {
+      return;
+    }
     model.setText(text);
     modelEmitter.onNext(model);
   }
@@ -208,4 +212,8 @@ class TweetInputViewModel implements LifecycleObserver {
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
   };
+
+  List<? extends User> getAllAuthenticatedUsers() {
+    return appSettings.getAllAuthenticatedUsers();
+  }
 }
