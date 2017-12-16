@@ -117,6 +117,7 @@ class TweetInputModel implements Parcelable {
     quoteStatusIds = new ArrayList<>();
     in.readList(quoteStatusIds, this.getClass().getClassLoader());
     text = in.readString();
+    state = (State) in.readSerializable();
   }
 
   @Override
@@ -125,6 +126,7 @@ class TweetInputModel implements Parcelable {
     dest.writeTypedList(media);
     dest.writeList(quoteStatusIds);
     dest.writeString(text);
+    dest.writeSerializable(state);
   }
 
   public static final Creator<TweetInputModel> CREATOR = new Creator<TweetInputModel>() {
@@ -138,4 +140,18 @@ class TweetInputModel implements Parcelable {
       return new TweetInputModel[size];
     }
   };
+
+  private State state = State.DEFAULT;
+
+  State getState() {
+    return state;
+  }
+
+  void setState(State state) {
+    this.state = state;
+  }
+
+  enum State {
+    DEFAULT, WRITING, SENDING, SENT, RESUMED
+  }
 }

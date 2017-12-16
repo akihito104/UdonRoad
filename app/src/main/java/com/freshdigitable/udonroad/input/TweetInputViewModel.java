@@ -149,7 +149,7 @@ class TweetInputViewModel implements LifecycleObserver {
   }
 
   Observable<TweetInputModel> observeModel() {
-    return modelEmitter.publish();
+    return modelEmitter;
   }
 
   void addAllMedia(Collection<Uri> uris) {
@@ -196,5 +196,13 @@ class TweetInputViewModel implements LifecycleObserver {
 
   TweetInputModel getModel() {
     return model;
+  }
+
+  void setState(TweetInputModel.State state) {
+    if (state == model.getState()) {
+      return;
+    }
+    model.setState(state);
+    modelEmitter.onNext(model);
   }
 }

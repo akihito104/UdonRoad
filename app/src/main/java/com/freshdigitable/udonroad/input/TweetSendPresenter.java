@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.input;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.OnLifecycleEvent;
+import android.content.Context;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
@@ -31,6 +32,8 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
 
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import twitter4j.Status;
 
 /**
  * Created by akihit on 2017/12/04.
@@ -46,13 +49,27 @@ class TweetSendPresenter implements LifecycleObserver {
     for (@IdRes int resId : new int[]{R.id.action_writeTweet, R.id.action_sendTweet, R.id.action_resumeTweet}) {
       menuItems.put(resId, menu.findItem(resId));
     }
-    modelSubs = viewModel.observeModel().subscribe(model -> {
-
-    });
     this.viewModel = viewModel;
+    modelSubs = viewModel.observeModel().subscribe(this::setMenuState);
+    setMenuState(viewModel.getModel());
   }
 
-  void setupMenuAvailability(@IdRes int visibleItemId) {
+  private void setMenuState(TweetInputModel model) {
+    final TweetInputModel.State state = model.getState();
+    if (state == TweetInputModel.State.DEFAULT) {
+      setupMenuAvailability(R.id.action_writeTweet);
+    } else if (state == TweetInputModel.State.WRITING) {
+      setupMenuAvailability(R.id.action_sendTweet);
+    } else if (state == TweetInputModel.State.SENDING) {
+      menuItems.get(R.id.action_sendTweet).setEnabled(false);
+    } else if (state == TweetInputModel.State.SENT) {
+      viewModel.setState(TweetInputModel.State.DEFAULT);
+    } else if (state == TweetInputModel.State.RESUMED) {
+      setupMenuAvailability(R.id.action_resumeTweet);
+    }
+  }
+
+  private void setupMenuAvailability(@IdRes int visibleItemId) {
     for (int i = 0; i < menuItems.size(); i++) {
       final MenuItem item = menuItems.valueAt(i);
       item.setVisible(item.getItemId() == visibleItemId);
@@ -72,17 +89,29 @@ class TweetSendPresenter implements LifecycleObserver {
     }
   }
 
-  void onItemClicked(MenuItem item) {
-    final int itemId = item.getItemId();
-    if (itemId == R.id.action_sendTweet) {
-      menuItems.get(R.id.action_sendTweet).setEnabled(false);
-    }
-  }
-
   @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
   public void onDestroy() {
     Utils.maybeDispose(modelSubs);
+    Utils.maybeDispose(updateStatusTask);
     menuItems.clear();
+  }
+
+  private Disposable updateStatusTask;
+
+  void onSendTweetClicked(Context context, Consumer<Status> onNext, Consumer<Throwable> onError) {
+    viewModel.setState(TweetInputModel.State.SENDING);
+    updateStatusTask = viewModel.createSendObservable(context, viewModel.getModel().getText())
+        .subscribe(s -> {
+          onNext.accept(s);
+          viewModel.setState(TweetInputModel.State.SENT);
+        }, e -> {
+          onError.accept(e);
+          viewModel.setState(TweetInputModel.State.RESUMED);
+        });
+  }
+
+  boolean isStatusUpdating() {
+    return Utils.isSubscribed(updateStatusTask);
   }
 }
 

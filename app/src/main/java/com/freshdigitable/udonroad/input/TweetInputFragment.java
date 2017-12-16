@@ -69,7 +69,6 @@ public class TweetInputFragment extends Fragment {
   TweetInputViewModel viewModel;
   private MediaChooserController mediaChooserController = new MediaChooserController();
   private Disposable currentUserSubscription;
-  private Disposable updateStatusTask;
   private Disposable iconSubs;
   private TweetSendPresenter tweetSendPresenter;
 
@@ -103,26 +102,23 @@ public class TweetInputFragment extends Fragment {
       return;
     }
     if (binding.mainTweetInputView.isVisible()) {
-      tweetSendPresenter.setupMenuAvailability(R.id.action_sendTweet);
+      viewModel.setState(TweetInputModel.State.WRITING);
     } else {
-      tweetSendPresenter.setupMenuAvailability(isCleared() ?
-          R.id.action_writeTweet : R.id.action_resumeTweet);
+      viewModel.setState(isCleared() ? TweetInputModel.State.DEFAULT
+          : TweetInputModel.State.RESUMED);
     }
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Log.d(TAG, "onOptionsItemSelected: ");
-    tweetSendPresenter.onItemClicked(item);
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
       final TweetInputListener tweetInputListener = getTweetInputListener();
-      updateStatusTask = viewModel.createSendObservable(getContext(), binding.mainTweetInputView.getText().toString()).subscribe(s -> {
+      tweetSendPresenter.onSendTweetClicked(getContext(), s -> {
         tweetInputListener.onSendCompleted();
         clear();
-        tweetSendPresenter.setupMenuAvailability(R.id.action_writeTweet);
-      }, e ->
-          tweetSendPresenter.setupMenuAvailability(R.id.action_resumeTweet));
+      }, e -> {});
     }
     return false;
   }
@@ -170,7 +166,6 @@ public class TweetInputFragment extends Fragment {
   @Override
   public void onDetach() {
     super.onDetach();
-    Utils.maybeDispose(updateStatusTask);
   }
 
   private final TextWatcher textWatcher = new TextWatcher() {
@@ -187,7 +182,7 @@ public class TweetInputFragment extends Fragment {
 
   public boolean isNewTweetCreatable() {
     return !isTweetInputViewVisible()
-        && !Utils.isSubscribed(updateStatusTask)
+        && (tweetSendPresenter == null || !tweetSendPresenter.isStatusUpdating())
         && isCleared();
   }
 
@@ -226,7 +221,7 @@ public class TweetInputFragment extends Fragment {
   private void expandTweetInputView() {
     binding.mainTweetInputView.setShortUrlLength(viewModel.getUrlLength());
     setupExpandAnimation(binding.mainTweetInputView);
-    tweetSendPresenter.setupMenuAvailability(R.id.action_sendTweet);
+    viewModel.setState(TweetInputModel.State.WRITING);
   }
 
   private static final int ANIM_DURATION = 200;
@@ -323,7 +318,7 @@ public class TweetInputFragment extends Fragment {
   public void cancelInput() {
     clear();
     collapseStatusInputView();
-    tweetSendPresenter.setupMenuAvailability(R.id.action_writeTweet);
+    viewModel.setState(TweetInputModel.State.DEFAULT);
   }
 
   private void clear() {

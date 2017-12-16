@@ -72,7 +72,6 @@ class MediaContainerPresenter implements LifecycleObserver {
 
   private void updateMediaContainer(List<Uri> media) {
     Utils.maybeDispose(uploadedMediaSubs);
-    mediaContainer.reset();
     final int childCount = mediaContainer.getChildCount();
     for (int i = 0; i < childCount; i++) {
       mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);
