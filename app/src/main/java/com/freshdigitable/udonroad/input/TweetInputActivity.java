@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.input;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 
 import com.freshdigitable.udonroad.R;
@@ -147,7 +149,14 @@ public class TweetInputActivity extends AppCompatActivity implements SnackbarCap
   public boolean onOptionsItemSelected(MenuItem item) {
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
-      tweetSendPresenter.onSendTweetClicked(this, s -> viewModel.clear(), th -> {});
+      tweetSendPresenter.onSendTweetClicked(this, s -> {
+        viewModel.clear();
+        final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+          imm.hideSoftInputFromInputMethod(binding.tweetInputText.getWindowToken(), 0);
+        }
+        finish();
+      }, th -> {});
       return true;
     }
     return false;

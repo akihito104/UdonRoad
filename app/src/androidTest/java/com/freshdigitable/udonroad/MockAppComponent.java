@@ -42,4 +42,6 @@ public interface MockAppComponent extends AppComponent {
   void inject(OAuthActivityInstTest.Base oAuthActivityInstTest);
 
   void inject(AppSettingStoreTest appSettingStoreTest);
+
+  void inject(TweetInputActivityInstTest tweetInputActivityInstTest);
 }

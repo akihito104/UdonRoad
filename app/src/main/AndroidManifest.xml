@@ -70,6 +70,7 @@
             android:name=".input.TweetInputActivity"
             android:label="input tweet"
             android:theme="@style/AppTheme.DarkActionBar"
+            android:windowSoftInputMode="adjustResize"
             >
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
