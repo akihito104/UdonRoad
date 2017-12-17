@@ -54,6 +54,8 @@
             app:layout_constraintBottom_toTopOf="@id/tweetInput_addImage"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="top"
+            tools:text="hoge"
             />
         <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/tweetInput_addImage"
@@ -63,6 +65,7 @@
             app:layout_constraintTop_toBottomOf="@id/tweetInput_text"
             app:layout_constraintBottom_toBottomOf="parent"
             app:srcCompat="@drawable/ic_add_a_photo"
+            android:tint="@android:color/darker_gray"
             android:background="@android:color/transparent"
             />
         <com.freshdigitable.udonroad.media.ThumbnailContainer
