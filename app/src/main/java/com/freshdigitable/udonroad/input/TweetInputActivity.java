@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad.input;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -162,14 +163,19 @@ public class TweetInputActivity extends AppCompatActivity implements SnackbarCap
     binding.tweetInputText.addTextChangedListener(viewModel.textWatcher);
   }
 
+  @SuppressLint("SetTextI18n")
   @Override
   protected void onResume() {
     super.onResume();
     final List<? extends User> users = viewModel.getAllAuthenticatedUsers();
     adapter.addAll(users);
     modelSubs = viewModel.observeModel()
-        .filter(model -> !binding.tweetInputText.getText().toString().equals(model.getText()))
-        .subscribe(model -> binding.tweetInputText.setText(model.getText()));
+        .subscribe(model -> {
+          if (!binding.tweetInputText.getText().toString().equals(model.getText())) {
+            binding.tweetInputText.setText(model.getText());
+          }
+          binding.tweetInputCount.setText(Integer.toString(140 - model.getText().length()));
+        });
   }
 
   @Override
