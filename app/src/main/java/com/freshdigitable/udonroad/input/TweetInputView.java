@@ -187,13 +187,15 @@ public class TweetInputView extends ConstraintLayout {
     super.onAttachedToWindow();
     final InputMethodManager inputMethodManager
         = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-    inputText.setOnFocusChangeListener((v, hasFocus) -> {
-      if (hasFocus) {
-        inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-      } else {
-        inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-      }
-    });
+    if (inputMethodManager != null) {
+      inputText.setOnFocusChangeListener((v, hasFocus) -> {
+        if (hasFocus) {
+          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
+        } else {
+          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+      });
+    }
     inputText.addTextChangedListener(textWatcher);
   }
 
