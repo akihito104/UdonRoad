@@ -183,7 +183,7 @@ public class TweetInputActivity extends AppCompatActivity implements SnackbarCap
           if (!binding.tweetInputText.getText().toString().equals(model.getText())) {
             binding.tweetInputText.setText(model.getText());
           }
-          binding.tweetInputCount.setText(Integer.toString(140 - model.getText().length()));
+          binding.tweetInputCount.setText(Integer.toString(model.getRemainCount()));
         });
   }
 

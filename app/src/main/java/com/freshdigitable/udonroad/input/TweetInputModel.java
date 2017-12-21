@@ -34,6 +34,7 @@ class TweetInputModel implements Parcelable {
   private final List<Uri> media;
   private final List<Long> quoteStatusIds;
   private String text = "";
+  private int urlLength;
 
   void setText(String text) {
     this.text = text;
@@ -41,6 +42,10 @@ class TweetInputModel implements Parcelable {
 
   String getText() {
     return text;
+  }
+
+  int getRemainCount() {
+    return 140 - (text.length() + (1 + urlLength) * quoteStatusIds.size());
   }
 
   void setReplyEntity(ReplyEntity replyEntity) {
@@ -150,6 +155,10 @@ class TweetInputModel implements Parcelable {
 
   void setState(State state) {
     this.state = state;
+  }
+
+  void setUrlLength(int urlLength) {
+    this.urlLength = urlLength;
   }
 
   enum State {

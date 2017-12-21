@@ -95,7 +95,6 @@ public class TweetInputView extends ConstraintLayout {
   public void show() {
     setVisibility(VISIBLE);
     inputText.requestFocus();
-    updateTextCounter(inputText.getText());
   }
 
   public void hide() {
@@ -148,37 +147,9 @@ public class TweetInputView extends ConstraintLayout {
     quoteMark.setVisibility(GONE);
   }
 
-  private int shortUrlLength;
-
-  public void setShortUrlLength(int shortUrlLength) {
-    this.shortUrlLength = shortUrlLength;
-  }
-
-  final TextWatcher textWatcher = new TextWatcher() {
-    @Override
-    public void afterTextChanged(Editable editable) {
-      updateTextCounter(editable);
-    }
-
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-  };
-
   @SuppressLint("SetTextI18n")
-  private void updateTextCounter(Editable editable) {
-    int length = editable.length();
-    if (quoteMark.getVisibility() == VISIBLE) {
-      if (length > 0) {
-        length++; // add space
-      }
-      length += shortUrlLength;
-    }
-    counter.setText(Integer.toString(140 - length));
+  public void setRemainCount(int remainCount) {
+    counter.setText(Integer.toString(remainCount));
   }
 
   @Override
@@ -196,7 +167,6 @@ public class TweetInputView extends ConstraintLayout {
         }
       });
     }
-    inputText.addTextChangedListener(textWatcher);
   }
 
   @Override
@@ -204,7 +174,6 @@ public class TweetInputView extends ConstraintLayout {
     Log.d(TAG, "onDetachedFromWindow: ");
     super.onDetachedFromWindow();
     inputText.setOnFocusChangeListener(null);
-    inputText.removeTextChangedListener(textWatcher);
   }
 
   @Override

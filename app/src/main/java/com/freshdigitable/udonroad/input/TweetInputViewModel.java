@@ -105,12 +105,13 @@ class TweetInputViewModel implements LifecycleObserver {
     statusCache.close();
   }
 
-  int getUrlLength() {
+  private int getUrlLength() {
     final TwitterAPIConfiguration twitterAPIConfig = appSettings.getTwitterAPIConfig();
     return twitterAPIConfig != null ? twitterAPIConfig.getShortURLLengthHttps() : 0;
   }
 
   void addQuoteId(long quoteId) {
+    model.setUrlLength(getUrlLength());
     model.addQuoteId(quoteId);
     modelEmitter.onNext(model);
   }

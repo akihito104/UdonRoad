@@ -197,7 +197,7 @@ public class TweetInputFragmentInstTest {
 
       PerformUtil.selectItemViewAt(0);
       PerformUtil.quote();
-      checkRemainCount("", true);
+      checkRemainCount("");
       checkDefaultTweetInputFragment(false);
 
       PerformUtil.clickCancelWriteOnMenu();
@@ -212,7 +212,7 @@ public class TweetInputFragmentInstTest {
 
       PerformUtil.selectItemViewAt(1);
       PerformUtil.quote();
-      checkRemainCount("", true);
+      checkRemainCount("");
       AssertionUtil.checkMainActivityTitle(R.string.title_reply);
       onView(withId(R.id.tw_quote)).check(matches(not(isDisplayed())));
 
@@ -414,7 +414,7 @@ public class TweetInputFragmentInstTest {
   }
 
   private static void checkRemainCount(String inputText, boolean quoted) {
-    final int count = 140 - (inputText.length() + (quoted ? 23 : 0));
+    final int count = 140 - (inputText.length() + (quoted ? 24 : 0));
     onView(withId(R.id.tw_counter)).check(matches(withText(Integer.toString(count))));
   }
 

@@ -159,6 +159,7 @@ public class TweetInputFragment extends Fragment {
       binding.mainTweetInputView.setQuote();
     }
     binding.mainTweetInputView.setText(model.getText());
+    binding.mainTweetInputView.setRemainCount(model.getRemainCount());
   }
 
   @Override
@@ -216,7 +217,6 @@ public class TweetInputFragment extends Fragment {
   }
 
   private void expandTweetInputView() {
-    binding.mainTweetInputView.setShortUrlLength(viewModel.getUrlLength());
     setupExpandAnimation(binding.mainTweetInputView);
     viewModel.setState(TweetInputModel.State.WRITING);
   }
