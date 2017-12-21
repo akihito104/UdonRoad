@@ -159,6 +159,7 @@ public class TweetInputFragmentInstTest {
       PerformUtil.clickWriteOnMenu();
       onView(withId(R.id.tw_intext)).perform(typeText(inputText))
           .check(matches(withText(inputText)));
+      checkRemainCount(inputText);
 
       onView(withId(R.id.action_sendTweet)).perform(click());
       onView(withId(R.id.action_resumeTweet)).check(matches(isDisplayed())).perform(click());
@@ -170,6 +171,7 @@ public class TweetInputFragmentInstTest {
     public void openTweetInputForQuote_then_qtMarkIsShown() {
       PerformUtil.selectItemViewAt(0);
       PerformUtil.quote();
+      checkRemainCount("", true);
       onView(withId(R.id.action_sendTweet)).check(matches(isDisplayed()));
       AssertionUtil.checkMainActivityTitle(R.string.title_comment);
       onView(withId(R.id.tw_quote)).check(matches(isDisplayed()));
@@ -195,6 +197,7 @@ public class TweetInputFragmentInstTest {
 
       PerformUtil.selectItemViewAt(0);
       PerformUtil.quote();
+      checkRemainCount("", true);
       checkDefaultTweetInputFragment(false);
 
       PerformUtil.clickCancelWriteOnMenu();
@@ -209,6 +212,7 @@ public class TweetInputFragmentInstTest {
 
       PerformUtil.selectItemViewAt(1);
       PerformUtil.quote();
+      checkRemainCount("", true);
       AssertionUtil.checkMainActivityTitle(R.string.title_reply);
       onView(withId(R.id.tw_quote)).check(matches(not(isDisplayed())));
 
@@ -227,8 +231,9 @@ public class TweetInputFragmentInstTest {
       PerformUtil.reply();
 
       checkReplyTweetInputFragment(true);
-      onView(withId(R.id.tw_intext))
-          .check(matches(withText("@" + userB.getScreenName() + " ")));
+      final String inputText = "@" + userB.getScreenName() + " ";
+      onView(withId(R.id.tw_intext)).check(matches(withText(inputText)));
+      checkRemainCount(inputText);
       PerformUtil.clickCancelWriteOnMenu();
       onView(withId(R.id.action_writeTweet)).check(matches(isDisplayed()))
           .check(matches(isEnabled()));
@@ -241,10 +246,11 @@ public class TweetInputFragmentInstTest {
       PerformUtil.reply();
 
       checkReplyTweetInputFragment(true);
-      onView(withId(R.id.tw_intext))
-          .check(matches(withText(containsString("@" + userB.getScreenName()))));
-      onView(withId(R.id.tw_intext))
-          .check(matches(withText(containsString("@" + userC.getScreenName()))));
+      final String userBName = "@" + userB.getScreenName();
+      onView(withId(R.id.tw_intext)).check(matches(withText(containsString(userBName))));
+      final String userCName = "@" + userC.getScreenName();
+      onView(withId(R.id.tw_intext)).check(matches(withText(containsString(userCName))));
+      checkRemainCount(userBName + " " + userCName + " ");
       onView(withId(R.id.tw_intext))
           .check(matches(withText(not(containsString("@" + getLoginUser().getScreenName())))));
       PerformUtil.clickCancelWriteOnMenu();
@@ -260,11 +266,13 @@ public class TweetInputFragmentInstTest {
       checkDefaultTweetInputFragment(false);
       final String inputText = "this is default tweet.";
       onView(withId(R.id.tw_intext)).perform(typeText(inputText));
+      checkRemainCount(inputText);
 
       showMediaView();
       Espresso.pressBack();
       checkDefaultTweetInputFragment(true);
       onView(withId(R.id.tw_intext)).check(matches(withText(inputText)));
+      checkRemainCount(inputText);
 
       PerformUtil.clickCancelWriteOnMenu();
       AssertionUtil.checkMainActivityTitle(R.string.title_home);
@@ -291,6 +299,7 @@ public class TweetInputFragmentInstTest {
       PerformUtil.selectItemView(normalTweet);
       PerformUtil.quote();
       checkQuoteTweetInputFragment();
+      checkRemainCount("", true);
 
       showMediaView();
       Espresso.pressBack();
@@ -398,6 +407,15 @@ public class TweetInputFragmentInstTest {
         .check(matches(sendable ? isEnabled() : not(isEnabled())));
     onView(withId(R.id.tw_replyTo)).check(matches(shownReplyTo ? isDisplayed() : not(isDisplayed())));
     onView(withId(R.id.tw_quote)).check(matches(shownQuote ? isDisplayed() : not(isDisplayed())));
+  }
+
+  private static void checkRemainCount(String inputText) {
+    checkRemainCount(inputText, false);
+  }
+
+  private static void checkRemainCount(String inputText, boolean quoted) {
+    final int count = 140 - (inputText.length() + (quoted ? 23 : 0));
+    onView(withId(R.id.tw_counter)).check(matches(withText(Integer.toString(count))));
   }
 
   private static ViewInteraction onActionCancel() {
