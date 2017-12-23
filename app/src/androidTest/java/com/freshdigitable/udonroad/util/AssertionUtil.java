@@ -167,5 +167,14 @@ public class AssertionUtil {
         assertTrue(view == null || view.getVisibility() != View.VISIBLE);
   }
 
+  public static void checkRemainCount(String inputText) {
+    checkRemainCount(inputText, false);
+  }
+
+  public static void checkRemainCount(String inputText, boolean quoted) {
+    final int count = 140 - (inputText.length() + (quoted ? 24 : 0));
+    onView(withId(R.id.tw_counter)).check(matches(withText(Integer.toString(count))));
+  }
+
   private AssertionUtil() {}
 }

@@ -149,6 +149,9 @@ public class TweetInputActivity extends AppCompatActivity implements SnackbarCap
   public boolean onOptionsItemSelected(MenuItem item) {
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
+      final int pos = binding.tweetInputAccount.getSelectedItemPosition();
+      final User u = adapter.getItem(pos);
+      viewModel.setAsCurrentUser(u);
       tweetSendPresenter.onSendTweetClicked(this, s -> {
         viewModel.clear();
         final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);

@@ -32,7 +32,7 @@ public interface RequestWorker {
   OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId);
 
   final class Util {
-    static <T, S extends BaseCache> void fetchToStore(
+    public static <T, S extends BaseCache> void fetchToStore(
         Single<T> fetchTask,
         S store, BiConsumer<S, T> storeTask,
         Consumer<T> successFeedback, Consumer<Throwable> failedFeedback) {

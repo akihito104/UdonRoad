@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.subscriber;
 
-import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.util.Log;
@@ -32,7 +30,6 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListe
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -43,7 +40,6 @@ import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Status;
-import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 
 /**
@@ -144,31 +140,6 @@ public class StatusRequestWorker implements RequestWorker {
     Util.fetchToStore(fetchTask, cache, storeTask,
         s -> userFeedback.onNext(new UserFeedbackEvent(successRes)),
         throwable -> userFeedback.onNext(new UserFeedbackEvent(failureRes)));
-  }
-
-  public Single<Status> observeUpdateStatus(String text) {
-    return observeUpdateStatus(twitterApi.updateStatus(text));
-  }
-
-  public Single<Status> observeUpdateStatus(StatusUpdate statusUpdate) {
-    return observeUpdateStatus(twitterApi.updateStatus(statusUpdate));
-  }
-
-  public Single<Status> observeUpdateStatus(Context context, StatusUpdate statusUpdate, List<Uri> media) {
-    return observeUpdateStatus(twitterApi.updateStatus(context, statusUpdate, media));
-  }
-
-  private Single<Status> observeUpdateStatus(Single<Status> updateStatus) {
-    return Single.create(e ->
-        Util.fetchToStore(updateStatus, cache, TypedCache::upsert,
-            s -> {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_updateStatus_success));
-              e.onSuccess(s);
-            },
-            throwable -> {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_updateStatus_failed));
-              e.onError(throwable);
-            }));
   }
 
   private void feedbackOnError(long statusId, Throwable throwable, @StringRes int defaultId) {

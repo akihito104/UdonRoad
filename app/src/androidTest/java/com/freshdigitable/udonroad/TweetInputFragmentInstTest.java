@@ -57,6 +57,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.isEnabled;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static com.freshdigitable.udonroad.util.AssertionUtil.checkRemainCount;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getOpenDrawerIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.getSimpleIdlingResource;
 import static com.freshdigitable.udonroad.util.IdlingResourceUtil.runWithIdlingResource;
@@ -407,15 +408,6 @@ public class TweetInputFragmentInstTest {
         .check(matches(sendable ? isEnabled() : not(isEnabled())));
     onView(withId(R.id.tw_replyTo)).check(matches(shownReplyTo ? isDisplayed() : not(isDisplayed())));
     onView(withId(R.id.tw_quote)).check(matches(shownQuote ? isDisplayed() : not(isDisplayed())));
-  }
-
-  private static void checkRemainCount(String inputText) {
-    checkRemainCount(inputText, false);
-  }
-
-  private static void checkRemainCount(String inputText, boolean quoted) {
-    final int count = 140 - (inputText.length() + (quoted ? 24 : 0));
-    onView(withId(R.id.tw_counter)).check(matches(withText(Integer.toString(count))));
   }
 
   private static ViewInteraction onActionCancel() {

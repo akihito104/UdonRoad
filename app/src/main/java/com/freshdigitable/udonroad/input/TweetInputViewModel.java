@@ -32,7 +32,6 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
-import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.Collection;
 import java.util.List;
@@ -46,13 +45,14 @@ import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.User;
+import twitter4j.auth.AccessToken;
 
 /**
  * Created by akihit on 2017/12/02.
  */
 
 class TweetInputViewModel implements LifecycleObserver {
-  private final StatusRequestWorker statusRequestWorker;
+  private final TweetUploader tweetUploader;
   private final AppSettingStore appSettings;
   private final TypedCache<Status> statusCache;
   private final ImageRepository imageRepository;
@@ -79,11 +79,11 @@ class TweetInputViewModel implements LifecycleObserver {
 
   @Inject
   TweetInputViewModel(AppSettingStore appSettings, TypedCache<Status> statusCache,
-                      ImageRepository imageRepository, StatusRequestWorker statusRequestWorker) {
+                      ImageRepository imageRepository, TweetUploader tweetUploader) {
     this.appSettings = appSettings;
     this.statusCache = statusCache;
     this.imageRepository = imageRepository;
-    this.statusRequestWorker = statusRequestWorker;
+    this.tweetUploader = tweetUploader;
     modelEmitter = PublishSubject.create();
   }
 
@@ -130,11 +130,11 @@ class TweetInputViewModel implements LifecycleObserver {
 
   Single<Status> createSendObservable(Context context, String sendingText) {
     if (!model.isStatusUpdateNeeded()) {
-      return statusRequestWorker.observeUpdateStatus(sendingText);
+      return tweetUploader.observeUpdateStatus(sendingText);
     }
     final StatusUpdate statusUpdate = createStatusUpdate(sendingText);
-    return model.hasMedia() ? statusRequestWorker.observeUpdateStatus(context, statusUpdate, model.getMedia())
-        : statusRequestWorker.observeUpdateStatus(statusUpdate);
+    return model.hasMedia() ? tweetUploader.observeUpdateStatus(context, statusUpdate, model.getMedia())
+        : tweetUploader.observeUpdateStatus(statusUpdate);
   }
 
   private StatusUpdate createStatusUpdate(@NonNull String sendingText) {
@@ -216,5 +216,11 @@ class TweetInputViewModel implements LifecycleObserver {
 
   List<? extends User> getAllAuthenticatedUsers() {
     return appSettings.getAllAuthenticatedUsers();
+  }
+
+  void setAsCurrentUser(User user) {
+    appSettings.setCurrentUserId(user.getId());
+    final AccessToken accessToken = appSettings.getCurrentUserAccessToken();
+    tweetUploader.setAccessToken(accessToken);
   }
 }
