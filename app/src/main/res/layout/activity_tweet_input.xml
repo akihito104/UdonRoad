@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2017. Matsuda, Akihit (akihito104)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<layout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
+    <android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingRight="@dimen/grid_margin_detail"
+        android:paddingLeft="@dimen/grid_margin_detail"
+        tools:context=".input.TweetInputActivity"
+        >
+        <Spinner
+            android:id="@+id/tweetInput_account"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/account_spinner_height"
+            android:layout_marginEnd="@dimen/grid_margin_detail"
+            android:layout_marginRight="@dimen/grid_margin_detail"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tweetInput_count"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            tools:listitem="@layout/view_account_spinner"
+            />
+        <TextView
+            android:id="@+id/tweetInput_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/tweetInput_account"
+            app:layout_constraintBottom_toBottomOf="@id/tweetInput_account"
+            app:layout_constraintStart_toEndOf="@id/tweetInput_account"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:text="140"
+            />
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/tweetInput_text"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toBottomOf="@id/tweetInput_account"
+            app:layout_constraintBottom_toTopOf="@id/tweetInput_addImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="top"
+            tools:text="hoge"
+            />
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/tweetInput_addImage"
+            android:layout_width="@dimen/tweetInput_addImage_size"
+            android:layout_height="@dimen/tweetInput_addImage_size"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tweetInput_text"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:srcCompat="@drawable/ic_add_a_photo"
+            android:tint="@android:color/darker_gray"
+            android:background="@android:color/transparent"
+            />
+        <com.freshdigitable.udonroad.media.ThumbnailContainer
+            android:id="@+id/tweetInput_imageContainer"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toTopOf="@id/tweetInput_addImage"
+            app:layout_constraintBottom_toBottomOf="@id/tweetInput_addImage"
+            app:layout_constraintStart_toEndOf="@id/tweetInput_addImage"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+    </android.support.constraint.ConstraintLayout>
+</layout>

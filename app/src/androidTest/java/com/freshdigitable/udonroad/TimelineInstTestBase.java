@@ -83,6 +83,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -179,7 +180,7 @@ public abstract class TimelineInstTestBase {
     onView(withId(R.id.action_sendTweet)).check(doesNotExist());
     verify(twitter, times(1)).getHomeTimeline();
     verify(twitter, times(1)).setOAuthAccessToken(any(AccessToken.class));
-    verify(twitterStream, times(1)).setOAuthAccessToken(any(AccessToken.class));
+    verify(twitterStream, atLeast(1)).setOAuthAccessToken(any(AccessToken.class));
     assertThat(getUserStreamListener(), is(notNullValue()));
   }
 

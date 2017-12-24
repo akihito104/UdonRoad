@@ -66,6 +66,18 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
             />
+        <activity
+            android:name=".input.TweetInputActivity"
+            android:label="@string/title_share"
+            android:theme="@style/AppTheme.DarkActionBar"
+            android:windowSoftInputMode="adjustResize"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

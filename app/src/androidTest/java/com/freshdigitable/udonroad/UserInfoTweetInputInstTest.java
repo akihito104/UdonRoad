@@ -115,6 +115,7 @@ public class UserInfoTweetInputInstTest extends UserInfoActivityInstTest.Base {
     PerformUtil.reply();
     onView(withId(R.id.tw_intext)).perform(typeText(inputText))
         .check(matches(withText(inputText)));
+    AssertionUtil.checkRemainCount(inputText);
 
     onView(withId(R.id.action_sendTweet)).perform(click());
     onView(withId(R.id.tw_intext)).check(matches(not(isDisplayed())));

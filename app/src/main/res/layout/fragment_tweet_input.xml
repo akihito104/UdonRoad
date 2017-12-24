@@ -19,7 +19,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
     >
-    <com.freshdigitable.udonroad.TweetInputView
+    <com.freshdigitable.udonroad.input.TweetInputView
         android:id="@+id/main_tweet_input_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

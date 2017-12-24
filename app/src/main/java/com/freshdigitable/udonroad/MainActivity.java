@@ -38,8 +38,9 @@ import android.view.WindowManager;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedListener;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetInputListener;
-import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -57,8 +58,8 @@ import javax.inject.Inject;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.StoreType.HOME;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_QUOTE;
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_QUOTE;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
 
 /**
  * MainActivity shows home timeline for authorized user.

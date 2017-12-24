@@ -111,8 +111,8 @@
 
     <android.support.v7.widget.AppCompatImageButton
         android:id="@+id/tw_append_image"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="@dimen/tweetInput_addImage_size"
+        android:layout_height="@dimen/tweetInput_addImage_size"
         android:layout_marginLeft="@dimen/grid_margin"
         android:layout_marginStart="@dimen/grid_margin"
         app:layout_constraintTop_toBottomOf="@id/tw_intext"

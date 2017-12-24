@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2017. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.input;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.constraint.ConstraintLayout;
@@ -30,6 +31,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.CombinedScreenNameTextView;
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
@@ -92,7 +95,6 @@ public class TweetInputView extends ConstraintLayout {
   public void show() {
     setVisibility(VISIBLE);
     inputText.requestFocus();
-    updateTextCounter(inputText.getText());
   }
 
   public void hide() {
@@ -124,8 +126,11 @@ public class TweetInputView extends ConstraintLayout {
     inputText.removeTextChangedListener(textWatcher);
   }
 
-  public void addText(String text) {
-    inputText.append(text);
+  public void setText(String text) {
+    if (inputText.getText().toString().equals(text)) {
+      return;
+    }
+    inputText.setText(text);
   }
 
   public void setInReplyTo() {
@@ -142,36 +147,9 @@ public class TweetInputView extends ConstraintLayout {
     quoteMark.setVisibility(GONE);
   }
 
-  private int shortUrlLength;
-
-  public void setShortUrlLength(int shortUrlLength) {
-    this.shortUrlLength = shortUrlLength;
-  }
-
-  final TextWatcher textWatcher = new TextWatcher() {
-    @Override
-    public void afterTextChanged(Editable editable) {
-      updateTextCounter(editable);
-    }
-
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-  };
-
-  private void updateTextCounter(Editable editable) {
-    int length = editable.length();
-    if (quoteMark.getVisibility() == VISIBLE) {
-      if (length > 0) {
-        length++; // add space
-      }
-      length += shortUrlLength;
-    }
-    counter.setText(Integer.toString(140 - length));
+  @SuppressLint("SetTextI18n")
+  public void setRemainCount(int remainCount) {
+    counter.setText(Integer.toString(remainCount));
   }
 
   @Override
@@ -180,14 +158,15 @@ public class TweetInputView extends ConstraintLayout {
     super.onAttachedToWindow();
     final InputMethodManager inputMethodManager
         = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-    inputText.setOnFocusChangeListener((v, hasFocus) -> {
-      if (hasFocus) {
-        inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-      } else {
-        inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-      }
-    });
-    inputText.addTextChangedListener(textWatcher);
+    if (inputMethodManager != null) {
+      inputText.setOnFocusChangeListener((v, hasFocus) -> {
+        if (hasFocus) {
+          inputMethodManager.showSoftInput(v, InputMethodManager.SHOW_FORCED);
+        } else {
+          inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+      });
+    }
   }
 
   @Override
@@ -195,7 +174,6 @@ public class TweetInputView extends ConstraintLayout {
     Log.d(TAG, "onDetachedFromWindow: ");
     super.onDetachedFromWindow();
     inputText.setOnFocusChangeListener(null);
-    inputText.removeTextChangedListener(textWatcher);
   }
 
   @Override
@@ -207,14 +185,5 @@ public class TweetInputView extends ConstraintLayout {
 
   public ThumbnailContainer getMediaContainer() {
     return mediaContainer;
-  }
-
-  public void clearMedia() {
-    mediaContainer.reset();
-    mediaContainer.setVisibility(INVISIBLE);
-    final int childCount = mediaContainer.getChildCount();
-    for (int i = 0; i < childCount; i++) {
-      mediaContainer.getChildAt(i).setOnCreateContextMenuListener(null);
-    }
   }
 }

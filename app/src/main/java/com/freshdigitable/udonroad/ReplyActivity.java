@@ -29,7 +29,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 
-import com.freshdigitable.udonroad.TweetInputFragment.TweetType;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityReplyBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
@@ -39,7 +40,7 @@ import javax.inject.Inject;
 
 import twitter4j.Status;
 
-import static com.freshdigitable.udonroad.TweetInputFragment.TYPE_REPLY;
+import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
 
 /**
  * ReplyActivity provides to input reply or quote tweet. It is started by the context does not have

@@ -136,6 +136,7 @@
     <string name="settings_loginUser_default" translatable="false">-1</string>
     <string name="settings_title_version">version</string>
     <string name="settings_key_version" translatable="false">key_version</string>
+    <string name="title_share">share</string>
     <string-array name="settings_loginUser_entries">
         <item>last logged in</item>
     </string-array>
