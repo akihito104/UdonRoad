@@ -68,7 +68,7 @@
             />
         <activity
             android:name=".input.TweetInputActivity"
-            android:label="input tweet"
+            android:label="@string/title_share"
             android:theme="@style/AppTheme.DarkActionBar"
             android:windowSoftInputMode="adjustResize"
             >
