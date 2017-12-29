@@ -1,5 +1,4 @@
 plugins {
-//    id "me.tatarka.retrolambda" version "3.5.0"
     id 'com.github.ben-manes.versions' version '0.15.0'
 }
 apply plugin: 'com.android.application'
@@ -8,14 +7,21 @@ apply plugin: 'com.cookpad.android.licensetools'
 apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
-
+    signingConfigs {
+        release {
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASS")
+            storeFile file("${System.getenv("STORE_FILE")}")
+            storePassword System.getenv("STORE_PASS")
+        }
+    }
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
     defaultConfig {
         // change for your app
         applicationId "com.freshdigitable.udonroad"
         minSdkVersion 15
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 7
         versionName "0.2.3"
         vectorDrawables.useSupportLibrary = true
@@ -37,6 +43,7 @@ android {
             zipAlignEnabled true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 
@@ -64,7 +71,7 @@ android {
     }
 }
 
-def supportLibVer = '26.1.0'
+def supportLibVer = '27.0.2'
 def t4jVer = '4.0.6'
 def rxVer = '2.1.5'
 def rxAndroidVer = '2.0.1'
@@ -76,7 +83,7 @@ def leakcanaryVer= '1.5.1'
 def okhttpVer = '3.9.0'
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "com.android.support:appcompat-v7:$supportLibVer"
     implementation "com.android.support:recyclerview-v7:$supportLibVer"
     implementation "com.android.support:design:$supportLibVer"
