@@ -20,8 +20,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
@@ -29,7 +29,7 @@ class TimelineDecoration extends RecyclerView.ItemDecoration {
   private final Paint paint;
   private final int dividerHeight;
 
-  TimelineDecoration(Context context) {
+  TimelineDecoration(@NonNull Context context) {
     paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     final int dividerColor = ContextCompat.getColor(context, R.color.divider);
     paint.setColor(dividerColor);
