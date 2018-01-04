@@ -103,13 +103,16 @@ public class StatusDetailFragment extends Fragment {
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater,
+  public View onCreateView(@NonNull LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    if (binding == null) {
-      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_status_detail, container, false);
-    }
-    return binding.getRoot();
+    return inflater.inflate(R.layout.fragment_status_detail, container, false);
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    binding = DataBindingUtil.bind(view);
   }
 
   @Override

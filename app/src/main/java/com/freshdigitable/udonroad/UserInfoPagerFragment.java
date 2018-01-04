@@ -84,42 +84,29 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater,
+  public View onCreateView(@NonNull LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    if (root == null) {
-      root = inflater.inflate(R.layout.fragment_user_info_pager, container, false);
-    }
-    return root;
+    return inflater.inflate(R.layout.fragment_user_info_pager, container, false);
   }
 
-  private View root;
   private ViewPager viewPager;
   private TabLayout tabLayout;
   private PagerAdapter pagerAdapter;
 
   @Override
-  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onViewCreated: ");
     super.onViewCreated(view, savedInstanceState);
-    if (viewPager == null) {
-      viewPager = view.findViewById(R.id.user_pager);
-      tabLayout = view.findViewById(R.id.pager_tabs);
-      tabLayout.setupWithViewPager(viewPager);
-    }
-  }
+    viewPager = view.findViewById(R.id.user_pager);
+    tabLayout = view.findViewById(R.id.pager_tabs);
+    tabLayout.setupWithViewPager(viewPager);
 
-  @Override
-  public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onActivityCreated: ");
-    super.onActivityCreated(savedInstanceState);
-    if (pagerAdapter == null) {
-      pagerAdapter = new PagerAdapter(getChildFragmentManager());
-      for (UserPageInfo page : UserPageInfo.values()) {
-        putToPagerAdapter(page);
-      }
-      viewPager.setAdapter(pagerAdapter);
+    pagerAdapter = new PagerAdapter(getChildFragmentManager());
+    for (UserPageInfo page : UserPageInfo.values()) {
+      putToPagerAdapter(page);
     }
+    viewPager.setAdapter(pagerAdapter);
   }
 
   private void putToPagerAdapter(@NonNull UserPageInfo page) {
@@ -161,7 +148,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
       });
     }
     userCache.open();
-    if (subscription == null || subscription.isDisposed()) {
+    if (!Utils.isSubscribed(subscription)) {
       subscription = userCache.observeById(getUserId())
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(this::updateTabs,

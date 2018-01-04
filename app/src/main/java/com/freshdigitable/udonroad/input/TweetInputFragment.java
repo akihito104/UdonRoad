@@ -121,15 +121,19 @@ public class TweetInputFragment extends Fragment {
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(@NonNull LayoutInflater inflater,
+                           ViewGroup container, Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: ");
-    if (binding == null) {
-      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_tweet_input, container, false);
-      final MediaContainerPresenter mediaContainerPresenter
-          = new MediaContainerPresenter(binding.mainTweetInputView.getMediaContainer(), viewModel);
-      getLifecycle().addObserver(mediaContainerPresenter);
-    }
-    return binding.getRoot();
+    return inflater.inflate(R.layout.fragment_tweet_input, container, false);
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    binding = DataBindingUtil.bind(view);
+    final MediaContainerPresenter mediaContainerPresenter
+        = new MediaContainerPresenter(binding.mainTweetInputView.getMediaContainer(), viewModel);
+    getLifecycle().addObserver(mediaContainerPresenter);
   }
 
   @Override
@@ -384,7 +388,7 @@ public class TweetInputFragment extends Fragment {
   private static final String SS_MEDIA_CHOOSER = "ss_mediaChooser";
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(@NonNull Bundle outState) {
     Log.d(TAG, "onSaveInstanceState: ");
     super.onSaveInstanceState(outState);
     outState.putInt(SS_TWEET_INPUT_VIEW_VISIBILITY, binding.mainTweetInputView.getVisibility());

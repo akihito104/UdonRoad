@@ -21,6 +21,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -131,7 +132,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater,
+  public View onCreateView(@NonNull LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onCreateView: " + getStoreName());
@@ -140,18 +141,36 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       doneFirstFetch = savedInstanceState.getBoolean(SS_DONE_FIRST_FETCH);
       tlAdapter.onRestoreInstanceState(savedInstanceState.getParcelable(SS_ADAPTER));
     }
-    if (binding == null) {
-      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false);
-      binding.timeline.setHasFixedSize(true);
-      binding.timeline.setAdapter(tlAdapter);
-      binding.timelineSwipeLayout.setColorSchemeResources(R.color.accent, R.color.twitter_primary,
-          R.color.twitter_action_retweeted, R.color.twitter_action_faved);
-    }
-    return binding.getRoot();
+    return inflater.inflate(R.layout.fragment_timeline, container, false);
   }
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    binding = DataBindingUtil.bind(view);
+    binding.timeline.setHasFixedSize(true);
+    binding.timeline.setAdapter(tlAdapter);
+
+    tlLayoutManager = new LinearLayoutManager(getContext());
+    tlLayoutManager.setAutoMeasureEnabled(true);
+    binding.timeline.setLayoutManager(tlLayoutManager);
+
+    if (timelineDecoration == null) {
+      timelineDecoration = new TimelineDecoration(view.getContext());
+    }
+    binding.timeline.addItemDecoration(timelineDecoration);
+
+    if (timelineAnimator == null) {
+      timelineAnimator = new TimelineAnimator();
+    }
+    binding.timeline.setItemAnimator(timelineAnimator);
+
+    binding.timelineSwipeLayout.setColorSchemeResources(R.color.accent, R.color.twitter_primary,
+        R.color.twitter_action_retweeted, R.color.twitter_action_faved);
+  }
+
+  @Override
+  public void onSaveInstanceState(@NonNull Bundle outState) {
     Log.d(TAG, "onSaveInstanceState: " + getStoreName());
     super.onSaveInstanceState(outState);
     outState.putParcelable(SS_AUTO_SCROLL_STATE, autoScrollState);
@@ -165,19 +184,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     Log.d(TAG, "onActivityCreated: " + getStoreName());
     super.onActivityCreated(savedInstanceState);
-    if (timelineDecoration == null) {
-      timelineDecoration = new TimelineDecoration(getContext());
-      binding.timeline.addItemDecoration(timelineDecoration);
-    }
-    if (tlLayoutManager == null) {
-      tlLayoutManager = new LinearLayoutManager(getContext());
-      tlLayoutManager.setAutoMeasureEnabled(true);
-      binding.timeline.setLayoutManager(tlLayoutManager);
-    }
-    if (timelineAnimator == null) {
-      timelineAnimator = new TimelineAnimator();
-      binding.timeline.setItemAnimator(timelineAnimator);
-    }
     if (!doneFirstFetch && getUserVisibleHint()) {
       fetcher.fetch();
       doneFirstFetch = true;
@@ -304,7 +310,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private boolean isVisibleOnViewPager() {
     final Fragment parent = getParentFragment();
     final UserInfoPagerFragment pager = (UserInfoPagerFragment) parent;
-    return this == pager.getCurrentFragment();
+    return pager != null && this == pager.getCurrentFragment();
   }
 
   @Override
