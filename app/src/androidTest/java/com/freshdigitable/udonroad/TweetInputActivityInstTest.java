@@ -144,7 +144,7 @@ public class TweetInputActivityInstTest {
     onData(ofUser(userAsub))
         .inRoot(withDecorView(not(is(rule.getActivity().getWindow().getDecorView()))))
         .perform(click());
-    onView(withId(R.id.accountSpinner_name)).check(matches(withText(userAsub.getName() + " @" + userAsub.getScreenName())));
+    onView(withId(R.id.accountSpinner_name)).check(matches(withText(userAsub.getName() + "\n@" + userAsub.getScreenName())));
     final String expectedText = "tweet as A sub";
     onView(withId(R.id.tweetInput_text)).perform(typeText(expectedText));
     onView(withId(R.id.tweetInput_count)).check(matches(withText(getRemainCount(expectedText))));
