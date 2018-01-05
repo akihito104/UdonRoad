@@ -19,7 +19,6 @@ package com.freshdigitable.udonroad.module;
 import com.freshdigitable.udonroad.MainActivity;
 import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.OAuthActivity;
-import com.freshdigitable.udonroad.ReplyActivity;
 import com.freshdigitable.udonroad.StatusDetailFragment;
 import com.freshdigitable.udonroad.TimelineFragment;
 import com.freshdigitable.udonroad.input.TweetInputActivity;
@@ -50,8 +49,6 @@ public interface AppComponent {
   void inject(MainActivity activity);
 
   void inject(MediaViewActivity mediaViewActivity);
-
-  void inject(ReplyActivity replyActivity);
 
   void inject(UserInfoActivity userInfoActivity);
 

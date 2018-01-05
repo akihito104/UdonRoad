@@ -48,12 +48,6 @@
             />
 
         <activity
-            android:name=".ReplyActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:supportsPictureInPicture="false"
-            />
-
-        <activity
             android:name=".LicenseActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="false"
@@ -71,6 +65,7 @@
             android:label="@string/title_share"
             android:theme="@style/AppTheme.DarkActionBar"
             android:windowSoftInputMode="adjustResize"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             >
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
