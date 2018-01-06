@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.CallSuper;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.NamingBaseCache;
@@ -26,6 +25,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmQuery;
+import timber.log.Timber;
 
 /**
  * BaseStoredCacheRealm is a base class implementing SortedCache.<br>
@@ -49,7 +49,7 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     appSettingStore.open();
     config = getRealmConfiguration(storeName);
     realm = Realm.getInstance(config);
-    Log.d(TAG, "open: " + config.getRealmFileName());
+    Timber.tag(TAG).d("open: %s", config.getRealmFileName());
     appSettingStore.close();
   }
 
@@ -67,7 +67,7 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     if (realm == null || realm.isClosed()) {
       return;
     }
-    Log.d(TAG, "close: " + config.getRealmDirectory() + "/" + config.getRealmFileName());
+    Timber.tag(TAG).d("close: %s/%s", config.getRealmDirectory(), config.getRealmFileName());
     realm.close();
   }
 
@@ -79,7 +79,7 @@ class NamingBaseCacheRealm implements NamingBaseCache {
     if (Realm.getGlobalInstanceCount(config) <= 0) {
       final boolean dropped = Realm.deleteRealm(config);
       if (dropped) {
-        Log.d(TAG, "drop: " + config.getRealmDirectory() + "/" + config.getRealmFileName());
+        Timber.tag(TAG).d("drop: %s/%s", config.getRealmDirectory(), config.getRealmFileName());
         RealmStoreManager.maybeDropPool(config.getRealmDirectory());
       }
     }

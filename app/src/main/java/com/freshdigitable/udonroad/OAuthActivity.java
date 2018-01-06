@@ -27,7 +27,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -65,6 +64,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.processors.PublishProcessor;
+import timber.log.Timber;
 import twitter4j.MediaEntity;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
@@ -170,7 +170,7 @@ public class OAuthActivity extends AppCompatActivity
     ((MainApplication) getApplication()).logout();
     twitterApi.fetchOAuthRequestToken()
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnError(err -> Log.e(TAG, "authentication error: ", err))
+        .doOnError(err -> Timber.tag(TAG).e(err, "authentication error: "))
         .subscribe(this::startAuthAction,
             e -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_failed)));
   }
@@ -184,7 +184,7 @@ public class OAuthActivity extends AppCompatActivity
   private void startAuthentication(final String verifier) {
     twitterApi.fetchOAuthAccessToken(requestToken, verifier)
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnError(err -> Log.e(TAG, "authentication error: ", err))
+        .doOnError(err -> Timber.tag(TAG).e(err, "authentication error: "))
         .subscribe(this::checkOAuth,
             e -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_failed)));
   }

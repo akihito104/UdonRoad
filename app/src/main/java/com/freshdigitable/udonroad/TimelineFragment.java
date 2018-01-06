@@ -29,7 +29,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.AdapterDataObserver;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -56,6 +55,7 @@ import java.util.EnumSet;
 import javax.inject.Inject;
 
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserList;
@@ -94,7 +94,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     sortedCache.open(getStoreName());
     updateEventSubscription = sortedCache.observeUpdateEvent()
         .retry()
-        .doOnSubscribe(subs -> Log.d(TAG, "onAttach: updateEvent is subscribed"))
+        .doOnSubscribe(subs -> Timber.tag(TAG).d("onAttach: updateEvent is subscribed"))
         .subscribe(event -> {
               if (event.type == UpdateEvent.EventType.INSERT) {
                 tlAdapter.notifyItemRangeInserted(event.index, event.length);
@@ -104,7 +104,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
                 tlAdapter.notifyItemRangeRemoved(event.index, event.length);
               }
             },
-            e -> Log.e(TAG, "updateEvent: ", e));
+            e -> Timber.tag(TAG).e(e, "updateEvent: "));
     fetcher = requestWorker.getFetchStrategy(getStoreType(), getEntityId(), getQuery());
   }
 
@@ -135,7 +135,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   public View onCreateView(@NonNull LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onCreateView: " + getStoreName());
+    Timber.tag(TAG).d("onCreateView: %s", getStoreName());
     if (savedInstanceState != null) {
       autoScrollState = savedInstanceState.getParcelable(SS_AUTO_SCROLL_STATE);
       doneFirstFetch = savedInstanceState.getBoolean(SS_DONE_FIRST_FETCH);
@@ -171,7 +171,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onSaveInstanceState(@NonNull Bundle outState) {
-    Log.d(TAG, "onSaveInstanceState: " + getStoreName());
+    Timber.tag(TAG).d("onSaveInstanceState: %s", getStoreName());
     super.onSaveInstanceState(outState);
     outState.putParcelable(SS_AUTO_SCROLL_STATE, autoScrollState);
     outState.putBoolean(SS_DONE_FIRST_FETCH, doneFirstFetch);
@@ -182,7 +182,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onActivityCreated: " + getStoreName());
+    Timber.tag(TAG).d("onActivityCreated: %s", getStoreName());
     super.onActivityCreated(savedInstanceState);
     if (!doneFirstFetch && getUserVisibleHint()) {
       fetcher.fetch();
@@ -241,7 +241,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onViewStateRestored: " + getStoreName());
+    Timber.tag(TAG).d("onViewStateRestored: %s", getStoreName());
     super.onViewStateRestored(savedInstanceState);
     if (savedInstanceState == null) {
       return;
@@ -252,7 +252,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onStart() {
-    Log.d(TAG, "onStart: " + getStoreName());
+    Timber.tag(TAG).d("onStart: %s", getStoreName());
     super.onStart();
     if (topItemId >= 0) {
       final int pos = sortedCache.getPositionById(topItemId);
@@ -341,7 +341,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
   @Override
   public void onDetach() {
-    Log.d(TAG, "onDetach: " + getStoreName());
+    Timber.tag(TAG).d("onDetach: %s", getStoreName());
     super.onDetach();
     if (binding != null) {
       binding.timeline.setItemAnimator(null);

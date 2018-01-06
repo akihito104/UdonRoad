@@ -24,7 +24,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -47,6 +46,7 @@ import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 import twitter4j.Relationship;
 import twitter4j.User;
 
@@ -56,6 +56,7 @@ import twitter4j.User;
  * Created by akihit on 2016/02/07.
  */
 public class UserInfoFragment extends Fragment {
+  public static final String TAG = "UserInfoFragment";
   private FragmentUserInfoBinding binding;
   private CompositeDisposable subscription;
 
@@ -73,7 +74,7 @@ public class UserInfoFragment extends Fragment {
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     if (binding == null) {
       binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user_info, container, false);
       ViewCompat.setTransitionName(binding.userInfoUserInfoView.getIcon(), UserInfoActivity.getUserIconTransitionName(getUserId()));
@@ -103,7 +104,7 @@ public class UserInfoFragment extends Fragment {
     subscription.add(userCache.observeById(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(this::showUserInfo,
-            e -> Log.e("UserInfoFragment", "userUpdated: ", e)));
+            e -> Timber.tag(TAG).e(e, "userUpdated: ")));
     subscription.add(configStore.observeRelationshipById(userId)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(this::setRelationship));
@@ -197,7 +198,7 @@ public class UserInfoFragment extends Fragment {
     if (user == null) {
       return;
     }
-    Log.d("UserInfoFragment", "showUserInfo: ");
+    Timber.tag(TAG).d("showUserInfo: ");
     loadUserIcon(user);
     loadBanner(user.getProfileBannerMobileURL());
     binding.userInfoUserInfoView.bindData(user);
@@ -209,7 +210,7 @@ public class UserInfoFragment extends Fragment {
     if (Utils.isSubscribed(iconSubs)) {
       return;
     }
-    Log.d("UserInfoFragment", "loadUserIcon: ");
+    Timber.tag(TAG).d("loadUserIcon: ");
     final ImageQuery query = new ImageQuery.Builder(user.getProfileImageURLHttps())
         .sizeForSquare(getContext(), R.dimen.userInfo_user_icon)
         .build();
@@ -221,7 +222,7 @@ public class UserInfoFragment extends Fragment {
     if (url == null || Utils.isSubscribed(bannerSubs)) {
       return;
     }
-    Log.d("UserInfoFragment", "loadBanner: ");
+    Timber.tag(TAG).d("loadBanner: ");
     final ImageView banner = binding.userInfoUserInfoView.getBanner();
     final Single<ImageQuery> query = new ImageQuery.Builder(url)
         .build(banner);

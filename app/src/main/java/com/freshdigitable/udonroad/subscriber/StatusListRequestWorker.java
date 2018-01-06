@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
@@ -38,6 +37,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
+import timber.log.Timber;
 import twitter4j.Paging;
 import twitter4j.Query;
 import twitter4j.Status;
@@ -132,7 +132,7 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
                   try {
                     onErrorFeedback(R.string.msg_tweet_not_download).accept(e);
                   } catch (Exception e1) {
-                    Log.e("StatusListRequestWorker", "onError: ", e1);
+                    Timber.tag("StatusListRequestWorker").e(e1, "onError: ");
                   }
                   sortedCache.close();
                 }

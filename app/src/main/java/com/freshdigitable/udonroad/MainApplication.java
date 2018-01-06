@@ -22,7 +22,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.app.AppCompatDelegate;
-import android.util.Log;
 import android.view.View;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -44,6 +43,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
 import twitter4j.auth.AccessToken;
 
 import static android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences;
@@ -89,6 +89,10 @@ public class MainApplication extends Application {
     init(this);
     registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacksImpl());
     AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+
+    if (BuildConfig.DEBUG) {
+      Timber.plant(new Timber.DebugTree());
+    }
   }
 
   @VisibleForTesting
@@ -134,7 +138,7 @@ public class MainApplication extends Application {
   }
 
   private static void login(MainApplication app, long userId) {
-    Log.d("MainApplication", "login: " + userId);
+    Timber.tag("MainApplication").d("login: %s", userId);
     app.appSettings.setCurrentUserId(userId);
     final AccessToken accessToken = app.appSettings.getCurrentUserAccessToken();
     if (accessToken == null) {
@@ -153,7 +157,7 @@ public class MainApplication extends Application {
   }
 
   private static void logout(MainApplication app) {
-    Log.d("MainApplication", "logout: ");
+    Timber.tag("MainApplication").d("logout: ");
     app.userStreamUtil.disconnect();
     app.twitterApi.setOAuthAccessToken(null);
     app.twitterStreamApi.setOAuthAccessToken(null);
@@ -170,7 +174,7 @@ public class MainApplication extends Application {
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-      Log.d(TAG, "onActivityCreated: count>" + activities.size());
+      Timber.tag(TAG).d("onActivityCreated: count>%s", activities.size());
       if (!getApplication(activity).loggedIn) {
         getApplication(activity).login();
       }
@@ -193,7 +197,7 @@ public class MainApplication extends Application {
 
     @Override
     public void onActivityStarted(Activity activity) {
-      Log.d(TAG, "onActivityStarted: ");
+      Timber.tag(TAG).d("onActivityStarted: ");
       if (activity instanceof MainActivity) {
         getApplication(activity).connectStream();
       }
@@ -223,7 +227,7 @@ public class MainApplication extends Application {
     @Override
     public void onActivityDestroyed(Activity activity) {
       activities.remove(activity.getClass().getSimpleName());
-      Log.d(TAG, "onActivityDestroyed: count>" + activities.size());
+      Timber.tag(TAG).d("onActivityDestroyed: count>%s", activities.size());
       if (activities.size() == 0) {
         MainApplication.logout(getApplication(activity));
         getApplication(activity).userFeedback.unsubscribe();

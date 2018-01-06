@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.CallSuper;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -28,6 +27,7 @@ import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
+import timber.log.Timber;
 
 /**
  * PoolRealm provides basic operation for `cache` database.
@@ -54,7 +54,7 @@ final class PoolRealm implements BaseCache {
         .deleteRealmIfMigrationNeeded()
         .build();
     appSettingStore.close();
-    Log.d(TAG, "open: " + config.getRealmFileName());
+    Timber.tag(TAG).d("open: %s", config.getRealmFileName());
     cache = Realm.getInstance(config);
   }
 
@@ -69,14 +69,14 @@ final class PoolRealm implements BaseCache {
     if (cache == null || cache.isClosed()) {
       return;
     }
-    Log.d(TAG, "close: " + config.getRealmFileName());
+    Timber.tag(TAG).d("close: %s", config.getRealmFileName());
     cache.close();
   }
 
   @Override
   public void drop() {
     if (Realm.getGlobalInstanceCount(config) <= 0) {
-      Log.d(TAG, "drop: " + config.getRealmFileName());
+      Timber.tag(TAG).d("drop: %s", config.getRealmFileName());
       Realm.deleteRealm(config);
     }
   }

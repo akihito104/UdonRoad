@@ -22,7 +22,6 @@ import android.arch.lifecycle.OnLifecycleEvent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ImageView;
 
@@ -36,6 +35,7 @@ import java.util.List;
 import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 
 /**
  * Created by akihit on 2017/12/09.
@@ -58,7 +58,7 @@ class MediaContainerPresenter implements LifecycleObserver {
           .map(TweetInputModel::getMedia)
           .distinctUntilChanged()
           .subscribe(this::updateMediaContainer,
-              th -> Log.e(this.getClass().getSimpleName(), "mediaUpdate: ", th));
+              th -> Timber.tag(this.getClass().getSimpleName()).e(th, "mediaUpdate: "));
     }
   }
 

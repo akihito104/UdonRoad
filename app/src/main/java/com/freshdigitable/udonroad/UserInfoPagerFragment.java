@@ -26,7 +26,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +42,7 @@ import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 import twitter4j.User;
 
 /**
@@ -71,7 +71,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onAttach(Context context) {
-    Log.d(TAG, "onAttach: ");
+    Timber.tag(TAG).d("onAttach: ");
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
   }
@@ -86,7 +86,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater,
                            @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onCreateView: ");
+    Timber.tag(TAG).d("onCreateView: ");
     return inflater.inflate(R.layout.fragment_user_info_pager, container, false);
   }
 
@@ -96,7 +96,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-    Log.d(TAG, "onViewCreated: ");
+    Timber.tag(TAG).d("onViewCreated: ");
     super.onViewCreated(view, savedInstanceState);
     viewPager = view.findViewById(R.id.user_pager);
     tabLayout = view.findViewById(R.id.pager_tabs);
@@ -130,14 +130,14 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onStart() {
-    Log.d(TAG, "onStart: ");
+    Timber.tag(TAG).d("onStart: ");
     super.onStart();
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
       viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
         @Override
         public void onPageSelected(int position) {
-          Log.d(TAG, "onPageSelected: " + position);
+          Timber.tag(TAG).d("onPageSelected: %s", position);
           TimelineFragment fragment = pagerAdapter.getItem(position);
           if (fragment.isItemSelected()) {
             ((FabHandleable) activity).showFab(FabHandleable.TYPE_FAB);
@@ -152,7 +152,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
       subscription = userCache.observeById(getUserId())
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(this::updateTabs,
-              e -> Log.e(TAG, "userUpdated: ", e));
+              e -> Timber.tag(TAG).e(e, "userUpdated: "));
     }
   }
 
@@ -163,7 +163,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onStop() {
-    Log.d(TAG, "onStop: ");
+    Timber.tag(TAG).d("onStop: ");
     super.onStop();
     viewPager.clearOnPageChangeListeners();
     if (subscription != null) {
@@ -174,7 +174,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onDetach() {
-    Log.d(TAG, "onDetach: ");
+    Timber.tag(TAG).d("onDetach: ");
     super.onDetach();
     viewPager.setAdapter(null);
   }

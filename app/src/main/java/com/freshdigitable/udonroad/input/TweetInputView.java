@@ -24,7 +24,6 @@ import android.support.design.widget.TextInputEditText;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
@@ -36,6 +35,7 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 
+import timber.log.Timber;
 import twitter4j.User;
 
 /**
@@ -154,7 +154,7 @@ public class TweetInputView extends ConstraintLayout {
 
   @Override
   protected void onAttachedToWindow() {
-    Log.d(TAG, "onAttachedToWindow: ");
+    Timber.tag(TAG).d("onAttachedToWindow: ");
     super.onAttachedToWindow();
     final InputMethodManager inputMethodManager
         = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -171,7 +171,7 @@ public class TweetInputView extends ConstraintLayout {
 
   @Override
   protected void onDetachedFromWindow() {
-    Log.d(TAG, "onDetachedFromWindow: ");
+    Timber.tag(TAG).d("onDetachedFromWindow: ");
     super.onDetachedFromWindow();
     inputText.setOnFocusChangeListener(null);
   }

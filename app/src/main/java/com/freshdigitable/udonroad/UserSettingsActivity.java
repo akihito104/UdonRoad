@@ -27,7 +27,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -36,6 +35,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
 import twitter4j.User;
 
 /**
@@ -100,7 +100,7 @@ public class UserSettingsActivity extends AppCompatActivity {
         final Preference version = findPreference(getString(R.string.settings_key_version));
         version.setSummary(packageInfo.versionName);
       } catch (PackageManager.NameNotFoundException e) {
-        Log.e(getClass().getSimpleName(), "onCreatePreferences: ");
+        Timber.tag(getClass().getSimpleName()).e("onCreatePreferences: ");
       }
     }
 

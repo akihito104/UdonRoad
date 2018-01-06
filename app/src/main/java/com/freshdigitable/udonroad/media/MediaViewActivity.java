@@ -33,7 +33,6 @@ import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -54,6 +53,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 
@@ -111,7 +111,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     final ActionBar actionBar = getSupportActionBar();
     final IndicatableFFAB mediaIffab = binding.mediaIffab;
     getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(visibility -> {
-      Log.d(TAG, "onSystemUiVisibilityChange: " + visibility);
+      Timber.tag(TAG).d("onSystemUiVisibilityChange: %s", visibility);
       if (isSystemUIVisible(visibility)) {
         showOverlayUI(actionBar, mediaIffab);
       } else {
@@ -230,7 +230,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   @Override
   public void onClick(View view) {
-    Log.d(TAG, "onClick: page");
+    Timber.tag(TAG).d("onClick: page");
     if (isSystemUIVisible()) {
       hideSystemUI();
     } else {
@@ -278,7 +278,7 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
       if (container != null) {
         container.setBackgroundColor(Color.BLACK);

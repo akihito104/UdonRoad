@@ -19,7 +19,6 @@ package com.freshdigitable.udonroad;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -44,6 +43,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import timber.log.Timber;
 
 /**
  * TwitterCard defines data to create TwitterCardView.
@@ -173,7 +173,7 @@ public class TwitterCard {
         throw new IllegalStateException("twitter card fetch error...");
       } finally {
         if (response != null) {
-          Log.d(TAG, "fetch: close response");
+          Timber.tag(TAG).d("fetch: close response");
           response.close();
         }
       }
@@ -182,7 +182,7 @@ public class TwitterCard {
     @NonNull
     private static Map<Property, String> findMetaTagForCard(Reader reader)
         throws XmlPullParserException, IOException {
-      Log.d(TAG, "findMetaTagForCard: ");
+      Timber.tag(TAG).d("findMetaTagForCard: ");
       final XmlPullParser xmlPullParser = Xml.newPullParser();
       xmlPullParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
       xmlPullParser.setFeature(Xml.FEATURE_RELAXED, true);
@@ -196,7 +196,7 @@ public class TwitterCard {
         }
         final String name = xmlPullParser.getName();
         if (isHeadTag(name)) {
-          Log.d(TAG, "fetch> head:");
+          Timber.tag(TAG).d("fetch> head:");
           return readHead(xmlPullParser);
         }
         eventType = xmlPullParser.next();
@@ -231,7 +231,7 @@ public class TwitterCard {
           eventType = xpp.next();
         }
       }
-      Log.d(TAG, "readHead: end");
+      Timber.tag(TAG).d("readHead: end");
       return metadata;
     }
 

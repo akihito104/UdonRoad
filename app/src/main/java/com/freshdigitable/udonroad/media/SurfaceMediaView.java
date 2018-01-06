@@ -21,8 +21,8 @@ import android.databinding.DataBindingUtil;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -42,6 +42,7 @@ import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import timber.log.Timber;
 import twitter4j.MediaEntity;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -62,16 +63,16 @@ public class SurfaceMediaView extends MediaFragment {
     super.onAttach(context);
     final Uri mediaUri = Uri.parse(getUrl());
     try {
-      mediaPlayer.setDataSource(getContext(), mediaUri);
+      mediaPlayer.setDataSource(context, mediaUri);
     } catch (IOException e) {
       Toast.makeText(getContext(), R.string.msg_media_failed_loading, Toast.LENGTH_LONG).show();
-      Log.e(TAG, "onAttach: ", e);
+      Timber.tag(TAG).e(e, "onAttach: ");
     }
   }
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater,
+  public View onCreateView(@NonNull LayoutInflater inflater,
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
@@ -80,7 +81,7 @@ public class SurfaceMediaView extends MediaFragment {
   }
 
   @Override
-  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     final View.OnClickListener pageClickListener = getOnClickListener();
     view.setOnClickListener(v -> {
@@ -191,7 +192,7 @@ public class SurfaceMediaView extends MediaFragment {
           final long minutes = MILLISECONDS.toMinutes(remain);
           final long seconds = MILLISECONDS.toSeconds(remain - MINUTES.toMillis(minutes));
           binding.mediaProgressText.setText(String.format(timeElapseFormat, minutes, seconds));
-        }, throwable -> Log.e(TAG, "call: ", throwable));
+        }, throwable -> Timber.tag(TAG).e(throwable, "call: "));
   }
 
   private static final String ARGS_URL = "url";

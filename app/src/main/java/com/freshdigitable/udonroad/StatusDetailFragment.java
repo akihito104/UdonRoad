@@ -29,7 +29,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
 import android.text.style.URLSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +61,7 @@ import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -172,7 +172,7 @@ public class StatusDetailFragment extends Fragment {
               statusView.update(listItem);
               updateFabMenuItem(listItem);
             },
-            e -> Log.e(TAG, "onStart: ", e));
+            e -> Timber.tag(TAG).e(e, "onStart: "));
 
     final Status bindingStatus = getBindingStatus(status);
     if (bindingStatus.getURLEntities().length < 1) {
@@ -186,7 +186,7 @@ public class StatusDetailFragment extends Fragment {
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(this::setupTwitterCard,
               throwable -> {
-                Log.e(TAG, "card fetch: ", throwable);
+                Timber.tag(TAG).e(throwable, "card fetch: ");
                 setupTwitterCard(new TwitterCard());
               });
     }

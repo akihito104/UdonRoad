@@ -24,7 +24,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -49,6 +48,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 import twitter4j.User;
 
 /**
@@ -131,7 +131,7 @@ public class TweetInputActivity extends AppCompatActivity implements SnackbarCap
     if (intent == null) {
       return "";
     }
-    Log.d(getClass().getSimpleName(), "parseShareText: " + intent.toString());
+    Timber.tag(getClass().getSimpleName()).d("parseShareText: %s", intent.toString());
     if (Intent.ACTION_SEND.equals(intent.getAction())) {
       return intent.getStringExtra(Intent.EXTRA_TEXT);
     }
