@@ -27,7 +27,6 @@ import android.support.v4.widget.DrawerLayout.DrawerListener;
 import android.support.v4.widget.DrawerLayout.SimpleDrawerListener;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.content.res.AppCompatResources;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,6 +40,7 @@ import com.freshdigitable.udonroad.repository.ImageRepository;
 import java.util.List;
 
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 import twitter4j.User;
 
 /**
@@ -133,7 +133,7 @@ class DrawerNavigator {
     unsubscribeCurrentUser();
     subscription = appSettings.observeCurrentUser()
         .subscribe(this::setupHeader,
-            e -> Log.e(TAG, "setupNavigationDrawer: ", e));
+            e -> Timber.tag(TAG).e(e, "setupNavigationDrawer: "));
     setAccountList();
   }
 

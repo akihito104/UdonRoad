@@ -31,7 +31,6 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -39,10 +38,10 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
-import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
@@ -51,6 +50,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_QUOTE;
@@ -212,7 +212,7 @@ public class UserInfoActivity extends AppCompatActivity
   }
 
   public static void start(Activity activity, User user, View userIcon) {
-    Log.d(TAG, "start: ");
+    Timber.tag(TAG).d("start: ");
     final Intent intent = createIntent(activity.getApplicationContext(), user.getId());
     final String transitionName = getUserIconTransitionName(user.getId());
     ViewCompat.setTransitionName(userIcon, transitionName);

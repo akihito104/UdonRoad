@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -27,6 +26,7 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import javax.inject.Inject;
 
 import io.reactivex.functions.Consumer;
+import timber.log.Timber;
 import twitter4j.User;
 
 /**
@@ -91,7 +91,7 @@ public class AppSettingRequestWorker implements RequestWorker {
         t -> {}, onErrorAction);
   }
 
-  private final Consumer<Throwable> onErrorAction = throwable -> Log.e(TAG, "call: ", throwable);
+  private final Consumer<Throwable> onErrorAction = throwable -> Timber.tag(TAG).e(throwable, "call: ");
 
   @Override
   public OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {

@@ -18,13 +18,13 @@ package com.freshdigitable.udonroad.listitem;
 
 import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 import twitter4j.User;
 
 /**
@@ -57,7 +57,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
     subscription = observable
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(this::onUpdate,
-            th -> Log.e("ItemViewHolder", "update: ", th));
+            th -> Timber.tag("ItemViewHolder").e(th, "update: "));
   }
 
   public abstract void onUpdate(ListItem item);

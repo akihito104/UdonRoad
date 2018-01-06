@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.module.realm;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
@@ -39,6 +38,7 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
+import timber.log.Timber;
 import twitter4j.Relationship;
 import twitter4j.User;
 
@@ -72,12 +72,12 @@ public class ConfigStoreRealm implements ConfigStore {
         .build();
     configStore = Realm.getInstance(config);
     appSettingStore.close();
-    Log.d(TAG, "open: " + config.getRealmDirectory());
+    Timber.tag(TAG).d("open: %s", config.getRealmDirectory());
   }
 
   @Override
   public void close() {
-    Log.d(TAG, "close: " + config.getRealmDirectory());
+    Timber.tag(TAG).d("close: %s", config.getRealmDirectory());
     configStore.close();
   }
 
@@ -230,10 +230,12 @@ public class ConfigStoreRealm implements ConfigStore {
       final StatusReactionRealm deadline = all
           .sort("id", Sort.DESCENDING)
           .get(1000);
-      r.where(StatusReactionRealm.class)
-          .lessThan("id", deadline.getId())
-          .findAll()
-          .deleteAllFromRealm();
+      if (deadline != null) {
+        r.where(StatusReactionRealm.class)
+            .lessThan("id", deadline.getId())
+            .findAll()
+            .deleteAllFromRealm();
+      }
       r.where(RelationshipRealm.class)
           .findAll()
           .deleteAllFromRealm();

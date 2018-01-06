@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -29,6 +28,7 @@ import java.lang.ref.WeakReference;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
+import timber.log.Timber;
 
 /**
  * UserFeedbackSubscriber subscribes request job such as RT and fav.
@@ -56,7 +56,7 @@ public class UserFeedbackSubscriber {
     this.feedbackSubscription = this.feedbackSubject.onBackpressureBuffer()
         .observeOn(AndroidSchedulers.mainThread())
         .map(this::createFeedbackAction)
-        .subscribe(Runnable::run, e -> Log.e(TAG, "feedback: ", e));
+        .subscribe(Runnable::run, e -> Timber.tag(TAG).e(e, "feedback: "));
   }
 
   private Runnable createFeedbackAction(final UserFeedbackEvent msg) {

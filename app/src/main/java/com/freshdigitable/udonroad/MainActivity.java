@@ -29,7 +29,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,13 +37,13 @@ import android.view.WindowManager;
 
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedListener;
-import com.freshdigitable.udonroad.input.TweetInputFragment;
-import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
-import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
+import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageRepository;
@@ -55,6 +54,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.StoreType.HOME;
@@ -118,8 +118,8 @@ public class MainActivity extends AppCompatActivity
     if (timelineFragment == null) {
       tlFragment = TimelineFragment.getInstance(HOME);
       configRequestWorker.setup().subscribe(
-          () -> Log.d(TAG, "setupHomeTimeline: config.setup"),
-          throwable -> Log.e(TAG, "config.setup: ", throwable));
+          () -> Timber.tag(TAG).d("setupHomeTimeline: config.setup"),
+          throwable -> Timber.tag(TAG).e(throwable, "config.setup: "));
       getSupportFragmentManager().beginTransaction()
           .replace(R.id.main_timeline_container, tlFragment, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
           .commit();

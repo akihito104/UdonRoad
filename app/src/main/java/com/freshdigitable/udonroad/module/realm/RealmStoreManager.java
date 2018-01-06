@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad.module.realm;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.StoreManager;
@@ -29,6 +28,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import timber.log.Timber;
 
 /**
  * Created by akihit on 2017/07/04.
@@ -44,6 +44,7 @@ public class RealmStoreManager implements StoreManager {
       = Arrays.asList(StoreType.HOME, StoreType.CONVERSATION,
       StoreType.USER_FAV, StoreType.USER_FOLLOWER, StoreType.USER_FRIEND, StoreType.USER_HOME,
       StoreType.SEARCH, StoreType.OWNED_LIST, StoreType.USER_LIST);
+  public static final String TAG = "RealmStoreManager";
 
   @Override
   public void init(Context context) {
@@ -70,7 +71,7 @@ public class RealmStoreManager implements StoreManager {
     for (String name : listStorage(dir)) {
       for (StoreType t : timelineStore) {
         if (name.startsWith(t.storeName)) {
-          Log.d("RealmStoreManager", "maybeDropPool: " + name);
+          Timber.tag(TAG).d("maybeDropPool: %s", name);
           return;
         }
       }
@@ -89,10 +90,10 @@ public class RealmStoreManager implements StoreManager {
       final Realm realm = Realm.getInstance(config);
       realm.executeTransaction(r -> r.deleteAll());
       realm.close();
-      Log.d("RealmStoreManager", "deleted: cache> " + dir.getName() + "/" + name);
+      Timber.tag(TAG).d("deleted: cache> %s/%s", dir.getName(), name);
     } else {
       if (Realm.deleteRealm(config)) {
-        Log.d("RealmStoreManager", "dropped: cache> " + dir.getName() + "/" + name);
+        Timber.tag(TAG).d("dropped: cache> %s/%s", dir.getName(), name);
       }
     }
   }

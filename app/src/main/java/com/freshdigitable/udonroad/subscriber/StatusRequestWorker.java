@@ -18,7 +18,6 @@ package com.freshdigitable.udonroad.subscriber;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
@@ -39,6 +38,7 @@ import io.reactivex.Single;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
+import timber.log.Timber;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -143,7 +143,7 @@ public class StatusRequestWorker implements RequestWorker {
   }
 
   private void feedbackOnError(long statusId, Throwable throwable, @StringRes int defaultId) {
-    Log.e(TAG, "feedbackOnError: ", throwable);
+    Timber.tag(TAG).e(throwable, "feedbackOnError: ");
     final int msg = findMessageByTwitterExeption(throwable, defaultId);
     if (msg == R.string.msg_already_fav) {
       updateStatusWithReaction(statusId, reaction -> reaction.setFavorited(true));
@@ -167,7 +167,7 @@ public class StatusRequestWorker implements RequestWorker {
     } else if (statusCode == 403 && errorCode == 327) {
       return R.string.msg_already_rt;
     }
-    Log.d(TAG, "not registered exception: ", throwable);
+    Timber.tag(TAG).d(throwable, "not registered exception: ");
     return defaultId;
   }
 

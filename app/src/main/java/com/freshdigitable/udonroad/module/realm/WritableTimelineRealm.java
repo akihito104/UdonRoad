@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad.module.realm;
 
-import android.util.Log;
-
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
@@ -33,6 +31,7 @@ import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.realm.RealmResults;
 import io.realm.Sort;
+import timber.log.Timber;
 import twitter4j.Status;
 
 import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
@@ -136,7 +135,7 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
           updatePageCursor(statuses);
           e.onComplete();
         }))
-        .doOnError(throwable -> Log.e(TAG, "upsert: ", throwable));
+        .doOnError(throwable -> Timber.tag(TAG).e(throwable, "upsert: "));
   }
 
   private void updatePageCursor(Collection<Status> statuses) {

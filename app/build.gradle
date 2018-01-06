@@ -105,6 +105,8 @@ dependencies {
     implementation "com.google.dagger:dagger:$daggerVer"
     annotationProcessor "com.google.dagger:dagger-compiler:$daggerVer"
 
+    implementation 'com.jakewharton.timber:timber:4.6.0'
+
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakcanaryVer"
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakcanaryVer"
     testImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakcanaryVer"

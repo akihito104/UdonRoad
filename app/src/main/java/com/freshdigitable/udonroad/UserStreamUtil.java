@@ -17,7 +17,6 @@
 package com.freshdigitable.udonroad;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatusImpl;
@@ -35,6 +34,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
+import timber.log.Timber;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -173,8 +173,8 @@ public class UserStreamUtil {
 
     @Override
     public void onFavorite(User source, User target, Status favoritedStatus) {
-      Log.d(TAG, "onFavorite: src> " + source.getScreenName() + ", tgt> " + target.getScreenName() +
-          ", stt> " + favoritedStatus.getText());
+      Timber.tag(TAG).d("onFavorite: src> %s, tgt> %s, sst> %s",
+          source.getScreenName(), target.getScreenName(), favoritedStatus.getText());
       if (target.getId() == userId) {
         feedback.onNext(
             new UserFeedbackEvent(R.string.msg_faved_by_someone, source.getScreenName()));
@@ -194,30 +194,30 @@ public class UserStreamUtil {
 
     @Override
     public void onDeletionNotice(final StatusDeletionNotice statusDeletionNotice) {
-      Log.d(TAG, statusDeletionNotice.toString());
+      Timber.tag(TAG).d(statusDeletionNotice.toString());
       deletionPublishSubject.onNext(statusDeletionNotice.getStatusId());
     }
 
     @Override
     public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-      Log.d(TAG, "onTrackLimitationNotice: " + numberOfLimitedStatuses);
+      Timber.tag(TAG).d("onTrackLimitationNotice: %s", numberOfLimitedStatuses);
     }
 
     @Override
     public void onScrubGeo(long userId, long upToStatusId) {
-      Log.d(TAG, "onScrubGeo: " + userId + ", " + upToStatusId);
+      Timber.tag(TAG).d("onScrubGeo: " + userId + ", " + upToStatusId);
     }
 
     @Override
     public void onStallWarning(StallWarning warning) {
-      Log.d(TAG, "onStallWarning: " + warning.toString());
+      Timber.tag(TAG).d("onStallWarning: %s", warning.toString());
     }
 
     @Override
     public void onException(Exception ex) {
-      Log.d(TAG, "onException: " + ex.toString());
+      Timber.tag(TAG).d("onException: %s", ex.toString());
     }
   };
 
-  private final Consumer<Throwable> onErrorAction = throwable -> Log.d(TAG, "error: " + throwable);
+  private final Consumer<Throwable> onErrorAction = throwable -> Timber.tag(TAG).d(throwable, "error: ");
 }

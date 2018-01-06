@@ -30,7 +30,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -52,6 +51,7 @@ import java.util.Collection;
 import javax.inject.Inject;
 
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
@@ -90,7 +90,7 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-    Log.d(TAG, "onCreateOptionsMenu: ");
+    Timber.tag(TAG).d("onCreateOptionsMenu: ");
     super.onCreateOptionsMenu(menu, inflater);
     tweetSendPresenter = new TweetSendPresenter(menu, inflater, viewModel);
     setupMenuVisibility();
@@ -107,7 +107,7 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    Log.d(TAG, "onOptionsItemSelected: ");
+    Timber.tag(TAG).d("onOptionsItemSelected: ");
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
       final TweetInputListener tweetInputListener = getTweetInputListener();
@@ -123,7 +123,7 @@ public class TweetInputFragment extends Fragment {
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater,
                            ViewGroup container, Bundle savedInstanceState) {
-    Log.d(TAG, "onCreateView: ");
+    Timber.tag(TAG).d("onCreateView: ");
     return inflater.inflate(R.layout.fragment_tweet_input, container, false);
   }
 
@@ -138,7 +138,7 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onStart() {
-    Log.d(TAG, "onStart: ");
+    Timber.tag(TAG).d("onStart: ");
     super.onStart();
 
     final TweetInputView inputText = binding.mainTweetInputView;
@@ -174,7 +174,7 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onStop() {
-    Log.d(TAG, "onStop: ");
+    Timber.tag(TAG).d("onStop: ");
     super.onStop();
     Utils.maybeDispose(currentUserSubscription);
     Utils.maybeDispose(iconSubs);
@@ -335,7 +335,7 @@ public class TweetInputFragment extends Fragment {
     Utils.maybeDispose(currentUserSubscription);
     final TweetInputView inputText = binding.mainTweetInputView;
     currentUserSubscription = viewModel.observeCurrentUser()
-        .subscribe(inputText::setUserInfo, e -> Log.e(TAG, "setUpTweetInputView: ", e));
+        .subscribe(inputText::setUserInfo, e -> Timber.tag(TAG).e(e, "setUpTweetInputView: "));
 
     Utils.maybeDispose(iconSubs);
     iconSubs = viewModel.observeCurrentUser().map(currentUser ->
@@ -372,7 +372,7 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    Log.d(TAG, "onActivityResult: " + requestCode);
+    Timber.tag(TAG).d("onActivityResult: %s", requestCode);
     final Collection<Uri> uris = mediaChooserController.onMediaChooserResult(getContext(), requestCode, resultCode, data);
     viewModel.addAllMedia(uris);
     super.onActivityResult(requestCode, resultCode, data);
@@ -389,7 +389,7 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onSaveInstanceState(@NonNull Bundle outState) {
-    Log.d(TAG, "onSaveInstanceState: ");
+    Timber.tag(TAG).d("onSaveInstanceState: ");
     super.onSaveInstanceState(outState);
     outState.putInt(SS_TWEET_INPUT_VIEW_VISIBILITY, binding.mainTweetInputView.getVisibility());
     viewModel.onSaveInstanceState(outState);
