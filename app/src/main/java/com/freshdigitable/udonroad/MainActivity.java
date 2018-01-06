@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
@@ -111,6 +112,20 @@ public class MainActivity extends AppCompatActivity
     setupHomeTimeline();
     setupNavigationDrawer();
     setupTweetInputView();
+
+    final FabViewModel fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel.getFabState().observe(this, type -> {
+      if (type == FabViewModel.Type.FAB) {
+        binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
+            View.VISIBLE : View.INVISIBLE);
+      } else if (type == FabViewModel.Type.TOOLBAR) {
+        binding.ffab.transToToolbar();
+      } else if (type == FabViewModel.Type.HIDE) {
+        binding.ffab.hide();
+      } else {
+        binding.ffab.show();
+      }
+    });
   }
 
   private void setupHomeTimeline() {
@@ -366,23 +381,6 @@ public class MainActivity extends AppCompatActivity
         l.onItemSelected(item);
       }
     });
-  }
-
-  @Override
-  public void showFab(int type) {
-    if (type == TYPE_FAB) {
-      binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
-          View.VISIBLE : View.INVISIBLE);
-    } else if (type == TYPE_TOOLBAR) {
-      binding.ffab.transToToolbar();
-    } else {
-      binding.ffab.show();
-    }
-  }
-
-  @Override
-  public void hideFab() {
-    binding.ffab.hide();
   }
 
   @Override

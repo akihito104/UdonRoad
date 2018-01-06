@@ -16,13 +16,13 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -132,21 +132,19 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   public void onStart() {
     Timber.tag(TAG).d("onStart: ");
     super.onStart();
-    final FragmentActivity activity = getActivity();
-    if (activity instanceof FabHandleable) {
-      viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-        @Override
-        public void onPageSelected(int position) {
-          Timber.tag(TAG).d("onPageSelected: %s", position);
-          TimelineFragment fragment = pagerAdapter.getItem(position);
-          if (fragment.isItemSelected()) {
-            ((FabHandleable) activity).showFab(FabHandleable.TYPE_FAB);
-          } else {
-            ((FabHandleable) activity).hideFab();
-          }
+    final FabViewModel fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
+    viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+      @Override
+      public void onPageSelected(int position) {
+        Timber.tag(TAG).d("onPageSelected: %s", position);
+        TimelineFragment fragment = pagerAdapter.getItem(position);
+        if (fragment.isItemSelected()) {
+          fabViewModel.showFab(FabViewModel.Type.FAB);
+        } else {
+          fabViewModel.hideFab();
         }
-      });
-    }
+      }
+    });
     userCache.open();
     if (!Utils.isSubscribed(subscription)) {
       subscription = userCache.observeById(getUserId())

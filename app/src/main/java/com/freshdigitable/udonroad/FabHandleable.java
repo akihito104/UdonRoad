@@ -26,13 +26,6 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListe
  * Created by akihit on 2016/09/07.
  */
 public interface FabHandleable {
-  int TYPE_FAB = 0;
-  int TYPE_TOOLBAR = 1;
-
-  void showFab(int type);
-
-  void hideFab();
-
   void setCheckedFabMenuItem(@IdRes int itemId, boolean checked);
 
   void addOnItemSelectedListener(OnIffabItemSelectedListener listener);

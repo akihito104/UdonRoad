@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -244,10 +245,8 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    if (getActivity() instanceof FabHandleable) {
-      final FabHandleable fabHandleable = (FabHandleable) getActivity();
-      fabHandleable.showFab(FabHandleable.TYPE_TOOLBAR);
-    }
+    final FabViewModel fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
+    fabViewModel.showFab(FabViewModel.Type.TOOLBAR);
   }
 
   @Override

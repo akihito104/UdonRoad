@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -53,6 +54,9 @@ import javax.inject.Inject;
 import timber.log.Timber;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.FabViewModel.Type.FAB;
+import static com.freshdigitable.udonroad.FabViewModel.Type.HIDE;
+import static com.freshdigitable.udonroad.FabViewModel.Type.TOOLBAR;
 import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
 import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
@@ -89,6 +93,23 @@ public class UserInfoActivity extends AppCompatActivity
 
     setUpAppbar();
     setupInfoAppbarFragment(getUserId());
+
+    final FabViewModel fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel.getFabState().observe(this, type -> {
+      if (type == FAB) {
+        binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
+            View.VISIBLE : View.INVISIBLE);
+      } else if (type == TOOLBAR) {
+        binding.ffab.transToToolbar();
+      } else if (type == HIDE) {
+        if (viewPager.getSelectedItemId() > 0) {
+          return;
+        }
+        binding.ffab.hide();
+      } else {
+        binding.ffab.show();
+      }
+    });
   }
 
   private void setupInfoAppbarFragment(long userId) {
@@ -336,26 +357,6 @@ public class UserInfoActivity extends AppCompatActivity
         l.onItemSelected(item);
       }
     });
-  }
-
-  @Override
-  public void showFab(int type) {
-    if (type == TYPE_FAB) {
-      binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
-          View.VISIBLE : View.INVISIBLE);
-    } else if (type == TYPE_TOOLBAR) {
-      binding.ffab.transToToolbar();
-    } else {
-      binding.ffab.show();
-    }
-  }
-
-  @Override
-  public void hideFab() {
-    if (viewPager.getSelectedItemId() > 0) {
-      return;
-    }
-    binding.ffab.hide();
   }
 
   @Override

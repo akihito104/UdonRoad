@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -70,6 +71,10 @@ import twitter4j.User;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
+import static com.freshdigitable.udonroad.FabViewModel.Type.FAB;
+import static com.freshdigitable.udonroad.FabViewModel.Type.HIDE;
+import static com.freshdigitable.udonroad.FabViewModel.Type.TOOLBAR;
+
 /**
  * OAuthActivity is for OAuth authentication with Twitter.
  *
@@ -108,6 +113,18 @@ public class OAuthActivity extends AppCompatActivity
           .replace(R.id.oauth_timeline_container, demoTimelineFragment)
           .commit();
     }
+    final FabViewModel fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel.getFabState().observe(this, type -> {
+      if (type == FAB) {
+        ffab.transToFAB();
+      } else if (type == TOOLBAR) {
+        ffab.transToToolbar();
+      } else if (type == HIDE) {
+        ffab.hide();
+      } else {
+        ffab.show();
+      }
+    });
   }
 
   @Override
@@ -225,22 +242,6 @@ public class OAuthActivity extends AppCompatActivity
   public static void start(Activity redirect) {
     final Intent intent = createIntent(redirect);
     redirect.startActivity(intent);
-  }
-
-  @Override
-  public void showFab(int type) {
-    if (type == TYPE_FAB) {
-      ffab.transToFAB();
-    } else if (type == TYPE_TOOLBAR) {
-      ffab.transToToolbar();
-    } else {
-      ffab.show();
-    }
-  }
-
-  @Override
-  public void hideFab() {
-    ffab.hide();
   }
 
   @Override

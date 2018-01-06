@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -87,6 +88,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private MenuItem heading;
   @Inject
   StatusViewImageLoader imageLoader;
+  private FabViewModel fabViewModel;
 
   @Override
   public void onAttach(Context context) {
@@ -264,6 +266,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
     binding.timeline.addOnScrollListener(onScrollListener);
 
+    fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
+
     if (getActivity() instanceof FabHandleable) {
       tlAdapter.setOnSelectedItemChangeListener(new OnSelectedItemChangeListener() {
         @Override
@@ -363,7 +367,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private void showFab() {
     final FragmentActivity activity = getActivity();
     if (activity instanceof FabHandleable) {
-      ((FabHandleable) activity).showFab(FabHandleable.TYPE_FAB);
+      fabViewModel.showFab(FabViewModel.Type.FAB);
       removeOnItemSelectedListener();
       iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedItemId());
       ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);
@@ -371,10 +375,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   }
 
   private void hideFab() {
-    final FragmentActivity activity = getActivity();
-    if (activity instanceof FabHandleable) {
-      ((FabHandleable) activity).hideFab();
-    }
+    fabViewModel.hideFab();
     removeOnItemSelectedListener();
   }
 
