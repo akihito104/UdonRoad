@@ -72,6 +72,7 @@ android {
 }
 
 def supportLibVer = '27.0.2'
+def androidArchVer = '1.0.0'
 def t4jVer = '4.0.6'
 def rxVer = '2.1.5'
 def rxAndroidVer = '2.0.1'
@@ -90,6 +91,10 @@ dependencies {
     implementation "com.android.support:preference-v7:$supportLibVer"
     implementation "com.android.support:preference-v14:$supportLibVer"
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    // ViewModel and LiveData
+    implementation "android.arch.lifecycle:extensions:$androidArchVer"
+    annotationProcessor "android.arch.lifecycle:compiler:$androidArchVer"
+    implementation "android.arch.lifecycle:common-java8:$androidArchVer"
 
     implementation "org.twitter4j:twitter4j-core:$t4jVer"
     implementation "org.twitter4j:twitter4j-stream:$t4jVer"
@@ -116,6 +121,7 @@ dependencies {
     androidTestImplementation "com.android.support:support-annotations:$supportLibVer"
     androidTestImplementation "com.android.support.test:runner:$supportTestVer"
     androidTestImplementation "com.android.support.test:rules:$supportTestVer"
+    androidTestImplementation "android.arch.core:core-testing:$androidArchVer"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoVer"
     androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$espressoVer"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$espressoVer"
