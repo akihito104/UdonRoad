@@ -40,7 +40,6 @@ import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedLis
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
@@ -48,9 +47,6 @@ import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -67,7 +63,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetInputListener, OnUserIconClickedListener, FabHandleable, SnackbarCapable,
+    implements TweetInputListener, OnUserIconClickedListener, SnackbarCapable,
     TimelineFragment.OnItemClickedListener, OnSpanClickListener {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
@@ -83,6 +79,7 @@ public class MainActivity extends AppCompatActivity
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private DrawerNavigator drawerNavigator;
   private ToolbarTweetInputToggle toolbarTweetInputToggle;
+  private FabViewModel fabViewModel;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -108,7 +105,7 @@ public class MainActivity extends AppCompatActivity
       supportActionBar.setHomeButtonEnabled(true);
     }
 
-    final FabViewModel fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
     fabViewModel.getFabState().observe(this, type -> {
       if (type == FabViewModel.Type.FAB) {
         binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
@@ -226,7 +223,6 @@ public class MainActivity extends AppCompatActivity
         drawerNavigator.closeDrawer();
         ((MainApplication) getApplication()).logout();
         timelineContainerSwitcher.clear();
-        iffabItemSelectedListeners.clear();
 
         ((MainApplication) getApplication()).login(user.getId());
         setupHomeTimeline();
@@ -278,7 +274,6 @@ public class MainActivity extends AppCompatActivity
   protected void onDestroy() {
     super.onDestroy();
     if (binding != null) {
-      iffabItemSelectedListeners.clear();
       drawerNavigator.release();
       binding.navDrawerLayout.removeDrawerListener(actionBarDrawerToggle);
       binding.ffab.clear();
@@ -377,22 +372,8 @@ public class MainActivity extends AppCompatActivity
       } else if (itemId == R.id.iffabMenu_main_conv) {
         timelineContainerSwitcher.showConversation(selectedTweetId);
       }
-      for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
-        l.onItemSelected(item);
-      }
+      fabViewModel.onMenuItemSelected(item);
     });
-  }
-
-  private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
-
-  @Override
-  public void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.add(listener);
-  }
-
-  @Override
-  public void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.remove(listener);
   }
 
   @Override

@@ -127,8 +127,8 @@ public class StatusDetailFragment extends Fragment {
       return;
     }
 
-    setupActionToolbar(statusId);
     fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
+    setupActionToolbar(statusId);
 
     final StatusDetailView statusView = binding.statusView;
     final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
@@ -272,18 +272,12 @@ public class StatusDetailFragment extends Fragment {
   private IndicatableFFAB.OnIffabItemSelectedListener onIffabItemSelectedListener;
 
   private void setupActionToolbar(long statusId) {
-    if (getActivity() instanceof FabHandleable) {
-      final FabHandleable fabHandleable = (FabHandleable) getActivity();
-      onIffabItemSelectedListener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
-      fabHandleable.addOnItemSelectedListener(onIffabItemSelectedListener);
-    }
+    onIffabItemSelectedListener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
+    fabViewModel.addOnItemSelectedListener(onIffabItemSelectedListener);
   }
 
   private void tearDownActionToolbar() {
-    if (getActivity() instanceof FabHandleable) {
-      final FabHandleable fabHandleable = (FabHandleable) getActivity();
-      fabHandleable.removeOnItemSelectedListener(onIffabItemSelectedListener);
-    }
+    fabViewModel.removeOnItemSelectedListener(onIffabItemSelectedListener);
   }
 
   @Override

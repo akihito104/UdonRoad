@@ -268,21 +268,19 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
 
     fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
 
-    if (getActivity() instanceof FabHandleable) {
-      tlAdapter.setOnSelectedItemChangeListener(new OnSelectedItemChangeListener() {
-        @Override
-        public void onItemSelected(long entityId) {
-          showFab();
-          addAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
-        }
+    tlAdapter.setOnSelectedItemChangeListener(new OnSelectedItemChangeListener() {
+      @Override
+      public void onItemSelected(long entityId) {
+        showFab();
+        addAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
+      }
 
-        @Override
-        public void onItemUnselected() {
-          hideFab();
-          removeAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
-        }
-      });
-    }
+      @Override
+      public void onItemUnselected() {
+        hideFab();
+        removeAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
+      }
+    });
     tlAdapter.setLastItemBoundListener(() -> fetcher.fetchNext());
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
@@ -365,13 +363,10 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private OnIffabItemSelectedListener iffabItemSelectedListener;
 
   private void showFab() {
-    final FragmentActivity activity = getActivity();
-    if (activity instanceof FabHandleable) {
-      fabViewModel.showFab(FabViewModel.Type.FAB);
-      removeOnItemSelectedListener();
-      iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedItemId());
-      ((FabHandleable) activity).addOnItemSelectedListener(iffabItemSelectedListener);
-    }
+    fabViewModel.showFab(FabViewModel.Type.FAB);
+    fabViewModel.removeOnItemSelectedListener(iffabItemSelectedListener);
+    iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedItemId());
+    fabViewModel.addOnItemSelectedListener(iffabItemSelectedListener);
   }
 
   private void hideFab() {
@@ -380,10 +375,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   }
 
   private void removeOnItemSelectedListener() {
-    if (getActivity() instanceof FabHandleable) {
-      ((FabHandleable) getActivity()).removeOnItemSelectedListener(iffabItemSelectedListener);
-      iffabItemSelectedListener = null;
-    }
+    fabViewModel.removeOnItemSelectedListener(iffabItemSelectedListener);
+    iffabItemSelectedListener = null;
   }
 
   private AutoScrollState autoScrollState = new AutoScrollState();

@@ -81,7 +81,7 @@ import static com.freshdigitable.udonroad.FabViewModel.Type.TOOLBAR;
  * Created by akihit on 15/10/22.
  */
 public class OAuthActivity extends AppCompatActivity
-    implements FabHandleable, SnackbarCapable, OnUserIconClickedListener {
+    implements SnackbarCapable, OnUserIconClickedListener {
   private static final String TAG = OAuthActivity.class.getName();
 
   @Inject
@@ -95,6 +95,7 @@ public class OAuthActivity extends AppCompatActivity
   PublishProcessor<UserFeedbackEvent> userFeedback;
   private IndicatableFFAB ffab;
   private Toolbar toolbar;
+  private FabViewModel fabViewModel;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +114,7 @@ public class OAuthActivity extends AppCompatActivity
           .replace(R.id.oauth_timeline_container, demoTimelineFragment)
           .commit();
     }
-    final FabViewModel fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
     fabViewModel.getFabState().observe(this, type -> {
       if (type == FAB) {
         ffab.transToFAB();
@@ -130,11 +131,7 @@ public class OAuthActivity extends AppCompatActivity
   @Override
   protected void onStart() {
     super.onStart();
-    ffab.setOnIffabItemSelectedListener(item -> {
-      for (IndicatableFFAB.OnIffabItemSelectedListener listener : ffabListener) {
-        listener.onItemSelected(item);
-      }
-    });
+    ffab.setOnIffabItemSelectedListener(fabViewModel::onMenuItemSelected);
     appSettings.open();
     final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
     if (!users.isEmpty()) {
@@ -242,18 +239,6 @@ public class OAuthActivity extends AppCompatActivity
   public static void start(Activity redirect) {
     final Intent intent = createIntent(redirect);
     redirect.startActivity(intent);
-  }
-
-  private List<IndicatableFFAB.OnIffabItemSelectedListener> ffabListener = new ArrayList<>();
-
-  @Override
-  public void addOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {
-    ffabListener.add(listener);
-  }
-
-  @Override
-  public void removeOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {
-    ffabListener.remove(listener);
   }
 
   @Override

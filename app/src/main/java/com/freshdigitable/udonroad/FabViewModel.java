@@ -21,8 +21,10 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModel;
 import android.support.annotation.IdRes;
+import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
@@ -104,5 +106,27 @@ public class FabViewModel extends ViewModel {
         ffab.getMenu().findItem(state.menuId).setChecked(state.checked);
       }
     };
+  }
+
+  private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
+
+  void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {
+    iffabItemSelectedListeners.add(listener);
+  }
+
+  void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
+    iffabItemSelectedListeners.remove(listener);
+  }
+
+  void onMenuItemSelected(MenuItem item) {
+    for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
+      l.onItemSelected(item);
+    }
+  }
+
+  @Override
+  protected void onCleared() {
+    super.onCleared();
+    iffabItemSelectedListeners.clear();
   }
 }

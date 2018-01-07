@@ -40,13 +40,9 @@ import android.widget.TextView;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -66,7 +62,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetInputListener, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
+    implements TweetInputListener, SnackbarCapable, OnUserIconClickedListener,
     OnSpanClickListener, TimelineFragment.OnItemClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
@@ -75,6 +71,7 @@ public class UserInfoActivity extends AppCompatActivity
   TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
   private TimelineContainerSwitcher timelineContainerSwitcher;
+  private FabViewModel fabViewModel;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +90,7 @@ public class UserInfoActivity extends AppCompatActivity
     setUpAppbar();
     setupInfoAppbarFragment(getUserId());
 
-    final FabViewModel fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
     fabViewModel.getFabState().observe(this, type -> {
       if (type == FAB) {
         binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
@@ -181,12 +178,6 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     userCache.close();
-  }
-
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    iffabItemSelectedListeners.clear();
   }
 
   @Override
@@ -353,22 +344,8 @@ public class UserInfoActivity extends AppCompatActivity
       } else if (itemId == R.id.iffabMenu_main_conv) {
         timelineContainerSwitcher.showConversation(selectedTweetId);
       }
-      for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
-        l.onItemSelected(item);
-      }
+      fabViewModel.onMenuItemSelected(item);
     });
-  }
-
-  private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
-
-  @Override
-  public void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.add(listener);
-  }
-
-  @Override
-  public void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.remove(listener);
   }
 
   @Override
