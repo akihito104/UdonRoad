@@ -42,14 +42,12 @@ import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
-import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusDetailView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem.TextType;
 import com.freshdigitable.udonroad.listitem.StatusListItem.TimeTextType;
 import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
-import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
@@ -87,6 +85,7 @@ public class StatusDetailFragment extends Fragment {
   private Disposable cardSubscription;
   private Disposable iconSubscription;
   private Disposable cardSummaryImageSubs;
+  private FabViewModel fabViewModel;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -129,6 +128,7 @@ public class StatusDetailFragment extends Fragment {
     }
 
     setupActionToolbar(statusId);
+    fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
 
     final StatusDetailView statusView = binding.statusView;
     final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
@@ -227,25 +227,12 @@ public class StatusDetailFragment extends Fragment {
   }
 
   private void updateFabMenuItem(final StatusListItem status) {
-    final FragmentActivity activity = getActivity();
-    if (!(activity instanceof FabHandleable)) {
-      return;
-    }
-    final FabHandleable fabHandleable = (FabHandleable) activity;
-    for (ListItem.Stat stat : status.getStats()) {
-      final int type = stat.getType();
-      if (type == ReactionIcon.RETWEET.type) {
-        fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_rt, stat.isMarked());
-      } else if (type == ReactionIcon.FAV.type) {
-        fabHandleable.setCheckedFabMenuItem(R.id.iffabMenu_main_fav, stat.isMarked());
-      }
-    }
+    fabViewModel.setMenuState(status);
   }
 
   @Override
   public void onResume() {
     super.onResume();
-    final FabViewModel fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
     fabViewModel.showFab(FabViewModel.Type.TOOLBAR);
   }
 

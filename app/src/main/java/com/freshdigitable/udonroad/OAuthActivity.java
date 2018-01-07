@@ -244,9 +244,6 @@ public class OAuthActivity extends AppCompatActivity
     redirect.startActivity(intent);
   }
 
-  @Override
-  public void setCheckedFabMenuItem(int itemId, boolean checked) {}
-
   private List<IndicatableFFAB.OnIffabItemSelectedListener> ffabListener = new ArrayList<>();
 
   @Override

@@ -16,8 +16,6 @@
 
 package com.freshdigitable.udonroad;
 
-import android.support.annotation.IdRes;
-
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 
 /**
@@ -26,8 +24,6 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListe
  * Created by akihit on 2016/09/07.
  */
 public interface FabHandleable {
-  void setCheckedFabMenuItem(@IdRes int itemId, boolean checked);
-
   void addOnItemSelectedListener(OnIffabItemSelectedListener listener);
 
   void removeOnItemSelectedListener(OnIffabItemSelectedListener listener);

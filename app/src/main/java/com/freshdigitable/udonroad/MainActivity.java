@@ -23,7 +23,6 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -109,10 +108,6 @@ public class MainActivity extends AppCompatActivity
       supportActionBar.setHomeButtonEnabled(true);
     }
 
-    setupHomeTimeline();
-    setupNavigationDrawer();
-    setupTweetInputView();
-
     final FabViewModel fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
     fabViewModel.getFabState().observe(this, type -> {
       if (type == FabViewModel.Type.FAB) {
@@ -126,6 +121,11 @@ public class MainActivity extends AppCompatActivity
         binding.ffab.show();
       }
     });
+    fabViewModel.getMenuState().observe(this, FabViewModel.createMenuStateObserver(binding.ffab));
+
+    setupHomeTimeline();
+    setupNavigationDrawer();
+    setupTweetInputView();
   }
 
   private void setupHomeTimeline() {
@@ -381,11 +381,6 @@ public class MainActivity extends AppCompatActivity
         l.onItemSelected(item);
       }
     });
-  }
-
-  @Override
-  public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
-    binding.ffab.getMenu().findItem(itemId).setChecked(checked);
   }
 
   private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();

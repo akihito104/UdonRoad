@@ -24,7 +24,6 @@ import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.v4.app.ActivityCompat;
@@ -110,6 +109,7 @@ public class UserInfoActivity extends AppCompatActivity
         binding.ffab.show();
       }
     });
+    fabViewModel.getMenuState().observe(this, FabViewModel.createMenuStateObserver(binding.ffab));
   }
 
   private void setupInfoAppbarFragment(long userId) {
@@ -357,11 +357,6 @@ public class UserInfoActivity extends AppCompatActivity
         l.onItemSelected(item);
       }
     });
-  }
-
-  @Override
-  public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
-    binding.ffab.getMenu().findItem(itemId).setChecked(checked);
   }
 
   private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();

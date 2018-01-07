@@ -18,7 +18,17 @@ package com.freshdigitable.udonroad;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModel;
+import android.support.annotation.IdRes;
+
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
+import com.freshdigitable.udonroad.listitem.ListItem;
+import com.freshdigitable.udonroad.listitem.StatusListItem;
+import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by akihit on 2018/01/06.
@@ -27,24 +37,72 @@ import android.arch.lifecycle.ViewModel;
 public class FabViewModel extends ViewModel {
 
   private final MutableLiveData<Type> fabState;
+  private final MutableLiveData<List<MenuState>> menuState;
 
   public FabViewModel() {
     fabState = new MutableLiveData<>();
+    menuState = new MutableLiveData<>();
   }
 
-  public LiveData<Type> getFabState() {
+  LiveData<Type> getFabState() {
     return fabState;
   }
 
-  public void showFab(Type type) {
+  void showFab(Type type) {
     fabState.setValue(type);
   }
 
-  public void hideFab() {
+  void hideFab() {
     fabState.setValue(Type.HIDE);
   }
 
   public enum Type {
     FAB, TOOLBAR, HIDE
+  }
+
+  LiveData<List<MenuState>> getMenuState() {
+    return menuState;
+  }
+
+  void setMenuState(final StatusListItem status) {
+    final ArrayList<MenuState> menuStates = new ArrayList<>();
+    for (ListItem.Stat stat : status.getStats()) {
+      final int type = stat.getType();
+      if (type == ReactionIcon.RETWEET.type) {
+        menuStates.add(new MenuState(R.id.iffabMenu_main_rt, stat.isMarked()));
+      } else if (type == ReactionIcon.FAV.type) {
+        menuStates.add(new MenuState(R.id.iffabMenu_main_fav, stat.isMarked()));
+      }
+    }
+    menuState.setValue(menuStates);
+  }
+
+  static class MenuState {
+    final @IdRes int menuId;
+    final boolean checked;
+
+    private MenuState(@IdRes int menuId, boolean marked) {
+      this.menuId = menuId;
+      this.checked = marked;
+    }
+
+    @Override
+    public String toString() {
+      return "MenuState{" +
+          "menuId=" + menuId +
+          ", checked=" + checked +
+          '}';
+    }
+  }
+
+  static Observer<List<MenuState>> createMenuStateObserver(IndicatableFFAB ffab) {
+    return states -> {
+      if (states == null || states.isEmpty()) {
+        return;
+      }
+      for (MenuState state : states) {
+        ffab.getMenu().findItem(state.menuId).setChecked(state.checked);
+      }
+    };
   }
 }
