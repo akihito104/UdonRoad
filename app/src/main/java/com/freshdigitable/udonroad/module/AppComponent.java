@@ -42,7 +42,10 @@ import dagger.Component;
  * Created by akihit on 2016/06/16.
  */
 @Singleton
-@Component(modules = {TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class})
+@Component(modules = {
+    TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
+    ViewModelModule.class
+})
 public interface AppComponent {
   void inject(OAuthActivity oAuthActivity);
 

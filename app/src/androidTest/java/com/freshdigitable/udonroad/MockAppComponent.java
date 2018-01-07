@@ -20,6 +20,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
+import com.freshdigitable.udonroad.module.ViewModelModule;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 
 import javax.inject.Singleton;
@@ -32,8 +33,10 @@ import dagger.Component;
  * Created by akihit on 2016/06/16.
  */
 @Singleton
-@Component(modules = {TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
-    MockTwitterApiModule.MockTwitterStreamApiModule.class})
+@Component(modules = {
+    TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
+    MockTwitterApiModule.MockTwitterStreamApiModule.class, ViewModelModule.class
+})
 public interface MockAppComponent extends AppComponent {
   void inject(TimelineInstTestBase mainActivityInstTest);
 

@@ -41,7 +41,6 @@ import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
-import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
 import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -63,7 +62,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements TweetInputListener, OnUserIconClickedListener, SnackbarCapable,
+    implements OnUserIconClickedListener, SnackbarCapable,
     TimelineFragment.OnItemClickedListener, OnSpanClickListener {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
@@ -353,9 +352,6 @@ public class MainActivity extends AppCompatActivity
     actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
     actionBarDrawerToggle.syncState();
   }
-
-  @Override
-  public void onSendCompleted() {}
 
   private void setupActionMap() {
     binding.ffab.setOnIffabItemSelectedListener(item -> {

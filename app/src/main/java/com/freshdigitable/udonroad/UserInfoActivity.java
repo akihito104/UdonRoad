@@ -40,12 +40,14 @@ import android.widget.TextView;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
+import com.freshdigitable.udonroad.input.TweetInputModel;
+import com.freshdigitable.udonroad.input.TweetInputViewModel;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import javax.inject.Inject;
 
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import twitter4j.User;
 
@@ -62,7 +64,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetInputListener, SnackbarCapable, OnUserIconClickedListener,
+    implements SnackbarCapable, OnUserIconClickedListener,
     OnSpanClickListener, TimelineFragment.OnItemClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
@@ -72,6 +74,7 @@ public class UserInfoActivity extends AppCompatActivity
   private UserInfoFragment userInfoAppbarFragment;
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private FabViewModel fabViewModel;
+  private Disposable tweetUploadSubs;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -178,6 +181,12 @@ public class UserInfoActivity extends AppCompatActivity
     binding.userInfoToolbarTitle.setText("");
     binding.userInfoCollapsingToolbar.setTitleEnabled(false);
     userCache.close();
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    Utils.maybeDispose(tweetUploadSubs);
   }
 
   @Override
@@ -295,6 +304,9 @@ public class UserInfoActivity extends AppCompatActivity
     onTweetInputOpened();
   }
 
+  @Inject
+  AppViewModelProviderFactory factory;
+
   public void onTweetInputOpened() {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
     if (userInfoAppbarFragment.isVisible()) {
@@ -305,6 +317,11 @@ public class UserInfoActivity extends AppCompatActivity
     titleVisibility = binding.userInfoToolbarTitle.getVisibility();
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     binding.userInfoAppbarLayout.setExpanded(true);
+    final TweetInputViewModel tweetInputViewModel = ViewModelProviders.of(this, factory).get(TweetInputViewModel.class);
+    tweetUploadSubs = tweetInputViewModel.observeModel()
+        .map(TweetInputModel::getState)
+        .filter(state -> state == TweetInputModel.State.SENT)
+        .subscribe(s -> tearDownTweetInputView());
   }
 
   public void onTweetInputClosed() {
@@ -317,11 +334,6 @@ public class UserInfoActivity extends AppCompatActivity
     getSupportFragmentManager().beginTransaction()
         .show(userInfoAppbarFragment)
         .commit();
-  }
-
-  @Override
-  public void onSendCompleted() {
-    tearDownTweetInputView();
   }
 
   private void tearDownTweetInputView() {
