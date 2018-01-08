@@ -99,7 +99,6 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
     Timber.tag(TAG).d("onViewCreated: ");
     super.onViewCreated(view, savedInstanceState);
     viewPager = view.findViewById(R.id.user_pager);
-    tabLayout = view.findViewById(R.id.pager_tabs);
     tabLayout.setupWithViewPager(viewPager);
 
     pagerAdapter = new PagerAdapter(getChildFragmentManager());
@@ -200,6 +199,10 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
   @Override
   public long getSelectedItemId() {
     return getCurrentSelectedStatusId();
+  }
+
+  void setTabLayout(TabLayout tabs) {
+    this.tabLayout = tabs;
   }
 
   private static class PagerAdapter extends FragmentPagerAdapter {

@@ -197,8 +197,10 @@ public class UserInfoActivity extends AppCompatActivity
     timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
       if (type == ContentType.MAIN) {
         UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
+        binding.userInfoTabs.setVisibility(View.VISIBLE);
       } else {
         binding.userInfoToolbarTitle.setText(title);
+        binding.userInfoTabs.setVisibility(View.GONE);
       }
     });
     timelineContainerSwitcher.syncState();
@@ -208,11 +210,13 @@ public class UserInfoActivity extends AppCompatActivity
     final Fragment mainFragment = getSupportFragmentManager().findFragmentByTag(TimelineContainerSwitcher.MAIN_FRAGMENT_TAG);
     if (mainFragment == null) {
       viewPager = UserInfoPagerFragment.create(getUserId());
+      viewPager.setTabLayout(binding.userInfoTabs);
       getSupportFragmentManager().beginTransaction()
           .replace(R.id.userInfo_timeline_container, viewPager, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
           .commitNow();
     } else {
       viewPager = (UserInfoPagerFragment) mainFragment;
+      viewPager.setTabLayout(binding.userInfoTabs);
     }
     timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }

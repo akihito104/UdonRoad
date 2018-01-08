@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.support.test.espresso.Espresso;
+import android.support.test.espresso.ViewInteraction;
 
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
@@ -87,12 +88,12 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
     PerformUtil.selectItemView(defaultTweet);
     PerformUtil.showDetail();
     AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
-    onView(withId(R.id.pager_tabs)).check(anywayNotVisible());
+    onTabLayout().check(anywayNotVisible());
     onView(withId(R.id.action_heading)).check(doesNotExist());
 
     Espresso.pressBack();
     AssertionUtil.checkUserInfoActivityTitle("");
-    onView(withId(R.id.pager_tabs)).check(matches(isDisplayed()));
+    onTabLayout().check(matches(isDisplayed()));
     onView(withText("TWEET\n2")).check(matches(isDisplayed()));
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
   }
@@ -104,7 +105,7 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
     PerformUtil.selectItemView(tweetHasImage);
     PerformUtil.showDetail();
     AssertionUtil.checkUserInfoActivityTitle(R.string.title_detail);
-    onView(withId(R.id.pager_tabs)).check(anywayNotVisible());
+    onTabLayout().check(anywayNotVisible());
     onView(withId(R.id.action_heading)).check(doesNotExist());
 
     PerformUtil.clickThumbnailAt(0);
@@ -114,12 +115,16 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
     onView(withId(R.id.action_heading)).check(doesNotExist());
     onView(withId(R.id.iffabMenu_main_fav)).check(matches(isDisplayed()));
     onView(withId(R.id.iffabMenu_main_rt)).check(matches(isDisplayed()));
-    onView(withId(R.id.pager_tabs)).check(anywayNotVisible());
+    onTabLayout().check(anywayNotVisible());
 
     Espresso.pressBack();
     AssertionUtil.checkUserInfoActivityTitle("");
-    onView(withId(R.id.pager_tabs)).check(matches(isDisplayed()));
+    onTabLayout().check(matches(isDisplayed()));
     onView(withText("TWEET\n2")).check(matches(isDisplayed()));
     onView(withId(R.id.ffab)).check(matches(isCompletelyDisplayed()));
+  }
+
+  private static ViewInteraction onTabLayout() {
+    return onView(withId(R.id.userInfo_tabs));
   }
 }
