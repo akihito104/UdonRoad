@@ -155,7 +155,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
       if (a == null) {
         return false;
       }
-      final TabLayout tabs = a.findViewById(R.id.pager_tabs);
+      final TabLayout tabs = a.findViewById(R.id.userInfo_tabs);
       final TabLayout.Tab tab = tabs.getTabAt(0);
       return tab != null && "TWEET\n21".equals(tab.getText());
     }), () -> onView(withText("TWEET\n21")).check(matches(isDisplayed())));

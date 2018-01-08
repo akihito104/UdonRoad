@@ -29,7 +29,7 @@ import java.util.List;
  * Created by akihit on 2017/12/10.
  */
 
-class TweetInputModel implements Parcelable {
+public class TweetInputModel implements Parcelable {
   private ReplyEntity replyEntity;
   private final List<Uri> media;
   private final List<Long> quoteStatusIds;
@@ -149,7 +149,7 @@ class TweetInputModel implements Parcelable {
 
   private State state = State.DEFAULT;
 
-  State getState() {
+  public State getState() {
     return state;
   }
 
@@ -161,7 +161,7 @@ class TweetInputModel implements Parcelable {
     this.urlLength = urlLength;
   }
 
-  enum State {
+  public enum State {
     DEFAULT, WRITING, SENDING, SENT, RESUMED
   }
 }

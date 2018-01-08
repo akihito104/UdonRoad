@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.input;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.OnLifecycleEvent;
+import android.arch.lifecycle.ViewModel;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -51,7 +52,7 @@ import twitter4j.auth.AccessToken;
  * Created by akihit on 2017/12/02.
  */
 
-class TweetInputViewModel implements LifecycleObserver {
+public class TweetInputViewModel extends ViewModel implements LifecycleObserver {
   private final TweetUploader tweetUploader;
   private final AppSettingStore appSettings;
   private final TypedCache<Status> statusCache;
@@ -155,7 +156,7 @@ class TweetInputViewModel implements LifecycleObserver {
     return statusUpdate;
   }
 
-  Observable<TweetInputModel> observeModel() {
+  public Observable<TweetInputModel> observeModel() {
     return modelEmitter;
   }
 

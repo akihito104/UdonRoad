@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -70,13 +71,17 @@ import twitter4j.User;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
+import static com.freshdigitable.udonroad.FabViewModel.Type.FAB;
+import static com.freshdigitable.udonroad.FabViewModel.Type.HIDE;
+import static com.freshdigitable.udonroad.FabViewModel.Type.TOOLBAR;
+
 /**
  * OAuthActivity is for OAuth authentication with Twitter.
  *
  * Created by akihit on 15/10/22.
  */
 public class OAuthActivity extends AppCompatActivity
-    implements FabHandleable, SnackbarCapable, OnUserIconClickedListener {
+    implements SnackbarCapable, OnUserIconClickedListener {
   private static final String TAG = OAuthActivity.class.getName();
 
   @Inject
@@ -90,6 +95,7 @@ public class OAuthActivity extends AppCompatActivity
   PublishProcessor<UserFeedbackEvent> userFeedback;
   private IndicatableFFAB ffab;
   private Toolbar toolbar;
+  private FabViewModel fabViewModel;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -108,16 +114,24 @@ public class OAuthActivity extends AppCompatActivity
           .replace(R.id.oauth_timeline_container, demoTimelineFragment)
           .commit();
     }
+    fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel.getFabState().observe(this, type -> {
+      if (type == FAB) {
+        ffab.transToFAB();
+      } else if (type == TOOLBAR) {
+        ffab.transToToolbar();
+      } else if (type == HIDE) {
+        ffab.hide();
+      } else {
+        ffab.show();
+      }
+    });
   }
 
   @Override
   protected void onStart() {
     super.onStart();
-    ffab.setOnIffabItemSelectedListener(item -> {
-      for (IndicatableFFAB.OnIffabItemSelectedListener listener : ffabListener) {
-        listener.onItemSelected(item);
-      }
-    });
+    ffab.setOnIffabItemSelectedListener(fabViewModel::onMenuItemSelected);
     appSettings.open();
     final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
     if (!users.isEmpty()) {
@@ -225,37 +239,6 @@ public class OAuthActivity extends AppCompatActivity
   public static void start(Activity redirect) {
     final Intent intent = createIntent(redirect);
     redirect.startActivity(intent);
-  }
-
-  @Override
-  public void showFab(int type) {
-    if (type == TYPE_FAB) {
-      ffab.transToFAB();
-    } else if (type == TYPE_TOOLBAR) {
-      ffab.transToToolbar();
-    } else {
-      ffab.show();
-    }
-  }
-
-  @Override
-  public void hideFab() {
-    ffab.hide();
-  }
-
-  @Override
-  public void setCheckedFabMenuItem(int itemId, boolean checked) {}
-
-  private List<IndicatableFFAB.OnIffabItemSelectedListener> ffabListener = new ArrayList<>();
-
-  @Override
-  public void addOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {
-    ffabListener.add(listener);
-  }
-
-  @Override
-  public void removeOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {
-    ffabListener.remove(listener);
   }
 
   @Override

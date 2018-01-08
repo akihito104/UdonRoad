@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.input;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -28,7 +29,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,6 +38,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
+import com.freshdigitable.udonroad.AppViewModelProviderFactory;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
@@ -64,7 +65,8 @@ public class TweetInputFragment extends Fragment {
   private static final String TAG = TweetInputFragment.class.getSimpleName();
   private FragmentTweetInputBinding binding;
   @Inject
-  TweetInputViewModel viewModel;
+  AppViewModelProviderFactory factory;
+  private TweetInputViewModel viewModel;
   private MediaChooserController mediaChooserController = new MediaChooserController();
   private Disposable currentUserSubscription;
   private Disposable iconSubs;
@@ -79,6 +81,7 @@ public class TweetInputFragment extends Fragment {
   public void onAttach(Context context) {
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
+    viewModel = ViewModelProviders.of(getActivity(), factory).get(TweetInputViewModel.class);
     getLifecycle().addObserver(viewModel);
   }
 
@@ -110,11 +113,7 @@ public class TweetInputFragment extends Fragment {
     Timber.tag(TAG).d("onOptionsItemSelected: ");
     final int itemId = item.getItemId();
     if (itemId == R.id.action_sendTweet) {
-      final TweetInputListener tweetInputListener = getTweetInputListener();
-      tweetSendPresenter.onSendTweetClicked(getContext(), s -> {
-        tweetInputListener.onSendCompleted();
-        clear();
-      }, e -> {});
+      tweetSendPresenter.onSendTweetClicked(getContext(), s -> clear(), e -> {});
     }
     return false;
   }
@@ -345,19 +344,6 @@ public class TweetInputFragment extends Fragment {
             .build())
         .flatMap(viewModel::queryImage)
         .subscribe(d -> inputText.getIcon().setImageDrawable(d), th -> {});
-  }
-
-  public interface TweetInputListener {
-    void onSendCompleted();
-  }
-
-  private final TweetInputListener emptyListener = () -> {};
-
-  @NonNull
-  private TweetInputListener getTweetInputListener() {
-    final FragmentActivity activity = getActivity();
-    return activity instanceof TweetInputListener ? (TweetInputListener) activity
-        : emptyListener;
   }
 
   public static final int TYPE_DEFAULT = 0;

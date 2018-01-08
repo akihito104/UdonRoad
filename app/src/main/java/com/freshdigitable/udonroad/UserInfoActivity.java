@@ -17,13 +17,13 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.AppBarLayout.OnOffsetChangedListener;
 import android.support.v4.app.ActivityCompat;
@@ -40,19 +40,20 @@ import android.widget.TextView;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
-import com.freshdigitable.udonroad.input.TweetInputFragment.TweetInputListener;
+import com.freshdigitable.udonroad.input.TweetInputModel;
+import com.freshdigitable.udonroad.input.TweetInputViewModel;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.inject.Inject;
 
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import twitter4j.User;
 
+import static com.freshdigitable.udonroad.FabViewModel.Type.FAB;
+import static com.freshdigitable.udonroad.FabViewModel.Type.HIDE;
+import static com.freshdigitable.udonroad.FabViewModel.Type.TOOLBAR;
 import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_QUOTE;
 import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
 import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
@@ -63,7 +64,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements TweetInputListener, FabHandleable, SnackbarCapable, OnUserIconClickedListener,
+    implements SnackbarCapable, OnUserIconClickedListener,
     OnSpanClickListener, TimelineFragment.OnItemClickedListener {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
@@ -72,6 +73,8 @@ public class UserInfoActivity extends AppCompatActivity
   TypedCache<User> userCache;
   private UserInfoFragment userInfoAppbarFragment;
   private TimelineContainerSwitcher timelineContainerSwitcher;
+  private FabViewModel fabViewModel;
+  private Disposable tweetUploadSubs;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +92,24 @@ public class UserInfoActivity extends AppCompatActivity
 
     setUpAppbar();
     setupInfoAppbarFragment(getUserId());
+
+    fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel.getFabState().observe(this, type -> {
+      if (type == FAB) {
+        binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
+            View.VISIBLE : View.INVISIBLE);
+      } else if (type == TOOLBAR) {
+        binding.ffab.transToToolbar();
+      } else if (type == HIDE) {
+        if (viewPager.getSelectedItemId() > 0) {
+          return;
+        }
+        binding.ffab.hide();
+      } else {
+        binding.ffab.show();
+      }
+    });
+    fabViewModel.getMenuState().observe(this, FabViewModel.createMenuStateObserver(binding.ffab));
   }
 
   private void setupInfoAppbarFragment(long userId) {
@@ -165,7 +186,7 @@ public class UserInfoActivity extends AppCompatActivity
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    iffabItemSelectedListeners.clear();
+    Utils.maybeDispose(tweetUploadSubs);
   }
 
   @Override
@@ -176,8 +197,10 @@ public class UserInfoActivity extends AppCompatActivity
     timelineContainerSwitcher.setOnContentChangedListener((type, title) -> {
       if (type == ContentType.MAIN) {
         UserInfoActivity.bindUserScreenName(binding.userInfoToolbarTitle, user);
+        binding.userInfoTabs.setVisibility(View.VISIBLE);
       } else {
         binding.userInfoToolbarTitle.setText(title);
+        binding.userInfoTabs.setVisibility(View.GONE);
       }
     });
     timelineContainerSwitcher.syncState();
@@ -187,11 +210,13 @@ public class UserInfoActivity extends AppCompatActivity
     final Fragment mainFragment = getSupportFragmentManager().findFragmentByTag(TimelineContainerSwitcher.MAIN_FRAGMENT_TAG);
     if (mainFragment == null) {
       viewPager = UserInfoPagerFragment.create(getUserId());
+      viewPager.setTabLayout(binding.userInfoTabs);
       getSupportFragmentManager().beginTransaction()
           .replace(R.id.userInfo_timeline_container, viewPager, TimelineContainerSwitcher.MAIN_FRAGMENT_TAG)
           .commitNow();
     } else {
       viewPager = (UserInfoPagerFragment) mainFragment;
+      viewPager.setTabLayout(binding.userInfoTabs);
     }
     timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
   }
@@ -283,6 +308,9 @@ public class UserInfoActivity extends AppCompatActivity
     onTweetInputOpened();
   }
 
+  @Inject
+  AppViewModelProviderFactory factory;
+
   public void onTweetInputOpened() {
     binding.userInfoAppbarContainer.setPadding(0, binding.userInfoToolbar.getHeight(), 0, 0);
     if (userInfoAppbarFragment.isVisible()) {
@@ -293,6 +321,11 @@ public class UserInfoActivity extends AppCompatActivity
     titleVisibility = binding.userInfoToolbarTitle.getVisibility();
     binding.userInfoToolbarTitle.setVisibility(View.GONE);
     binding.userInfoAppbarLayout.setExpanded(true);
+    final TweetInputViewModel tweetInputViewModel = ViewModelProviders.of(this, factory).get(TweetInputViewModel.class);
+    tweetUploadSubs = tweetInputViewModel.observeModel()
+        .map(TweetInputModel::getState)
+        .filter(state -> state == TweetInputModel.State.SENT)
+        .subscribe(s -> tearDownTweetInputView());
   }
 
   public void onTweetInputClosed() {
@@ -305,11 +338,6 @@ public class UserInfoActivity extends AppCompatActivity
     getSupportFragmentManager().beginTransaction()
         .show(userInfoAppbarFragment)
         .commit();
-  }
-
-  @Override
-  public void onSendCompleted() {
-    tearDownTweetInputView();
   }
 
   private void tearDownTweetInputView() {
@@ -332,47 +360,8 @@ public class UserInfoActivity extends AppCompatActivity
       } else if (itemId == R.id.iffabMenu_main_conv) {
         timelineContainerSwitcher.showConversation(selectedTweetId);
       }
-      for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
-        l.onItemSelected(item);
-      }
+      fabViewModel.onMenuItemSelected(item);
     });
-  }
-
-  @Override
-  public void showFab(int type) {
-    if (type == TYPE_FAB) {
-      binding.ffab.transToFAB(timelineContainerSwitcher.isItemSelected() ?
-          View.VISIBLE : View.INVISIBLE);
-    } else if (type == TYPE_TOOLBAR) {
-      binding.ffab.transToToolbar();
-    } else {
-      binding.ffab.show();
-    }
-  }
-
-  @Override
-  public void hideFab() {
-    if (viewPager.getSelectedItemId() > 0) {
-      return;
-    }
-    binding.ffab.hide();
-  }
-
-  @Override
-  public void setCheckedFabMenuItem(@IdRes int itemId, boolean checked) {
-    binding.ffab.getMenu().findItem(itemId).setChecked(checked);
-  }
-
-  private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
-
-  @Override
-  public void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.add(listener);
-  }
-
-  @Override
-  public void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.remove(listener);
   }
 
   @Override

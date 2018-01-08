@@ -75,11 +75,15 @@ public class UserInfoFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    if (binding == null) {
-      binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user_info, container, false);
-      ViewCompat.setTransitionName(binding.userInfoUserInfoView.getIcon(), UserInfoActivity.getUserIconTransitionName(getUserId()));
-    }
-    return binding.getRoot();
+    return inflater.inflate(R.layout.fragment_user_info, container, false);
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    binding = DataBindingUtil.bind(view);
+    ViewCompat.setTransitionName(binding.userInfoUserInfoView.getIcon(),
+        UserInfoActivity.getUserIconTransitionName(getUserId()));
   }
 
   @Inject
