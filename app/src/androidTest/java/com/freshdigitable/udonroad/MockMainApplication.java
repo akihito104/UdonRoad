@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.fetcher.StatusListFetcherModule;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 
@@ -38,6 +39,7 @@ public class MockMainApplication extends MainApplication {
         .mockTwitterStreamApiModule(streamApiModule)
         .dataStoreModule(new MockDataStoreModule(getApplicationContext()))
         .repositoryModule(new RepositoryModule(getApplicationContext()))
+        .statusListFetcherModule(new StatusListFetcherModule())
         .build();
   }
 

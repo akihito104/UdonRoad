@@ -19,24 +19,12 @@ package com.freshdigitable.udonroad.fetcher;
 import java.util.List;
 
 import io.reactivex.Single;
-import twitter4j.Paging;
 
 /**
  * Created by akihit on 2018/01/10.
  */
 public interface ListFetcher<T> {
-  Single<List<T>> fetchInit(Query query);
+  Single<List<T>> fetchInit(FetchQuery query);
 
-  Single<List<T>> fetchNext(Query query);
-
-  class Query {
-    long id;
-    long lastPageCursor;
-    String screenName;
-    String searchQuery;
-
-    Paging getPaging() {
-      return new Paging(1, 20, 1, lastPageCursor);
-    }
-  }
+  Single<List<T>> fetchNext(FetchQuery query);
 }

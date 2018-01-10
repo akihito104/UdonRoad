@@ -20,21 +20,27 @@ import com.freshdigitable.udonroad.MainActivity;
 import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.OAuthActivity;
 import com.freshdigitable.udonroad.StatusDetailFragment;
+import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.TimelineFragment;
-import com.freshdigitable.udonroad.input.TweetInputActivity;
-import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.UserInfoFragment;
 import com.freshdigitable.udonroad.UserInfoPagerFragment;
 import com.freshdigitable.udonroad.UserSettingsActivity;
 import com.freshdigitable.udonroad.UserStreamUtil;
+import com.freshdigitable.udonroad.fetcher.ListFetcher;
+import com.freshdigitable.udonroad.fetcher.StatusListFetcherModule;
+import com.freshdigitable.udonroad.input.TweetInputActivity;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.PhotoMediaFragment;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 
+import java.util.Map;
+
 import javax.inject.Singleton;
 
 import dagger.Component;
+import twitter4j.Status;
 
 /**
  * AppComponent provides for dependency injection
@@ -44,7 +50,7 @@ import dagger.Component;
 @Singleton
 @Component(modules = {
     TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
-    ViewModelModule.class
+    ViewModelModule.class, StatusListFetcherModule.class
 })
 public interface AppComponent {
   void inject(OAuthActivity oAuthActivity);
@@ -78,4 +84,6 @@ public interface AppComponent {
   void inject(PhotoMediaFragment photoMediaFragment);
 
   void inject(TweetInputActivity tweetInputActivity);
+
+  Map<StoreType, ListFetcher<Status>> storeTypeListFetcherStatusMap();
 }

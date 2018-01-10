@@ -21,8 +21,6 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
@@ -36,25 +34,18 @@ import twitter4j.Status;
 @Module
 public class StatusListFetcherModule {
 
-  private final TwitterApi twitterApi;
-
-  @Inject
-  StatusListFetcherModule(TwitterApi twitterApi) {
-    this.twitterApi = twitterApi;
-  }
-
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.HOME)
-  ListFetcher<Status> provideHomeListFetcher() {
+  ListFetcher<Status> provideHomeListFetcher(TwitterApi twitterApi) {
     return new ListFetcher<Status>() {
       @Override
-      public Single<List<Status>> fetchInit(Query query) {
+      public Single<List<Status>> fetchInit(FetchQuery query) {
         return twitterApi.getHomeTimeline();
       }
 
       @Override
-      public Single<List<Status>> fetchNext(Query query) {
+      public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.getHomeTimeline(query.getPaging());
       }
     };
@@ -63,15 +54,15 @@ public class StatusListFetcherModule {
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.USER_HOME)
-  ListFetcher<Status> provideUserHomeListFetcher() {
+  ListFetcher<Status> provideUserHomeListFetcher(TwitterApi twitterApi) {
     return new ListFetcher<Status>() {
       @Override
-      public Single<List<Status>> fetchInit(Query query) {
+      public Single<List<Status>> fetchInit(FetchQuery query) {
         return twitterApi.getUserTimeline(query.id);
       }
 
       @Override
-      public Single<List<Status>> fetchNext(Query query) {
+      public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.getUserTimeline(query.id, query.getPaging());
       }
     };
@@ -80,15 +71,15 @@ public class StatusListFetcherModule {
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.USER_FAV)
-  ListFetcher<Status> provideUserFavListFetcher() {
+  ListFetcher<Status> provideUserFavListFetcher(TwitterApi twitterApi) {
     return new ListFetcher<Status>() {
       @Override
-      public Single<List<Status>> fetchInit(Query query) {
+      public Single<List<Status>> fetchInit(FetchQuery query) {
         return twitterApi.getFavorites(query.id);
       }
 
       @Override
-      public Single<List<Status>> fetchNext(Query query) {
+      public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.getFavorites(query.id, query.getPaging());
       }
     };
@@ -97,15 +88,15 @@ public class StatusListFetcherModule {
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.LIST_TL)
-  ListFetcher<Status> provideListTlFavListFetcher() {
+  ListFetcher<Status> provideListTlFavListFetcher(TwitterApi twitterApi) {
     return new ListFetcher<Status>() {
       @Override
-      public Single<List<Status>> fetchInit(Query query) {
+      public Single<List<Status>> fetchInit(FetchQuery query) {
         return twitterApi.fetchUserListsStatuses(query.id, new Paging(1, 20));
       }
 
       @Override
-      public Single<List<Status>> fetchNext(Query query) {
+      public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.getFavorites(query.id, query.getPaging());
       }
     };
@@ -114,10 +105,10 @@ public class StatusListFetcherModule {
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.SEARCH)
-  ListFetcher<Status> provideSearchListFetcher() {
+  ListFetcher<Status> provideSearchListFetcher(TwitterApi twitterApi) {
     return new ListFetcher<Status>() {
       @Override
-      public Single<List<Status>> fetchInit(Query query) {
+      public Single<List<Status>> fetchInit(FetchQuery query) {
         return twitterApi.fetchSearch(
             new twitter4j.Query(query.searchQuery + " exclude:retweets")
                 .count(20)
@@ -125,7 +116,7 @@ public class StatusListFetcherModule {
       }
 
       @Override
-      public Single<List<Status>> fetchNext(Query query) {
+      public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.fetchSearch(
             new twitter4j.Query(query.searchQuery + " exclude:retweets")
                 .count(20)
@@ -138,10 +129,10 @@ public class StatusListFetcherModule {
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.USER_MEDIA)
-  ListFetcher<Status> provideUserMediaListFetcher() {
+  ListFetcher<Status> provideUserMediaListFetcher(TwitterApi twitterApi) {
     return new ListFetcher<Status>() {
       @Override
-      public Single<List<Status>> fetchInit(Query query) {
+      public Single<List<Status>> fetchInit(FetchQuery query) {
         return twitterApi.fetchSearch(
             new twitter4j.Query("from:" + query.searchQuery + " filter:media exclude:retweets")
                 .count(20)
@@ -149,7 +140,7 @@ public class StatusListFetcherModule {
       }
 
       @Override
-      public Single<List<Status>> fetchNext(Query query) {
+      public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.fetchSearch(
             new twitter4j.Query("from:" + query.searchQuery + " filter:media exclude:retweets")
                 .count(20)
@@ -158,5 +149,4 @@ public class StatusListFetcherModule {
       }
     };
   }
-
 }

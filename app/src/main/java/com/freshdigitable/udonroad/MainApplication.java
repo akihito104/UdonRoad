@@ -27,6 +27,7 @@ import android.view.View;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
+import com.freshdigitable.udonroad.fetcher.StatusListFetcherModule;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
@@ -101,6 +102,7 @@ public class MainApplication extends Application {
         .twitterApiModule(new TwitterApiModule(getApplicationContext()))
         .dataStoreModule(new DataStoreModule(getApplicationContext()))
         .repositoryModule(new RepositoryModule(getApplicationContext()))
+        .statusListFetcherModule(new StatusListFetcherModule())
         .build();
   }
 

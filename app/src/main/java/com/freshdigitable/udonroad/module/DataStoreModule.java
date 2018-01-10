@@ -19,6 +19,7 @@ package com.freshdigitable.udonroad.module;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
@@ -27,6 +28,7 @@ import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
+import com.freshdigitable.udonroad.fetcher.ListFetcher;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ListsSortedCacheRealm;
@@ -46,6 +48,9 @@ import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 import com.freshdigitable.udonroad.subscriber.UserListRequestWorker;
 
+import java.util.Map;
+
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -154,8 +159,9 @@ public class DataStoreModule {
                                                            TypedCache<User> userTypedCache,
                                                            WritableSortedCache<Status> sortedCache,
                                                            PublishProcessor<UserFeedbackEvent> userFeedback,
-                                                           StatusRequestWorker requestWorker) {
-    return new StatusListRequestWorker(twitterApi, userTypedCache, sortedCache, userFeedback, requestWorker);
+                                                           StatusRequestWorker requestWorker,
+                                                           Map<StoreType, Provider<ListFetcher<Status>>> listFetchers) {
+    return new StatusListRequestWorker(twitterApi, userTypedCache, sortedCache, userFeedback, requestWorker, listFetchers);
   }
 
   @Provides
