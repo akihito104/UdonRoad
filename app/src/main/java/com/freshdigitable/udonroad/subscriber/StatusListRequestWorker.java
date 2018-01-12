@@ -219,7 +219,7 @@ public class StatusListRequestWorker implements ListRequestWorker<Status> {
     return lastPageCursor;
   }
 
-  private void fetchToStore(Single<List<Status>> fetchingTask) {
+  private void fetchToStore(Single<? extends List<Status>> fetchingTask) {
     Util.fetchToStore(fetchingTask, sortedCache, storeName,
         onErrorFeedback(R.string.msg_tweet_not_download));
   }

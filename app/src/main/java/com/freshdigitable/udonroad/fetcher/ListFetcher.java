@@ -24,7 +24,7 @@ import io.reactivex.Single;
  * Created by akihit on 2018/01/10.
  */
 public interface ListFetcher<T> {
-  Single<List<T>> fetchInit(FetchQuery query);
+  Single<? extends List<T>> fetchInit(FetchQuery query);
 
-  Single<List<T>> fetchNext(FetchQuery query);
+  Single<? extends List<T>> fetchNext(FetchQuery query);
 }
