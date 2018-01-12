@@ -21,12 +21,15 @@ import android.support.annotation.NonNull;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
+import com.freshdigitable.udonroad.fetcher.FetchQuery;
+import com.freshdigitable.udonroad.fetcher.ListFetcher;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
 import java.util.Collection;
+import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 import io.reactivex.Single;
 import io.reactivex.processors.PublishProcessor;
@@ -37,52 +40,44 @@ import twitter4j.UserList;
  */
 
 public class ListsListRequestWorker implements ListRequestWorker<UserList> {
-  private final TwitterApi twitterApi;
+  private final Map<StoreType, Provider<ListFetcher<UserList>>> listFetchers;
   private final WritableSortedCache<UserList> cache;
   private final PublishProcessor<UserFeedbackEvent> feedback;
 
   @Inject
-  public ListsListRequestWorker(@NonNull TwitterApi twitterApi,
+  public ListsListRequestWorker(@NonNull Map<StoreType, Provider<ListFetcher<UserList>>> listFetchers,
                                 @NonNull WritableSortedCache<UserList> cache,
                                 @NonNull PublishProcessor<UserFeedbackEvent> feedback) {
-    this.twitterApi = twitterApi;
+    this.listFetchers = listFetchers;
     this.cache = cache;
     this.feedback = feedback;
   }
 
   @Override
   public ListFetchStrategy getFetchStrategy(StoreType type, long idForQuery, String query) {
-    final String storeName = type.nameWithSuffix(idForQuery, "");
-    if (type == StoreType.OWNED_LIST) {
-      return new ListFetchStrategy() {
-        @Override
-        public void fetch() {
-          fetchToStore(twitterApi.fetchUserListsOwnerships(idForQuery, 20, -1), storeName);
-        }
-
-        @Override
-        public void fetchNext() {
-          final long lastPageCursor = getLastPageCursor(storeName);
-          fetchToStore(twitterApi.fetchUserListsOwnerships(idForQuery, 20, lastPageCursor), storeName);
-        }
-      };
-    } else if (type == StoreType.USER_LIST) {
-      return new ListFetchStrategy() {
-        @Override
-        public void fetch() {
-          fetchToStore(
-              twitterApi.getUserListMemberships(idForQuery, 20, -1), storeName);
-        }
-
-        @Override
-        public void fetchNext() {
-          final long lastPageCursor = getLastPageCursor(storeName);
-          fetchToStore(
-              twitterApi.getUserListMemberships(idForQuery, 20, lastPageCursor), storeName);
-        }
-      };
+    final Provider<ListFetcher<UserList>> userListProvider = listFetchers.get(type);
+    if (userListProvider == null) {
+      throw new IllegalStateException("unsupported StoreType: " + type);
     }
-    throw new IllegalArgumentException();
+    final FetchQuery initQuery = new FetchQuery.Builder()
+        .id(idForQuery)
+        .build();
+    final String storeName = type.nameWithSuffix(idForQuery, "");
+    return new ListFetchStrategy() {
+      @Override
+      public void fetch() {
+        fetchToStore(userListProvider.get().fetchInit(initQuery), storeName);
+      }
+
+      @Override
+      public void fetchNext() {
+        final FetchQuery nextQuery = new FetchQuery.Builder()
+            .id(idForQuery)
+            .lastPageCursor(getLastPageCursor(storeName))
+            .build();
+        fetchToStore(userListProvider.get().fetchNext(nextQuery), storeName);
+      }
+    };
   }
 
   private long getLastPageCursor(String storeName) {

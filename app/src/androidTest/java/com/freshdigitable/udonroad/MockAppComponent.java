@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
+import com.freshdigitable.udonroad.fetcher.ListsListFetcherModule;
 import com.freshdigitable.udonroad.fetcher.StatusListFetcherModule;
 import com.freshdigitable.udonroad.fetcher.UserListFetcherModule;
 import com.freshdigitable.udonroad.module.AppComponent;
@@ -38,7 +39,7 @@ import dagger.Component;
 @Component(modules = {
     TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
     MockTwitterApiModule.MockTwitterStreamApiModule.class, ViewModelModule.class,
-    StatusListFetcherModule.class, UserListFetcherModule.class
+    StatusListFetcherModule.class, UserListFetcherModule.class, ListsListFetcherModule.class
 })
 public interface MockAppComponent extends AppComponent {
   void inject(TimelineInstTestBase mainActivityInstTest);

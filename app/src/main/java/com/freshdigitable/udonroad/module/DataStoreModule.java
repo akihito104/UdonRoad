@@ -173,9 +173,9 @@ public class DataStoreModule {
 
   @Provides
   ListRequestWorker<UserList> provideListRequestWorkerUserList(
-      TwitterApi twitterApi,
+      Map<StoreType, Provider<ListFetcher<UserList>>> listFetchers,
       WritableSortedCache<UserList> cache,
       PublishProcessor<UserFeedbackEvent> userFeedback) {
-    return new ListsListRequestWorker(twitterApi, cache, userFeedback);
+    return new ListsListRequestWorker(listFetchers, cache, userFeedback);
   }
 }
