@@ -185,6 +185,11 @@ public abstract class ListItemRepositoryModule {
   }
 
   @Binds
+  @IntoMap
+  @ListItemRepositoryModuleKey(StoreType.CONVERSATION)
+  abstract ListItemRepository bindsConversationListItemRepository(ConversationListItemRepository repository);
+
+  @Binds
   @Singleton
   abstract ListItemRepositoryProvider bindsListItemRepositoryProvider(ListItemRepositoryProvider repositories);
 }
