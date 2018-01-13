@@ -36,6 +36,7 @@ import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.PhotoMediaFragment;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryModule;
 
 import java.util.Map;
 
@@ -55,7 +56,7 @@ import twitter4j.UserList;
 @Component(modules = {
     TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
     ViewModelModule.class, StatusListFetcherModule.class, UserListFetcherModule.class,
-    ListsListFetcherModule.class
+    ListsListFetcherModule.class, ListItemRepositoryModule.class
 })
 public interface AppComponent {
   void inject(OAuthActivity oAuthActivity);
