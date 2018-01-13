@@ -17,9 +17,9 @@
 package com.freshdigitable.udonroad;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
-import com.freshdigitable.udonroad.fetcher.ListsListFetcherModule;
-import com.freshdigitable.udonroad.fetcher.StatusListFetcherModule;
-import com.freshdigitable.udonroad.fetcher.UserListFetcherModule;
+import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
+import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
+import com.freshdigitable.udonroad.timeline.fetcher.UserListFetcherModule;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;

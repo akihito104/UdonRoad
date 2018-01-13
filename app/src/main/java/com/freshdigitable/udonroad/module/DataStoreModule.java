@@ -28,7 +28,7 @@ import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
-import com.freshdigitable.udonroad.fetcher.ListFetcher;
+import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ListsSortedCacheRealm;

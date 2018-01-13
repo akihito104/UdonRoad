@@ -24,8 +24,8 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
-import com.freshdigitable.udonroad.fetcher.FetchQuery;
-import com.freshdigitable.udonroad.fetcher.ListFetcher;
+import com.freshdigitable.udonroad.timeline.fetcher.FetchQuery;
+import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 

@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.fetcher;
+package com.freshdigitable.udonroad.timeline.fetcher;
 
-import com.freshdigitable.udonroad.StoreType;
+import java.util.List;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import dagger.MapKey;
+import io.reactivex.Single;
 
 /**
  * Created by akihit on 2018/01/10.
  */
-@Documented
-@Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@MapKey
-@interface ListFetcherModuleKey {
-  StoreType value();
+public interface ListFetcher<T> {
+  Single<? extends List<T>> fetchInit(FetchQuery query);
+
+  Single<? extends List<T>> fetchNext(FetchQuery query);
 }

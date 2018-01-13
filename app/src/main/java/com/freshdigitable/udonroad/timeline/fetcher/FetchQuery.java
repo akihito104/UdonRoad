@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.fetcher;
+package com.freshdigitable.udonroad.timeline.fetcher;
 
 import twitter4j.Paging;
 
