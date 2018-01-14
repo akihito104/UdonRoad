@@ -23,10 +23,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
@@ -34,8 +32,8 @@ import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
 import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.UserItemViewHolder;
-import com.freshdigitable.udonroad.listitem.UserListItem;
 import com.freshdigitable.udonroad.media.ThumbnailView;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -55,27 +53,25 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
-  final SortedCache<T> timelineStore;
   final StatusViewImageLoader imageLoader;
+  final ListItemRepository repository;
 
-  TimelineAdapter(SortedCache<T> timelineStore, StatusViewImageLoader imageLoader) {
-    this.timelineStore = timelineStore;
+  TimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
+    this.repository = repository;
     this.imageLoader = imageLoader;
     setHasStableIds(true);
   }
 
   @Override
   public long getItemId(int position) {
-    return timelineStore.getId(position);
+    return repository.getId(position);
   }
-
-  abstract ListItem wrapListItem(T item);
 
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
-    final T elem = timelineStore.get(position);
-    holder.bind(wrapListItem(elem), imageLoader);
-    final Observable<ListItem> observable = timelineStore.observeById(elem).map(this::wrapListItem);
+    final ListItem elem = repository.get(position);
+    holder.bind(elem, imageLoader);
+    final Observable<? extends ListItem> observable = repository.observe(elem);
     holder.subscribe(observable);
 
     if (position == getItemCount() - 1) {
@@ -110,9 +106,8 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
 
   private void subscribe(ItemViewHolder holder) {
     if (!holder.isSubscribed()) {
-      final Observable<ListItem> observable
-          = timelineStore.observeById(holder.getItemId())
-          .map(this::wrapListItem);
+      final Observable<? extends ListItem> observable
+          = repository.observeById(holder.getItemId());
       holder.subscribe(observable);
     }
   }
@@ -184,7 +179,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public int getSelectedItemViewPosition() {
-    return timelineStore.getPositionById(selectedItemHolder.containerId);
+    return repository.getPositionById(selectedItemHolder.containerId);
   }
 
   public interface LastItemBoundListener {
@@ -214,7 +209,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
 
   @Override
   public int getItemCount() {
-    return timelineStore.getItemCount();
+    return repository.getItemCount();
   }
 
   private static class SelectedItem {
@@ -285,8 +280,8 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   public static class StatusTimelineAdapter extends TimelineAdapter<Status> {
-    StatusTimelineAdapter(SortedCache<Status> timelineStore, StatusViewImageLoader imageLoader) {
-      super(timelineStore, imageLoader);
+    StatusTimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
+      super(repository, imageLoader);
     }
 
     @Override
@@ -296,14 +291,13 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
 
     @Override
     public void onBindViewHolder(final ItemViewHolder holder, int position) {
-      final Status elem = timelineStore.get(position);
-      final StatusListItem item = (StatusListItem) wrapListItem(elem);
+      final StatusListItem item = ((StatusListItem) repository.get(position));
       final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
       if (item.getQuotedItem() != null && !statusViewHolder.hasQuotedView()) {
         statusViewHolder.attachQuotedView(getQuotedView(holder.itemView.getContext()));
       }
       holder.bind(item, imageLoader);
-      final Observable<ListItem> observable = timelineStore.observeById(elem).map(this::wrapListItem);
+      final Observable<? extends ListItem> observable = repository.observe(item);
       holder.subscribe(observable);
 
       if (position == getItemCount() - 1) {
@@ -335,37 +329,22 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
       quotedViewCache.clear();
     }
-
-    @Override
-    ListItem wrapListItem(Status item) {
-      return new StatusListItem(item);
-    }
   }
 
   public static class UserListAdapter extends TimelineAdapter<User> {
-    UserListAdapter(SortedCache<User> timelineStore, StatusViewImageLoader imageLoader) {
-      super(timelineStore, imageLoader);
+    UserListAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
+      super(repository, imageLoader);
     }
 
     @Override
     public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
       return new UserItemViewHolder(parent);
     }
-
-    @Override
-    ListItem wrapListItem(User item) {
-      return new UserListItem(item);
-    }
   }
 
   public static class ListListAdapter extends TimelineAdapter<UserList> {
-    ListListAdapter(SortedCache<UserList> timelineStore, StatusViewImageLoader imageLoader) {
-      super(timelineStore, imageLoader);
-    }
-
-    @Override
-    ListItem wrapListItem(UserList item) {
-      return new ListsListItem(item);
+    ListListAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
+      super(repository, imageLoader);
     }
 
     @Override

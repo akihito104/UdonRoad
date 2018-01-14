@@ -42,7 +42,7 @@ import twitter4j.Status;
 class ConversationListItemRepository implements ListItemRepository {
   private final TwitterApi twitterApi;
   private final SortedListItemCache<Status> cache;
-  private PublishProcessor<UserFeedbackEvent> userFeedback;
+  private final PublishProcessor<UserFeedbackEvent> userFeedback;
   private long id;
 
   @Inject
@@ -110,6 +110,11 @@ class ConversationListItemRepository implements ListItemRepository {
         .flatMapCompletable(cache::observeUpsert)
         .subscribe(() -> {},
             e -> userFeedback.onNext(new UserFeedbackEvent(R.string.msg_tweet_not_download)));
+  }
+
+  @Override
+  public void drop() {
+    cache.drop();
   }
 
   @Override

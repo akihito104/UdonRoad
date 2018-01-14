@@ -36,6 +36,7 @@ import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
+import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 import com.squareup.leakcanary.LeakCanary;
 
 import java.util.ArrayList;
@@ -101,6 +102,7 @@ public class MainApplication extends Application {
         .twitterApiModule(new TwitterApiModule(getApplicationContext()))
         .dataStoreModule(new DataStoreModule(getApplicationContext()))
         .repositoryModule(new RepositoryModule(getApplicationContext()))
+        .demoListFetcherModule(new DemoListFetcherModule(getApplicationContext()))
         .build();
   }
 

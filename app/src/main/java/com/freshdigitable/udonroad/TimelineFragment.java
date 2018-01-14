@@ -41,15 +41,17 @@ import android.view.animation.Animation;
 import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
-import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
+import com.freshdigitable.udonroad.listitem.ListItem;
+import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
-import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
+import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryProvider;
 
 import java.util.EnumSet;
 
@@ -78,23 +80,24 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   TimelineAdapter<T> tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Disposable updateEventSubscription;
-  @Inject
-  ListRequestWorker<T> requestWorker;
-  @Inject
-  SortedCache<T> sortedCache;
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
-  private ListFetchStrategy fetcher;
   private MenuItem heading;
   @Inject
   StatusViewImageLoader imageLoader;
   private FabViewModel fabViewModel;
+  @Inject
+  ListItemRepositoryProvider repositoryProvider;
+  ListItemRepository repository;
+  @Inject
+  StatusRequestWorker requestWorker;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    sortedCache.open(getStoreName());
-    updateEventSubscription = sortedCache.observeUpdateEvent()
+    repository = repositoryProvider.get(getStoreType()).get();
+    repository.init(getEntityId(), getQuery());
+    updateEventSubscription = repository.observeUpdateEvent()
         .retry()
         .doOnSubscribe(subs -> Timber.tag(TAG).d("onAttach: updateEvent is subscribed"))
         .subscribe(event -> {
@@ -107,7 +110,6 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
               }
             },
             e -> Timber.tag(TAG).e(e, "updateEvent: "));
-    fetcher = requestWorker.getFetchStrategy(getStoreType(), getEntityId(), getQuery());
   }
 
   @Override
@@ -187,7 +189,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     Timber.tag(TAG).d("onActivityCreated: %s", getStoreName());
     super.onActivityCreated(savedInstanceState);
     if (!doneFirstFetch && getUserVisibleHint()) {
-      fetcher.fetch();
+      repository.getInitList();
       doneFirstFetch = true;
     }
   }
@@ -197,8 +199,8 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   @Override
   public void setUserVisibleHint(boolean isVisibleToUser) {
     super.setUserVisibleHint(isVisibleToUser);
-    if (isVisibleToUser && !doneFirstFetch && fetcher != null) {
-      fetcher.fetch();
+    if (isVisibleToUser && !doneFirstFetch && repository != null) {
+      repository.getInitList();
       doneFirstFetch = true;
     }
   }
@@ -257,7 +259,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     Timber.tag(TAG).d("onStart: %s", getStoreName());
     super.onStart();
     if (topItemId >= 0) {
-      final int pos = sortedCache.getPositionById(topItemId);
+      final int pos = repository.getPositionById(topItemId);
       tlLayoutManager.scrollToPositionWithOffset(pos, firstVisibleItemTopOnStop);
       topItemId = -1;
       if (pos > 0) {
@@ -281,7 +283,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
         removeAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
       }
     });
-    tlAdapter.setLastItemBoundListener(() -> fetcher.fetchNext());
+    tlAdapter.setLastItemBoundListener(() -> repository.getListOnEnd());
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
@@ -299,7 +301,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
     final SwipeRefreshLayout swipeLayout = binding.timelineSwipeLayout;
     swipeLayout.setOnRefreshListener(() -> {
-      fetcher.fetch();
+      repository.getInitList();
       swipeLayout.setRefreshing(false);
     });
   }
@@ -322,7 +324,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     if (adapterPos >= 0) {
       final RecyclerView.ViewHolder vh = binding.timeline.findViewHolderForAdapterPosition(adapterPos);
       if (vh != null) {
-        topItemId = sortedCache.getId(adapterPos);
+        topItemId = repository.getId(adapterPos);
         firstVisibleItemTopOnStop = vh.itemView.getTop();
       }
     }
@@ -357,7 +359,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       tlAdapter = null;
     }
     updateEventSubscription.dispose();
-    sortedCache.close();
+    repository.close();
   }
 
   private OnIffabItemSelectedListener iffabItemSelectedListener;
@@ -513,7 +515,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   }
 
   public void dropCache() {
-    sortedCache.drop();
+    repository.drop();
   }
 
   interface OnItemClickedListener {
@@ -585,7 +587,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.StatusTimelineAdapter(sortedCache, imageLoader);
+      super.tlAdapter = new TimelineAdapter.StatusTimelineAdapter(repository, imageLoader);
     }
 
     @Override
@@ -636,7 +638,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.UserListAdapter(sortedCache, imageLoader);
+      super.tlAdapter = new TimelineAdapter.UserListAdapter(repository, imageLoader);
     }
 
     @Override
@@ -644,9 +646,9 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
       super.onStart();
       final OnUserIconClickedListener userIconClickedListener = super.createUserIconClickedListener();
       super.tlAdapter.setOnItemViewClickListener((viewHolder, itemId, clickedView) -> {
-        final int pos = sortedCache.getPositionById(itemId);
-        final User user = sortedCache.get(pos);
-        userIconClickedListener.onUserIconClicked(viewHolder.getUserIcon(), user);
+        final int pos = repository.getPositionById(itemId);
+        final ListItem user = repository.get(pos);
+        userIconClickedListener.onUserIconClicked(viewHolder.getUserIcon(), user.getUser());
       });
     }
 
@@ -662,7 +664,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     public void onAttach(Context context) {
       InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.ListListAdapter(sortedCache, imageLoader);
+      super.tlAdapter = new TimelineAdapter.ListListAdapter(repository, imageLoader);
     }
 
     @Override
@@ -674,9 +676,9 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
           return;
         }
         final OnItemClickedListener listener = (OnItemClickedListener) activity;
-        final int pos = sortedCache.getPositionById(itemId);
-        final UserList userList = sortedCache.get(pos);
-        listener.onItemClicked(ContentType.LISTS, itemId, userList.getName());
+        final int pos = repository.getPositionById(itemId);
+        final ListsListItem item = ((ListsListItem) repository.get(pos));
+        listener.onItemClicked(ContentType.LISTS, itemId, item.getCombinedName().getName());
       });
     }
 

@@ -52,4 +52,6 @@ public interface ListItemRepository {
   void getInitList();
 
   void getListOnEnd();
+
+  void drop();
 }

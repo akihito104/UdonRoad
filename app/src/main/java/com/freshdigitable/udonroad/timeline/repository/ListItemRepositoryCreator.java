@@ -120,13 +120,18 @@ class ListItemRepositoryCreator {
 
       @Override
       public void getListOnEnd() {
-        if (!cache.hasNextPage()) {
+        if (type != StoreType.HOME && !cache.hasNextPage()) {
           userFeedback.onNext(new UserFeedbackEvent(R.string.msg_no_next_page));
           return;
         }
 
         final FetchQuery query = fetchQueryProvider.getNextQuery(id, q, cache.getLastPageCursor());
         fetchToStore(fetcher.fetchNext(query));
+      }
+
+      @Override
+      public void drop() {
+        cache.drop();
       }
 
       private void fetchToStore(Single<? extends List<T>> fetchingTask) {

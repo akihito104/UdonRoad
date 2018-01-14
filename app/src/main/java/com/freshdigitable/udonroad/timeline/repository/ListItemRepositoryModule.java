@@ -20,7 +20,9 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
+import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.UserListItem;
@@ -32,7 +34,6 @@ import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
 import java.util.Map;
 
 import javax.inject.Provider;
-import javax.inject.Singleton;
 
 import dagger.Binds;
 import dagger.Module;
@@ -189,7 +190,12 @@ public abstract class ListItemRepositoryModule {
   @ListItemRepositoryModuleKey(StoreType.CONVERSATION)
   abstract ListItemRepository bindsConversationListItemRepository(ConversationListItemRepository repository);
 
-  @Binds
-  @Singleton
-  abstract ListItemRepositoryProvider bindsListItemRepositoryProvider(ListItemRepositoryProvider repositories);
+  @Provides
+  @IntoMap
+  @ListItemRepositoryModuleKey(StoreType.DEMO)
+  static ListItemRepository provideDemoListItemRepository(
+      Map<StoreType,Provider<ListFetcher<ListItem>>> listFetchers,
+      UpdateSubjectFactory updateSubjectFactory) {
+    return new DemoListItemRepository(listFetchers.get(StoreType.DEMO).get(), updateSubjectFactory);
+  }
 }

@@ -17,6 +17,8 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
@@ -24,10 +26,10 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -35,10 +37,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.datastore.SortedCache;
-import com.freshdigitable.udonroad.datastore.UpdateEvent;
-import com.freshdigitable.udonroad.datastore.UpdateSubject;
-import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
@@ -50,23 +48,16 @@ import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.ListFetchStrategy;
-import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.processors.PublishProcessor;
 import timber.log.Timber;
-import twitter4j.MediaEntity;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
@@ -88,9 +79,6 @@ public class OAuthActivity extends AppCompatActivity
   TwitterApi twitterApi;
   @Inject
   AppSettingStore appSettings;
-  @Inject
-  UpdateSubjectFactory updateSubjectFactory;
-  private UpdateSubject updateSubject;
   @Inject
   PublishProcessor<UserFeedbackEvent> userFeedback;
   private IndicatableFFAB ffab;
@@ -114,7 +102,37 @@ public class OAuthActivity extends AppCompatActivity
           .replace(R.id.oauth_timeline_container, demoTimelineFragment)
           .commit();
     }
-    fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
+    fabViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
+      @NonNull
+      @Override
+      @SuppressWarnings("unchecked")
+      public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+        return (T) new FabViewModel() {
+          @Override
+          void addOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {}
+
+          @Override
+          void onMenuItemSelected(MenuItem item) {
+            final int itemId = item.getItemId();
+            if (itemId == R.id.iffabMenu_main_fav) {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
+            } else if (itemId == R.id.iffabMenu_main_rt) {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
+            } else if (itemId == R.id.iffabMenu_main_favRt) {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
+            } else if (itemId == R.id.iffabMenu_main_detail) {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
+            } else if (itemId == R.id.iffabMenu_main_conv) {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
+            } else if (itemId == R.id.iffabMenu_main_reply) {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
+            } else if (itemId == R.id.iffabMenu_main_quote) {
+              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
+            }
+          }
+        };
+      }
+    }).get(FabViewModel.class);
     fabViewModel.getFabState().observe(this, type -> {
       if (type == FAB) {
         ffab.transToFAB();
@@ -144,14 +162,6 @@ public class OAuthActivity extends AppCompatActivity
   protected void onStop() {
     super.onStop();
     ffab.setOnIffabItemSelectedListener(null);
-  }
-
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    if (updateSubject != null && !updateSubject.hasCompleted()) {
-      updateSubject.onComplete();
-    }
   }
 
   @Override
@@ -251,48 +261,12 @@ public class OAuthActivity extends AppCompatActivity
     this.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_user_icon));
   }
 
-  private static void inject(DemoTimelineFragment demoTimelineFragment) {
-    final OAuthActivity oAuthActivity = (OAuthActivity) demoTimelineFragment.getActivity();
-    final List<ListItem> items = new ArrayList<>();
-    items.addAll(createItems(demoTimelineFragment.getContext()));
-    oAuthActivity.updateSubject = oAuthActivity.updateSubjectFactory.getInstance("demo");
-    demoTimelineFragment.sortedCache = new DemoSortedCache(items, oAuthActivity.updateSubject);
-    demoTimelineFragment.requestWorker = new ListRequestWorker<ListItem>() {
-      @Override
-      public ListFetchStrategy getFetchStrategy(StoreType type, long idForQuery, String query) {
-        return new DemoListFetcher(items);
-      }
-
-      @Override
-      public IndicatableFFAB.OnIffabItemSelectedListener getOnIffabItemSelectedListener(long selectedId) {
-        return item -> {
-          final int itemId = item.getItemId();
-          if (itemId == R.id.iffabMenu_main_fav) {
-            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
-          } else if (itemId == R.id.iffabMenu_main_rt) {
-            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
-          } else if (itemId == R.id.iffabMenu_main_favRt) {
-            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
-          } else if (itemId == R.id.iffabMenu_main_detail) {
-            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
-          } else if (itemId == R.id.iffabMenu_main_conv) {
-            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
-          } else if (itemId == R.id.iffabMenu_main_reply) {
-            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
-          } else if (itemId == R.id.iffabMenu_main_quote) {
-            oAuthActivity.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
-          }
-        };
-      }
-    };
-  }
-
   public static class DemoTimelineFragment extends TimelineFragment<ListItem> {
     @Override
     public void onAttach(Context context) {
-      OAuthActivity.inject(this);
+      InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      tlAdapter = new DemoTimelineAdapter(sortedCache, imageLoader);
+      tlAdapter = new DemoTimelineAdapter(repository, imageLoader);
     }
 
     @Override
@@ -312,91 +286,17 @@ public class OAuthActivity extends AppCompatActivity
     }
   }
 
-  private static class DemoListFetcher implements ListFetchStrategy {
-    final List<ListItem> items;
-
-    DemoListFetcher(List<ListItem> items) {
-      this.items = items;
-    }
-
-    @Override
-    public void fetch() {}
-
-    @Override
-    public void fetchNext() {}
-  }
-
-
-  private static class DemoSortedCache implements SortedCache<ListItem> {
-    private final List<ListItem> items;
-    private final UpdateSubject updateSubject;
-
-    DemoSortedCache(List<ListItem> items, UpdateSubject updateSubject) {
-      this.items = items;
-      this.updateSubject = updateSubject;
-    }
-
-    @Override
-    public Flowable<UpdateEvent> observeUpdateEvent() {
-      return updateSubject.observeUpdateEvent();
-    }
-
-    @Override
-    public long getId(int position) {
-      return items.get(position).getId();
-    }
-
-    @Override
-    public ListItem get(int position) {
-      return items.get(position);
-    }
-
-    @Override
-    public int getItemCount() {
-      return items.size();
-    }
-
-    @Override
-    public int getPositionById(long id) {
-      return -1;
-    }
-
-    @NonNull
-    @Override
-    public Observable<? extends ListItem> observeById(long id) {
-      return Observable.empty();
-    }
-
-    @NonNull
-    @Override
-    public Observable<? extends ListItem> observeById(ListItem element) {
-      return Observable.empty();
-    }
-
-    @Override
-    public void open(String name) {}
-
-    @Override
-    public void clear() {}
-
-    @Override
-    public void close() {}
-
-    @Override
-    public void drop() {}
-  }
-
   private static class DemoTimelineAdapter extends TimelineAdapter<ListItem> {
     private static final int TYPE_AUTH = 0;
     private static final int TYPE_TWEET = 1;
 
-    private DemoTimelineAdapter(SortedCache<ListItem> timelineStore, StatusViewImageLoader imageLoader) {
+    private DemoTimelineAdapter(ListItemRepository timelineStore, StatusViewImageLoader imageLoader) {
       super(timelineStore, imageLoader);
     }
 
     @Override
     public int getItemViewType(int position) {
-      return timelineStore.get(position) instanceof TwitterListItem ? TYPE_TWEET : TYPE_AUTH;
+      return repository.get(position) instanceof TwitterListItem ? TYPE_TWEET : TYPE_AUTH;
     }
 
     @Override
@@ -408,7 +308,7 @@ public class OAuthActivity extends AppCompatActivity
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position) {
       if (holder instanceof StatusViewHolder) {
-        holder.bind(super.timelineStore.get(position), imageLoader);
+        holder.bind(super.repository.get(position), imageLoader);
         final ImageView userIcon = holder.getUserIcon();
         final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
         userIcon.setImageDrawable(icon);
@@ -446,11 +346,6 @@ public class OAuthActivity extends AppCompatActivity
         super.onViewDetachedFromWindow(holder);
       }
     }
-
-    @Override
-    ListItem wrapListItem(ListItem item) {
-      return item;
-    }
   }
 
   private static class DemoViewHolder extends ItemViewHolder {
@@ -478,137 +373,6 @@ public class OAuthActivity extends AppCompatActivity
 
     @Override
     public void onUnselected(long itemId) {}
-  }
-
-
-  private static List<ListItem> createItems(Context context) {
-    return Arrays.asList(
-        new ListItem() {
-          @Override
-          public long getId() {
-            return 1;
-          }
-
-          @Override
-          public CharSequence getText() {
-            return null;
-          }
-
-          @Override
-          public User getUser() {
-            return null;
-          }
-
-          @Override
-          public CombinedScreenNameTextView.CombinedName getCombinedName() {
-            return null;
-          }
-
-          @Override
-          public List<Stat> getStats() {
-            return null;
-          }
-        },
-        getDemoTweet(10, context.getString(R.string.oauth_demo_tweet),
-            getDemoTweet(11, context.getString(R.string.oauth_demo_quoted), null)));
-  }
-
-  @NonNull
-  private static TwitterListItem getDemoTweet(long id, String text, TwitterListItem quoted) {
-    return new TwitterListItem() {
-      @Override
-      public long getId() {
-        return id;
-      }
-
-      @Override
-      public CharSequence getText() {
-        return text;
-      }
-
-      @Nullable
-      @Override
-      public TwitterListItem getQuotedItem() {
-        return quoted;
-      }
-
-      @Override
-      public CombinedScreenNameTextView.CombinedName getCombinedName() {
-        return new CombinedScreenNameTextView.CombinedName() {
-          @Override
-          public String getName() {
-            return "アオエリヤケイ";
-          }
-
-          @Override
-          public String getScreenName() {
-            return "aoeliyakei";
-          }
-
-          @Override
-          public boolean isPrivate() {
-            return false;
-          }
-
-          @Override
-          public boolean isVerified() {
-            return false;
-          }
-        };
-      }
-
-      @Override
-      public List<Stat> getStats() {
-        return Collections.emptyList();
-      }
-
-      @Override
-      public boolean isRetweet() {
-        return false;
-      }
-
-      @Override
-      public String getCreatedTime(Context context) {
-        return "now";
-      }
-
-      @Override
-      public String getSource() {
-        return "aoeliyakei";
-      }
-
-      @Override
-      public int getMediaCount() {
-        return 0;
-      }
-
-      @Override
-      public User getRetweetUser() {
-        return null;
-      }
-
-      @Nullable
-      @Override
-      public TimeTextStrategy getTimeStrategy() {
-        return null;
-      }
-
-      @Override
-      public MediaEntity[] getMediaEntities() {
-        return new MediaEntity[0];
-      }
-
-      @Override
-      public boolean isPossiblySensitive() {
-        return false;
-      }
-
-
-      @Override
-      public User getUser() {
-        return null;
-      }
-    };
   }
 }
 

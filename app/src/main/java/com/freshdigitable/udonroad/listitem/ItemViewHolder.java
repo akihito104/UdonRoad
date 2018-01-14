@@ -50,7 +50,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
 
   public abstract ImageView getUserIcon();
 
-  public void subscribe(Observable<ListItem> observable) {
+  public void subscribe(Observable<? extends ListItem> observable) {
     if (isSubscribed()) {
       return;
     }

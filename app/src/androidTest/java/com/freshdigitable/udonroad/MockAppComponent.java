@@ -17,14 +17,16 @@
 package com.freshdigitable.udonroad;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
-import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
-import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
-import com.freshdigitable.udonroad.timeline.fetcher.UserListFetcherModule;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.ViewModelModule;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
+import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
+import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
+import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
+import com.freshdigitable.udonroad.timeline.fetcher.UserListFetcherModule;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryModule;
 
 import javax.inject.Singleton;
 
@@ -39,7 +41,8 @@ import dagger.Component;
 @Component(modules = {
     TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
     MockTwitterApiModule.MockTwitterStreamApiModule.class, ViewModelModule.class,
-    StatusListFetcherModule.class, UserListFetcherModule.class, ListsListFetcherModule.class
+    StatusListFetcherModule.class, UserListFetcherModule.class, ListsListFetcherModule.class,
+    DemoListFetcherModule.class, ListItemRepositoryModule.class
 })
 public interface MockAppComponent extends AppComponent {
   void inject(TimelineInstTestBase mainActivityInstTest);
