@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.preference.PreferenceManager;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
@@ -62,7 +63,7 @@ public class StatusViewImageLoader {
 
   public <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    compositeDisposable.add(loadUserIcon(item.getUser(), statusView));
+    compositeDisposable.add(loadUserIcon(item.getUser(), statusView.getIcon()));
     compositeDisposable.add(loadRTUserIcon(item, statusView));
     compositeDisposable.add(loadMediaView(item, statusView));
     compositeDisposable.add(loadQuotedStatusImages(item, statusView.getQuotedStatusView()));
@@ -71,17 +72,17 @@ public class StatusViewImageLoader {
 
   private final Consumer<Throwable> emptyError = th -> {};
 
-  <T extends View & ItemView> Disposable loadUserIcon(User user, final T itemView) {
+  Disposable loadUserIcon(User user, final ImageView icon) {
     if (user == null) {
       return EmptyDisposable.INSTANCE;
     }
-    final Context context = itemView.getContext();
+    final Context context = icon.getContext();
     final ImageQuery query = new ImageQuery.Builder(user.getProfileImageURLHttps())
         .sizeForSquare(context, R.dimen.tweet_user_icon)
         .placeholder(context, R.drawable.ic_person_outline_black)
         .build();
     return imageRepository.queryImage(query)
-        .subscribe(d -> itemView.getIcon().setImageDrawable(d), emptyError);
+        .subscribe(icon::setImageDrawable, emptyError);
   }
 
   private <T extends View & StatusItemView> Disposable loadRTUserIcon(TwitterListItem item, T itemView) {
