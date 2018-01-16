@@ -50,8 +50,7 @@ public class UserItemViewHolder extends ItemViewHolder {
   public void bind(ListItem item, StatusViewImageLoader imageLoader) {
     super.bind(item, imageLoader);
     binding.setItem(item);
-    binding.tlNames.setNames(item.getCombinedName());
-    binding.tlReactionContainer.update(item.getStats());
+    binding.executePendingBindings();
     Utils.maybeDispose(iconSubscription);
     iconSubscription = imageLoader.loadUserIcon(item.getUser(), binding.tlIcon);
   }
