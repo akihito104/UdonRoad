@@ -139,6 +139,12 @@ class ListItemRepositoryCreator {
             cache::upsert,
             th -> userFeedback.onNext(new UserFeedbackEvent(msg)));
       }
+
+      @NonNull
+      @Override
+      public StoreType getStoreType() {
+        return type;
+      }
     };
   }
 

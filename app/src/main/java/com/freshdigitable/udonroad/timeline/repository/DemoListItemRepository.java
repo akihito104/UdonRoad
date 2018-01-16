@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.timeline.repository;
 
 import android.support.annotation.NonNull;
 
+import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
@@ -101,4 +102,10 @@ class DemoListItemRepository implements ListItemRepository {
 
   @Override
   public void drop() {}
+
+  @NonNull
+  @Override
+  public StoreType getStoreType() {
+    return StoreType.DEMO;
+  }
 }

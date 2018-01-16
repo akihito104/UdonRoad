@@ -117,6 +117,12 @@ class ConversationListItemRepository implements ListItemRepository {
     cache.drop();
   }
 
+  @NonNull
+  @Override
+  public StoreType getStoreType() {
+    return StoreType.CONVERSATION;
+  }
+
   @Override
   public void getListOnEnd() {}
 }

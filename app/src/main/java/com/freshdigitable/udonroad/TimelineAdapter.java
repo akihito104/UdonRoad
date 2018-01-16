@@ -63,6 +63,17 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
   }
 
   @Override
+  public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    final StoreType type = repository.getStoreType();
+    if (type.isForStatus()) {
+      return new StatusViewHolder(parent);
+    } else if (type.isForUser() || type.isForLists()) {
+      return new UserItemViewHolder(parent);
+    }
+    throw new IllegalStateException("unsupported StoreType of repository: " + type);
+  }
+
+  @Override
   public long getItemId(int position) {
     return repository.getId(position);
   }
@@ -285,11 +296,6 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     }
 
     @Override
-    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-      return new StatusViewHolder(parent);
-    }
-
-    @Override
     public void onBindViewHolder(final ItemViewHolder holder, int position) {
       final StatusListItem item = ((StatusListItem) repository.get(position));
       final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
@@ -335,21 +341,11 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     UserListAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
       super(repository, imageLoader);
     }
-
-    @Override
-    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-      return new UserItemViewHolder(parent);
-    }
   }
 
   public static class ListListAdapter extends TimelineAdapter<UserList> {
     ListListAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
       super(repository, imageLoader);
-    }
-
-    @Override
-    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-      return new UserItemViewHolder(parent);
     }
   }
 
