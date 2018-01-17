@@ -79,13 +79,7 @@ public interface AppComponent {
 
   void inject(UserInfoPagerFragment userInfoPagerFragment);
 
-  void inject(TimelineFragment.StatusListFragment timelineFragment);
-
-  void inject(TimelineFragment.UserListFragment timelineFragment);
-
   void inject(MainApplication mainApplication);
-
-  void inject(TimelineFragment.ListsListFragment listsListFragment);
 
   void inject(UserSettingsActivity.SettingsFragment settingsFragment);
 
@@ -101,5 +95,5 @@ public interface AppComponent {
 
   Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
 
-  void inject(OAuthActivity.DemoTimelineFragment demoTimelineFragment);
+  void inject(TimelineFragment timelineFragment);
 }

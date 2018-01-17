@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
-  private TimelineFragment<?> tlFragment;
+  private TimelineFragment tlFragment;
 
   @Inject
   ConfigRequestWorker configRequestWorker;
@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void setupHomeTimeline() {
-    final TimelineFragment<?> timelineFragment = getTimelineFragment();
+    final TimelineFragment timelineFragment = getTimelineFragment();
     if (timelineFragment == null) {
       tlFragment = TimelineFragment.getInstance(HOME);
       configRequestWorker.setup().subscribe(
@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Nullable
-  private TimelineFragment<?> getTimelineFragment() {
+  private TimelineFragment getTimelineFragment() {
     return ((TimelineFragment) getSupportFragmentManager().findFragmentByTag(TimelineContainerSwitcher.MAIN_FRAGMENT_TAG));
   }
 

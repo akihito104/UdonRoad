@@ -59,16 +59,13 @@ import javax.inject.Inject;
 
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
-import twitter4j.Status;
-import twitter4j.User;
-import twitter4j.UserList;
 
 /**
  * TimelineFragment provides RecyclerView to show timeline.
  *
  * Created by Akihit.
  */
-public abstract class TimelineFragment<T> extends Fragment implements ItemSelectable {
+public abstract class TimelineFragment extends Fragment implements ItemSelectable {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private static final String SS_DONE_FIRST_FETCH = "ss_doneFirstFetch";
@@ -77,7 +74,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   private static final String SS_ADAPTER = "ss_adapter";
   private static final String SS_AUTO_SCROLL_STATE = "ss_auto_scroll_state";
   private FragmentTimelineBinding binding;
-  TimelineAdapter<T> tlAdapter;
+  TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Disposable updateEventSubscription;
   private TimelineDecoration timelineDecoration;
@@ -95,6 +92,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
+    InjectionUtil.getComponent(this).inject(this);
     repository = repositoryProvider.get(getStoreType()).get();
     repository.init(getEntityId(), getQuery());
     updateEventSubscription = repository.observeUpdateEvent()
@@ -536,12 +534,12 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     return args;
   }
 
-  public static TimelineFragment<?> getInstance(StoreType storeType) {
+  public static TimelineFragment getInstance(StoreType storeType) {
     return getInstance(storeType, -1);
   }
 
-  public static TimelineFragment<?> getInstance(StoreType storeType, long entityId) {
-    final TimelineFragment<?> fragment;
+  public static TimelineFragment getInstance(StoreType storeType, long entityId) {
+    final TimelineFragment fragment;
     if (storeType.isForStatus()) {
       fragment = new StatusListFragment();
     } else if (storeType.isForUser()) {
@@ -556,7 +554,7 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     return fragment;
   }
 
-  public static TimelineFragment<Status> getInstance(StoreType storeType, String query) {
+  public static TimelineFragment getInstance(StoreType storeType, String query) {
     if (!storeType.isForStatus()) {
       throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
     }
@@ -582,10 +580,9 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     return getArguments().getString(ARGS_QUERY, "");
   }
 
-  public static class StatusListFragment extends TimelineFragment<Status> {
+  public static class StatusListFragment extends TimelineFragment {
     @Override
     public void onAttach(Context context) {
-      InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
       super.tlAdapter = new TimelineAdapter.StatusTimelineAdapter(repository, imageLoader);
     }
@@ -633,12 +630,11 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     };
   }
 
-  public static class UserListFragment extends TimelineFragment<User> {
+  public static class UserListFragment extends TimelineFragment {
     @Override
     public void onAttach(Context context) {
-      InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.UserListAdapter(repository, imageLoader);
+      super.tlAdapter = new TimelineAdapter(repository, imageLoader);
     }
 
     @Override
@@ -659,12 +655,11 @@ public abstract class TimelineFragment<T> extends Fragment implements ItemSelect
     }
   }
 
-  public static class ListsListFragment extends TimelineFragment<UserList> {
+  public static class ListsListFragment extends TimelineFragment {
     @Override
     public void onAttach(Context context) {
-      InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.ListListAdapter(repository, imageLoader);
+      super.tlAdapter = new TimelineAdapter(repository, imageLoader);
     }
 
     @Override

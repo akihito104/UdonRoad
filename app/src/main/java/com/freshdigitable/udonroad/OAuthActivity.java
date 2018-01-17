@@ -261,10 +261,9 @@ public class OAuthActivity extends AppCompatActivity
     this.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_user_icon));
   }
 
-  public static class DemoTimelineFragment extends TimelineFragment<ListItem> {
+  public static class DemoTimelineFragment extends TimelineFragment {
     @Override
     public void onAttach(Context context) {
-      InjectionUtil.getComponent(this).inject(this);
       super.onAttach(context);
       tlAdapter = new DemoTimelineAdapter(repository, imageLoader);
     }
@@ -286,7 +285,7 @@ public class OAuthActivity extends AppCompatActivity
     }
   }
 
-  private static class DemoTimelineAdapter extends TimelineAdapter<ListItem> {
+  private static class DemoTimelineAdapter extends TimelineAdapter {
     private static final int TYPE_AUTH = 0;
     private static final int TYPE_TWEET = 1;
 

@@ -40,16 +40,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
-import twitter4j.Status;
-import twitter4j.User;
-import twitter4j.UserList;
 
 /**
  * TimelineAdapter is a adapter for RecyclerView.
  *
  * Created by akihit on 15/10/18.
  */
-public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHolder> {
+public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
@@ -290,7 +287,7 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     this.userIconClickedListener = listener;
   }
 
-  public static class StatusTimelineAdapter extends TimelineAdapter<Status> {
+  public static class StatusTimelineAdapter extends TimelineAdapter {
     StatusTimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
       super(repository, imageLoader);
     }
@@ -334,18 +331,6 @@ public abstract class TimelineAdapter<T> extends RecyclerView.Adapter<ItemViewHo
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
       quotedViewCache.clear();
-    }
-  }
-
-  public static class UserListAdapter extends TimelineAdapter<User> {
-    UserListAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
-      super(repository, imageLoader);
-    }
-  }
-
-  public static class ListListAdapter extends TimelineAdapter<UserList> {
-    ListListAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
-      super(repository, imageLoader);
     }
   }
 
