@@ -19,7 +19,6 @@ package com.freshdigitable.udonroad.module;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
@@ -28,7 +27,6 @@ import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
-import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ListsSortedCacheRealm;
@@ -40,22 +38,11 @@ import com.freshdigitable.udonroad.module.realm.UserSortedCacheRealm;
 import com.freshdigitable.udonroad.module.realm.WritableListsSortedCache;
 import com.freshdigitable.udonroad.module.realm.WritableTimelineRealm;
 import com.freshdigitable.udonroad.module.realm.WritableUserSortedCacheRealm;
-import com.freshdigitable.udonroad.module.twitter.TwitterApi;
-import com.freshdigitable.udonroad.subscriber.ListRequestWorker;
-import com.freshdigitable.udonroad.subscriber.ListsListRequestWorker;
-import com.freshdigitable.udonroad.subscriber.StatusListRequestWorker;
-import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
-import com.freshdigitable.udonroad.subscriber.UserListRequestWorker;
 
-import java.util.Map;
-
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import io.reactivex.processors.PublishProcessor;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserList;
@@ -152,30 +139,5 @@ public class DataStoreModule {
   @Singleton
   UpdateSubjectFactory provideUpdateSubjectFactory() {
     return new UpdateSubjectFactory();
-  }
-
-  @Provides
-  ListRequestWorker<Status> provideListRequestWorkerStatus(TwitterApi twitterApi,
-                                                           TypedCache<User> userTypedCache,
-                                                           WritableSortedCache<Status> sortedCache,
-                                                           PublishProcessor<UserFeedbackEvent> userFeedback,
-                                                           StatusRequestWorker requestWorker,
-                                                           Map<StoreType, Provider<ListFetcher<Status>>> listFetchers) {
-    return new StatusListRequestWorker(twitterApi, userTypedCache, sortedCache, userFeedback, requestWorker, listFetchers);
-  }
-
-  @Provides
-  ListRequestWorker<User> provideListRequestWorkerUser(Map<StoreType, Provider<ListFetcher<User>>> listFetchers,
-                                                       WritableSortedCache<User> sortedCache,
-                                                       PublishProcessor<UserFeedbackEvent> userFeedback) {
-    return new UserListRequestWorker(listFetchers, sortedCache, userFeedback);
-  }
-
-  @Provides
-  ListRequestWorker<UserList> provideListRequestWorkerUserList(
-      Map<StoreType, Provider<ListFetcher<UserList>>> listFetchers,
-      WritableSortedCache<UserList> cache,
-      PublishProcessor<UserFeedbackEvent> userFeedback) {
-    return new ListsListRequestWorker(listFetchers, cache, userFeedback);
   }
 }
