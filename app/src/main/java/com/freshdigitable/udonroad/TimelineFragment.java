@@ -45,6 +45,7 @@ import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.ListsListItem;
+import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
@@ -65,7 +66,7 @@ import timber.log.Timber;
  *
  * Created by Akihit.
  */
-public abstract class TimelineFragment extends Fragment implements ItemSelectable {
+public class TimelineFragment extends Fragment implements ItemSelectable {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private static final String SS_DONE_FIRST_FETCH = "ss_doneFirstFetch";
@@ -108,6 +109,7 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
               }
             },
             e -> Timber.tag(TAG).e(e, "updateEvent: "));
+    tlAdapter = createTimelineAdapter();
   }
 
   @Override
@@ -285,6 +287,7 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
+    tlAdapter.setOnItemViewClickListener(createOnItemViewClickListener());
   }
 
   @Override
@@ -349,6 +352,7 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
     binding.timeline.setOnTouchListener(null);
     binding.timeline.removeOnScrollListener(onScrollListener);
     tlAdapter.unregisterAdapterDataObserver(itemInsertedObserver);
+    tlAdapter.setOnItemViewClickListener(null);
   }
 
   @Override
@@ -541,10 +545,8 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
     final TimelineFragment fragment;
     if (storeType.isForStatus()) {
       fragment = new StatusListFragment();
-    } else if (storeType.isForUser()) {
-      fragment = new UserListFragment();
-    } else if (storeType.isForLists()) {
-      fragment = new ListsListFragment();
+    } else if (storeType.isForUser() || storeType.isForLists()) {
+      fragment = new TimelineFragment();
     } else {
       throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
     }
@@ -580,12 +582,6 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
   }
 
   public static class StatusListFragment extends TimelineFragment {
-    @Override
-    public void onAttach(Context context) {
-      super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter.StatusTimelineAdapter(repository, imageLoader);
-    }
-
     @Override
     public void onStart() {
       super.onStart();
@@ -629,42 +625,27 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
     };
   }
 
-  public static class UserListFragment extends TimelineFragment {
-    @Override
-    public void onAttach(Context context) {
-      super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter(repository, imageLoader);
+  TimelineAdapter createTimelineAdapter() {
+    final StoreType storeType = getStoreType();
+    if (storeType.isForStatus()) {
+      return new TimelineAdapter.StatusTimelineAdapter(repository, imageLoader);
+    } else if (storeType.isForUser() || storeType.isForLists()) {
+      return new TimelineAdapter(repository, imageLoader);
     }
+    throw new IllegalStateException("not capable of StoreType: " + storeType);
+  }
 
-    @Override
-    public void onStart() {
-      super.onStart();
-      final OnUserIconClickedListener userIconClickedListener = super.createUserIconClickedListener();
-      super.tlAdapter.setOnItemViewClickListener((viewHolder, itemId, clickedView) -> {
+  OnItemViewClickListener createOnItemViewClickListener() {
+    final StoreType storeType = getStoreType();
+    if (storeType.isForUser()) {
+      final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
+      return (viewHolder, itemId, clickedView) -> {
         final int pos = repository.getPositionById(itemId);
         final ListItem user = repository.get(pos);
         userIconClickedListener.onUserIconClicked(viewHolder.getUserIcon(), user.getUser());
-      });
-    }
-
-    @Override
-    public void onStop() {
-      super.onStop();
-      super.tlAdapter.setOnItemViewClickListener(null);
-    }
-  }
-
-  public static class ListsListFragment extends TimelineFragment {
-    @Override
-    public void onAttach(Context context) {
-      super.onAttach(context);
-      super.tlAdapter = new TimelineAdapter(repository, imageLoader);
-    }
-
-    @Override
-    public void onStart() {
-      super.onStart();
-      super.tlAdapter.setOnItemViewClickListener((viewHolder, itemId, clickedView) -> {
+      };
+    } else if (storeType.isForLists()) {
+      return (viewHolder, itemId, clickedView) -> {
         final FragmentActivity activity = getActivity();
         if (!(activity instanceof TimelineFragment.OnItemClickedListener)) {
           return;
@@ -673,14 +654,11 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
         final int pos = repository.getPositionById(itemId);
         final ListsListItem item = ((ListsListItem) repository.get(pos));
         listener.onItemClicked(ContentType.LISTS, itemId, item.getCombinedName().getName());
-      });
+      };
+    } else if (storeType.isForStatus()) {
+      return null;
     }
-
-    @Override
-    public void onStop() {
-      super.onStop();
-      super.tlAdapter.setOnItemViewClickListener(null);
-    }
+    throw new IllegalStateException("not capable of StoreType: " + storeType);
   }
 
   @Override

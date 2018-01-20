@@ -38,6 +38,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
+import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
@@ -237,7 +238,6 @@ public class OAuthActivity extends AppCompatActivity
     public void onAttach(Context context) {
       super.onAttach(context);
       InjectionUtil.getComponent(this).inject(this);
-      tlAdapter = new DemoTimelineAdapter(repository, imageLoader);
     }
 
     @Override
@@ -279,6 +279,16 @@ public class OAuthActivity extends AppCompatActivity
       super.onStop();
       ((DemoTimelineAdapter) tlAdapter).loginClickListener = null;
       ((DemoTimelineAdapter) tlAdapter).sendPinClickListener = null;
+    }
+
+    @Override
+    TimelineAdapter createTimelineAdapter() {
+      return new DemoTimelineAdapter(repository, imageLoader);
+    }
+
+    @Override
+    OnItemViewClickListener createOnItemViewClickListener() {
+      return null;
     }
   }
 
