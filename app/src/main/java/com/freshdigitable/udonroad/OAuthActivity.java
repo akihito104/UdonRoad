@@ -102,37 +102,8 @@ public class OAuthActivity extends AppCompatActivity
           .replace(R.id.oauth_timeline_container, demoTimelineFragment)
           .commit();
     }
-    fabViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
-      @NonNull
-      @Override
-      @SuppressWarnings("unchecked")
-      public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        return (T) new FabViewModel() {
-          @Override
-          void addOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {}
-
-          @Override
-          void onMenuItemSelected(MenuItem item) {
-            final int itemId = item.getItemId();
-            if (itemId == R.id.iffabMenu_main_fav) {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
-            } else if (itemId == R.id.iffabMenu_main_rt) {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
-            } else if (itemId == R.id.iffabMenu_main_favRt) {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
-            } else if (itemId == R.id.iffabMenu_main_detail) {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
-            } else if (itemId == R.id.iffabMenu_main_conv) {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
-            } else if (itemId == R.id.iffabMenu_main_reply) {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
-            } else if (itemId == R.id.iffabMenu_main_quote) {
-              userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
-            }
-          }
-        };
-      }
-    }).get(FabViewModel.class);
+    fabViewModel = ViewModelProviders.of(this, new OAuthFavViewModelProvider(userFeedback))
+        .get(FabViewModel.class);
     fabViewModel.getFabState().observe(this, type -> {
       if (type == FAB) {
         ffab.transToFAB();
@@ -373,5 +344,50 @@ public class OAuthActivity extends AppCompatActivity
     @Override
     public void onUnselected(long itemId) {}
   }
-}
 
+  private static class OAuthFavViewModelProvider implements ViewModelProvider.Factory {
+    private PublishProcessor<UserFeedbackEvent> userFeedback;
+
+    OAuthFavViewModelProvider(PublishProcessor<UserFeedbackEvent> userFeedback) {
+      this.userFeedback = userFeedback;
+    }
+
+    @NonNull
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+      return (T) new OAuthFabViewModel(userFeedback);
+    }
+  }
+
+  private static class OAuthFabViewModel extends FabViewModel {
+    private final PublishProcessor<UserFeedbackEvent> userFeedback;
+
+    OAuthFabViewModel(PublishProcessor<UserFeedbackEvent> userFeedback) {
+      this.userFeedback = userFeedback;
+    }
+
+    @Override
+    void addOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {}
+
+    @Override
+    void onMenuItemSelected(MenuItem item) {
+      final int itemId = item.getItemId();
+      if (itemId == R.id.iffabMenu_main_fav) {
+        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
+      } else if (itemId == R.id.iffabMenu_main_rt) {
+        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
+      } else if (itemId == R.id.iffabMenu_main_favRt) {
+        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
+      } else if (itemId == R.id.iffabMenu_main_detail) {
+        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
+      } else if (itemId == R.id.iffabMenu_main_conv) {
+        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
+      } else if (itemId == R.id.iffabMenu_main_reply) {
+        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
+      } else if (itemId == R.id.iffabMenu_main_quote) {
+        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
+      }
+    }
+  }
+}
