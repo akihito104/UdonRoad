@@ -17,15 +17,13 @@
 package com.freshdigitable.udonroad;
 
 import android.app.Activity;
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
@@ -102,8 +100,7 @@ public class OAuthActivity extends AppCompatActivity
           .replace(R.id.oauth_timeline_container, demoTimelineFragment)
           .commit();
     }
-    fabViewModel = ViewModelProviders.of(this, new OAuthFavViewModelProvider(userFeedback))
-        .get(FabViewModel.class);
+    fabViewModel = ViewModelProviders.of(this).get(FabViewModel.class);
     fabViewModel.getFabState().observe(this, type -> {
       if (type == FAB) {
         ffab.transToFAB();
@@ -233,9 +230,13 @@ public class OAuthActivity extends AppCompatActivity
   }
 
   public static class DemoTimelineFragment extends TimelineFragment {
+    @Inject
+    PublishProcessor<UserFeedbackEvent> userFeedback;
+
     @Override
     public void onAttach(Context context) {
       super.onAttach(context);
+      InjectionUtil.getComponent(this).inject(this);
       tlAdapter = new DemoTimelineAdapter(repository, imageLoader);
     }
 
@@ -246,6 +247,31 @@ public class OAuthActivity extends AppCompatActivity
           ((OAuthActivity) getActivity()).startAuthorization();
       ((DemoTimelineAdapter) tlAdapter).sendPinClickListener = (v, pin) ->
           ((OAuthActivity) getActivity()).startAuthentication(pin);
+    }
+
+    @Override
+    Observer<MenuItem> getMenuItemObserver() {
+      return item -> {
+        if (item == null) {
+          return;
+        }
+        final int itemId = item.getItemId();
+        if (itemId == R.id.iffabMenu_main_fav) {
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
+        } else if (itemId == R.id.iffabMenu_main_rt) {
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
+        } else if (itemId == R.id.iffabMenu_main_favRt) {
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
+        } else if (itemId == R.id.iffabMenu_main_detail) {
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
+        } else if (itemId == R.id.iffabMenu_main_conv) {
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
+        } else if (itemId == R.id.iffabMenu_main_reply) {
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
+        } else if (itemId == R.id.iffabMenu_main_quote) {
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
+        }
+      };
     }
 
     @Override
@@ -343,51 +369,5 @@ public class OAuthActivity extends AppCompatActivity
 
     @Override
     public void onUnselected(long itemId) {}
-  }
-
-  private static class OAuthFavViewModelProvider implements ViewModelProvider.Factory {
-    private PublishProcessor<UserFeedbackEvent> userFeedback;
-
-    OAuthFavViewModelProvider(PublishProcessor<UserFeedbackEvent> userFeedback) {
-      this.userFeedback = userFeedback;
-    }
-
-    @NonNull
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-      return (T) new OAuthFabViewModel(userFeedback);
-    }
-  }
-
-  private static class OAuthFabViewModel extends FabViewModel {
-    private final PublishProcessor<UserFeedbackEvent> userFeedback;
-
-    OAuthFabViewModel(PublishProcessor<UserFeedbackEvent> userFeedback) {
-      this.userFeedback = userFeedback;
-    }
-
-    @Override
-    void addOnItemSelectedListener(IndicatableFFAB.OnIffabItemSelectedListener listener) {}
-
-    @Override
-    void onMenuItemSelected(MenuItem item) {
-      final int itemId = item.getItemId();
-      if (itemId == R.id.iffabMenu_main_fav) {
-        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
-      } else if (itemId == R.id.iffabMenu_main_rt) {
-        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
-      } else if (itemId == R.id.iffabMenu_main_favRt) {
-        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
-      } else if (itemId == R.id.iffabMenu_main_detail) {
-        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
-      } else if (itemId == R.id.iffabMenu_main_conv) {
-        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
-      } else if (itemId == R.id.iffabMenu_main_reply) {
-        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
-      } else if (itemId == R.id.iffabMenu_main_quote) {
-        userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
-      }
-    }
   }
 }

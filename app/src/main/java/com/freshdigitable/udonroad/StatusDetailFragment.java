@@ -41,7 +41,7 @@ import android.widget.Toast;
 import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusDetailView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
@@ -239,7 +239,6 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    tearDownActionToolbar();
     binding.statusView.getRtUser().setOnClickListener(null);
     binding.statusView.getIcon().setOnClickListener(null);
     binding.statusView.getUserName().setOnClickListener(null);
@@ -269,15 +268,15 @@ public class StatusDetailFragment extends Fragment {
 
   @Inject
   StatusRequestWorker statusRequestWorker;
-  private IndicatableFFAB.OnIffabItemSelectedListener onIffabItemSelectedListener;
 
   private void setupActionToolbar(long statusId) {
-    onIffabItemSelectedListener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
-    fabViewModel.addOnItemSelectedListener(onIffabItemSelectedListener);
-  }
-
-  private void tearDownActionToolbar() {
-    fabViewModel.removeOnItemSelectedListener(onIffabItemSelectedListener);
+    final OnIffabItemSelectedListener listener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
+    fabViewModel.getMenuItem().observe(this, item -> {
+      if (item == null) {
+        return;
+      }
+      listener.onItemSelected(item);
+    });
   }
 
   @Override

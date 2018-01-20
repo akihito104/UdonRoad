@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
@@ -42,7 +43,6 @@ import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
@@ -302,6 +302,16 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
       repository.getInitList();
       swipeLayout.setRefreshing(false);
     });
+    fabViewModel.getMenuItem().observe(this, getMenuItemObserver());
+  }
+
+  Observer<MenuItem> getMenuItemObserver() {
+    return item -> {
+      if (item == null) {
+        return;
+      }
+      requestWorker.getOnIffabItemSelectedListener(getSelectedItemId()).onItemSelected(item);
+    };
   }
 
   private boolean isChildOfViewPager() {
@@ -327,12 +337,12 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
       }
     }
     binding.timelineSwipeLayout.setOnRefreshListener(null);
+    fabViewModel.getMenuItem().removeObservers(this);
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    removeOnItemSelectedListener();
     tlAdapter.setLastItemBoundListener(null);
     tlAdapter.setOnSelectedItemChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
@@ -360,23 +370,12 @@ public abstract class TimelineFragment extends Fragment implements ItemSelectabl
     repository.close();
   }
 
-  private OnIffabItemSelectedListener iffabItemSelectedListener;
-
   private void showFab() {
     fabViewModel.showFab(FabViewModel.Type.FAB);
-    fabViewModel.removeOnItemSelectedListener(iffabItemSelectedListener);
-    iffabItemSelectedListener = requestWorker.getOnIffabItemSelectedListener(getSelectedItemId());
-    fabViewModel.addOnItemSelectedListener(iffabItemSelectedListener);
   }
 
   private void hideFab() {
     fabViewModel.hideFab();
-    removeOnItemSelectedListener();
-  }
-
-  private void removeOnItemSelectedListener() {
-    fabViewModel.removeOnItemSelectedListener(iffabItemSelectedListener);
-    iffabItemSelectedListener = null;
   }
 
   private AutoScrollState autoScrollState = new AutoScrollState();

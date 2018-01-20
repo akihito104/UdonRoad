@@ -96,4 +96,6 @@ public interface AppComponent {
   Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
 
   void inject(TimelineFragment timelineFragment);
+
+  void inject(OAuthActivity.DemoTimelineFragment fragment);
 }
