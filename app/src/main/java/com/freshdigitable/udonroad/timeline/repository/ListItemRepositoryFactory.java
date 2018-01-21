@@ -22,20 +22,21 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 /**
  * Created by akihit on 2018/01/13.
  */
-
-public class ListItemRepositoryProvider {
+@Singleton
+public class ListItemRepositoryFactory {
   private final Map<StoreType, Provider<ListItemRepository>> repositories;
 
   @Inject
-  ListItemRepositoryProvider(Map<StoreType, Provider<ListItemRepository>> repositories) {
+  ListItemRepositoryFactory(Map<StoreType, Provider<ListItemRepository>> repositories) {
     this.repositories = repositories;
   }
 
-  public Provider<ListItemRepository> get(StoreType storeType) {
-    return repositories.get(storeType);
+  public ListItemRepository create(StoreType storeType) {
+    return repositories.get(storeType).get();
   }
 }

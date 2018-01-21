@@ -48,11 +48,9 @@ import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
-import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
-import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryProvider;
+import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
 import java.util.EnumSet;
 
@@ -69,7 +67,6 @@ import timber.log.Timber;
 public class TimelineFragment extends Fragment implements ItemSelectable {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineFragment.class.getSimpleName();
-  private static final String SS_DONE_FIRST_FETCH = "ss_doneFirstFetch";
   private static final String SS_TOP_ITEM_ID = "ss_topItemId";
   private static final String SS_TOP_ITEM_TOP = "ss_topItemTop";
   private static final String SS_ADAPTER = "ss_adapter";
@@ -81,22 +78,20 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   private TimelineDecoration timelineDecoration;
   private TimelineAnimator timelineAnimator;
   private MenuItem heading;
-  @Inject
-  StatusViewImageLoader imageLoader;
   private FabViewModel fabViewModel;
   @Inject
-  ListItemRepositoryProvider repositoryProvider;
-  ListItemRepository repository;
-  @Inject
   StatusRequestWorker requestWorker;
+  @Inject
+  AppViewModelProviderFactory viewModelFactory;
+  private TimelineViewModel timelineViewModel;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
     InjectionUtil.getComponent(this).inject(this);
-    repository = repositoryProvider.get(getStoreType()).get();
-    repository.init(getEntityId(), getQuery());
-    updateEventSubscription = repository.observeUpdateEvent()
+    timelineViewModel = ViewModelProviders.of(this, viewModelFactory).get(TimelineViewModel.class);
+    timelineViewModel.init(getStoreType(), getEntityId(), getQuery());
+    updateEventSubscription = timelineViewModel.observeUpdateEvent()
         .retry()
         .doOnSubscribe(subs -> Timber.tag(TAG).d("onAttach: updateEvent is subscribed"))
         .subscribe(event -> {
@@ -109,7 +104,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
               }
             },
             e -> Timber.tag(TAG).e(e, "updateEvent: "));
-    tlAdapter = createTimelineAdapter();
+    tlAdapter = timelineViewModel.createAdapter();
   }
 
   @Override
@@ -142,7 +137,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     Timber.tag(TAG).d("onCreateView: %s", getStoreName());
     if (savedInstanceState != null) {
       autoScrollState = savedInstanceState.getParcelable(SS_AUTO_SCROLL_STATE);
-      doneFirstFetch = savedInstanceState.getBoolean(SS_DONE_FIRST_FETCH);
       tlAdapter.onRestoreInstanceState(savedInstanceState.getParcelable(SS_ADAPTER));
     }
     return inflater.inflate(R.layout.fragment_timeline, container, false);
@@ -178,7 +172,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     Timber.tag(TAG).d("onSaveInstanceState: %s", getStoreName());
     super.onSaveInstanceState(outState);
     outState.putParcelable(SS_AUTO_SCROLL_STATE, autoScrollState);
-    outState.putBoolean(SS_DONE_FIRST_FETCH, doneFirstFetch);
     outState.putLong(SS_TOP_ITEM_ID, topItemId);
     outState.putInt(SS_TOP_ITEM_TOP, firstVisibleItemTopOnStop);
     outState.putParcelable(SS_ADAPTER, tlAdapter.onSaveInstanceState());
@@ -188,20 +181,16 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   public void onActivityCreated(@Nullable Bundle savedInstanceState) {
     Timber.tag(TAG).d("onActivityCreated: %s", getStoreName());
     super.onActivityCreated(savedInstanceState);
-    if (!doneFirstFetch && getUserVisibleHint()) {
-      repository.getInitList();
-      doneFirstFetch = true;
+    if (getUserVisibleHint()) {
+      timelineViewModel.getInitList();
     }
   }
-
-  private boolean doneFirstFetch = false;
 
   @Override
   public void setUserVisibleHint(boolean isVisibleToUser) {
     super.setUserVisibleHint(isVisibleToUser);
-    if (isVisibleToUser && !doneFirstFetch && repository != null) {
-      repository.getInitList();
-      doneFirstFetch = true;
+    if (isVisibleToUser && timelineViewModel != null) {
+      timelineViewModel.getInitList();
     }
   }
 
@@ -259,7 +248,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     Timber.tag(TAG).d("onStart: %s", getStoreName());
     super.onStart();
     if (topItemId >= 0) {
-      final int pos = repository.getPositionById(topItemId);
+      final int pos = timelineViewModel.getPositionById(topItemId);
       tlLayoutManager.scrollToPositionWithOffset(pos, firstVisibleItemTopOnStop);
       topItemId = -1;
       if (pos > 0) {
@@ -283,7 +272,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
         removeAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
       }
     });
-    tlAdapter.setLastItemBoundListener(() -> repository.getListOnEnd());
+    tlAdapter.setLastItemBoundListener(() -> timelineViewModel.getListOnEnd());
     final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
     tlAdapter.setOnUserIconClickedListener(userIconClickedListener);
     tlAdapter.registerAdapterDataObserver(itemInsertedObserver);
@@ -302,7 +291,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     }
     final SwipeRefreshLayout swipeLayout = binding.timelineSwipeLayout;
     swipeLayout.setOnRefreshListener(() -> {
-      repository.getInitList();
+      timelineViewModel.getInitList();
       swipeLayout.setRefreshing(false);
     });
     fabViewModel.getMenuItem().observe(this, getMenuItemObserver());
@@ -335,7 +324,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     if (adapterPos >= 0) {
       final RecyclerView.ViewHolder vh = binding.timeline.findViewHolderForAdapterPosition(adapterPos);
       if (vh != null) {
-        topItemId = repository.getId(adapterPos);
+        topItemId = timelineViewModel.getItemIdByPosition(adapterPos);
         firstVisibleItemTopOnStop = vh.itemView.getTop();
       }
     }
@@ -371,7 +360,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
       tlAdapter = null;
     }
     updateEventSubscription.dispose();
-    repository.close();
   }
 
   private void showFab() {
@@ -516,7 +504,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   }
 
   public void dropCache() {
-    repository.drop();
+    timelineViewModel.drop();
   }
 
   interface OnItemClickedListener {
@@ -625,23 +613,12 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     };
   }
 
-  TimelineAdapter createTimelineAdapter() {
-    final StoreType storeType = getStoreType();
-    if (storeType.isForStatus()) {
-      return new TimelineAdapter.StatusTimelineAdapter(repository, imageLoader);
-    } else if (storeType.isForUser() || storeType.isForLists()) {
-      return new TimelineAdapter(repository, imageLoader);
-    }
-    throw new IllegalStateException("not capable of StoreType: " + storeType);
-  }
-
   OnItemViewClickListener createOnItemViewClickListener() {
     final StoreType storeType = getStoreType();
     if (storeType.isForUser()) {
       final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
       return (viewHolder, itemId, clickedView) -> {
-        final int pos = repository.getPositionById(itemId);
-        final ListItem user = repository.get(pos);
+        final ListItem user = timelineViewModel.findById(itemId);
         userIconClickedListener.onUserIconClicked(viewHolder.getUserIcon(), user.getUser());
       };
     } else if (storeType.isForLists()) {
@@ -651,8 +628,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
           return;
         }
         final OnItemClickedListener listener = (OnItemClickedListener) activity;
-        final int pos = repository.getPositionById(itemId);
-        final ListsListItem item = ((ListsListItem) repository.get(pos));
+        final ListsListItem item = ((ListsListItem) timelineViewModel.findById(itemId));
         listener.onItemClicked(ContentType.LISTS, itemId, item.getCombinedName().getName());
       };
     } else if (storeType.isForStatus()) {

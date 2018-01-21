@@ -282,21 +282,16 @@ public class OAuthActivity extends AppCompatActivity
     }
 
     @Override
-    TimelineAdapter createTimelineAdapter() {
-      return new DemoTimelineAdapter(repository, imageLoader);
-    }
-
-    @Override
     OnItemViewClickListener createOnItemViewClickListener() {
       return null;
     }
   }
 
-  private static class DemoTimelineAdapter extends TimelineAdapter {
+  public static class DemoTimelineAdapter extends TimelineAdapter {
     private static final int TYPE_AUTH = 0;
     private static final int TYPE_TWEET = 1;
 
-    private DemoTimelineAdapter(ListItemRepository timelineStore, StatusViewImageLoader imageLoader) {
+    public DemoTimelineAdapter(ListItemRepository timelineStore, StatusViewImageLoader imageLoader) {
       super(timelineStore, imageLoader);
     }
 

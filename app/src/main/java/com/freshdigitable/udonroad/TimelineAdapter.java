@@ -53,7 +53,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   final StatusViewImageLoader imageLoader;
   final ListItemRepository repository;
 
-  TimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
+  public TimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
     this.repository = repository;
     this.imageLoader = imageLoader;
     setHasStableIds(true);
@@ -288,7 +288,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   }
 
   public static class StatusTimelineAdapter extends TimelineAdapter {
-    StatusTimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
+    public StatusTimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
       super(repository, imageLoader);
     }
 

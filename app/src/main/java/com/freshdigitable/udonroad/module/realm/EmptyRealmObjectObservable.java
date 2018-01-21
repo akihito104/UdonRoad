@@ -63,6 +63,10 @@ class EmptyRealmObjectObservable<T extends RealmModel> extends Observable<T> {
 
     @Override
     public void dispose() {
+      if (!elem.isValid()) {
+        disposed = true;
+        return;
+      }
       elem.removeChangeListener(changeListener);
       disposed = true;
     }
