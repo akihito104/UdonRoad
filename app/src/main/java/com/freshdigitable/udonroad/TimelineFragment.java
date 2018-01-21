@@ -84,6 +84,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   @Inject
   AppViewModelProviderFactory viewModelFactory;
   private TimelineViewModel timelineViewModel;
+  private Disposable timestampSubscription;
 
   @Override
   public void onAttach(Context context) {
@@ -104,6 +105,16 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
               }
             },
             e -> Timber.tag(TAG).e(e, "updateEvent: "));
+    timestampSubscription = timelineViewModel.observeUpdateEvent()
+        .subscribe(e -> {
+          final int childCount = binding.timeline.getChildCount();
+          for (int i = 0; i < childCount; i++) {
+            final View v = binding.timeline.getChildAt(i);
+            if (v instanceof StatusView) {
+              ((StatusView) v).updateTime();
+            }
+          }
+        });
     tlAdapter = timelineViewModel.createAdapter();
   }
 
@@ -359,7 +370,8 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
       binding.timeline.setAdapter(null);
       tlAdapter = null;
     }
-    updateEventSubscription.dispose();
+    Utils.maybeDispose(updateEventSubscription);
+    Utils.maybeDispose(timestampSubscription);
   }
 
   private void showFab() {
@@ -530,27 +542,24 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   }
 
   public static TimelineFragment getInstance(StoreType storeType, long entityId) {
-    final TimelineFragment fragment;
-    if (storeType.isForStatus()) {
-      fragment = new StatusListFragment();
-    } else if (storeType.isForUser() || storeType.isForLists()) {
-      fragment = new TimelineFragment();
-    } else {
-      throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
-    }
-    final Bundle args = TimelineFragment.createArgs(storeType, entityId, "");
-    fragment.setArguments(args);
-    return fragment;
+    return getInstance(storeType, entityId, "");
   }
 
   public static TimelineFragment getInstance(StoreType storeType, String query) {
     if (!storeType.isForStatus()) {
-      throw new IllegalArgumentException("storeType: " + storeType.name() + " is not capable...");
+      throw new IllegalArgumentException("not capable StoreType: " + storeType);
     }
-    final StatusListFragment fragment = new StatusListFragment();
-    final Bundle args = TimelineFragment.createArgs(storeType, -1, query);
-    fragment.setArguments(args);
-    return fragment;
+    return getInstance(storeType, -1, query);
+  }
+
+  private static TimelineFragment getInstance(StoreType type, long id, String query) {
+    if (!type.isForStatus() && !type.isForUser() && !type.isForLists()) {
+      throw new IllegalArgumentException("not capable StoreType: " + type);
+    }
+    final TimelineFragment timelineFragment = new TimelineFragment();
+    final Bundle args = createArgs(type, id, query);
+    timelineFragment.setArguments(args);
+    return timelineFragment;
   }
 
   String getStoreName() {
@@ -567,50 +576,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
 
   private String getQuery() {
     return getArguments().getString(ARGS_QUERY, "");
-  }
-
-  public static class StatusListFragment extends TimelineFragment {
-    @Override
-    public void onStart() {
-      super.onStart();
-      super.tlAdapter.registerAdapterDataObserver(createdAtObserver);
-    }
-
-    @Override
-    public void onStop() {
-      super.onStop();
-      super.tlAdapter.unregisterAdapterDataObserver(createdAtObserver);
-    }
-
-    private final AdapterDataObserver createdAtObserver = new AdapterDataObserver() {
-      @Override
-      public void onItemRangeChanged(int positionStart, int itemCount) {
-        super.onItemRangeChanged(positionStart, itemCount);
-        updateTime();
-      }
-
-      @Override
-      public void onItemRangeInserted(int positionStart, int itemCount) {
-        super.onItemRangeInserted(positionStart, itemCount);
-        updateTime();
-      }
-
-      @Override
-      public void onItemRangeRemoved(int positionStart, int itemCount) {
-        super.onItemRangeRemoved(positionStart, itemCount);
-        updateTime();
-      }
-
-      private void updateTime() {
-        final int childCount = StatusListFragment.super.binding.timeline.getChildCount();
-        for (int i = 0; i < childCount; i++) {
-          final View v = StatusListFragment.super.binding.timeline.getChildAt(i);
-          if (v instanceof StatusView) {
-            ((StatusView) v).updateTime();
-          }
-        }
-      }
-    };
   }
 
   OnItemViewClickListener createOnItemViewClickListener() {
