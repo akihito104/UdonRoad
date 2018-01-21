@@ -23,6 +23,7 @@ import android.support.test.espresso.core.internal.deps.guava.collect.Iterables;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.IconAttachedTextView;
@@ -119,7 +120,11 @@ public class StatusViewMatcher {
     return new BoundedMatcher<View, T>(clz) {
       @Override
       protected boolean matchesSafely(T item) {
-        final RecyclerView recyclerView = (RecyclerView) item.getParent();
+        final ViewParent parent = item.getParent();
+        if (!(parent instanceof RecyclerView)) {
+          return false;
+        }
+        final RecyclerView recyclerView = (RecyclerView) parent;
         return recyclerViewMatcher.matches(recyclerView)
             && getPositionFromFirstVisibleItem(recyclerView, item) == position;
       }

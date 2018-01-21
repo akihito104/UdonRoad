@@ -34,8 +34,6 @@ import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import java.util.ArrayList;
 import java.util.List;
 
-import twitter4j.Status;
-
 /**
  * Created by akihit on 2017/07/07.
  */
@@ -78,23 +76,23 @@ class TimelineContainerSwitcher {
   }
 
   void showConversation(long statusId) {
-    final TimelineFragment<?> conversationFragment
+    final TimelineFragment conversationFragment
         = TimelineFragment.getInstance(StoreType.CONVERSATION, statusId);
     replaceTimelineContainer(ContentType.CONV, statusId, null, conversationFragment);
   }
 
   void showSearchResult(String query) {
-    final TimelineFragment<Status> fragment = TimelineFragment.getInstance(StoreType.SEARCH, query);
+    final TimelineFragment fragment = TimelineFragment.getInstance(StoreType.SEARCH, query);
     replaceTimelineContainer(ContentType.SEARCH, -1, query, fragment);
   }
 
   void showOwnedLists() {
-    final TimelineFragment<?> fragment = TimelineFragment.getInstance(StoreType.OWNED_LIST, -1);
+    final TimelineFragment fragment = TimelineFragment.getInstance(StoreType.OWNED_LIST, -1);
     replaceTimelineContainer(ContentType.LISTS, -1, null, fragment);
   }
 
   void showListTimeline(long listId, String query) {
-    final TimelineFragment<?> fragment = TimelineFragment.getInstance(StoreType.LIST_TL, listId);
+    final TimelineFragment fragment = TimelineFragment.getInstance(StoreType.LIST_TL, listId);
     replaceTimelineContainer(ContentType.LIST_TL, listId, query, fragment);
   }
 

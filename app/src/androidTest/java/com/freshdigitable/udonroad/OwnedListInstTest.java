@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.rule.ActivityTestRule;
@@ -24,7 +25,6 @@ import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 
-import com.freshdigitable.udonroad.listitem.UserItemView;
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
@@ -96,7 +96,7 @@ public class OwnedListInstTest extends TimelineInstTestBase {
       onView(withText("list1")).check(matches(isDisplayed()));
     });
 
-    PerformUtil.selectItemViewAt(0, UserItemView.class);
+    PerformUtil.selectItemViewAt(0, ConstraintLayout.class); // fixme
     runWithIdlingResource(getSimpleIdlingResource("show listTL", isTimelineLoaded()), () ->
         AssertionUtil.checkMainActivityTitle("list0"));
 

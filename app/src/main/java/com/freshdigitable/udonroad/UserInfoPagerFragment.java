@@ -110,7 +110,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   private void putToPagerAdapter(@NonNull UserPageInfo page) {
     final TimelineFragment f = findTimeline(page);
-    final TimelineFragment<?> timelineFragment = f != null ? f : page.setup(getUserId());
+    final TimelineFragment timelineFragment = f != null ? f : page.setup(getUserId());
     pagerAdapter.putFragment(page, timelineFragment);
   }
 
@@ -212,7 +212,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
     private final Map<UserPageInfo, TimelineFragment> pages = new HashMap<>();
 
-    private void putFragment(UserPageInfo page, TimelineFragment<?> fragment) {
+    private void putFragment(UserPageInfo page, TimelineFragment fragment) {
       pages.put(page, fragment);
     }
 
@@ -291,7 +291,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
       this.storeType = type;
     }
 
-    TimelineFragment<?> setup(long id) {
+    TimelineFragment setup(long id) {
       return TimelineFragment.getInstance(storeType, id);
     }
 

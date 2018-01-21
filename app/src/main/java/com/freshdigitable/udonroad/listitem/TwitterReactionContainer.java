@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.listitem;
 
 import android.content.Context;
+import android.databinding.BindingAdapter;
 import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatImageView;
@@ -46,6 +47,11 @@ public class TwitterReactionContainer extends ReactionContainer {
 
   public TwitterReactionContainer(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
+  }
+
+  @BindingAdapter("stats")
+  public static void setStats(TwitterReactionContainer container, List<Stat> stats) {
+    container.update(stats);
   }
 
   @Override

@@ -16,10 +16,14 @@
 
 package com.freshdigitable.udonroad.listitem;
 
+import android.databinding.DataBindingUtil;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
+import com.freshdigitable.udonroad.databinding.ViewUserListBinding;
 
 import io.reactivex.disposables.Disposable;
 
@@ -30,17 +34,25 @@ import io.reactivex.disposables.Disposable;
 public class UserItemViewHolder extends ItemViewHolder {
 
   private Disposable iconSubscription;
+  private ViewUserListBinding binding;
 
   public UserItemViewHolder(ViewGroup parent) {
-    super(new UserItemView(parent.getContext()));
+    this(DataBindingUtil.inflate(
+        LayoutInflater.from(parent.getContext()), R.layout.view_user_list, parent, false));
+  }
+
+  private UserItemViewHolder(ViewUserListBinding binding) {
+    super(binding.getRoot());
+    this.binding = binding;
   }
 
   @Override
   public void bind(ListItem item, StatusViewImageLoader imageLoader) {
     super.bind(item, imageLoader);
-    getView().bind(item);
+    binding.setItem(item);
+    binding.executePendingBindings();
     Utils.maybeDispose(iconSubscription);
-    iconSubscription = imageLoader.loadUserIcon(item.getUser(), getView());
+    iconSubscription = imageLoader.loadUserIcon(item.getUser(), binding.tlIcon);
   }
 
   @Override
@@ -51,16 +63,12 @@ public class UserItemViewHolder extends ItemViewHolder {
 
   @Override
   public void onUpdate(ListItem item) {
-    getView().update((TwitterListItem) item);
-  }
-
-  public UserItemView getView() {
-    return (UserItemView) itemView;
+    binding.tlTweet.setText(item.getText());
   }
 
   @Override
   public ImageView getUserIcon() {
-    return getView().getIcon();
+    return binding.tlIcon;
   }
 
   @Override

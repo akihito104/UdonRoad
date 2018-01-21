@@ -21,6 +21,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.Utils;
+
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -50,7 +52,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
 
   public abstract ImageView getUserIcon();
 
-  public void subscribe(Observable<ListItem> observable) {
+  public void subscribe(Observable<? extends ListItem> observable) {
     if (isSubscribed()) {
       return;
     }
@@ -69,7 +71,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   public boolean isSubscribed() {
-    return subscription != null && !subscription.isDisposed();
+    return Utils.isSubscribed(subscription);
   }
 
   @CallSuper

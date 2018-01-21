@@ -24,7 +24,6 @@ import android.support.annotation.IdRes;
 import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
@@ -40,10 +39,12 @@ public class FabViewModel extends ViewModel {
 
   private final MutableLiveData<Type> fabState;
   private final MutableLiveData<List<MenuState>> menuState;
+  private final MutableLiveData<MenuItem> menuSelectedEvent;
 
   public FabViewModel() {
     fabState = new MutableLiveData<>();
     menuState = new MutableLiveData<>();
+    menuSelectedEvent = new MutableLiveData<>();
   }
 
   LiveData<Type> getFabState() {
@@ -108,25 +109,12 @@ public class FabViewModel extends ViewModel {
     };
   }
 
-  private final List<OnIffabItemSelectedListener> iffabItemSelectedListeners = new ArrayList<>();
-
-  void addOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.add(listener);
-  }
-
-  void removeOnItemSelectedListener(OnIffabItemSelectedListener listener) {
-    iffabItemSelectedListeners.remove(listener);
-  }
-
   void onMenuItemSelected(MenuItem item) {
-    for (OnIffabItemSelectedListener l : iffabItemSelectedListeners) {
-      l.onItemSelected(item);
-    }
+    menuSelectedEvent.setValue(item);
+    menuSelectedEvent.setValue(null); // XXX
   }
 
-  @Override
-  protected void onCleared() {
-    super.onCleared();
-    iffabItemSelectedListeners.clear();
+  LiveData<MenuItem> getMenuItem() {
+    return menuSelectedEvent;
   }
 }

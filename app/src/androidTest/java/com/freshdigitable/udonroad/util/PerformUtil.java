@@ -30,9 +30,6 @@ import android.support.test.espresso.matcher.BoundedMatcher;
 import android.view.View;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.listitem.QuotedStatusView;
-import com.freshdigitable.udonroad.listitem.StatusView;
-import com.freshdigitable.udonroad.listitem.UserItemView;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 
@@ -153,11 +150,12 @@ public class PerformUtil {
 
   private static ViewAction clickForStatusView() {
     return actionWithAssertions(new GeneralClickAction(Tap.SINGLE, view -> {
-      if (view instanceof StatusView || view instanceof UserItemView) {
-        final View v = view.findViewById(R.id.tl_tweet);
+      View v = view.findViewById(R.id.tl_tweet);
+      if (v != null) {
         return calcCenterCoord(v);
-      } else if (view instanceof QuotedStatusView) {
-        final View v = view.findViewById(R.id.q_tweet);
+      }
+      v = view.findViewById(R.id.q_tweet);
+      if (v != null) {
         return calcCenterCoord(v);
       }
       return calcCenterCoord(view);

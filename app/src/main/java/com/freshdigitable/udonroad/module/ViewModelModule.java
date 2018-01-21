@@ -21,6 +21,7 @@ import android.arch.lifecycle.ViewModelProvider;
 
 import com.freshdigitable.udonroad.AppViewModelProviderFactory;
 import com.freshdigitable.udonroad.input.TweetInputViewModel;
+import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
 import dagger.Binds;
 import dagger.Module;
@@ -35,6 +36,11 @@ public abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(TweetInputViewModel.class)
   abstract ViewModel bindTweetInputViewModel(TweetInputViewModel viewModel);
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(TimelineViewModel.class)
+  abstract ViewModel bindTimelineViewModel(TimelineViewModel viewModel);
 
   @Binds
   abstract ViewModelProvider.Factory bindsViewModelProviderFactory(AppViewModelProviderFactory providerFactory);

@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
+import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 
 import twitter4j.UserStreamListener;
 
@@ -38,6 +39,7 @@ public class MockMainApplication extends MainApplication {
         .mockTwitterStreamApiModule(streamApiModule)
         .dataStoreModule(new MockDataStoreModule(getApplicationContext()))
         .repositoryModule(new RepositoryModule(getApplicationContext()))
+        .demoListFetcherModule(new DemoListFetcherModule(getApplicationContext()))
         .build();
   }
 

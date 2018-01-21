@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.subscriber;
+package com.freshdigitable.udonroad.timeline.fetcher;
+
+import com.freshdigitable.udonroad.StoreType;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import dagger.MapKey;
 
 /**
- * Created by akihit on 2017/03/30.
+ * Created by akihit on 2018/01/10.
  */
-
-public interface ListFetchStrategy {
-  void fetch();
-
-  void fetchNext();
+@Documented
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@MapKey
+@interface ListFetcherModuleKey {
+  StoreType value();
 }
