@@ -119,6 +119,30 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   }
 
   @Test
+  public void destroyFavoSimpleStatusOnStatusDetail_and_backToMain() throws Exception {
+    setupCreateFavorite(3, 9);
+    setupDestroyFavorite(3, 8);
+
+    PerformUtil.selectItemView(simple);
+    PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    onView(withId(R.id.timeline)).check(doesNotExist());
+    onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
+    onView(withId(R.id.iffabMenu_main_fav)).perform(click());
+    onView(withId(R.id.iffabMenu_main_fav)).check(matches(withDrawableState(android.R.attr.state_checked)));
+    checkRTCount(3);
+    checkFavCount(9);
+
+    onView(withId(R.id.iffabMenu_main_fav)).perform(click());
+    onView(withId(R.id.iffabMenu_main_fav)).check(matches(not(withDrawableState(android.R.attr.state_checked))));
+    checkRTCount(3);
+    checkFavCount(8);
+
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+  }
+
+  @Test
   public void showStatusDetailForSimpleStatus_then_clickUserIcon() {
     PerformUtil.selectItemView(simple);
     PerformUtil.showDetail();

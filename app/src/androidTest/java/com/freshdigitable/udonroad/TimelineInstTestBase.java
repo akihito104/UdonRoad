@@ -329,6 +329,17 @@ public abstract class TimelineInstTestBase {
     });
   }
 
+  protected void setupDestroyFavorite(final int rtCount, final int favCount) throws TwitterException {
+    when(twitter.destroyFavorite(anyLong())).thenAnswer(invocation -> {
+      final Long id = invocation.getArgument(0);
+      final Status status = findByStatusId(id);
+      when(status.getFavoriteCount()).thenReturn(favCount);
+      when(status.getRetweetCount()).thenReturn(rtCount);
+      when(status.isFavorited()).thenReturn(false);
+      return status;
+    });
+  }
+
   protected void setupRetweetStatus(final long rtStatusId, final int rtCount, final int favCount)
       throws TwitterException {
     when(twitter.retweetStatus(anyLong())).thenAnswer(invocation -> {

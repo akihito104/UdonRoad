@@ -131,9 +131,7 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       for (Status s : updates) {
         final StatusRealm update = CacheUtil.findById(realm, s.getId(), StatusRealm.class);
         if (update == null) {
-          final StatusRealm sr = new StatusRealm(s);
-          final UserRealm ur = getUserRealm(realm, s.getUser());
-          sr.setUser(ur);
+          final StatusRealm sr = createStatusRealm(realm, s);
           inserts.add(sr);
         } else {
           update.merge(s);
@@ -142,6 +140,14 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       }
       realm.insertOrUpdate(inserts);
     };
+  }
+
+  @NonNull
+  private static StatusRealm createStatusRealm(Realm realm, Status s) {
+    final StatusRealm sr = new StatusRealm(s);
+    final UserRealm ur = getUserRealm(realm, s.getUser());
+    sr.setUser(ur);
+    return sr;
   }
 
   private static UserRealm getUserRealm(Realm realm, User user) {
@@ -228,14 +234,14 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
       configStore.insert(sr);
     }
 
-    final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
-    for (Status s: statuses) {
-      entities.add(s instanceof StatusRealm ?
-          ((StatusRealm) s)
-          : new StatusRealm(s));
-    }
-    final Realm.Transaction userUpsertTransaction = getUserUpsertTransaction(statuses);
     pool.executeTransaction(r -> {
+      final ArrayList<StatusRealm> entities = new ArrayList<>(statuses.size());
+      for (Status s : statuses) {
+        entities.add(s instanceof StatusRealm ?
+            ((StatusRealm) s)
+            : createStatusRealm(r, s));
+      }
+      final Realm.Transaction userUpsertTransaction = getUserUpsertTransaction(statuses);
       userUpsertTransaction.execute(r);
       r.insertOrUpdate(entities);
     });
