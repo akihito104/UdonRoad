@@ -36,35 +36,24 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
-import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.databinding.ViewStatusDetailBinding;
+import com.freshdigitable.udonroad.detail.DetailItem;
+import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.StatusDetailView;
-import com.freshdigitable.udonroad.listitem.StatusListItem;
-import com.freshdigitable.udonroad.listitem.StatusListItem.TextType;
-import com.freshdigitable.udonroad.listitem.StatusListItem.TimeTextType;
 import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
-import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import timber.log.Timber;
-import twitter4j.Status;
 import twitter4j.User;
-
-import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
 /**
  * StatusDetailFragment shows Status with link text and twitter card.
@@ -76,13 +65,9 @@ public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   @Inject
-  TypedCache<Status> statusCache;
-  @Inject
   ImageRepository imageRepository;
   @Inject
   StatusViewImageLoader imageLoader;
-  private Disposable statusSubscription;
-  private Disposable cardSubscription;
   private Disposable iconSubscription;
   private Disposable cardSummaryImageSubs;
   private FabViewModel fabViewModel;
@@ -118,91 +103,57 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-
     final long statusId = getStatusId();
-    statusCache.open();
-    final Status status = statusCache.find(statusId);
-    if (status == null) {
-      Toast.makeText(getContext(), "status is not found", Toast.LENGTH_SHORT).show();
-      return;
-    }
-
     fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
     setupActionToolbar(statusId);
 
-    final StatusDetailView statusView = binding.statusView;
-    final StatusListItem item = new StatusListItem(status, TextType.DETAIL, TimeTextType.ABSOLUTE);
-    if (!Utils.isSubscribed(iconSubscription)) {
-      iconSubscription = imageLoader.load(item, statusView);
-    }
+    final StatusDetailViewModel statusDetailViewModel = ViewModelProviders.of(this).get(StatusDetailViewModel.class);
+    final ViewStatusDetailBinding statusView = binding.statusView;
+    statusDetailViewModel.findById(statusId).observe(this, item -> {
+      if (item == null) {
+        return;
+      }
+      statusView.setItem(item);
+      final User user = item.user;
+      final ImageView icon = statusView.dIcon;
 
-    final User user = item.getUser();
-    final ImageView icon = statusView.getIcon();
+      final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
+      icon.setOnClickListener(
+          view -> userIconClickedListener.onUserIconClicked(view, user));
+      statusView.dNames.setOnClickListener(
+          view -> userIconClickedListener.onUserIconClicked(icon, user));
 
-    final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
-    final long rtUserId = item.getRetweetUser().getId();
-    statusView.getRtUser().setOnClickListener(
-        view -> UserInfoActivity.start(view.getContext(), rtUserId));
-    icon.setOnClickListener(
-        view -> userIconClickedListener.onUserIconClicked(view, user));
-    statusView.getUserName().setOnClickListener(
-        view -> userIconClickedListener.onUserIconClicked(icon, user));
-    statusView.getThumbnailContainer().setOnMediaClickListener(
-        (view, index) -> MediaViewActivity.start(view.getContext(), item, index));
+      updateFabMenuItem(item);
+    });
+//    if (!Utils.isSubscribed(iconSubscription)) {
+//      iconSubscription = imageLoader.load(item, statusView);
+//    }
 
-    statusView.bind(item);
-    updateFabMenuItem(item);
-    final List<SpanItem> spanItems = item.createSpanItems();
     final FragmentActivity activity = getActivity();
     final OnSpanClickListener spanClickListener = activity instanceof OnSpanClickListener ?
         (OnSpanClickListener) activity : (v, i) -> {};
-    if (!spanItems.isEmpty()) {
-      statusView.setClickableItems(spanItems, (v, si) -> {
-        if (si.getType() == SpanItem.TYPE_URL) {
-          new URLSpan(si.getQuery()).onClick(v);
-        } else if (si.getType() == SpanItem.TYPE_MENTION) {
-          UserInfoActivity.start(v.getContext(), si.getId());
-        } else if (si.getType() == SpanItem.TYPE_HASHTAG) {
-          spanClickListener.onSpanClicked(v, si);
-        }
-      });
-    }
-    statusSubscription = statusCache.observeById(statusId)
-        .map(s -> new StatusListItem(s, TextType.DETAIL, TimeTextType.ABSOLUTE))
-        .subscribe(listItem -> {
-              statusView.update(listItem);
-              updateFabMenuItem(listItem);
-            },
-            e -> Timber.tag(TAG).e(e, "onStart: "));
-
-    final Status bindingStatus = getBindingStatus(status);
-    if (bindingStatus.getURLEntities().length < 1) {
-      return;
-    }
-    if (twitterCard != null) {
-      setupTwitterCard(twitterCard);
-    } else {
-      final String expandedURL = bindingStatus.getURLEntities()[0].getExpandedURL();
-      cardSubscription = TwitterCard.observeFetch(expandedURL)
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(this::setupTwitterCard,
-              throwable -> {
-                Timber.tag(TAG).e(throwable, "card fetch: ");
-                setupTwitterCard(new TwitterCard());
-              });
-    }
+    statusDetailViewModel.getSpanClickEvent().observe(this, event -> {
+      if (event == null) {
+        return;
+      }
+      if (event.item.getType() == SpanItem.TYPE_URL) {
+        new URLSpan(event.item.getQuery()).onClick(event.view);
+      } else if (event.item.getType() == SpanItem.TYPE_MENTION) {
+        UserInfoActivity.start(event.view.getContext(), event.item.getId());
+      } else if (event.item.getType() == SpanItem.TYPE_HASHTAG) {
+        spanClickListener.onSpanClicked(event.view, event.item);
+      }
+    });
+    statusDetailViewModel.getTwitterCard(statusId).observe(this, this::setupTwitterCard);
   }
 
-  private TwitterCard twitterCard;
-
-  private void setupTwitterCard(@NonNull final TwitterCard twitterCard) {
-    this.twitterCard = twitterCard;
-    if (!this.twitterCard.isValid()) {
+  private void setupTwitterCard(@Nullable final TwitterCard twitterCard) {
+    if (twitterCard == null || !twitterCard.isValid()) {
       return;
     }
     binding.sdTwitterCard.setVisibility(View.VISIBLE);
-    binding.sdTwitterCard.bindData(this.twitterCard);
-    final String imageUrl = this.twitterCard.getImageUrl();
+    binding.sdTwitterCard.bindData(twitterCard);
+    final String imageUrl = twitterCard.getImageUrl();
     if (!TextUtils.isEmpty(imageUrl) && !Utils.isSubscribed(cardSummaryImageSubs)) {
       final ImageQuery query = new ImageQuery.Builder(imageUrl)
           .sizeForSquare(getContext(), R.dimen.card_summary_image)
@@ -213,21 +164,21 @@ public class StatusDetailFragment extends Fragment {
     }
 
     final Intent intent = new Intent(Intent.ACTION_VIEW);
-    final String appUrl = this.twitterCard.getAppUrl();
+    final String appUrl = twitterCard.getAppUrl();
     if (!TextUtils.isEmpty(appUrl)) {
       intent.setData(Uri.parse(appUrl));
       final ComponentName componentName = intent.resolveActivity(getContext().getPackageManager());
       if (componentName == null) {
-        intent.setData(Uri.parse(this.twitterCard.getUrl()));
+        intent.setData(Uri.parse(twitterCard.getUrl()));
       }
     } else {
-      intent.setData(Uri.parse(this.twitterCard.getUrl()));
+      intent.setData(Uri.parse(twitterCard.getUrl()));
     }
     binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
   }
 
-  private void updateFabMenuItem(final StatusListItem status) {
-    fabViewModel.setMenuState(status);
+  private void updateFabMenuItem(final DetailItem item) {
+    fabViewModel.setMenuState(item.stats);
   }
 
   @Override
@@ -239,14 +190,11 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onStop() {
     super.onStop();
-    binding.statusView.getRtUser().setOnClickListener(null);
-    binding.statusView.getIcon().setOnClickListener(null);
-    binding.statusView.getUserName().setOnClickListener(null);
-    binding.statusView.getThumbnailContainer().setOnMediaClickListener(null);
+    binding.statusView.dRtUser.setOnClickListener(null);
+    binding.statusView.dIcon.setOnClickListener(null);
+    binding.statusView.dNames.setOnClickListener(null);
+    binding.statusView.dImageGroup.setOnMediaClickListener(null);
     binding.sdTwitterCard.setOnClickListener(null);
-    Utils.maybeDispose(statusSubscription);
-    Utils.maybeDispose(cardSubscription);
-    statusCache.close();
   }
 
   @Override
@@ -254,7 +202,6 @@ public class StatusDetailFragment extends Fragment {
     super.onDestroyView();
     Utils.maybeDispose(iconSubscription);
     Utils.maybeDispose(cardSummaryImageSubs);
-    twitterCard = null;
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

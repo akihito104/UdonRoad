@@ -96,6 +96,13 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     context.startActivity(intent);
   }
 
+  public static void start(@NonNull Context context, long itemId, int startPage) {
+    Intent intent = new Intent(context, MediaViewActivity.class);
+    intent.putExtra(CREATE_STATUS, itemId);
+    intent.putExtra(CREATE_START, startPage);
+    context.startActivity(intent);
+  }
+
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

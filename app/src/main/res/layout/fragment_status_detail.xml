@@ -27,11 +27,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             >
-            <com.freshdigitable.udonroad.listitem.StatusDetailView
+            <include
                 android:id="@+id/status_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:layout="@layout/view_status_detail"
+                layout="@layout/view_status_detail"
                 />
             <com.freshdigitable.udonroad.TwitterCardView
                 android:id="@+id/sd_twitter_card"
