@@ -43,25 +43,24 @@ public class DetailItem {
   public final CombinedScreenNameTextView.CombinedName combinedName;
   public final String createdTime;
   public final String source;
-  public final int mediaCount;
   public final TwitterListItem quotedItem;
   public final Spannable tweet;
   public final boolean retweet;
   public final List<ListItem.Stat> stats;
-  public final long retweetUserId;
+  public final User retweetUser;
   public final long id;
   public final User user;
+  public final StatusListItem statusListItem;
 
   DetailItem(Status status, Context context, OnSpanClickListener listener) {
-    final StatusListItem statusListItem = new StatusListItem(status, StatusListItem.TextType.DETAIL, StatusListItem.TimeTextType.ABSOLUTE);
+    statusListItem = new StatusListItem(status, StatusListItem.TextType.DETAIL, StatusListItem.TimeTextType.ABSOLUTE);
     id = statusListItem.getId();
     user = statusListItem.getUser();
-    retweetUserId = statusListItem.getRetweetUser().getId();
+    retweetUser = statusListItem.getRetweetUser();
     retweet = statusListItem.isRetweet();
     combinedName = statusListItem.getCombinedName();
     createdTime = statusListItem.getCreatedTime(context);
     source = statusListItem.getSource();
-    mediaCount = statusListItem.getMediaCount();
     stats = statusListItem.getStats();
     quotedItem = statusListItem.getQuotedItem();
 

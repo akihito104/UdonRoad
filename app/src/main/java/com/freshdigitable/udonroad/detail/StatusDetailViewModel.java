@@ -20,6 +20,7 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.support.annotation.NonNull;
 import android.view.View;
 
 import com.freshdigitable.udonroad.OnSpanClickListener;
@@ -45,11 +46,8 @@ public class StatusDetailViewModel extends AndroidViewModel {
   private static final String TAG = StatusDetailViewModel.class.getSimpleName();
   @Inject
   TypedCache<Status> statusCache;
+
   private final MutableLiveData<SpanClickEvent> spanClickEventSource;
-  private final MutableLiveData<DetailItem> detailItemSource;
-  private final MutableLiveData<TwitterCard> twitterCardSource;
-  private Disposable cardSubscription;
-  private Disposable itemSubs;
 
   public StatusDetailViewModel(Application application) {
     super(application);
@@ -57,24 +55,36 @@ public class StatusDetailViewModel extends AndroidViewModel {
 
     statusCache.open();
     spanClickEventSource = new MutableLiveData<>();
-    detailItemSource = new MutableLiveData<>();
-    twitterCardSource = new MutableLiveData<>();
   }
 
   public LiveData<DetailItem> findById(long id) {
-    final Status status = statusCache.find(id);
-    final DetailItem detailItem = new DetailItem(status, getApplication(), (v, i) -> {
-      spanClickEventSource.setValue(new SpanClickEvent(v, i));
-      spanClickEventSource.setValue(null);
-    });
-    itemSubs = statusCache.observeById(status)
-        .map(s -> new DetailItem(s, getApplication(), (v, i) -> {
+    return new LiveData<DetailItem>() {
+      private Disposable itemSubs;
+
+      @Override
+      protected void onActive() {
+        super.onActive();
+        final Status status = statusCache.find(id);
+        itemSubs = statusCache.observeById(status)
+            .map(this::getDetailItem)
+            .subscribe(this::setValue);
+        setValue(getDetailItem(status));
+      }
+
+      @NonNull
+      private DetailItem getDetailItem(Status s) {
+        return new DetailItem(s, getApplication(), (v, i) -> {
           spanClickEventSource.setValue(new SpanClickEvent(v, i));
           spanClickEventSource.setValue(null);
-        }))
-        .subscribe(detailItemSource::setValue);
-    detailItemSource.setValue(detailItem);
-    return detailItemSource;
+        });
+      }
+
+      @Override
+      protected void onInactive() {
+        super.onInactive();
+        Utils.maybeDispose(itemSubs);
+      }
+    };
   }
 
   public LiveData<SpanClickEvent> getSpanClickEvent() {
@@ -82,24 +92,35 @@ public class StatusDetailViewModel extends AndroidViewModel {
   }
 
   public LiveData<TwitterCard> getTwitterCard(long id) {
-    final Status status = statusCache.find(id);
-    final Status bindingStatus = getBindingStatus(status);
-    if (bindingStatus.getURLEntities().length < 1) {
-      return twitterCardSource;
-    }
-    final String expandedURL = bindingStatus.getURLEntities()[0].getExpandedURL();
-    cardSubscription = TwitterCard.observeFetch(expandedURL)
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(twitterCardSource::setValue,
-            throwable -> Timber.tag(TAG).e(throwable, "card fetch: "));
-    return twitterCardSource;
+    return new LiveData<TwitterCard>() {
+      private Disposable cardSubscription;
+
+      @Override
+      protected void onActive() {
+        super.onActive();
+        final Status status = statusCache.find(id);
+        final Status bindingStatus = getBindingStatus(status);
+        if (bindingStatus.getURLEntities().length < 1) {
+          return;
+        }
+        final String expandedURL = bindingStatus.getURLEntities()[0].getExpandedURL();
+        cardSubscription = TwitterCard.observeFetch(expandedURL)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(this::setValue,
+                throwable -> Timber.tag(TAG).e(throwable, "card fetch: "));
+      }
+
+      @Override
+      protected void onInactive() {
+        super.onInactive();
+        Utils.maybeDispose(cardSubscription);
+      }
+    };
   }
 
   @Override
   protected void onCleared() {
     super.onCleared();
-    Utils.maybeDispose(itemSubs);
-    Utils.maybeDispose(cardSubscription);
     statusCache.close();
   }
 

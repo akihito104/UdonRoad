@@ -52,7 +52,7 @@
             android:layout_centerVertical="true"
             android:visibility="@{item.retweet ? View.VISIBLE : View.GONE}"
             app:iconSize="@dimen/detail_small_user_icon"
-            android:onClick="@{v -> UserInfoActivity.start(v.getContext(), item.retweetUserId)}"
+            android:onClick="@{v -> UserInfoActivity.start(v.getContext(), item.retweetUser.id)}"
             tools:visibility="visible"
             tools:text="RT by @screenName"
             />
@@ -173,7 +173,7 @@
             android:lines="1"
             android:ellipsize="end"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="@{item.source}"
+            android:text="@{@string/tweet_via(item.source)}"
             tools:text="via clientname"
             />
 

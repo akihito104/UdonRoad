@@ -41,10 +41,10 @@ import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.databinding.ViewStatusDetailBinding;
 import com.freshdigitable.udonroad.detail.DetailItem;
+import com.freshdigitable.udonroad.detail.StatusDetailViewImageLoader;
 import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
@@ -67,10 +67,10 @@ public class StatusDetailFragment extends Fragment {
   @Inject
   ImageRepository imageRepository;
   @Inject
-  StatusViewImageLoader imageLoader;
-  private Disposable iconSubscription;
+  StatusDetailViewImageLoader imageLoader;
   private Disposable cardSummaryImageSubs;
   private FabViewModel fabViewModel;
+  private Disposable imagesSubs;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -114,9 +114,10 @@ public class StatusDetailFragment extends Fragment {
         return;
       }
       statusView.setItem(item);
+      imagesSubs = imageLoader.loadImages(statusView, item.statusListItem);
+
       final User user = item.user;
       final ImageView icon = statusView.dIcon;
-
       final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
       icon.setOnClickListener(
           view -> userIconClickedListener.onUserIconClicked(view, user));
@@ -125,9 +126,6 @@ public class StatusDetailFragment extends Fragment {
 
       updateFabMenuItem(item);
     });
-//    if (!Utils.isSubscribed(iconSubscription)) {
-//      iconSubscription = imageLoader.load(item, statusView);
-//    }
 
     final FragmentActivity activity = getActivity();
     final OnSpanClickListener spanClickListener = activity instanceof OnSpanClickListener ?
@@ -200,7 +198,7 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onDestroyView() {
     super.onDestroyView();
-    Utils.maybeDispose(iconSubscription);
+    Utils.maybeDispose(imagesSubs);
     Utils.maybeDispose(cardSummaryImageSubs);
   }
 

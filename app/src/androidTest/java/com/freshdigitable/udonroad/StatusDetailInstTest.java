@@ -85,6 +85,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     AssertionUtil.checkMainActivityTitle(R.string.title_detail);
     onView(withId(R.id.timeline)).check(doesNotExist());
     onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
+    onView(withId(R.id.d_via)).check(matches(withText("via Udonroad")));
   }
 
   @Test
