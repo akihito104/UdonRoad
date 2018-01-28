@@ -20,14 +20,19 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.freshdigitable.udonroad.OnSpanClickListener;
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.TwitterCard;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.repository.ImageQuery;
+import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import javax.inject.Inject;
 
@@ -35,6 +40,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import twitter4j.Status;
+import twitter4j.URLEntity;
 
 import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 
@@ -46,6 +52,8 @@ public class StatusDetailViewModel extends AndroidViewModel {
   private static final String TAG = StatusDetailViewModel.class.getSimpleName();
   @Inject
   TypedCache<Status> statusCache;
+  @Inject
+  ImageRepository imageRepository;
 
   private final MutableLiveData<SpanClickEvent> spanClickEventSource;
 
@@ -64,11 +72,9 @@ public class StatusDetailViewModel extends AndroidViewModel {
       @Override
       protected void onActive() {
         super.onActive();
-        final Status status = statusCache.find(id);
-        itemSubs = statusCache.observeById(status)
+        itemSubs = statusCache.observeById(id)
             .map(this::getDetailItem)
             .subscribe(this::setValue);
-        setValue(getDetailItem(status));
       }
 
       @NonNull
@@ -92,18 +98,19 @@ public class StatusDetailViewModel extends AndroidViewModel {
   }
 
   public LiveData<TwitterCard> getTwitterCard(long id) {
+    final Status status = statusCache.find(id);
+    final Status bindingStatus = getBindingStatus(status);
+    final URLEntity[] urlEntities = bindingStatus.getURLEntities();
     return new LiveData<TwitterCard>() {
       private Disposable cardSubscription;
 
       @Override
       protected void onActive() {
         super.onActive();
-        final Status status = statusCache.find(id);
-        final Status bindingStatus = getBindingStatus(status);
-        if (bindingStatus.getURLEntities().length < 1) {
+        if (urlEntities.length < 1) {
           return;
         }
-        final String expandedURL = bindingStatus.getURLEntities()[0].getExpandedURL();
+        final String expandedURL = urlEntities[0].getExpandedURL();
         cardSubscription = TwitterCard.observeFetch(expandedURL)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(this::setValue,
@@ -114,6 +121,32 @@ public class StatusDetailViewModel extends AndroidViewModel {
       protected void onInactive() {
         super.onInactive();
         Utils.maybeDispose(cardSubscription);
+      }
+    };
+  }
+
+  public LiveData<Drawable> loadTwitterCardImage(String url) {
+    return new LiveData<Drawable>() {
+      private Disposable cardSummaryImageSubs;
+
+      @Override
+      protected void onActive() {
+        super.onActive();
+        if (TextUtils.isEmpty(url)) {
+          return;
+        }
+        final ImageQuery query = new ImageQuery.Builder(url)
+            .sizeForSquare(getApplication(), R.dimen.card_summary_image)
+            .centerCrop()
+            .build();
+        cardSummaryImageSubs = imageRepository.queryImage(query)
+            .subscribe(this::setValue, th -> {});
+      }
+
+      @Override
+      protected void onInactive() {
+        super.onInactive();
+        Utils.maybeDispose(cardSummaryImageSubs);
       }
     };
   }

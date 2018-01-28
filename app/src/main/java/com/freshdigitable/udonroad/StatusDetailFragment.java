@@ -46,8 +46,6 @@ import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.repository.ImageQuery;
-import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import javax.inject.Inject;
@@ -65,10 +63,7 @@ public class StatusDetailFragment extends Fragment {
   private static final String TAG = StatusDetailFragment.class.getSimpleName();
   private FragmentStatusDetailBinding binding;
   @Inject
-  ImageRepository imageRepository;
-  @Inject
   StatusDetailViewImageLoader imageLoader;
-  private Disposable cardSummaryImageSubs;
   private FabViewModel fabViewModel;
   private Disposable imagesSubs;
 
@@ -113,7 +108,7 @@ public class StatusDetailFragment extends Fragment {
       if (item == null) {
         return;
       }
-      statusView.setItem(item);
+      binding.setDetailItem(item);
       imagesSubs = imageLoader.loadImages(statusView, item.statusListItem);
 
       final User user = item.user;
@@ -142,37 +137,28 @@ public class StatusDetailFragment extends Fragment {
         spanClickListener.onSpanClicked(event.view, event.item);
       }
     });
-    statusDetailViewModel.getTwitterCard(statusId).observe(this, this::setupTwitterCard);
-  }
 
-  private void setupTwitterCard(@Nullable final TwitterCard twitterCard) {
-    if (twitterCard == null || !twitterCard.isValid()) {
-      return;
-    }
-    binding.sdTwitterCard.setVisibility(View.VISIBLE);
-    binding.sdTwitterCard.bindData(twitterCard);
-    final String imageUrl = twitterCard.getImageUrl();
-    if (!TextUtils.isEmpty(imageUrl) && !Utils.isSubscribed(cardSummaryImageSubs)) {
-      final ImageQuery query = new ImageQuery.Builder(imageUrl)
-          .sizeForSquare(getContext(), R.dimen.card_summary_image)
-          .centerCrop()
-          .build();
-      cardSummaryImageSubs = imageRepository.queryImage(query)
-          .subscribe(d -> binding.sdTwitterCard.getImage().setImageDrawable(d), th -> {});
-    }
+    statusDetailViewModel.getTwitterCard(statusId).observe(this, twitterCard -> {
+      if (twitterCard == null || !twitterCard.isValid()) {
+        return;
+      }
+      binding.setCardItem(twitterCard);
+      statusDetailViewModel.loadTwitterCardImage(twitterCard.getImageUrl()).observe(this, d ->
+          binding.sdTwitterCard.getImage().setImageDrawable(d));
 
-    final Intent intent = new Intent(Intent.ACTION_VIEW);
-    final String appUrl = twitterCard.getAppUrl();
-    if (!TextUtils.isEmpty(appUrl)) {
-      intent.setData(Uri.parse(appUrl));
-      final ComponentName componentName = intent.resolveActivity(getContext().getPackageManager());
-      if (componentName == null) {
+      final Intent intent = new Intent(Intent.ACTION_VIEW);
+      final String appUrl = twitterCard.getAppUrl();
+      if (!TextUtils.isEmpty(appUrl)) {
+        intent.setData(Uri.parse(appUrl));
+        final ComponentName componentName = intent.resolveActivity(getContext().getPackageManager());
+        if (componentName == null) {
+          intent.setData(Uri.parse(twitterCard.getUrl()));
+        }
+      } else {
         intent.setData(Uri.parse(twitterCard.getUrl()));
       }
-    } else {
-      intent.setData(Uri.parse(twitterCard.getUrl()));
-    }
-    binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
+      binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
+    });
   }
 
   private void updateFabMenuItem(final DetailItem item) {
@@ -199,7 +185,6 @@ public class StatusDetailFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     Utils.maybeDispose(imagesSubs);
-    Utils.maybeDispose(cardSummaryImageSubs);
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

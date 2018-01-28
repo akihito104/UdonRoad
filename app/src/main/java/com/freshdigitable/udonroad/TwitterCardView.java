@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -53,7 +54,10 @@ public class TwitterCardView extends RelativeLayout {
     setPadding(padding, padding, padding, padding);
   }
 
-  public void bindData(TwitterCard data) {
+  public void setCardItem(@Nullable TwitterCard data) {
+    if (data == null) {
+      return;
+    }
     title.setText(data.getTitle());
     url.setText(data.getDisplayUrl());
   }
