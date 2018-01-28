@@ -19,7 +19,7 @@ package com.freshdigitable.udonroad.module;
 import com.freshdigitable.udonroad.MainActivity;
 import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.OAuthActivity;
-import com.freshdigitable.udonroad.StatusDetailFragment;
+import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.TimelineFragment;
 import com.freshdigitable.udonroad.UserInfoActivity;

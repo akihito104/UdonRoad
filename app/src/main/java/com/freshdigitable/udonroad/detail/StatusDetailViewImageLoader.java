@@ -29,15 +29,15 @@ import io.reactivex.disposables.Disposable;
  * Created by akihit on 2018/01/28.
  */
 
-public class StatusDetailViewImageLoader {
+class StatusDetailViewImageLoader {
   private StatusViewImageLoader imageLoader;
 
   @Inject
-  public StatusDetailViewImageLoader(StatusViewImageLoader imageLoader) {
+  StatusDetailViewImageLoader(StatusViewImageLoader imageLoader) {
     this.imageLoader = imageLoader;
   }
 
-  public Disposable loadImages(ViewStatusDetailBinding binding, TwitterListItem item) {
+  Disposable loadImages(ViewStatusDetailBinding binding, TwitterListItem item) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     compositeDisposable.add(imageLoader.loadUserIcon(item.getUser(), binding.dIcon));
     compositeDisposable.add(imageLoader.loadRTUserIcon(item.getRetweetUser(), binding.dRtUser));

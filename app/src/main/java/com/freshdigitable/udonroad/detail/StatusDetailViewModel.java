@@ -65,7 +65,7 @@ public class StatusDetailViewModel extends AndroidViewModel {
     spanClickEventSource = new MutableLiveData<>();
   }
 
-  public LiveData<DetailItem> findById(long id) {
+  LiveData<DetailItem> findById(long id) {
     return new LiveData<DetailItem>() {
       private Disposable itemSubs;
 
@@ -93,11 +93,11 @@ public class StatusDetailViewModel extends AndroidViewModel {
     };
   }
 
-  public LiveData<SpanClickEvent> getSpanClickEvent() {
+  LiveData<SpanClickEvent> getSpanClickEvent() {
     return spanClickEventSource;
   }
 
-  public LiveData<TwitterCard> getTwitterCard(long id) {
+  LiveData<TwitterCard> getTwitterCard(long id) {
     final Status status = statusCache.find(id);
     final Status bindingStatus = getBindingStatus(status);
     final URLEntity[] urlEntities = bindingStatus.getURLEntities();
@@ -125,7 +125,7 @@ public class StatusDetailViewModel extends AndroidViewModel {
     };
   }
 
-  public LiveData<Drawable> loadTwitterCardImage(String url) {
+  LiveData<Drawable> loadTwitterCardImage(String url) {
     return new LiveData<Drawable>() {
       private Disposable cardSummaryImageSubs;
 

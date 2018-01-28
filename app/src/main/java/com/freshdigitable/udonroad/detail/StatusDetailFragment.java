@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.detail;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
@@ -37,12 +37,14 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.FabViewModel;
+import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.UserInfoActivity;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.databinding.ViewStatusDetailBinding;
-import com.freshdigitable.udonroad.detail.DetailItem;
-import com.freshdigitable.udonroad.detail.StatusDetailViewImageLoader;
-import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
@@ -228,7 +230,7 @@ public class StatusDetailFragment extends Fragment {
     return super.onCreateAnimation(transit, enter, nextAnim);
   }
 
-  long getStatusId() {
+  public long getStatusId() {
     return (long) getArguments().get("statusId");
   }
 }

@@ -51,7 +51,7 @@ public class FabViewModel extends ViewModel {
     return fabState;
   }
 
-  void showFab(Type type) {
+  public void showFab(Type type) {
     fabState.setValue(type);
   }
 
@@ -71,7 +71,7 @@ public class FabViewModel extends ViewModel {
     setMenuState(status.getStats());
   }
 
-  void setMenuState(List<ListItem.Stat> stats) {
+  public void setMenuState(List<ListItem.Stat> stats) {
     final ArrayList<MenuState> menuStates = new ArrayList<>();
     for (ListItem.Stat stat : stats) {
       final int type = stat.getType();
@@ -118,7 +118,7 @@ public class FabViewModel extends ViewModel {
     menuSelectedEvent.setValue(null); // XXX
   }
 
-  LiveData<MenuItem> getMenuItem() {
+  public LiveData<MenuItem> getMenuItem() {
     return menuSelectedEvent;
   }
 }
