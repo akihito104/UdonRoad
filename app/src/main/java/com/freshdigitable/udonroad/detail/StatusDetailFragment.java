@@ -120,6 +120,11 @@ public class StatusDetailFragment extends Fragment {
           view -> userIconClickedListener.onUserIconClicked(view, user));
       statusView.dNames.setOnClickListener(
           view -> userIconClickedListener.onUserIconClicked(icon, user));
+      binding.statusView.dTwitterBird.setOnClickListener(v -> {
+        final Intent intent = new Intent();
+        intent.setData(Uri.parse("https://twitter.com/" + item.user.getScreenName() + "/status/" + item.id));
+        v.getContext().startActivity(intent);
+      });
 
       updateFabMenuItem(item);
     });
