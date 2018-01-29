@@ -68,6 +68,8 @@ public class StatusDetailFragment extends Fragment {
   StatusDetailViewImageLoader imageLoader;
   private FabViewModel fabViewModel;
   private Disposable imagesSubs;
+  @Inject
+  StatusDetailBindingComponent bindingComponent;
 
   public static StatusDetailFragment getInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -94,7 +96,7 @@ public class StatusDetailFragment extends Fragment {
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    binding = DataBindingUtil.bind(view);
+    binding = DataBindingUtil.bind(view, bindingComponent);
   }
 
   @Override
@@ -150,8 +152,6 @@ public class StatusDetailFragment extends Fragment {
         return;
       }
       binding.setCardItem(twitterCard);
-      statusDetailViewModel.loadTwitterCardImage(twitterCard.getImageUrl()).observe(this, d ->
-          binding.sdTwitterCard.getImage().setImageDrawable(d));
 
       final Intent intent = new Intent(Intent.ACTION_VIEW);
       final String appUrl = twitterCard.getAppUrl();
@@ -164,7 +164,7 @@ public class StatusDetailFragment extends Fragment {
       } else {
         intent.setData(Uri.parse(twitterCard.getUrl()));
       }
-      binding.sdTwitterCard.setOnClickListener(view -> view.getContext().startActivity(intent));
+      binding.sdTwitterCard.getRoot().setOnClickListener(view -> view.getContext().startActivity(intent));
     });
   }
 
@@ -185,13 +185,14 @@ public class StatusDetailFragment extends Fragment {
     binding.statusView.dIcon.setOnClickListener(null);
     binding.statusView.dNames.setOnClickListener(null);
     binding.statusView.dImageGroup.setOnMediaClickListener(null);
-    binding.sdTwitterCard.setOnClickListener(null);
+    binding.sdTwitterCard.getRoot().setOnClickListener(null);
   }
 
   @Override
   public void onDestroyView() {
     super.onDestroyView();
     Utils.maybeDispose(imagesSubs);
+    bindingComponent.dispose();
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

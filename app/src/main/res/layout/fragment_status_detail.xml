@@ -30,6 +30,7 @@
             type="com.freshdigitable.udonroad.TwitterCard"
             />
     </data>
+
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -46,13 +47,14 @@
                 layout="@layout/view_status_detail"
                 app:item="@{detailItem}"
                 />
-            <com.freshdigitable.udonroad.TwitterCardView
+            <include
                 android:id="@+id/sd_twitter_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                layout="@layout/view_twitter_card"
                 android:layout_margin="@dimen/grid_margin_detail"
                 android:visibility="@{cardItem != null ? View.VISIBLE : View.GONE}"
-                app:cardItem="@{cardItem}"
+                app:item="@{cardItem}"
                 tools:visibility="visible"
                 />
         </LinearLayout>
