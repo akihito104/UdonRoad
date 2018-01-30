@@ -21,7 +21,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.preference.PreferenceManager;
@@ -91,11 +90,7 @@ public class StatusViewImageLoader {
       return EmptyDisposable.INSTANCE;
     }
     final RetweetUserView rtUser = itemView.getRtUser();
-    return loadRTUserIcon(item.getRetweetUser(), rtUser);
-  }
-
-  @NonNull
-  public Disposable loadRTUserIcon(User retweetUser, RetweetUserView rtUser) {
+    final User retweetUser = item.getRetweetUser();
     final String screenName = retweetUser.getScreenName();
 
     final Context context = rtUser.getContext();

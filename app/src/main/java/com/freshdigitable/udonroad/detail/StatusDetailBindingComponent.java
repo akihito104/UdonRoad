@@ -16,11 +16,15 @@
 
 package com.freshdigitable.udonroad.detail;
 
+import android.content.Context;
 import android.databinding.BindingAdapter;
 import android.text.TextUtils;
+import android.view.View;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.RoundedCornerImageView;
+import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
@@ -36,6 +40,7 @@ import io.reactivex.disposables.Disposable;
 public class StatusDetailBindingComponent implements android.databinding.DataBindingComponent {
   private final ImageRepository imageRepository;
   private Disposable cardSummaryImageSubs;
+  private Disposable rtUserImageSubs;
 
   @Inject
   StatusDetailBindingComponent(ImageRepository imageRepository) {
@@ -55,8 +60,25 @@ public class StatusDetailBindingComponent implements android.databinding.DataBin
         .subscribe(imageView::setImageDrawable, th -> {});
   }
 
+  @BindingAdapter({"item", "icon_size"})
+  public void bindRtUser(RetweetUserView v, DetailItem item, float iconSize) {
+    v.setVisibility(item.retweet ? View.VISIBLE : View.GONE);
+    if (!item.retweet) {
+      return;
+    }
+    final Context context = v.getContext();
+    final ImageQuery query = new ImageQuery.Builder(item.retweetUser.getMiniProfileImageURLHttps())
+        .sizeForSquare(((int) iconSize))
+        .placeholder(context, R.drawable.ic_person_outline_black)
+        .build();
+    rtUserImageSubs = imageRepository.queryImage(query)
+        .subscribe(d -> v.bindUser(d, item.retweetUser.getScreenName()), th -> {});
+    v.setOnClickListener(_v -> UserInfoActivity.start(_v.getContext(), item.retweetUser.getId()));
+  }
+
   void dispose() {
     Utils.maybeDispose(cardSummaryImageSubs);
+    Utils.maybeDispose(rtUserImageSubs);
   }
 
   @Override
