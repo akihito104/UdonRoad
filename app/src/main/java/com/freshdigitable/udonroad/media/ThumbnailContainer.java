@@ -81,6 +81,7 @@ public class ThumbnailContainer extends LinearLayout {
     final int thumbCount = Math.min(maxThumbCount, mediaCount);
     if (thumbCount < 1) {
       setThumbCount(0);
+      setVisibility(GONE);
       return;
     }
     setThumbCount(thumbCount);

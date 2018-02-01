@@ -50,7 +50,7 @@ public class DetailItem {
   public final User retweetUser;
   public final long id;
   public final User user;
-  final StatusListItem statusListItem;
+  public final StatusListItem statusListItem;
 
   DetailItem(Status status, Context context, OnSpanClickListener listener) {
     statusListItem = new StatusListItem(status, StatusListItem.TextType.DETAIL, StatusListItem.TimeTextType.ABSOLUTE);

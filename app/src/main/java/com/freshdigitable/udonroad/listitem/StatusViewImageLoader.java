@@ -101,10 +101,6 @@ public class StatusViewImageLoader {
 
   private Disposable loadMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
-    return loadMediaView(item, thumbnailContainer);
-  }
-
-  public Disposable loadMediaView(TwitterListItem item, ThumbnailContainer thumbnailContainer) {
     MediaEntity[] mediaEntities = item.getMediaEntities();
     thumbnailContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = thumbnailContainer.getThumbCount();

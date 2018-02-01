@@ -53,6 +53,7 @@
             app:iconSize="@dimen/detail_small_user_icon"
             app:item="@{item}"
             app:icon_size="@{@dimen/detail_small_user_icon}"
+            android:onClick="@{(v) -> UserInfoActivity.start(v.getContext(), item.retweetUser.id)}"
             tools:visibility="visible"
             tools:text="RT by @screenName"
             />
@@ -126,7 +127,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:orientation="horizontal"
-            android:visibility="gone"
+            app:list_item="@{item.statusListItem}"
             app:onMediaClickListener="@{(view, index) -> MediaViewActivity.start(view.getContext(), item.id, index)}"
             tools:visibility="visible"
             app:thumbCount="4"
