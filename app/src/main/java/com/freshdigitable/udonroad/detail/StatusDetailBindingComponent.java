@@ -31,7 +31,6 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
 import com.freshdigitable.udonroad.RoundedCornerImageView;
 import com.freshdigitable.udonroad.Utils;
-import com.freshdigitable.udonroad.listitem.TwitterListItem;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 import com.freshdigitable.udonroad.repository.ImageQuery;
@@ -54,46 +53,57 @@ public class StatusDetailBindingComponent implements android.databinding.DataBin
   private Disposable cardSummaryImageSubs;
   private Disposable rtUserImageSubs;
   private Disposable thumbnailsSubs;
+  private Disposable userIconSubs;
 
   @Inject
   StatusDetailBindingComponent(ImageRepository imageRepository) {
     this.imageRepository = imageRepository;
   }
 
-  @BindingAdapter({"imageUrl"})
-  public void bindImage(RoundedCornerImageView imageView, String url) {
+  @BindingAdapter({"imageUrl", "size"})
+  public void bindImage(RoundedCornerImageView imageView, String url, float size) {
+    cardSummaryImageSubs = bindImageImpl(imageView, url, size, null);
+  }
+
+  @BindingAdapter({"imageUrl", "size", "placeholder"})
+  public void bindImage(RoundedCornerImageView imageView, String url, float size, Drawable placeholder) {
+    userIconSubs = bindImageImpl(imageView, url, size, placeholder);
+  }
+
+  private Disposable bindImageImpl(RoundedCornerImageView imageView, String url, float size, Drawable placeholder) {
     if (TextUtils.isEmpty(url)) {
-      return;
+      return null;
     }
     final ImageQuery query = new ImageQuery.Builder(url)
-        .sizeForSquare(imageView.getContext(), R.dimen.card_summary_image)
+        .sizeForSquare((int) size)
+        .placeholder(placeholder)
         .centerCrop()
         .build();
-    cardSummaryImageSubs = imageRepository.queryImage(query)
+    return imageRepository.queryImage(query)
         .subscribe(imageView::setImageDrawable, th -> {});
   }
 
-  @BindingAdapter({"item", "icon_size"})
-  public void bindRtUser(RetweetUserView v, DetailItem item, float iconSize) {
-    v.setVisibility(item.retweet ? View.VISIBLE : View.GONE);
-    if (!item.retweet) {
+  @BindingAdapter({"isRetweet", "imageUrl", "screenName"})
+  public void bindRtUser(RetweetUserView v,
+                         boolean isRetweet, String imageUrl, String screenName) {
+    if (!isRetweet) {
       return;
     }
     final Context context = v.getContext();
-    final ImageQuery query = new ImageQuery.Builder(item.retweetUser.getMiniProfileImageURLHttps())
-        .sizeForSquare(((int) iconSize))
+    final ImageQuery query = new ImageQuery.Builder(imageUrl)
+        .sizeForSquare(context, R.dimen.small_user_icon)
         .placeholder(context, R.drawable.ic_person_outline_black)
         .build();
     rtUserImageSubs = imageRepository.queryImage(query)
-        .subscribe(d -> v.bindUser(d, item.retweetUser.getScreenName()), th -> {});
+        .subscribe(d -> v.bindUser(d, screenName), th -> {});
   }
 
-  @BindingAdapter({"list_item"})
-  public void bindThumbnails(ThumbnailContainer thumbnailContainer, TwitterListItem listItem) {
-    if (listItem == null) {
+  @BindingAdapter({"mediaEntities", "isPossiblySensitive"})
+  public void bindThumbnails(ThumbnailContainer thumbnailContainer,
+                             MediaEntity[] mediaEntities, boolean isPossiblySensitive) {
+    if (mediaEntities == null) {
       return;
     }
-    final MediaEntity[] mediaEntities = listItem.getMediaEntities();
     thumbnailContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = thumbnailContainer.getThumbCount();
     if (mediaCount < 1) {
@@ -106,13 +116,13 @@ public class StatusDetailBindingComponent implements android.databinding.DataBin
     }
 
     final Context context = thumbnailContainer.getContext();
-    if (listItem.isPossiblySensitive() && isHideSensitive(context)) {
+    if (isPossiblySensitive && isHideSensitive(context)) {
       for (int i = 0; i < mediaCount; i++) {
         final ThumbnailView mediaView = (ThumbnailView) thumbnailContainer.getChildAt(i);
         mediaView.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_whatshot));
       }
     } else {
-      thumbnailsSubs = loadThumbnails(mediaEntities, thumbnailContainer);
+      thumbnailsSubs = loadThumbnails(thumbnailContainer, mediaEntities);
     }
   }
 
@@ -122,7 +132,7 @@ public class StatusDetailBindingComponent implements android.databinding.DataBin
     return sp.getBoolean(key, context.getResources().getBoolean(R.bool.settings_sensitive_default));
   }
 
-  private Disposable loadThumbnails(MediaEntity[] entities, ThumbnailContainer thumbnailContainer) {
+  private Disposable loadThumbnails(ThumbnailContainer thumbnailContainer, MediaEntity[] entities) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     final int width = thumbnailContainer.getThumbWidth();
     final int height = thumbnailContainer.getHeight();
@@ -157,6 +167,7 @@ public class StatusDetailBindingComponent implements android.databinding.DataBin
     Utils.maybeDispose(cardSummaryImageSubs);
     Utils.maybeDispose(rtUserImageSubs);
     Utils.maybeDispose(thumbnailsSubs);
+    Utils.maybeDispose(userIconSubs);
   }
 
   @Override

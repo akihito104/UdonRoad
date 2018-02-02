@@ -72,7 +72,7 @@ public class StatusViewImageLoader {
 
   private final Consumer<Throwable> emptyError = th -> {};
 
-  public Disposable loadUserIcon(User user, final ImageView icon) {
+  Disposable loadUserIcon(User user, final ImageView icon) {
     if (user == null) {
       return EmptyDisposable.INSTANCE;
     }

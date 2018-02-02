@@ -39,7 +39,7 @@
         <com.freshdigitable.udonroad.RetweetUserView
             android:id="@+id/d_rt_user"
             android:layout_width="0dp"
-            android:layout_height="@dimen/small_user_icon"
+            android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/d_icon"
             app:layout_constraintStart_toStartOf="parent"
@@ -51,8 +51,10 @@
             android:textSize="@dimen/tweet_detail_small_size"
             android:layout_centerVertical="true"
             app:iconSize="@dimen/detail_small_user_icon"
-            app:item="@{item}"
-            app:icon_size="@{@dimen/detail_small_user_icon}"
+            android:visibility="@{item.retweet ? View.VISIBLE : View.GONE}"
+            app:isRetweet="@{item.retweet}"
+            app:imageUrl="@{item.retweetUser.miniProfileImageURLHttps}"
+            app:screenName="@{item.retweetUser.screenName}"
             android:onClick="@{(v) -> UserInfoActivity.start(v.getContext(), item.retweetUser.id)}"
             tools:visibility="visible"
             tools:text="RT by @screenName"
@@ -69,6 +71,9 @@
             app:layout_constraintEnd_toStartOf="@id/d_names"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
             android:contentDescription="@string/desc_icon"
+            app:imageUrl="@{item.user.profileImageURLHttps}"
+            app:size="@{@dimen/tweet_user_icon}"
+            app:placeholder="@{@drawable/ic_person_outline_black}"
             />
 
         <com.freshdigitable.udonroad.CombinedScreenNameTextView
@@ -127,7 +132,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:orientation="horizontal"
-            app:list_item="@{item.statusListItem}"
+            app:mediaEntities="@{item.statusListItem.mediaEntities}"
+            app:isPossiblySensitive="@{item.statusListItem.isPossiblySensitive}"
             app:onMediaClickListener="@{(view, index) -> MediaViewActivity.start(view.getContext(), item.id, index)}"
             tools:visibility="visible"
             app:thumbCount="4"

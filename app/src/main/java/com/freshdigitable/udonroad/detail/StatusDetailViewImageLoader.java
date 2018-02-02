@@ -39,7 +39,6 @@ class StatusDetailViewImageLoader {
 
   Disposable loadImages(ViewStatusDetailBinding binding, TwitterListItem item) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    compositeDisposable.add(imageLoader.loadUserIcon(item.getUser(), binding.dIcon));
     compositeDisposable.add(imageLoader.loadQuotedStatusImages(item, binding.dQuoted));
     return compositeDisposable;
   }
