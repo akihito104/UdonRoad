@@ -27,7 +27,7 @@
             />
     </data>
 
-    <RelativeLayout
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_rounded_frame"
@@ -35,25 +35,31 @@
         >
         <com.freshdigitable.udonroad.RoundedCornerImageView
             android:id="@+id/card_image"
-            android:layout_width="@dimen/card_summary_image"
-            android:layout_height="@dimen/card_summary_image"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentLeft="true"
+            android:layout_width="@dimen/card_summary_image_width"
+            android:layout_height="@dimen/card_summary_image_height"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/card_title"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
             android:layout_marginEnd="@dimen/grid_margin"
             android:layout_marginRight="@dimen/grid_margin"
             app:maskerShape="@drawable/s_rounded_mask_twitter_card"
             app:imageUrl="@{item.imageUrl}"
-            app:size="@{@dimen/card_summary_image}"
+            app:imageHeight="@{@dimen/card_summary_image}"
+            app:imageWidth="@{@dimen/card_summary_image_width}"
             />
         <TextView
             android:id="@+id/card_title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_toRightOf="@id/card_image"
-            android:layout_toEndOf="@+id/card_image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/card_url"
+            app:layout_constraintStart_toEndOf="@id/card_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_chainStyle="spread_inside"
             android:layout_marginTop="@dimen/grid_margin"
+            android:layout_marginStart="@dimen/grid_margin"
             android:textSize="@dimen/detail_tweet_size"
             android:textStyle="bold"
             android:maxLines="2"
@@ -62,16 +68,17 @@
             />
         <TextView
             android:id="@+id/card_url"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/card_image"
-            android:layout_toEndOf="@+id/card_image"
-            android:layout_alignBottom="@id/card_image"
+            app:layout_constraintTop_toBottomOf="@id/card_title"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@id/card_title"
+            app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginBottom="@dimen/grid_margin"
             android:maxLines="1"
             android:textAppearance="?android:textAppearanceSmall"
             android:text="@{item.displayUrl}"
-            tools:text="www.url.com"
+            tools:text="www.example.com"
             />
-    </RelativeLayout>
+    </android.support.constraint.ConstraintLayout>
 </layout>

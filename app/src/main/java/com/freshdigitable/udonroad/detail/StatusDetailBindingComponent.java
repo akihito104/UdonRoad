@@ -65,17 +65,29 @@ public class StatusDetailBindingComponent implements android.databinding.DataBin
     cardSummaryImageSubs = bindImageImpl(imageView, url, size, null);
   }
 
+  @BindingAdapter({"imageUrl", "imageHeight", "imageWidth"})
+  public void bindImage(RoundedCornerImageView imageView,
+                        String url, float imageHeight, float imageWidth) {
+    cardSummaryImageSubs = bindImageImpl(imageView, url, imageHeight, imageWidth, null);
+  }
+
   @BindingAdapter({"imageUrl", "size", "placeholder"})
   public void bindImage(RoundedCornerImageView imageView, String url, float size, Drawable placeholder) {
     userIconSubs = bindImageImpl(imageView, url, size, placeholder);
   }
 
   private Disposable bindImageImpl(RoundedCornerImageView imageView, String url, float size, Drawable placeholder) {
+    return bindImageImpl(imageView, url, size, size, placeholder);
+  }
+
+  private Disposable bindImageImpl(RoundedCornerImageView imageView,
+                                   String url, float imageHeight, float imageWidth, Drawable placeholder) {
     if (TextUtils.isEmpty(url)) {
       return null;
     }
     final ImageQuery query = new ImageQuery.Builder(url)
-        .sizeForSquare((int) size)
+        .height((int) imageHeight)
+        .width((int) imageWidth)
         .placeholder(placeholder)
         .centerCrop()
         .build();

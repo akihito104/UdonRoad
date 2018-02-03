@@ -23,7 +23,8 @@
     <dimen name="detail_rt_start_margin">12dp</dimen>
 
     <!-- card -->
-    <dimen name="card_summary_image">80dp</dimen>
+    <dimen name="card_summary_image_height">80dp</dimen>
+    <dimen name="card_summary_image_width">144dp</dimen>
     <dimen name="frame_border_width">1dp</dimen>
 
     <!-- https://material.google.com/patterns/navigation-drawer.html#navigation-drawer-specs -->
