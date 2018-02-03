@@ -120,6 +120,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintEnd_toStartOf="@id/tw_media_container"
         app:layout_constraintRight_toLeftOf="@id/tw_media_container"
+        app:layout_constraintHorizontal_bias="0"
         android:background="@android:color/transparent"
         app:srcCompat="@drawable/ic_add_a_photo"
         />
@@ -135,6 +136,5 @@
         app:layout_constraintBottom_toBottomOf="@id/tw_append_image"
         app:layout_constraintHorizontal_chainStyle="spread_inside"
         app:thumbCount="4"
-        android:visibility="invisible"
         />
 </merge>
