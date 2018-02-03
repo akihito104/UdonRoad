@@ -46,7 +46,7 @@
             android:layout_marginRight="@dimen/grid_margin"
             app:maskerShape="@drawable/s_rounded_mask_twitter_card"
             app:imageUrl="@{item.imageUrl}"
-            app:imageHeight="@{@dimen/card_summary_image}"
+            app:imageHeight="@{@dimen/card_summary_image_height}"
             app:imageWidth="@{@dimen/card_summary_image_width}"
             />
         <TextView
