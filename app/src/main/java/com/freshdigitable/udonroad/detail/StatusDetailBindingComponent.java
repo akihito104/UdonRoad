@@ -60,11 +60,6 @@ public class StatusDetailBindingComponent implements android.databinding.DataBin
     this.imageRepository = imageRepository;
   }
 
-  @BindingAdapter({"imageUrl", "size"})
-  public void bindImage(RoundedCornerImageView imageView, String url, float size) {
-    cardSummaryImageSubs = bindImageImpl(imageView, url, size, null);
-  }
-
   @BindingAdapter({"imageUrl", "imageHeight", "imageWidth"})
   public void bindImage(RoundedCornerImageView imageView,
                         String url, float imageHeight, float imageWidth) {
