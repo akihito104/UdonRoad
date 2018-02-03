@@ -54,7 +54,7 @@
             android:layout_toRightOf="@id/card_image"
             android:layout_toEndOf="@+id/card_image"
             android:layout_marginTop="@dimen/grid_margin"
-            android:textSize="@dimen/tweet_detail_size"
+            android:textSize="@dimen/detail_tweet_size"
             android:textStyle="bold"
             android:maxLines="2"
             android:text="@{item.title}"

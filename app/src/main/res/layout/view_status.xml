@@ -110,8 +110,8 @@
         android:layout_toEndOf="@+id/tl_icon"
         android:layout_toStartOf="@id/tl_via"
         android:layout_toLeftOf="@id/tl_via"
-        android:layout_marginRight="@dimen/grid_margin_detail"
-        android:layout_marginEnd="@dimen/grid_margin_detail"
+        android:layout_marginRight="@dimen/detail_grid_margin"
+        android:layout_marginEnd="@dimen/detail_grid_margin"
         />
 
     <TextView

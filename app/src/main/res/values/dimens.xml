@@ -13,12 +13,17 @@
     <dimen name="userInfo_user_icon">72dp</dimen>
     <dimen name="grid_margin">4dp</dimen>
 
-    <dimen name="tweet_detail_size">16sp</dimen>
-    <dimen name="tweet_detail_small_size">12sp</dimen>
+    <!-- detail -->
+    <dimen name="detail_tweet_size">16sp</dimen>
+    <dimen name="detail_tweet_small_size">12sp</dimen>
     <dimen name="detail_small_user_icon">20dp</dimen>
-    <dimen name="grid_margin_detail">8dp</dimen>
+    <dimen name="detail_grid_margin">8dp</dimen>
+    <dimen name="detail_thumb_height">80dp</dimen>
+    <dimen name="detail_twitter_icon_size">32dp</dimen>
+    <dimen name="detail_rt_start_margin">12dp</dimen>
 
-    <dimen name="card_summary_image">72dp</dimen>
+    <!-- card -->
+    <dimen name="card_summary_image">80dp</dimen>
     <dimen name="frame_border_width">1dp</dimen>
 
     <!-- https://material.google.com/patterns/navigation-drawer.html#navigation-drawer-specs -->

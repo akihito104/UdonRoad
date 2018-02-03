@@ -49,7 +49,7 @@ public class ThumbnailView extends AppCompatImageView {
     setVisibility(GONE);
 
     if (playIcon == null) {
-      final Drawable drawable = AppCompatResources.getDrawable(getContext(), R.drawable.ld_play_icon);
+      final Drawable drawable = AppCompatResources.getDrawable(context, R.drawable.ld_play_icon);
       playIcon = Bitmap.createBitmap(
           drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
       Canvas canvas = new Canvas(playIcon);

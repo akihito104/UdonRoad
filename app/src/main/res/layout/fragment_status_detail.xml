@@ -52,7 +52,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 layout="@layout/view_twitter_card"
-                android:layout_margin="@dimen/grid_margin_detail"
+                android:layout_margin="@dimen/detail_grid_margin"
                 android:visibility="@{cardItem != null ? View.VISIBLE : View.GONE}"
                 app:item="@{cardItem}"
                 tools:visibility="visible"
