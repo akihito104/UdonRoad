@@ -31,6 +31,7 @@ import com.freshdigitable.udonroad.subscriber.RequestWorker.Util;
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
@@ -60,6 +61,18 @@ public class StatusRepository {
     this.cache = statusStore;
     this.userFeedback = userFeedback;
     this.configStore = configStore;
+  }
+
+  public void open() {
+    cache.open();
+  }
+
+  public void close() {
+    cache.close();
+  }
+
+  public Observable<? extends Status> observeById(long id) {
+    return cache.observeById(id);
   }
 
   Completable observeCreateFavorite(final long statusId) {

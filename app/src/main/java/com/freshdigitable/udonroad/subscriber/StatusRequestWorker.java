@@ -62,9 +62,7 @@ public class StatusRequestWorker implements RequestWorker {
         Observable.concatDelayError(Arrays.asList(
             repository.observeCreateFavorite(selectedId).toObservable(),
             repository.observeRetweetStatus(selectedId).toObservable())
-        ).subscribe(s -> {
-        }, e -> {
-        });
+        ).subscribe(s -> {}, e -> {});
       }
     };
   }
