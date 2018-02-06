@@ -71,7 +71,7 @@ public class StatusDetailFragment extends Fragment {
   @Inject
   StatusDetailBindingComponent bindingComponent;
 
-  public static StatusDetailFragment getInstance(final long statusId) {
+  public static StatusDetailFragment newInstance(final long statusId) {
     Bundle args = new Bundle();
     args.putLong("statusId", statusId);
     final StatusDetailFragment statusDetailFragment = new StatusDetailFragment();
@@ -108,7 +108,7 @@ public class StatusDetailFragment extends Fragment {
 
     final StatusDetailViewModel statusDetailViewModel = ViewModelProviders.of(this).get(StatusDetailViewModel.class);
     final ViewStatusDetailBinding statusView = binding.statusView;
-    statusDetailViewModel.findById(statusId).observe(this, item -> {
+    statusDetailViewModel.observeById(statusId).observe(this, item -> {
       if (item == null) {
         return;
       }
@@ -147,7 +147,7 @@ public class StatusDetailFragment extends Fragment {
       }
     });
 
-    statusDetailViewModel.getTwitterCard(statusId).observe(this, twitterCard -> {
+    statusDetailViewModel.getTwitterCard().observe(this, twitterCard -> {
       if (twitterCard == null || !twitterCard.isValid()) {
         return;
       }
@@ -237,6 +237,10 @@ public class StatusDetailFragment extends Fragment {
   }
 
   public long getStatusId() {
-    return (long) getArguments().get("statusId");
+    final Bundle arguments = getArguments();
+    if (arguments == null) {
+      throw new IllegalStateException("arguments: statusId should be set. use StatusDetailFragment.newInstance().");
+    }
+    return (long) arguments.get("statusId");
   }
 }

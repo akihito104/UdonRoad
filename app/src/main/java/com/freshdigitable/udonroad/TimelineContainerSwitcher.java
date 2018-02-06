@@ -72,7 +72,7 @@ class TimelineContainerSwitcher {
   }
 
   void showStatusDetail(long statusId) {
-    final StatusDetailFragment statusDetail = StatusDetailFragment.getInstance(statusId);
+    final StatusDetailFragment statusDetail = StatusDetailFragment.newInstance(statusId);
     replaceTimelineContainer(ContentType.DETAIL, statusId, null, statusDetail);
   }
 

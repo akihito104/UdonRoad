@@ -26,8 +26,8 @@ import android.view.View;
 import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.TwitterCard;
 import com.freshdigitable.udonroad.Utils;
-import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.subscriber.StatusRepository;
 
 import javax.inject.Inject;
 
@@ -46,82 +46,77 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
 public class StatusDetailViewModel extends AndroidViewModel {
   private static final String TAG = StatusDetailViewModel.class.getSimpleName();
   @Inject
-  TypedCache<Status> statusCache;
+  StatusRepository statusRepository;
 
   private final MutableLiveData<SpanClickEvent> spanClickEventSource;
+  private final MutableLiveData<DetailItem> detailItemSource;
+  private final MutableLiveData<TwitterCard> twitterCardSource;
+  private Disposable itemSubs;
+  private Disposable cardSubs;
 
   public StatusDetailViewModel(Application application) {
     super(application);
     InjectionUtil.getComponent(application).inject(this);
 
-    statusCache.open();
+    statusRepository.open();
     spanClickEventSource = new MutableLiveData<>();
+    detailItemSource = new MutableLiveData<>();
+    twitterCardSource = new MutableLiveData<>();
   }
 
-  LiveData<DetailItem> findById(long id) {
-    return new LiveData<DetailItem>() {
-      private Disposable itemSubs;
-
-      @Override
-      protected void onActive() {
-        super.onActive();
-        itemSubs = statusCache.observeById(id)
-            .map(this::getDetailItem)
-            .subscribe(this::setValue);
-      }
-
-      @NonNull
-      private DetailItem getDetailItem(Status s) {
-        return new DetailItem(s, getApplication(), (v, i) -> {
-          spanClickEventSource.setValue(new SpanClickEvent(v, i));
-          spanClickEventSource.setValue(null);
+  LiveData<DetailItem> observeById(long id) {
+    if (detailItemSource.getValue() != null && detailItemSource.getValue().id == id) {
+      return detailItemSource;
+    }
+    Utils.maybeDispose(itemSubs);
+    itemSubs = statusRepository.observeById(id)
+        .subscribe(s -> {
+          detailItemSource.setValue(getDetailItem(s));
+          fetchTwitterCard(s);
         });
-      }
-
-      @Override
-      protected void onInactive() {
-        super.onInactive();
-        Utils.maybeDispose(itemSubs);
-      }
-    };
+    return detailItemSource;
   }
 
   LiveData<SpanClickEvent> getSpanClickEvent() {
     return spanClickEventSource;
   }
 
-  LiveData<TwitterCard> getTwitterCard(long id) {
-    final Status status = statusCache.find(id);
+  LiveData<TwitterCard> getTwitterCard() {
+    return twitterCardSource;
+  }
+
+  @NonNull
+  private DetailItem getDetailItem(Status s) {
+    return new DetailItem(s, getApplication(), (v, i) -> {
+      spanClickEventSource.setValue(new SpanClickEvent(v, i));
+      spanClickEventSource.setValue(null);
+    });
+  }
+
+  private void fetchTwitterCard(Status status) {
     final Status bindingStatus = getBindingStatus(status);
     final URLEntity[] urlEntities = bindingStatus.getURLEntities();
-    return new LiveData<TwitterCard>() {
-      private Disposable cardSubscription;
+    if (urlEntities.length < 1) {
+      return;
+    }
 
-      @Override
-      protected void onActive() {
-        super.onActive();
-        if (urlEntities.length < 1) {
-          return;
-        }
-        final String expandedURL = urlEntities[0].getExpandedURL();
-        cardSubscription = TwitterCard.observeFetch(expandedURL)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(this::setValue,
-                throwable -> Timber.tag(TAG).e(throwable, "card fetch: "));
-      }
-
-      @Override
-      protected void onInactive() {
-        super.onInactive();
-        Utils.maybeDispose(cardSubscription);
-      }
-    };
+    final String expandedURL = urlEntities[0].getExpandedURL();
+    if (twitterCardSource.getValue() != null && expandedURL.equals(twitterCardSource.getValue().getUrl())) {
+      return;
+    }
+    Utils.maybeDispose(cardSubs);
+    cardSubs = TwitterCard.observeFetch(expandedURL)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(twitterCardSource::setValue,
+            throwable -> Timber.tag(TAG).e(throwable, "card fetch: "));
   }
 
   @Override
   protected void onCleared() {
     super.onCleared();
-    statusCache.close();
+    Utils.maybeDispose(itemSubs);
+    Utils.maybeDispose(cardSubs);
+    statusRepository.close();
   }
 
   public static class SpanClickEvent {
