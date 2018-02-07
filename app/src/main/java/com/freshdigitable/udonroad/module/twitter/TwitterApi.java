@@ -90,6 +90,10 @@ public class TwitterApi {
     return observeThrowableFetch(twitter::getAPIConfiguration);
   }
 
+  public Single<Status> showStatus(long statusId) {
+    return observeThrowableFetch(() -> twitter.showStatus(statusId));
+  }
+
   public Single<Status> updateStatus(final String sendingText) {
     return observeThrowableFetch(() -> twitter.updateStatus(sendingText));
   }

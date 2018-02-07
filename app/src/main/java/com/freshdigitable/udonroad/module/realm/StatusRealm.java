@@ -68,6 +68,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   private StatusReaction reaction;
   private long inReplyToStatusId;
   private boolean possiblySensitive;
+  private long currentUserRetweetId;
 
   public StatusRealm() {
   }
@@ -107,6 +108,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
 
     this.quotedStatus = status.getQuotedStatus();
     this.quotedStatusId = status.getQuotedStatusId();
+    this.currentUserRetweetId = status.getCurrentUserRetweetId();
   }
 
   public Date getCreatedAt() {
@@ -232,6 +234,10 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
     if (retweetCount >= 0 && retweetCount != this.retweetCount) {  // retweetCount is nullable
       this.retweetCount = retweetCount;
     }
+    final long currentUserRetweetId = s.getCurrentUserRetweetId();
+    if (currentUserRetweetId > 0 && currentUserRetweetId != this.currentUserRetweetId) {
+      this.currentUserRetweetId = currentUserRetweetId;
+    }
   }
 
   public long getInReplyToStatusId() {
@@ -263,7 +269,7 @@ public class StatusRealm extends RealmObject implements PerspectivalStatus {
   }
 
   public long getCurrentUserRetweetId() {
-    throw new RuntimeException(NOT_IMPLEMENT_YET);
+    return currentUserRetweetId;
   }
 
   public String getLang() {

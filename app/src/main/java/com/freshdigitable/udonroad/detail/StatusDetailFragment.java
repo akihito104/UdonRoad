@@ -45,10 +45,8 @@ import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.databinding.ViewStatusDetailBinding;
-import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.module.InjectionUtil;
-import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import javax.inject.Inject;
 
@@ -70,6 +68,7 @@ public class StatusDetailFragment extends Fragment {
   private Disposable imagesSubs;
   @Inject
   StatusDetailBindingComponent bindingComponent;
+  private StatusDetailViewModel statusDetailViewModel;
 
   public static StatusDetailFragment newInstance(final long statusId) {
     Bundle args = new Bundle();
@@ -106,7 +105,7 @@ public class StatusDetailFragment extends Fragment {
     fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
     setupActionToolbar(statusId);
 
-    final StatusDetailViewModel statusDetailViewModel = ViewModelProviders.of(this).get(StatusDetailViewModel.class);
+    statusDetailViewModel = ViewModelProviders.of(this).get(StatusDetailViewModel.class);
     final ViewStatusDetailBinding statusView = binding.statusView;
     statusDetailViewModel.observeById(statusId).observe(this, item -> {
       if (item == null) {
@@ -204,16 +203,24 @@ public class StatusDetailFragment extends Fragment {
     }
   }
 
-  @Inject
-  StatusRequestWorker statusRequestWorker;
-
   private void setupActionToolbar(long statusId) {
-    final OnIffabItemSelectedListener listener = statusRequestWorker.getOnIffabItemSelectedListener(statusId);
     fabViewModel.getMenuItem().observe(this, item -> {
       if (item == null) {
         return;
       }
-      listener.onItemSelected(item);
+      if (item.getItemId() == R.id.iffabMenu_main_fav) {
+        if (!item.isChecked()) {
+          statusDetailViewModel.createFavorite(statusId);
+        } else {
+          statusDetailViewModel.destroyFavorite(statusId);
+        }
+      } else if (item.getItemId() == R.id.iffabMenu_main_rt) {
+        if (!item.isChecked()) {
+          statusDetailViewModel.retweet(statusId);
+        } else {
+          statusDetailViewModel.unretweet(statusId);
+        }
+      }
     });
   }
 

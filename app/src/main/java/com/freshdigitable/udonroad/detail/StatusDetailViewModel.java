@@ -119,6 +119,22 @@ public class StatusDetailViewModel extends AndroidViewModel {
     statusRepository.close();
   }
 
+  void createFavorite(long statusId) {
+    statusRepository.createFavorite(statusId);
+  }
+
+  void destroyFavorite(long statusId) {
+    statusRepository.destroyFavorite(statusId);
+  }
+
+  void retweet(long statusId) {
+    statusRepository.retweetStatus(statusId);
+  }
+
+  void unretweet(long statusId) {
+    statusRepository.destroyRetweet(statusId);
+  }
+
   public static class SpanClickEvent {
     public final View view;
     public final OnSpanClickListener.SpanItem item;

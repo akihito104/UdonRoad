@@ -115,7 +115,19 @@ public class StatusRepository {
   }
 
   public void destroyRetweet(long statusId) {
-    fetchToStore(twitterApi.destroyStatus(statusId), TypedCache::insert,
+    final Status status = cache.find(statusId);
+    final long currentUserRetweetId = status.getCurrentUserRetweetId();
+    if (currentUserRetweetId > 0) {
+      destroyRetweetByRtStatusId(currentUserRetweetId);
+    } else {
+      twitterApi.showStatus(statusId)
+          .map(Status::getCurrentUserRetweetId)
+          .subscribe(this::destroyRetweetByRtStatusId);
+    }
+  }
+
+  private void destroyRetweetByRtStatusId(long currentUserRetweetId) {
+    fetchToStore(twitterApi.destroyStatus(currentUserRetweetId), TypedCache::insert,
         R.string.msg_rt_delete_success, R.string.msg_rt_delete_failed);
   }
 
