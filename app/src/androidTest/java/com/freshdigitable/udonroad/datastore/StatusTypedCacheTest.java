@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by akihit on 2018/01/24.
@@ -78,5 +79,43 @@ public class StatusTypedCacheTest {
     assertThat(actual, is(notNullValue()));
     assertThat(actual.getId(), is(equalTo(target.getId())));
     assertThat(actual.getUser(), is(notNullValue()));
+  }
+
+  @Test
+  public void insertStatusForDeleteFaved_andThen_favIsFalse() {
+    final Status target = TwitterResponseMock.createStatus(200);
+    when(target.isFavorited()).thenReturn(true);
+    sut.insert(target);
+    final Status a = sut.find(200);
+    assertThat(a.isFavorited(), is(true));
+    final Status deleted = TwitterResponseMock.createStatus(200);
+    when(deleted.isFavorited()).thenReturn(false);
+
+    sut.insert(deleted);
+
+    final Status actual = sut.find(200);
+    assertThat(actual, is(notNullValue()));
+    assertThat(actual.getId(), is(equalTo(target.getId())));
+    assertThat(actual.getUser(), is(notNullValue()));
+    assertThat(actual.isFavorited(), is(false));
+  }
+
+  @Test
+  public void insertStatusForDeleteRetweeted_andThen_RtIsFalse() {
+    final Status target = TwitterResponseMock.createStatus(200);
+    when(target.isRetweeted()).thenReturn(true);
+    sut.insert(target);
+    final Status a = sut.find(200);
+    assertThat(a.isRetweeted(), is(true));
+    final Status deleted = TwitterResponseMock.createStatus(200);
+    when(deleted.isRetweeted()).thenReturn(false);
+
+    sut.insert(deleted);
+
+    final Status actual = sut.find(200);
+    assertThat(actual, is(notNullValue()));
+    assertThat(actual.getId(), is(equalTo(target.getId())));
+    assertThat(actual.getUser(), is(notNullValue()));
+    assertThat(actual.isRetweeted(), is(false));
   }
 }
