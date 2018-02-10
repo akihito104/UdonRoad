@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
@@ -127,8 +128,14 @@ public class StatusRepository {
   }
 
   private void destroyRetweetByRtStatusId(long currentUserRetweetId) {
-    fetchToStore(twitterApi.destroyStatus(currentUserRetweetId), TypedCache::insert,
-        R.string.msg_rt_delete_success, R.string.msg_rt_delete_failed);
+    twitterApi.destroyStatus(currentUserRetweetId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(s -> {
+          cache.delete(s.getId());
+          cache.insert(s.getRetweetedStatus());
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_delete_success));
+        }, th ->
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_delete_failed)));
   }
 
   private void fetchToStore(Single<Status> fetchTask, BiConsumer<TypedCache<Status>, Status> storeTask,
