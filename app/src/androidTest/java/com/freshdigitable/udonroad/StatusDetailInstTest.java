@@ -169,10 +169,12 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     when(twitter.destroyStatus(currentUserRetweetId)).thenReturn(deleted);
 
     onView(withId(R.id.iffabMenu_main_rt)).perform(click());
+    TwitterResponseMock.receiveDeletionNotice(getUserStreamListener(), deleted);
     onView(withId(R.id.iffabMenu_main_rt)).check(matches(not(withDrawableState(android.R.attr.state_checked))));
     checkRTCount(2);
     checkFavCount(13);
 
+    Thread.sleep(1000L);
     Espresso.pressBack();
     AssertionUtil.checkMainActivityTitle(R.string.title_home);
   }
