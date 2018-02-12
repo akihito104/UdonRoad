@@ -63,6 +63,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -173,6 +174,46 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     onView(withId(R.id.iffabMenu_main_rt)).check(matches(not(withDrawableState(android.R.attr.state_checked))));
     checkRTCount(2);
     checkFavCount(13);
+
+    Thread.sleep(1000L);
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+  }
+  @Test
+  public void destroyRtOnStatusDetail_and_backToMain() throws Exception {
+    final long currentUserRetweetId = 50000L;
+    setupRetweetStatus(currentUserRetweetId, 3, 9);
+
+    PerformUtil.selectItemView(simple);
+    PerformUtil.showDetail();
+    AssertionUtil.checkMainActivityTitle(R.string.title_detail);
+    onView(withId(R.id.timeline)).check(doesNotExist());
+    onView(withId(R.id.d_tweet)).check(matches(withText(simple.getText())));
+    onView(withId(R.id.iffabMenu_main_rt)).perform(click());
+    onView(withId(R.id.iffabMenu_main_rt)).check(matches(withDrawableState(android.R.attr.state_checked)));
+    checkRTCount(3);
+    checkFavCount(9);
+
+    Espresso.pressBack();
+    AssertionUtil.checkMainActivityTitle(R.string.title_home);
+
+    PerformUtil.selectItemViewAt(0);
+    PerformUtil.showDetail();
+
+    when(simple.getCurrentUserRetweetId()).thenReturn(currentUserRetweetId);
+    when(twitter.showStatus(currentUserRetweetId)).thenReturn(simple);
+    final Status updatedSimple = createStatus(simple.getId(), simple.getUser());
+    when(updatedSimple.isRetweeted()).thenReturn(false);
+    when(updatedSimple.getRetweetCount()).thenReturn(2);
+    when(updatedSimple.getFavoriteCount()).thenReturn(13);
+    final Status deleted = createStatus(currentUserRetweetId, simple.getUser());
+    when(deleted.getRetweetedStatus()).thenReturn(updatedSimple);
+    when(twitter.destroyStatus(currentUserRetweetId)).thenReturn(deleted);
+
+    onView(withId(R.id.iffabMenu_main_rt)).perform(click());
+    verify(twitter).destroyStatus(currentUserRetweetId);
+    TwitterResponseMock.receiveDeletionNotice(getUserStreamListener(), deleted);
+    onView(withId(R.id.iffabMenu_main_rt)).check(matches(not(withDrawableState(android.R.attr.state_checked))));
 
     Thread.sleep(1000L);
     Espresso.pressBack();
