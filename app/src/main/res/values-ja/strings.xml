@@ -140,4 +140,6 @@
     <string name="action_resumeTweet">ツイートの再送信</string>
     <string name="settings_title_version">バージョン情報</string>
     <string name="title_share">共有</string>
+    <string name="msg_tweet_delete_success">ツイートを消しました</string>
+    <string name="msg_tweet_delete_failed">ツイートを消せませんでした…</string>
 </resources>

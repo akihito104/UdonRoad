@@ -115,7 +115,25 @@ public class StatusRepository {
         R.string.msg_fav_delete_success, R.string.msg_fav_delete_failed);
   }
 
+  public void destroyStatus(long statusId) {
+    twitterApi.destroyStatus(statusId)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(s -> {
+          cache.delete(s.getId());
+          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_tweet_delete_success));
+        }, th ->
+            userFeedback.onNext(new UserFeedbackEvent(R.string.msg_tweet_delete_failed)));
+  }
+
   public void destroyRetweet(long statusId) {
+    destroyRetweet(statusId, false);
+  }
+
+  public void destroyRetweet(long statusId, boolean retweetOfMine) {
+    if (retweetOfMine) {
+      destroyRetweetByRtStatusId(statusId);
+      return;
+    }
     final Status status = cache.find(statusId);
     final long currentUserRetweetId = status.getCurrentUserRetweetId();
     if (currentUserRetweetId > 0) {

@@ -26,6 +26,7 @@ import android.view.View;
 import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.TwitterCard;
 import com.freshdigitable.udonroad.Utils;
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRepository;
 
@@ -47,6 +48,8 @@ public class StatusDetailViewModel extends AndroidViewModel {
   private static final String TAG = StatusDetailViewModel.class.getSimpleName();
   @Inject
   StatusRepository statusRepository;
+  @Inject
+  AppSettingStore appSetting;
 
   private final MutableLiveData<SpanClickEvent> spanClickEventSource;
   private final MutableLiveData<DetailItem> detailItemSource;
@@ -59,6 +62,7 @@ public class StatusDetailViewModel extends AndroidViewModel {
     InjectionUtil.getComponent(application).inject(this);
 
     statusRepository.open();
+    appSetting.open();
     spanClickEventSource = new MutableLiveData<>();
     detailItemSource = new MutableLiveData<>();
     twitterCardSource = new MutableLiveData<>();
@@ -117,6 +121,7 @@ public class StatusDetailViewModel extends AndroidViewModel {
     Utils.maybeDispose(itemSubs);
     Utils.maybeDispose(cardSubs);
     statusRepository.close();
+    appSetting.close();
   }
 
   void createFavorite(long statusId) {
@@ -132,7 +137,17 @@ public class StatusDetailViewModel extends AndroidViewModel {
   }
 
   void unretweet(long statusId) {
-    statusRepository.destroyRetweet(statusId);
+    statusRepository.destroyRetweet(statusId, isTweetOfMe());
+  }
+
+  boolean isTweetOfMe() {
+    final DetailItem item = detailItemSource.getValue();
+    if (item == null) {
+      return false;
+    }
+    final long currentUserId = appSetting.getCurrentUserId();
+    return item.retweet ? item.retweetUser.getId() == currentUserId
+        : item.user.getId() == currentUserId;
   }
 
   public static class SpanClickEvent {
