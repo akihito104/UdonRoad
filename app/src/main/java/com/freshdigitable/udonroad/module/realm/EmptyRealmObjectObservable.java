@@ -21,7 +21,7 @@ import android.support.annotation.NonNull;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import io.realm.RealmChangeListener;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
 
@@ -41,22 +41,27 @@ class EmptyRealmObjectObservable<T extends RealmModel> extends Observable<T> {
 
   @Override
   protected void subscribeActual(Observer<? super T> observer) {
-    final RealmChangeListener<RealmResults<T>> changeListener = ts -> {
+    final OrderedRealmCollectionChangeListener<RealmResults<T>> changeListener = (ts, changeSet) -> {
       if (!ts.isEmpty()) {
         observer.onNext(ts.first());
+      } else if (changeSet != null && changeSet.getDeletions().length > 0) {
+        observer.onComplete();
       }
     };
     observer.onSubscribe(new ChangeListenerDisposable<>(realmResult, changeListener));
     realmResult.addChangeListener(changeListener);
+    if (!realmResult.isEmpty()) {
+      observer.onNext(realmResult.first());
+    }
   }
 
   private static class ChangeListenerDisposable<T extends RealmModel> implements Disposable {
     private boolean disposed = false;
     private final RealmResults<T> elem;
-    private final RealmChangeListener<RealmResults<T>> changeListener;
+    private final OrderedRealmCollectionChangeListener<RealmResults<T>> changeListener;
 
     private ChangeListenerDisposable(@NonNull RealmResults<T> elem,
-                                     @NonNull RealmChangeListener<RealmResults<T>> changeListener) {
+                                     @NonNull OrderedRealmCollectionChangeListener<RealmResults<T>> changeListener) {
       this.elem = elem;
       this.changeListener = changeListener;
     }

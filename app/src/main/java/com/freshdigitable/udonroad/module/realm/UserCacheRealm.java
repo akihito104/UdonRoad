@@ -100,7 +100,7 @@ public class UserCacheRealm implements TypedCache<User> {
   @NonNull
   @Override
   public Observable<? extends User> observeById(User element) {
-    return pool.observeById((UserRealm) element);
+    return pool.observeById(element.getId(), UserRealm.class);
   }
 
   @Override
