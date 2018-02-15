@@ -193,8 +193,7 @@ public class ConfigStoreRealm implements ConfigStore {
   @NonNull
   @Override
   public Observable<? extends StatusReaction> observeById(StatusReaction statusReaction) {
-    return statusReaction != null && statusReaction instanceof StatusReactionRealm ?
-        observe((StatusReactionRealm) statusReaction).cast(StatusReaction.class)
+    return statusReaction != null ? observeById(statusReaction.getId())
         : Observable.empty();
   }
 
