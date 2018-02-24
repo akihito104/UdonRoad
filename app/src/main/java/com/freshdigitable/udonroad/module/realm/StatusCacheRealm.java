@@ -40,6 +40,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
 import io.realm.RealmModel;
+import io.realm.RealmObject;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.User;
@@ -316,8 +317,13 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
 
     private StatusChangeObservable(long id, StatusCacheRealm statusCache, ConfigStore configStore) {
       this.statusRealm = statusCache.find(id);
+      if (statusRealm.isRetweet()) {
+        observables.add(statusCache.pool.observeById(id, StatusRealm.class));
+        addObservables(statusRealm.getRetweetedStatusId(), statusCache.pool, configStore);
+      } else {
+        addObservables(id, statusCache.pool, configStore);
+      }
       final StatusRealm bindingStatus = getBindingStatus(statusRealm);
-      addObservables(bindingStatus.getId(), statusCache.pool, configStore);
       final Status quotedStatus = bindingStatus.getQuotedStatus();
       if (quotedStatus != null) {
         addObservables(quotedStatus.getId(), statusCache.pool, configStore);
@@ -361,20 +367,37 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
 
       @Override
       public void onNext(T t) {
-        if (!done) {
-          observer.onNext(root);
+        if (done) {
+          return;
         }
+        if (!RealmObject.isValid(root)) {
+          onComplete();
+          return;
+        }
+        if (!RealmObject.isValid((StatusRealm) root.getQuotedStatus())) {
+          root.setQuotedStatus(null);
+        }
+        observer.onNext(root);
       }
 
       @Override
       public void onError(Throwable e) {
+        done = true;
         observer.onError(e);
       }
 
       @Override
       public void onComplete() {
         done = true;
-        observer.onComplete();
+        if (!RealmObject.isValid(root)) {
+          observer.onComplete();
+          return;
+        }
+        final StatusRealm quotedStatus = ((StatusRealm) root.getQuotedStatus());
+        if (quotedStatus != null && !RealmObject.isValid(quotedStatus)) {
+          root.setQuotedStatus(null);
+          observer.onNext(root);
+        }
       }
     }
   }
