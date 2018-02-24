@@ -137,7 +137,16 @@ public class StatusDetailViewModel extends AndroidViewModel {
   }
 
   void unretweet(long statusId) {
-    statusRepository.destroyRetweet(statusId, isTweetOfMe());
+    statusRepository.destroyRetweet(statusId, isRetweetOfMe());
+  }
+
+  private boolean isRetweetOfMe() {
+    final DetailItem item = detailItemSource.getValue();
+    if (item == null || !item.retweet) {
+      return false;
+    }
+    final long currentUserId = appSetting.getCurrentUserId();
+    return item.retweetUser.getId() == currentUserId;
   }
 
   boolean isTweetOfMe() {
