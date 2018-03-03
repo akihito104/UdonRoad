@@ -81,6 +81,7 @@ public class ThumbnailContainer extends LinearLayout {
     final int thumbCount = Math.min(maxThumbCount, mediaCount);
     if (thumbCount < 1) {
       setThumbCount(0);
+      setVisibility(GONE);
       return;
     }
     setThumbCount(thumbCount);
@@ -100,7 +101,12 @@ public class ThumbnailContainer extends LinearLayout {
   }
 
   private int calcThumbWidth() {
-    return thumbCount > 0 ? (getWidth() - grid * (thumbCount - 1)) / thumbCount : 0;
+    return calcThumbWidth(getWidth());
+  }
+
+  private int calcThumbWidth(int containerWidth) {
+    final int w = thumbCount > 0 ? (containerWidth - grid * (thumbCount - 1)) / thumbCount : -1;
+    return w > 0 ? w : getLayoutParams().width;
   }
 
   private void setThumbCount(int count) {
@@ -146,6 +152,6 @@ public class ThumbnailContainer extends LinearLayout {
   @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
-    thumbWidth = calcThumbWidth();
+    thumbWidth = calcThumbWidth(w);
   }
 }

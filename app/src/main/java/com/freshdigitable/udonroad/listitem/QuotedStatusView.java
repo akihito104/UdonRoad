@@ -77,6 +77,10 @@ public class QuotedStatusView extends RelativeLayout implements StatusItemView {
     selectedColor = ContextCompat.getColor(context, R.color.twitter_action_normal_transparent);
   }
 
+  public void setItem(TwitterListItem item) {
+    bind(item);
+  }
+
   public void bind(TwitterListItem item) {
     if (item == null) {
       return;

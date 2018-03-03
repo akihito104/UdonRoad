@@ -271,23 +271,13 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @NonNull
   @Override
   public Observable<? extends Status> observeById(long statusId) {
-    final StatusRealm status = find(statusId);
-    return observeById(status);
+    return StatusChangeObservable.create(statusId, this, configStore);
   }
 
   @NonNull
   @Override
   public Observable<? extends Status> observeById(Status status) {
-    return status != null && status instanceof StatusRealm ?
-        StatusChangeObservable.create((StatusRealm) status, configStore)
-            .filter(s -> RealmObject.isValid(s))
-            .map(s -> {
-              final Status quotedStatus = s.getQuotedStatus();
-              if (quotedStatus != null && !RealmObject.isValid((StatusRealm) quotedStatus)) {
-                s.setQuotedStatus(null);
-              }
-              return s;
-            })
+    return status != null ? observeById(status.getId())
         : Observable.empty();
   }
 
@@ -317,37 +307,35 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   }
 
   private static class StatusChangeObservable extends Observable<StatusRealm> {
-    static StatusChangeObservable create(@NonNull StatusRealm statusRealm, ConfigStore configStore) {
-      if (!statusRealm.isManaged()) {
-        throw new IllegalStateException("status is not managed...");
-      }
-      return new StatusChangeObservable(statusRealm, configStore);
+    static StatusChangeObservable create(long id, StatusCacheRealm statusCache, ConfigStore configStore) {
+      return new StatusChangeObservable(id, statusCache, configStore);
     }
 
     private final StatusRealm statusRealm;
     private final CompositeDisposable disposables = new CompositeDisposable();
     private final Collection<Observable<? extends RealmModel>> observables = new ArrayList<>();
 
-    private StatusChangeObservable(StatusRealm statusRealm, ConfigStore configStore) {
-      this.statusRealm = statusRealm;
+    private StatusChangeObservable(long id, StatusCacheRealm statusCache, ConfigStore configStore) {
+      this.statusRealm = statusCache.find(id);
+      if (statusRealm.isRetweet()) {
+        observables.add(statusCache.pool.observeById(id, StatusRealm.class));
+        addObservables(statusRealm.getRetweetedStatusId(), statusCache.pool, configStore);
+      } else {
+        addObservables(id, statusCache.pool, configStore);
+      }
       final StatusRealm bindingStatus = getBindingStatus(statusRealm);
-      addObservables(bindingStatus, configStore);
       final Status quotedStatus = bindingStatus.getQuotedStatus();
       if (quotedStatus != null) {
-        addObservables((StatusRealm) quotedStatus, configStore);
+        addObservables(quotedStatus.getId(), statusCache.pool, configStore);
       }
     }
 
-    private void addObservables(StatusRealm bindingStatus, ConfigStore configStore) {
-      observables.add(observeStatus(bindingStatus));
-      final Observable<? extends RealmModel> reactionObservable = bindingStatus.getStatusReaction() != null ?
-          ConfigStoreRealm.observe((StatusReactionRealm) bindingStatus.getStatusReaction())
-          : configStore.observeById(bindingStatus.getId()).cast(StatusReactionRealm.class);
+    private void addObservables(long id, PoolRealm pool, ConfigStore configStore) {
+      final Observable<StatusRealm> statusRealmObservable = pool.observeById(id, StatusRealm.class);
+      observables.add(statusRealmObservable);
+      final Observable<StatusReactionRealm> reactionObservable
+          = configStore.observeById(id).cast(StatusReactionRealm.class);
       observables.add(reactionObservable);
-    }
-
-    private static Observable<StatusRealm> observeStatus(StatusRealm bindingStatus) {
-      return RealmObjectObservable.create(bindingStatus);
     }
 
     @Override
@@ -379,19 +367,37 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
 
       @Override
       public void onNext(T t) {
-        if (!done) {
-          observer.onNext(root);
+        if (done) {
+          return;
         }
+        if (!RealmObject.isValid(root)) {
+          onComplete();
+          return;
+        }
+        if (!RealmObject.isValid((StatusRealm) root.getQuotedStatus())) {
+          root.setQuotedStatus(null);
+        }
+        observer.onNext(root);
       }
 
       @Override
       public void onError(Throwable e) {
+        done = true;
         observer.onError(e);
       }
 
       @Override
       public void onComplete() {
         done = true;
+        if (!RealmObject.isValid(root)) {
+          observer.onComplete();
+          return;
+        }
+        final StatusRealm quotedStatus = ((StatusRealm) root.getQuotedStatus());
+        if (quotedStatus != null && !RealmObject.isValid(quotedStatus)) {
+          root.setQuotedStatus(null);
+          observer.onNext(root);
+        }
       }
     }
   }

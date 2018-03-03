@@ -48,13 +48,7 @@ class CacheUtil {
     final RealmResults<T> elem = realm.where(clz)
         .equalTo("id", id)
         .findAll();
-    return elem.isEmpty() ?
-        EmptyRealmObjectObservable.create(elem)
-        : RealmObjectObservable.create(elem.first());
-  }
-
-  static <T extends RealmModel> Observable<T> observeById(T elem) {
-    return RealmObjectObservable.create(elem);
+    return EmptyRealmObjectObservable.create(elem);
   }
 
   private CacheUtil() {}

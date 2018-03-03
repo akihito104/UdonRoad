@@ -97,10 +97,6 @@ final class PoolRealm implements BaseCache {
     return CacheUtil.observeById(cache, id, clz);
   }
 
-  <T extends RealmModel> Observable<T> observeById(T elem) {
-    return CacheUtil.observeById(elem);
-  }
-
   Completable observeUpsertImpl(Realm.Transaction transaction) {
     return CacheUtil.observeUpsertImpl(cache, transaction);
   }

@@ -15,48 +15,70 @@
   ~ limitations under the License.
   -->
 
-<merge
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:parentTag="android.widget.RelativeLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     >
-    <com.freshdigitable.udonroad.RoundedCornerImageView
-        android:id="@+id/card_image"
-        android:layout_width="@dimen/card_summary_image"
-        android:layout_height="@dimen/card_summary_image"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginEnd="@dimen/grid_margin"
-        android:layout_marginRight="@dimen/grid_margin"
-        app:maskerShape="@drawable/s_rounded_mask_twitter_card"
-        />
-    <TextView
-        android:id="@+id/card_title"
-        android:layout_width="wrap_content"
+    <data>
+        <variable
+            name="item"
+            type="com.freshdigitable.udonroad.TwitterCard"
+            />
+    </data>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@id/card_image"
-        android:layout_toEndOf="@+id/card_image"
-        android:layout_marginTop="@dimen/grid_margin"
-        android:textSize="@dimen/tweet_detail_size"
-        android:textStyle="bold"
-        android:maxLines="2"
-        tools:text="title: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore"
-        />
-    <TextView
-        android:id="@+id/card_url"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/card_image"
-        android:layout_toEndOf="@+id/card_image"
-        android:layout_alignBottom="@id/card_image"
-        android:layout_marginBottom="@dimen/grid_margin"
-        android:maxLines="1"
-        android:textAppearance="?android:textAppearanceSmall"
-        tools:text="www.url.com"
-        />
-</merge>
+        android:background="@drawable/selector_rounded_frame"
+        android:padding="@dimen/frame_border_width"
+        >
+        <com.freshdigitable.udonroad.RoundedCornerImageView
+            android:id="@+id/card_image"
+            android:layout_width="@dimen/card_summary_image_width"
+            android:layout_height="@dimen/card_summary_image_height"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/card_title"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            android:layout_marginEnd="@dimen/grid_margin"
+            android:layout_marginRight="@dimen/grid_margin"
+            app:maskerShape="@drawable/s_rounded_mask_twitter_card"
+            app:imageUrl="@{item.imageUrl}"
+            app:imageHeight="@{@dimen/card_summary_image_height}"
+            app:imageWidth="@{@dimen/card_summary_image_width}"
+            />
+        <TextView
+            android:id="@+id/card_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/card_url"
+            app:layout_constraintStart_toEndOf="@id/card_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_chainStyle="spread_inside"
+            android:layout_marginTop="@dimen/grid_margin"
+            android:layout_marginStart="@dimen/grid_margin"
+            android:textSize="@dimen/detail_tweet_size"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:text="@{item.title}"
+            tools:text="title: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore"
+            />
+        <TextView
+            android:id="@+id/card_url"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/card_title"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@id/card_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="@dimen/grid_margin"
+            android:maxLines="1"
+            android:textAppearance="?android:textAppearanceSmall"
+            android:text="@{item.displayUrl}"
+            tools:text="www.example.com"
+            />
+    </android.support.constraint.ConstraintLayout>
+</layout>

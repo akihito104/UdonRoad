@@ -51,7 +51,7 @@ public class FabViewModel extends ViewModel {
     return fabState;
   }
 
-  void showFab(Type type) {
+  public void showFab(Type type) {
     fabState.setValue(type);
   }
 
@@ -68,8 +68,12 @@ public class FabViewModel extends ViewModel {
   }
 
   void setMenuState(final StatusListItem status) {
+    setMenuState(status.getStats());
+  }
+
+  public void setMenuState(List<ListItem.Stat> stats) {
     final ArrayList<MenuState> menuStates = new ArrayList<>();
-    for (ListItem.Stat stat : status.getStats()) {
+    for (ListItem.Stat stat : stats) {
       final int type = stat.getType();
       if (type == ReactionIcon.RETWEET.type) {
         menuStates.add(new MenuState(R.id.iffabMenu_main_rt, stat.isMarked()));
@@ -114,7 +118,7 @@ public class FabViewModel extends ViewModel {
     menuSelectedEvent.setValue(null); // XXX
   }
 
-  LiveData<MenuItem> getMenuItem() {
+  public LiveData<MenuItem> getMenuItem() {
     return menuSelectedEvent;
   }
 }

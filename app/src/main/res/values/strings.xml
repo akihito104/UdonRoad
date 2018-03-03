@@ -31,6 +31,8 @@
     <string name="msg_rt_create_success">RT successed</string>
     <string name="msg_rt_delete_success">RT destroyed</string>
     <string name="msg_rt_delete_failed">RT destroy failed…</string>
+    <string name="msg_tweet_delete_success">tweet is destroyed</string>
+    <string name="msg_tweet_delete_failed">failed to destroy tweet…</string>
     <string name="msg_fav_create_success">fav successed</string>
     <string name="msg_fav_create_failed">fav failure…</string>
     <string name="msg_fav_delete_failed">fav delete failure…</string>

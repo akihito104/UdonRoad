@@ -19,7 +19,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/grid_margin_detail"
+    android:padding="@dimen/detail_grid_margin"
     >
     <TextView
         android:id="@+id/oauth_explain"
@@ -31,7 +31,7 @@
         android:id="@+id/oauth_start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/grid_margin_detail"
+        android:layout_marginTop="@dimen/detail_grid_margin"
         android:layout_below="@id/oauth_explain"
         android:text="@string/oauth_login"
         android:layout_gravity="center_horizontal"
@@ -57,8 +57,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:layout_marginRight="@dimen/grid_margin_detail"
-            android:layout_marginEnd="@dimen/grid_margin_detail"
+            android:layout_marginRight="@dimen/detail_grid_margin"
+            android:layout_marginEnd="@dimen/detail_grid_margin"
             >
             <android.support.design.widget.TextInputEditText
                 android:id="@+id/oauth_pin"

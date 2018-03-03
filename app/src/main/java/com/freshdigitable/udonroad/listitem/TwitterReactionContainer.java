@@ -55,7 +55,7 @@ public class TwitterReactionContainer extends ReactionContainer {
   }
 
   @Override
-  void update(List<Stat> stats) {
+  public void update(List<Stat> stats) {
     for (int i = reactions.size() - 1; i >= 0; i--) {
       final Stat old = stats.get(i);
       final Stat s = findStatByType(stats, old.getType());

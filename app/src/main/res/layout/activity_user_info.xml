@@ -41,7 +41,7 @@
                     android:id="@+id/userInfo_appbar_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/grid_margin_detail"
+                    android:layout_marginBottom="@dimen/detail_grid_margin"
                     app:layout_collapseMode="parallax"
                     />
                 <android.support.v7.widget.Toolbar

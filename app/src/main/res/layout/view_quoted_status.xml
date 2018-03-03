@@ -90,8 +90,8 @@
         android:layout_alignParentLeft="true"
         android:layout_toStartOf="@id/q_via"
         android:layout_toLeftOf="@id/q_via"
-        android:layout_marginRight="@dimen/grid_margin_detail"
-        android:layout_marginEnd="@dimen/grid_margin_detail"
+        android:layout_marginRight="@dimen/detail_grid_margin"
+        android:layout_marginEnd="@dimen/detail_grid_margin"
         />
 
     <TextView

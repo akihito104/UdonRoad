@@ -61,7 +61,7 @@ public class StatusViewImageLoader {
     this.imageRepository = imageRepository;
   }
 
-  public <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView) {
+  <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     compositeDisposable.add(loadUserIcon(item.getUser(), statusView.getIcon()));
     compositeDisposable.add(loadRTUserIcon(item, statusView));
@@ -89,19 +89,19 @@ public class StatusViewImageLoader {
     if (!item.isRetweet()) {
       return EmptyDisposable.INSTANCE;
     }
+    final RetweetUserView rtUser = itemView.getRtUser();
     final User retweetUser = item.getRetweetUser();
     final String screenName = retweetUser.getScreenName();
-    final RetweetUserView rtUser = itemView.getRtUser();
 
-    final Context context = itemView.getContext();
+    final Context context = rtUser.getContext();
     final ImageQuery query = getQueryForSmallIcon(context, retweetUser);
     return imageRepository.queryImage(query)
         .subscribe(d -> rtUser.bindUser(d, screenName), emptyError);
   }
 
   private Disposable loadMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {
-    final MediaEntity[] mediaEntities = item.getMediaEntities();
     final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
+    MediaEntity[] mediaEntities = item.getMediaEntities();
     thumbnailContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = thumbnailContainer.getThumbCount();
     if (mediaCount < 1) {
@@ -146,7 +146,7 @@ public class StatusViewImageLoader {
     return compositeDisposable;
   }
 
-  private Disposable loadQuotedStatusImages(TwitterListItem item, @Nullable QuotedStatusView quotedStatusView) {
+  public Disposable loadQuotedStatusImages(TwitterListItem item, @Nullable QuotedStatusView quotedStatusView) {
     if (quotedStatusView == null) {
       return EmptyDisposable.INSTANCE;
     }

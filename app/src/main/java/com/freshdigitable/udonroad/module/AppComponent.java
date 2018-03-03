@@ -19,7 +19,7 @@ package com.freshdigitable.udonroad.module;
 import com.freshdigitable.udonroad.MainActivity;
 import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.OAuthActivity;
-import com.freshdigitable.udonroad.StatusDetailFragment;
+import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.TimelineFragment;
 import com.freshdigitable.udonroad.UserInfoActivity;
@@ -27,6 +27,7 @@ import com.freshdigitable.udonroad.UserInfoFragment;
 import com.freshdigitable.udonroad.UserInfoPagerFragment;
 import com.freshdigitable.udonroad.UserSettingsActivity;
 import com.freshdigitable.udonroad.UserStreamUtil;
+import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
@@ -98,4 +99,6 @@ public interface AppComponent {
   void inject(TimelineFragment timelineFragment);
 
   void inject(OAuthActivity.DemoTimelineFragment fragment);
+
+  void inject(StatusDetailViewModel statusDetailViewModel);
 }

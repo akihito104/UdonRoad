@@ -34,8 +34,6 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmModel;
-import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import timber.log.Timber;
@@ -193,14 +191,8 @@ public class ConfigStoreRealm implements ConfigStore {
   @NonNull
   @Override
   public Observable<? extends StatusReaction> observeById(StatusReaction statusReaction) {
-    return statusReaction != null && statusReaction instanceof StatusReactionRealm ?
-        observe((StatusReactionRealm) statusReaction).cast(StatusReaction.class)
+    return statusReaction != null ? observeById(statusReaction.getId())
         : Observable.empty();
-  }
-
-  static Observable<? extends RealmModel> observe(StatusReactionRealm statusReaction) {
-    return RealmObjectObservable.create(statusReaction)
-        .filter(RealmObject::isValid);
   }
 
   @Override
