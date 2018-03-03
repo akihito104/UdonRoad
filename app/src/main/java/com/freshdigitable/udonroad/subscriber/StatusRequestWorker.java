@@ -38,7 +38,7 @@ public class StatusRequestWorker implements RequestWorker {
   private StatusRepository repository;
 
   @Inject
-  public StatusRequestWorker(@NonNull StatusRepository repository) {
+  StatusRequestWorker(@NonNull StatusRepository repository) {
     this.repository = repository;
   }
 
@@ -47,17 +47,9 @@ public class StatusRequestWorker implements RequestWorker {
     return item -> {
       final int itemId = item.getItemId();
       if (itemId == R.id.iffabMenu_main_fav) {
-        if (!item.isChecked()) {
-          repository.createFavorite(selectedId);
-        } else {
-          repository.destroyFavorite(selectedId);
-        }
+        repository.createFavorite(selectedId);
       } else if (itemId == R.id.iffabMenu_main_rt) {
-        if (!item.isChecked()) {
-          repository.retweetStatus(selectedId);
-        } else {
-          repository.destroyRetweet(selectedId);
-        }
+        repository.retweetStatus(selectedId);
       } else if (itemId == R.id.iffabMenu_main_favRt) {
         Observable.concatDelayError(Arrays.asList(
             repository.observeCreateFavorite(selectedId).toObservable(),
