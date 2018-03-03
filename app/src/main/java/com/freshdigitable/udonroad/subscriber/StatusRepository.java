@@ -54,7 +54,7 @@ public class StatusRepository {
   private final TypedCache<StatusReaction> configStore;
 
   @Inject
-  public StatusRepository(@NonNull TwitterApi twitterApi,
+  StatusRepository(@NonNull TwitterApi twitterApi,
                           @NonNull TypedCache<Status> statusStore,
                           @NonNull ConfigStore configStore,
                           @NonNull PublishProcessor<UserFeedbackEvent> userFeedback) {
@@ -150,7 +150,13 @@ public class StatusRepository {
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(s -> {
           cache.delete(s.getId());
-          cache.insert(s.getRetweetedStatus());
+          final Status retweetedStatus = s.getRetweetedStatus();
+//          cache.insert(retweetedStatus);
+          final StatusReactionImpl statusReaction = new StatusReactionImpl(retweetedStatus);
+          statusReaction.setRetweeted(false);
+          configStore.open();
+          configStore.insert(statusReaction);
+          configStore.close();
           userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_delete_success));
         }, th ->
             userFeedback.onNext(new UserFeedbackEvent(R.string.msg_rt_delete_failed)));
