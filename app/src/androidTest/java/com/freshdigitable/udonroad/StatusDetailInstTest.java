@@ -203,7 +203,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
     when(simple.getCurrentUserRetweetId()).thenReturn(currentUserRetweetId);
     when(twitter.showStatus(currentUserRetweetId)).thenReturn(simple);
     final Status updatedSimple = createStatus(simple.getId(), simple.getUser());
-    when(updatedSimple.isRetweeted()).thenReturn(false);
+    when(updatedSimple.isRetweeted()).thenReturn(true);
     when(updatedSimple.getRetweetCount()).thenReturn(2);
     when(updatedSimple.getFavoriteCount()).thenReturn(13);
     final Status deleted = createStatus(currentUserRetweetId, simple.getUser());

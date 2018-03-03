@@ -151,7 +151,7 @@ public class StatusRepository {
         .subscribe(s -> {
           cache.delete(s.getId());
           final Status retweetedStatus = s.getRetweetedStatus();
-//          cache.insert(retweetedStatus);
+          cache.insert(retweetedStatus);
           final StatusReactionImpl statusReaction = new StatusReactionImpl(retweetedStatus);
           statusReaction.setRetweeted(false);
           configStore.open();
