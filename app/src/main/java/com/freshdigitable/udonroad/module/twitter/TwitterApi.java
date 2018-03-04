@@ -82,6 +82,10 @@ public class TwitterApi {
     return observeThrowableFetch(twitter::getId);
   }
 
+  public Single<User> showUser(long id) {
+    return observeThrowableFetch(() -> twitter.showUser(id));
+  }
+
   public Single<User> verifyCredentials() {
     return observeThrowableFetch(twitter::verifyCredentials);
   }

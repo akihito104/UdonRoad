@@ -14,6 +14,7 @@ import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
+import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
 import org.junit.Before;
@@ -177,7 +178,13 @@ public class OAuthActivityInstTest {
       appSetting.close();
       when(twitter.getAPIConfiguration()).thenThrow(IllegalStateException.class);
       when(twitter.getId()).thenThrow(IllegalStateException.class);
-      when(twitter.showUser(anyLong())).thenThrow(IllegalStateException.class);
+      when(twitter.showUser(anyLong())).thenAnswer(invocation -> {
+        final long id = invocation.getArgument(0);
+        if (id == 100) {
+          return UserUtil.builder(100, "user100").name("user 100").build();
+        }
+        throw new IllegalStateException();
+      });
       when(twitter.verifyCredentials()).thenThrow(IllegalStateException.class);
     }
 

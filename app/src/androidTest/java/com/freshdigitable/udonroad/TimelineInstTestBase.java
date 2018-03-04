@@ -157,6 +157,7 @@ public abstract class TimelineInstTestBase {
     setupIgnoringUsers();
 
     appSettings.open();
+    appSettings.clear();
     appSettings.storeAccessToken(new AccessToken(userId + "-validToken", "validSecret"));
     appSettings.setCurrentUserId(userId);
     appSettings.close();
