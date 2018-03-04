@@ -50,8 +50,6 @@ import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -120,8 +118,7 @@ public class OAuthActivity extends AppCompatActivity
     super.onStart();
     ffab.setOnIffabItemSelectedListener(fabViewModel::onMenuItemSelected);
     appSettings.open();
-    final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
-    if (!users.isEmpty()) {
+    if (appSettings.hasAuthenticatedUser()) {
       toolbar.setTitle(R.string.title_add_account);
     }
     appSettings.close();
@@ -136,8 +133,7 @@ public class OAuthActivity extends AppCompatActivity
   @Override
   public void onBackPressed() {
     appSettings.open();
-    final List<? extends User> users = appSettings.getAllAuthenticatedUsers();
-    if (!users.isEmpty()) {
+    if (appSettings.hasAuthenticatedUser()) {
       startActivity(new Intent(this, getRedirect()));
     }
     appSettings.close();

@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.datastore;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import io.reactivex.Observable;
 import twitter4j.TwitterAPIConfiguration;
@@ -32,6 +33,10 @@ public interface AppSettingStore extends BaseCache {
   void addAuthenticatedUser(User authenticatedUser);
 
   List<? extends User> getAllAuthenticatedUsers();
+
+  Set<String> getAllAuthenticatedUserIds();
+
+  boolean hasAuthenticatedUser();
 
   void setTwitterAPIConfig(TwitterAPIConfiguration twitterAPIConfig);
 

@@ -23,8 +23,11 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB.OnIffabItemSelectedListener;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
+import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
 import timber.log.Timber;
 import twitter4j.User;
@@ -40,7 +43,7 @@ public class AppSettingRequestWorker implements RequestWorker {
   private final TypedCache<User> userCache;
 
   @Inject
-  public AppSettingRequestWorker(@NonNull TwitterApi twitterApi,
+  AppSettingRequestWorker(@NonNull TwitterApi twitterApi,
                                  @NonNull AppSettingStore appSettings,
                                  @NonNull TypedCache<User> userCache) {
     this.twitterApi = twitterApi;
@@ -57,6 +60,7 @@ public class AppSettingRequestWorker implements RequestWorker {
       appSettings.getCurrentUserDir().mkdir();
     }
     final boolean twitterAPIConfigFetchable = appSettings.isTwitterAPIConfigFetchable();
+    setupAuthenticatedUsers();
     appSettings.close();
     if (twitterAPIConfigFetchable) {
       fetchTwitterAPIConfig();
@@ -83,6 +87,15 @@ public class AppSettingRequestWorker implements RequestWorker {
           userCache.close();
         },
         t -> {}, onErrorAction);
+  }
+
+  private void setupAuthenticatedUsers() {
+    final Set<String> allAuthenticatedUserIds = appSettings.getAllAuthenticatedUserIds();
+    Observable.fromIterable(allAuthenticatedUserIds)
+        .map(Long::parseLong)
+        .filter(id -> id > 0)
+        .flatMapSingle(twitterApi::showUser)
+        .blockingForEach(appSettings::addAuthenticatedUser);
   }
 
   private void fetchTwitterAPIConfig() {

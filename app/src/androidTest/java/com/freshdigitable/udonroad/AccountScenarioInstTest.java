@@ -345,7 +345,7 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
 
       @Override
       public String getDescription() {
-        return null;
+        return "";
       }
 
       @Override
@@ -418,15 +418,15 @@ public class AccountScenarioInstTest extends TimelineInstTestBase {
   @Override
   protected void setupConfig(User loginUser) throws Exception {
     super.setupConfig(loginUser);
-    appSettings.open();
     userASub = UserUtil.createUserAsub();
+    final long userId = userASub.getId();
+    when(twitter.showUser(userId)).thenReturn(userASub);
     final AccessToken accessToken = mock(AccessToken.class);
     when(accessToken.getToken()).thenReturn("valid.token.userAsub");
     when(accessToken.getTokenSecret()).thenReturn("valid.secret.userAsub");
-    final long userId = userASub.getId();
     when(accessToken.getUserId()).thenReturn(userId);
+    appSettings.open();
     appSettings.storeAccessToken(accessToken);
-    appSettings.addAuthenticatedUser(userASub);
     appSettings.close();
     setLoginUserOnLaunching(-1);
   }

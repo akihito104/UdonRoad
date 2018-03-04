@@ -111,6 +111,16 @@ public class AppSettingStoreRealm implements AppSettingStore {
   }
 
   @Override
+  public Set<String> getAllAuthenticatedUserIds() {
+    return prefs.getStringSet(AUTHENTICATED_USERS, Collections.emptySet());
+  }
+
+  @Override
+  public boolean hasAuthenticatedUser() {
+    return !getAllAuthenticatedUserIds().isEmpty();
+  }
+
+  @Override
   public Observable<User> observeCurrentUser() {
     return CacheUtil.observeById(realm, getCurrentUserId(), UserRealm.class)
         .cast(User.class);
@@ -171,6 +181,9 @@ public class AppSettingStoreRealm implements AppSettingStore {
   @Override
   public void storeAccessToken(AccessToken token) {
     final long userId = token.getUserId();
+    if (userId < 0) {
+      return;
+    }
     final Set<String> authenticatedUsers
         = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<>());
     authenticatedUsers.add(Long.toString(userId));
@@ -217,7 +230,7 @@ public class AppSettingStoreRealm implements AppSettingStore {
   }
 
   private boolean isAuthenticatedUser(long userId) {
-    final Set<String> userIds = prefs.getStringSet(AUTHENTICATED_USERS, new HashSet<>());
+    final Set<String> userIds = prefs.getStringSet(AUTHENTICATED_USERS, Collections.emptySet());
     for (String id : userIds) {
       if (id.equals(Long.toString(userId))) {
         return true;

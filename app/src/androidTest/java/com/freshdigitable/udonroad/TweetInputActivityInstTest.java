@@ -77,12 +77,13 @@ public class TweetInputActivityInstTest {
   private User userAsub;
 
   @Before
-  public void setup() {
+  public void setup() throws Throwable {
     TestInjectionUtil.getComponent().inject(this);
     StorageUtil.initStorage();
     userA = UserUtil.createUserA();
     final long userId = userA.getId();
     appSettings.open();
+    appSettings.clear();
     appSettings.storeAccessToken(new AccessToken(userId + "-validToken", "validSecret"));
     appSettings.addAuthenticatedUser(userA);
 
@@ -91,6 +92,9 @@ public class TweetInputActivityInstTest {
     appSettings.addAuthenticatedUser(userAsub);
     appSettings.setCurrentUserId(userId);
     appSettings.close();
+
+    when(twitter.showUser(userA.getId())).thenReturn(userA);
+    when(twitter.showUser(userAsub.getId())).thenReturn(userAsub);
   }
 
   @After
