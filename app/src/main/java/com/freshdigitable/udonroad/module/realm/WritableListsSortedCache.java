@@ -75,7 +75,8 @@ public class WritableListsSortedCache implements WritableSortedCache<UserList> {
       return Completable.complete();
     }
     final RealmResults<UserListRealm> lists = sortedCache.where(UserListRealm.class)
-        .findAllSorted("order");
+        .sort("order")
+        .findAll();
     final UserListRealm u = !lists.isEmpty() ? lists.last() : null;
     int order = u != null ? u.getOrder() + 1 : 0;
     final ArrayList<UserListRealm> inserts = new ArrayList<>(entities.size());

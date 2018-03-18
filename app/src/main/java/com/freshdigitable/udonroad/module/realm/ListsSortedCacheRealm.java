@@ -60,7 +60,8 @@ public class ListsSortedCacheRealm implements SortedCache<UserList> {
     sortedCache.open(name);
     updateSubject = factory.getInstance(name);
     userLists = sortedCache.where(UserListRealm.class)
-        .findAllSorted("order");
+        .sort("order")
+        .findAll();
     userLists.addChangeListener(realmChangeListener);
   }
 

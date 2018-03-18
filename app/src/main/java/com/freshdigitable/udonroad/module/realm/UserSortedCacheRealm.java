@@ -62,7 +62,8 @@ public class UserSortedCacheRealm implements SortedCache<User> {
     pool.open();
     sortedCache.open(storeName);
     ordered = sortedCache.where(ListedUserIDs.class)
-        .findAllSorted("order");
+        .sort("order")
+        .findAll();
     ordered.addChangeListener(realmChangeListener);
   }
 

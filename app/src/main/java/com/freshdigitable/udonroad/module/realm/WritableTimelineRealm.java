@@ -197,7 +197,8 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
       return nextPage.cursor;
     }
     final RealmResults<StatusIDs> timeline = sortedCache.where(StatusIDs.class)
-        .findAllSorted(KEY_ID, Sort.DESCENDING);
+        .sort(KEY_ID, Sort.DESCENDING)
+        .findAll();
     final StatusIDs last = !timeline.isEmpty() ? timeline.last() : null;
     return last != null ? last.getId() - 1 : -1;
   }
