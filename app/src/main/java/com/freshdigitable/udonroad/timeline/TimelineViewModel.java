@@ -38,12 +38,12 @@ import timber.log.Timber;
 
 public class TimelineViewModel extends ViewModel {
   private final ListItemRepositoryFactory repositoryFactory;
-  private StatusViewImageLoader imageLoader;
+  private final StatusViewImageLoader imageLoader;
   private ListItemRepository listItemRepository;
 
   @Inject
-  public TimelineViewModel(ListItemRepositoryFactory repositoryFactory,
-                           StatusViewImageLoader imageLoader) {
+  TimelineViewModel(ListItemRepositoryFactory repositoryFactory,
+                    StatusViewImageLoader imageLoader) {
     this.repositoryFactory = repositoryFactory;
     this.imageLoader = imageLoader;
   }
@@ -84,6 +84,10 @@ public class TimelineViewModel extends ViewModel {
     }
     listItemRepository.getInitList();
     doneFirstFetch = true;
+  }
+
+  public void getListOnStart() {
+    listItemRepository.getInitList();
   }
 
   public void getListOnEnd() {
