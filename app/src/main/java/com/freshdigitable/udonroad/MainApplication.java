@@ -44,6 +44,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasActivityInjector;
 import timber.log.Timber;
 import twitter4j.auth.AccessToken;
 
@@ -54,7 +57,7 @@ import static android.support.v7.preference.PreferenceManager.getDefaultSharedPr
  *
  * Created by akihit on 2016/06/16.
  */
-public class MainApplication extends Application {
+public class MainApplication extends Application implements HasActivityInjector {
   private AppComponent appComponent;
   @Inject
   TwitterApi twitterApi;
@@ -240,5 +243,12 @@ public class MainApplication extends Application {
     private static MainApplication getApplication(Activity activity) {
       return (MainApplication) activity.getApplication();
     }
+  }
+
+  @Inject
+  DispatchingAndroidInjector<Activity> activityInjector;
+  @Override
+  public AndroidInjector<Activity> activityInjector() {
+    return activityInjector;
   }
 }

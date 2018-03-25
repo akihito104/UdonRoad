@@ -45,7 +45,6 @@ import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.ArrayList;
@@ -53,6 +52,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjection;
 import timber.log.Timber;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
@@ -105,10 +105,10 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_media_view);
-    InjectionUtil.getComponent(this).inject(this);
 
     ViewCompat.setElevation(binding.mediaToolbar,
         getResources().getDimensionPixelOffset(R.dimen.action_bar_elevation));

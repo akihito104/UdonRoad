@@ -52,6 +52,7 @@ import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjection;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.processors.PublishProcessor;
 import timber.log.Timber;
@@ -84,7 +85,7 @@ public class OAuthActivity extends AppCompatActivity
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    InjectionUtil.getComponent(this).inject(this);
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_login);
     ffab = findViewById(R.id.ffab);

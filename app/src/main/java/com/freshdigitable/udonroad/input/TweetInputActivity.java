@@ -38,7 +38,6 @@ import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.ActivityTweetInputBinding;
 import com.freshdigitable.udonroad.databinding.ViewAccountSpinnerBinding;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 
 import java.util.HashMap;
@@ -47,6 +46,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjection;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import twitter4j.User;
@@ -65,9 +65,9 @@ public class TweetInputActivity extends AppCompatActivity implements SnackbarCap
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_tweet_input);
-    InjectionUtil.getComponent(this).inject(this);
 
     getLifecycle().addObserver(viewModel);
     final MediaContainerPresenter mediaContainerPresenter

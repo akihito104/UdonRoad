@@ -43,10 +43,10 @@ import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.input.TweetInputModel;
 import com.freshdigitable.udonroad.input.TweetInputViewModel;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjection;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import twitter4j.User;
@@ -78,6 +78,7 @@ public class UserInfoActivity extends AppCompatActivity
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
     if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
@@ -88,7 +89,6 @@ public class UserInfoActivity extends AppCompatActivity
     } else {
       binding = DataBindingUtil.findBinding(v);
     }
-    InjectionUtil.getComponent(this).inject(this);
 
     setUpAppbar();
     setupInfoAppbarFragment(getUserId());
