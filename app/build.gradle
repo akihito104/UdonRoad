@@ -90,7 +90,7 @@ dependencies {
     implementation "com.android.support:design:$supportLibVer"
     implementation "com.android.support:preference-v7:$supportLibVer"
     implementation "com.android.support:preference-v14:$supportLibVer"
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0-beta4'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0-beta6'
     // ViewModel and LiveData
     implementation "android.arch.lifecycle:extensions:$androidArchVer"
     annotationProcessor "android.arch.lifecycle:compiler:$androidArchVer"

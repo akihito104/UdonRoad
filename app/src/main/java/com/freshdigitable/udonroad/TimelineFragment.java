@@ -19,7 +19,6 @@ package com.freshdigitable.udonroad;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -150,13 +149,13 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
       autoScrollState = savedInstanceState.getParcelable(SS_AUTO_SCROLL_STATE);
       tlAdapter.onRestoreInstanceState(savedInstanceState.getParcelable(SS_ADAPTER));
     }
-    return inflater.inflate(R.layout.fragment_timeline, container, false);
+    binding = FragmentTimelineBinding.inflate(inflater, container, false);
+    return binding.getRoot();
   }
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    binding = DataBindingUtil.bind(view);
     binding.timeline.setHasFixedSize(true);
     binding.timeline.setAdapter(tlAdapter);
 
@@ -302,7 +301,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     }
     final SwipeRefreshLayout swipeLayout = binding.timelineSwipeLayout;
     swipeLayout.setOnRefreshListener(() -> {
-      timelineViewModel.getInitList();
+      timelineViewModel.getListOnStart();
       swipeLayout.setRefreshing(false);
     });
     fabViewModel.getMenuItem().observe(this, getMenuItemObserver());
