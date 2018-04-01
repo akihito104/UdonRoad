@@ -53,6 +53,9 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.android.AndroidInjection;
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import timber.log.Timber;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
@@ -64,7 +67,7 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  *
  * Created by akihit on 2016/07/12.
  */
-public class MediaViewActivity extends AppCompatActivity implements View.OnClickListener {
+public class MediaViewActivity extends AppCompatActivity implements View.OnClickListener, HasSupportFragmentInjector {
   @SuppressWarnings("unused")
   private static final String TAG = MediaViewActivity.class.getSimpleName();
   private static final String CREATE_STATUS = "status";
@@ -243,6 +246,14 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     } else {
       showSystemUI();
     }
+  }
+
+  @Inject
+  DispatchingAndroidInjector<Fragment> androidInjector;
+
+  @Override
+  public AndroidInjector<Fragment> supportFragmentInjector() {
+    return androidInjector;
   }
 
   private static class MediaPagerAdapter extends FragmentPagerAdapter {

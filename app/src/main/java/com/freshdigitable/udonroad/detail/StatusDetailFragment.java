@@ -41,15 +41,15 @@ import com.freshdigitable.udonroad.FabViewModel;
 import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.databinding.ViewStatusDetailBinding;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.user.UserInfoActivity;
 
 import javax.inject.Inject;
 
+import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.disposables.Disposable;
 import twitter4j.User;
 
@@ -80,8 +80,8 @@ public class StatusDetailFragment extends Fragment {
 
   @Override
   public void onAttach(Context context) {
+    AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
   }
 
   @Nullable

@@ -23,18 +23,24 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.Module;
+import dagger.android.AndroidInjector;
+import dagger.android.ContributesAndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.AndroidSupportInjection;
+import dagger.android.support.HasSupportFragmentInjector;
 import timber.log.Timber;
 import twitter4j.User;
 
@@ -42,13 +48,21 @@ import twitter4j.User;
  * Created by akihit on 2017/09/20.
  */
 
-public class UserSettingsActivity extends AppCompatActivity {
+public class UserSettingsActivity extends AppCompatActivity implements HasSupportFragmentInjector {
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getSupportFragmentManager().beginTransaction()
         .replace(android.R.id.content, new SettingsFragment())
         .commit();
+  }
+
+  @Inject
+  DispatchingAndroidInjector<Fragment> androidInjector;
+
+  @Override
+  public AndroidInjector<Fragment> supportFragmentInjector() {
+    return androidInjector;
   }
 
   public static class SettingsFragment extends PreferenceFragmentCompat
@@ -59,8 +73,8 @@ public class UserSettingsActivity extends AppCompatActivity {
 
     @Override
     public void onAttach(Context context) {
+      AndroidSupportInjection.inject(this);
       super.onAttach(context);
-      InjectionUtil.getComponent(this).inject(this);
       loginUserKey = getString(R.string.settings_key_loginUser);
     }
 
@@ -125,4 +139,9 @@ public class UserSettingsActivity extends AppCompatActivity {
     }
   }
 
+  @Module
+  public interface UserSettingFragmentModel {
+    @ContributesAndroidInjector
+    SettingsFragment contributeSettingsFragment();
+  }
 }

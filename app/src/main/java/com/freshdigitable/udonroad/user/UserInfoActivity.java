@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.user;
 
 import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
@@ -37,7 +37,16 @@ import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.AppViewModelProviderFactory;
+import com.freshdigitable.udonroad.FabViewModel;
+import com.freshdigitable.udonroad.OnSpanClickListener;
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.SnackbarCapable;
+import com.freshdigitable.udonroad.TimelineContainerSwitcher;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
+import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.ToolbarTweetInputToggle;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.input.TweetInputModel;
@@ -47,6 +56,9 @@ import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import javax.inject.Inject;
 
 import dagger.android.AndroidInjection;
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import twitter4j.User;
@@ -65,7 +77,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
  */
 public class UserInfoActivity extends AppCompatActivity
     implements SnackbarCapable, OnUserIconClickedListener,
-    OnSpanClickListener, TimelineFragment.OnItemClickedListener {
+    OnSpanClickListener, TimelineFragment.OnItemClickedListener, HasSupportFragmentInjector {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
   private ActivityUserInfoBinding binding;
@@ -389,5 +401,14 @@ public class UserInfoActivity extends AppCompatActivity
     if (type == ContentType.LISTS) {
       timelineContainerSwitcher.showListTimeline(id, query);
     }
+  }
+
+  @Inject
+  DispatchingAndroidInjector<Fragment> androidInjector;
+
+  @Override
+  public AndroidInjector<Fragment> supportFragmentInjector() {
+    return androidInjector;
+
   }
 }

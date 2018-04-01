@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package com.freshdigitable.udonroad.module;
 
-import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 
-import com.freshdigitable.udonroad.MainApplication;
+import javax.inject.Singleton;
+
+import dagger.Module;
+import dagger.Provides;
 
 /**
- * InjectionUtil is utilization class to inject modules.
- *
- * Created by akihit on 2016/07/25.
+ * Created by akihit on 2018/04/01.
  */
-public class InjectionUtil {
-  public static AppComponent getComponent(Application app) {
-    final MainApplication application = (MainApplication) app;
-    return application.getAppComponent();
-  }
-
-  private InjectionUtil() {
-    throw new AssertionError();
+@Module
+public class SharedPreferenceModule {
+  @Singleton
+  @Provides
+  SharedPreferences provideSharedPreferences(Context context) {
+    return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
   }
 }

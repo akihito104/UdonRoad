@@ -16,9 +16,12 @@
 
 package com.freshdigitable.udonroad;
 
+import android.support.test.InstrumentationRegistry;
+
+import com.freshdigitable.udonroad.MockTwitterApiModule.UserStreamListenerHolder;
 import com.freshdigitable.udonroad.module.AppComponent;
-import com.freshdigitable.udonroad.repository.RepositoryModule;
-import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
+
+import javax.inject.Inject;
 
 import twitter4j.UserStreamListener;
 
@@ -29,18 +32,16 @@ import twitter4j.UserStreamListener;
  */
 public class MockMainApplication extends MainApplication {
 
-  private MockTwitterApiModule.MockTwitterStreamApiModule streamApiModule;
+  @Inject
+  UserStreamListenerHolder streamApiModule;
 
   @Override
   protected AppComponent createAppComponent() {
-    streamApiModule = new MockTwitterApiModule.MockTwitterStreamApiModule();
-    return DaggerMockAppComponent.builder()
-        .twitterApiModule(new MockTwitterApiModule(getApplicationContext()))
-        .mockTwitterStreamApiModule(streamApiModule)
-        .dataStoreModule(new MockDataStoreModule(getApplicationContext()))
-        .repositoryModule(new RepositoryModule(getApplicationContext()))
-        .demoListFetcherModule(new DemoListFetcherModule(getApplicationContext()))
+    final MockAppComponent component = DaggerMockAppComponent.builder()
+        .application(InstrumentationRegistry.getTargetContext())
         .build();
+    component.inject(this);
+    return component;
   }
 
   public UserStreamListener getUserStreamListener() {

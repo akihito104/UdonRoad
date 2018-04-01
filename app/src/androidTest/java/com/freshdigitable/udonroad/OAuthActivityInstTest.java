@@ -10,6 +10,7 @@ import android.support.test.espresso.intent.rule.IntentsTestRule;
 import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;

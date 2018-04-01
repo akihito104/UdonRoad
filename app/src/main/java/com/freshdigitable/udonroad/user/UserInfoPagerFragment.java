@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.user;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -31,8 +31,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 
+import com.freshdigitable.udonroad.FabViewModel;
+import com.freshdigitable.udonroad.ItemSelectable;
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,10 +45,13 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import twitter4j.User;
+
+import static com.freshdigitable.udonroad.TimelineContainerSwitcher.makeSwitchingAnimation;
 
 /**
  * UserInfoPagerFragment provides ViewPager to show specified user tweets.
@@ -71,9 +79,8 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onAttach(Context context) {
-    Timber.tag(TAG).d("onAttach: ");
+    AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
   }
 
   @Override
@@ -308,7 +315,7 @@ public class UserInfoPagerFragment extends Fragment implements ItemSelectable {
 
   @Override
   public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
-    final Animation animation = TimelineContainerSwitcher.makeSwitchingAnimation(getContext(), transit, enter);
+    final Animation animation = makeSwitchingAnimation(getContext(), transit, enter);
     return animation != null ? animation
         : super.onCreateAnimation(transit, enter, nextAnim);
   }

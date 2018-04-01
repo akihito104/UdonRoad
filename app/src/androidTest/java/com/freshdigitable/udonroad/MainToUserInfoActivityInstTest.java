@@ -25,6 +25,8 @@ import android.support.test.runner.lifecycle.Stage;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 
+import com.freshdigitable.udonroad.user.UserInfoActivity;
+import com.freshdigitable.udonroad.user.UserInfoPagerFragment;
 import com.freshdigitable.udonroad.util.PerformUtil;
 
 import org.junit.Rule;

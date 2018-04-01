@@ -19,17 +19,9 @@ package com.freshdigitable.udonroad.module;
 import android.content.Context;
 
 import com.freshdigitable.udonroad.MainApplication;
-import com.freshdigitable.udonroad.OAuthActivity;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.TimelineFragment;
-import com.freshdigitable.udonroad.UserInfoFragment;
-import com.freshdigitable.udonroad.UserInfoPagerFragment;
-import com.freshdigitable.udonroad.UserSettingsActivity;
-import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
-import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.media.PhotoMediaFragment;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
@@ -56,7 +48,7 @@ import twitter4j.UserList;
  */
 @Singleton
 @Component(modules = {
-    TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
+    TwitterApiModule.class, DataStoreModule.class, SharedPreferenceModule.class, RepositoryModule.class,
     ViewModelModule.class, StatusListFetcherModule.class, UserListFetcherModule.class,
     ListsListFetcherModule.class, DemoListFetcherModule.class, ListItemRepositoryModule.class,
     AndroidSupportInjectionModule.class, ActivityModule.class
@@ -73,18 +65,6 @@ public interface AppComponent {
 
   void inject(MainApplication mainApplication);
 
-  void inject(UserInfoFragment userInfoFragment);
-
-  void inject(StatusDetailFragment statusDetailFragment);
-
-  void inject(TweetInputFragment tweetInputFragment);
-
-  void inject(UserInfoPagerFragment userInfoPagerFragment);
-
-  void inject(UserSettingsActivity.SettingsFragment settingsFragment);
-
-  void inject(PhotoMediaFragment photoMediaFragment);
-
   Map<StoreType, ListFetcher<Status>> storeTypeListFetcherStatusMap();
 
   Map<StoreType, ListFetcher<User>> storeTypeListFetcherUserMap();
@@ -92,10 +72,6 @@ public interface AppComponent {
   Map<StoreType, ListFetcher<UserList>> storeTypeListFetcherUserListMap();
 
   Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
-
-  void inject(TimelineFragment timelineFragment);
-
-  void inject(OAuthActivity.DemoTimelineFragment fragment);
 
   void inject(StatusDetailViewModel statusDetailViewModel);
 }

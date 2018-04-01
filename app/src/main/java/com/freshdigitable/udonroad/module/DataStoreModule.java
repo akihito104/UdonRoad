@@ -49,7 +49,7 @@ import twitter4j.UserList;
 
 /**
  * DataStoreModule defines injected modules for data store.
- *
+ * <p>
  * Created by akihit on 2016/07/25.
  */
 @Module
@@ -58,12 +58,6 @@ public class DataStoreModule {
   @Provides
   StoreManager provideStoreManager() {
     return new RealmStoreManager();
-  }
-
-  @Singleton
-  @Provides
-  SharedPreferences provideSharedPreferences(Context context) {
-    return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
   }
 
   @Provides

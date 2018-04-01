@@ -18,7 +18,7 @@ package com.freshdigitable.udonroad.timeline;
 
 import android.arch.lifecycle.ViewModel;
 
-import com.freshdigitable.udonroad.OAuthActivity;
+import com.freshdigitable.udonroad.oauth.DemoTimelineAdapter;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.TimelineAdapter;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
@@ -60,7 +60,7 @@ public class TimelineViewModel extends ViewModel {
     } else if (storeType.isForUser() || storeType.isForLists()) {
       return new TimelineAdapter(listItemRepository, imageLoader);
     } else if (storeType == StoreType.DEMO) {
-      return new OAuthActivity.DemoTimelineAdapter(listItemRepository, imageLoader);
+      return new DemoTimelineAdapter(listItemRepository, imageLoader);
     }
     throw new IllegalStateException("not capable of StoreType: " + storeType);
   }

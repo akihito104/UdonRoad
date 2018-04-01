@@ -16,11 +16,13 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
+
 import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
 import com.freshdigitable.udonroad.datastore.StatusTypedCacheTest;
+import com.freshdigitable.udonroad.module.ActivityModule;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
-import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.ViewModelModule;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
@@ -31,21 +33,36 @@ import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryModule;
 
 import javax.inject.Singleton;
 
+import dagger.BindsInstance;
 import dagger.Component;
+import dagger.android.support.AndroidSupportInjectionModule;
 
 /**
  * MockAppComponent is application component for test.
- *
+ * <p>
  * Created by akihit on 2016/06/16.
  */
 @Singleton
 @Component(modules = {
-    TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
-    MockTwitterApiModule.MockTwitterStreamApiModule.class, ViewModelModule.class,
+    MockTwitterApiModule.class,
+    DataStoreModule.class, MockSharedPreferenceModule.class, RepositoryModule.class,
+    ViewModelModule.class,
     StatusListFetcherModule.class, UserListFetcherModule.class, ListsListFetcherModule.class,
-    DemoListFetcherModule.class, ListItemRepositoryModule.class
+    DemoListFetcherModule.class, ListItemRepositoryModule.class,
+    AndroidSupportInjectionModule.class, ActivityModule.class
 })
 public interface MockAppComponent extends AppComponent {
+
+  @Component.Builder
+  interface Builder {
+    @BindsInstance
+    Builder application(Context context);
+
+    MockAppComponent build();
+  }
+
+  void inject(MockMainApplication application);
+
   void inject(TimelineInstTestBase mainActivityInstTest);
 
   void inject(UserInfoActivityInstTest.Base userInfoActivityInstTest);

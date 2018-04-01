@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,45 +14,38 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.oauth;
 
 import android.app.Activity;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.FabViewModel;
+import com.freshdigitable.udonroad.MainActivity;
+import com.freshdigitable.udonroad.MainApplication;
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.SnackbarCapable;
+import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.TimelineFragment;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
-import com.freshdigitable.udonroad.listitem.ItemViewHolder;
-import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.QuotedStatusView;
-import com.freshdigitable.udonroad.listitem.StatusView;
-import com.freshdigitable.udonroad.listitem.StatusViewHolder;
-import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
-import com.freshdigitable.udonroad.listitem.TwitterListItem;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
-import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 
 import javax.inject.Inject;
 
 import dagger.android.AndroidInjection;
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.processors.PublishProcessor;
 import timber.log.Timber;
@@ -70,7 +63,7 @@ import static com.freshdigitable.udonroad.FabViewModel.Type.TOOLBAR;
  * Created by akihit on 15/10/22.
  */
 public class OAuthActivity extends AppCompatActivity
-    implements SnackbarCapable, OnUserIconClickedListener {
+    implements SnackbarCapable, OnUserIconClickedListener, HasSupportFragmentInjector {
   private static final String TAG = OAuthActivity.class.getName();
 
   @Inject
@@ -156,7 +149,7 @@ public class OAuthActivity extends AppCompatActivity
     requestToken = (RequestToken) savedInstanceState.getSerializable(SS_REQUEST_TOKEN);
   }
 
-  private void startAuthorization() {
+  void startAuthorization() {
     ((MainApplication) getApplication()).logout();
     twitterApi.fetchOAuthRequestToken()
         .observeOn(AndroidSchedulers.mainThread())
@@ -171,7 +164,7 @@ public class OAuthActivity extends AppCompatActivity
     startActivity(intent);
   }
 
-  private void startAuthentication(final String verifier) {
+  void startAuthentication(final String verifier) {
     twitterApi.fetchOAuthAccessToken(requestToken, verifier)
         .observeOn(AndroidSchedulers.mainThread())
         .doOnError(err -> Timber.tag(TAG).e(err, "authentication error: "))
@@ -227,149 +220,11 @@ public class OAuthActivity extends AppCompatActivity
     this.userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_user_icon));
   }
 
-  public static class DemoTimelineFragment extends TimelineFragment {
-    @Inject
-    PublishProcessor<UserFeedbackEvent> userFeedback;
+  @Inject
+  DispatchingAndroidInjector<Fragment> androidInjector;
 
-    @Override
-    public void onAttach(Context context) {
-      super.onAttach(context);
-      InjectionUtil.getComponent(this).inject(this);
-    }
-
-    @Override
-    public void onStart() {
-      super.onStart();
-      ((DemoTimelineAdapter) tlAdapter).loginClickListener = v ->
-          ((OAuthActivity) getActivity()).startAuthorization();
-      ((DemoTimelineAdapter) tlAdapter).sendPinClickListener = (v, pin) ->
-          ((OAuthActivity) getActivity()).startAuthentication(pin);
-    }
-
-    @Override
-    Observer<MenuItem> getMenuItemObserver() {
-      return item -> {
-        if (item == null) {
-          return;
-        }
-        final int itemId = item.getItemId();
-        if (itemId == R.id.iffabMenu_main_fav) {
-          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_fav));
-        } else if (itemId == R.id.iffabMenu_main_rt) {
-          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_rt));
-        } else if (itemId == R.id.iffabMenu_main_favRt) {
-          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_favRt));
-        } else if (itemId == R.id.iffabMenu_main_detail) {
-          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_detail));
-        } else if (itemId == R.id.iffabMenu_main_conv) {
-          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_conv));
-        } else if (itemId == R.id.iffabMenu_main_reply) {
-          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_reply));
-        } else if (itemId == R.id.iffabMenu_main_quote) {
-          userFeedback.onNext(new UserFeedbackEvent(R.string.msg_oauth_quote));
-        }
-      };
-    }
-
-    @Override
-    public void onStop() {
-      super.onStop();
-      ((DemoTimelineAdapter) tlAdapter).loginClickListener = null;
-      ((DemoTimelineAdapter) tlAdapter).sendPinClickListener = null;
-    }
-
-    @Override
-    OnItemViewClickListener createOnItemViewClickListener() {
-      return null;
-    }
-  }
-
-  public static class DemoTimelineAdapter extends TimelineAdapter {
-    private static final int TYPE_AUTH = 0;
-    private static final int TYPE_TWEET = 1;
-
-    public DemoTimelineAdapter(ListItemRepository timelineStore, StatusViewImageLoader imageLoader) {
-      super(timelineStore, imageLoader);
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-      return repository.get(position) instanceof TwitterListItem ? TYPE_TWEET : TYPE_AUTH;
-    }
-
-    @Override
-    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-      return viewType == TYPE_TWEET ? new StatusViewHolder(parent)
-          : new DemoViewHolder(View.inflate(parent.getContext(), R.layout.view_pin_auth, null));
-    }
-
-    @Override
-    public void onBindViewHolder(ItemViewHolder holder, int position) {
-      if (holder instanceof StatusViewHolder) {
-        holder.bind(super.repository.get(position), imageLoader);
-        final ImageView userIcon = holder.getUserIcon();
-        final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
-        userIcon.setImageDrawable(icon);
-        final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
-        if (quotedStatusView != null) {
-          quotedStatusView.getIcon().setImageDrawable(icon);
-        }
-      }
-    }
-
-    interface OnSendPinClickListener {
-      void onClick(View v, String pin);
-    }
-
-    private View.OnClickListener loginClickListener;
-    private OnSendPinClickListener sendPinClickListener;
-
-    @Override
-    public void onViewAttachedToWindow(ItemViewHolder holder) {
-      if (holder instanceof DemoViewHolder) {
-        ((DemoViewHolder) holder).oauthButton.setOnClickListener(loginClickListener);
-        ((DemoViewHolder) holder).sendPin.setOnClickListener(v ->
-            sendPinClickListener.onClick(v, ((DemoViewHolder) holder).pin.getText().toString()));
-      } else {
-        super.onViewAttachedToWindow(holder);
-      }
-    }
-
-    @Override
-    public void onViewDetachedFromWindow(ItemViewHolder holder) {
-      if (holder instanceof DemoViewHolder) {
-        ((DemoViewHolder) holder).oauthButton.setOnClickListener(null);
-        ((DemoViewHolder) holder).sendPin.setOnClickListener(null);
-      } else {
-        super.onViewDetachedFromWindow(holder);
-      }
-    }
-  }
-
-  private static class DemoViewHolder extends ItemViewHolder {
-    private View oauthButton;
-    private EditText pin;
-    private Button sendPin;
-
-    DemoViewHolder(View view) {
-      super(view);
-      oauthButton = view.findViewById(R.id.oauth_start);
-      pin = view.findViewById(R.id.oauth_pin);
-      sendPin = view.findViewById(R.id.oauth_send_pin);
-    }
-
-    @Override
-    public ImageView getUserIcon() {
-      return null;
-    }
-
-    @Override
-    public void onUpdate(ListItem item) {}
-
-    @Override
-    public void onSelected(long itemId) {}
-
-    @Override
-    public void onUnselected(long itemId) {}
+  @Override
+  public AndroidInjector<Fragment> supportFragmentInjector() {
+    return androidInjector;
   }
 }

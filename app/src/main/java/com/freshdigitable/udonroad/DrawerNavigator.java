@@ -36,6 +36,7 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.listitem.TwitterCombinedName;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
+import com.freshdigitable.udonroad.user.UserInfoActivity;
 
 import java.util.List;
 

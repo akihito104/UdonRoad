@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.module;
+package com.freshdigitable.udonroad.media;
 
-import android.app.Application;
-
-import com.freshdigitable.udonroad.MainApplication;
+import dagger.Module;
+import dagger.android.ContributesAndroidInjector;
 
 /**
- * InjectionUtil is utilization class to inject modules.
- *
- * Created by akihit on 2016/07/25.
+ * Created by akihit on 2018/04/01.
  */
-public class InjectionUtil {
-  public static AppComponent getComponent(Application app) {
-    final MainApplication application = (MainApplication) app;
-    return application.getAppComponent();
-  }
-
-  private InjectionUtil() {
-    throw new AssertionError();
-  }
+@Module
+public interface MediaFragmentModule {
+  @ContributesAndroidInjector
+  PhotoMediaFragment contributePhotoMediaFragment();
 }

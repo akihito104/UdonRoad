@@ -23,7 +23,7 @@
     <data>
         <import type="android.view.View"/>
         <import type="android.graphics.Color"/>
-        <import type="com.freshdigitable.udonroad.UserInfoActivity"/>
+        <import type="com.freshdigitable.udonroad.user.UserInfoActivity"/>
         <import type="com.freshdigitable.udonroad.media.MediaViewActivity"/>
         <variable
             name="item"

@@ -31,6 +31,7 @@ import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
+import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 import com.squareup.leakcanary.LeakCanary;
@@ -131,7 +132,7 @@ public class MainApplication extends Application implements HasActivityInjector 
     }
   }
 
-  void login(long userId) {
+  public void login(long userId) {
     login(this, userId);
   }
 
@@ -150,7 +151,7 @@ public class MainApplication extends Application implements HasActivityInjector 
     app.appSettingWorker.verifyCredentials();
   }
 
-  void logout() {
+  public void logout() {
     logout(this);
   }
 

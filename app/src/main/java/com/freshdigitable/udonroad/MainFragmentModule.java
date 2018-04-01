@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,23 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.detail.StatusDetailFragment;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
+
+import dagger.Module;
+import dagger.android.ContributesAndroidInjector;
+
 /**
- * Created by akihit on 2017/07/07.
+ * Created by akihit on 2018/04/01.
  */
+@Module
+public interface MainFragmentModule {
+  @ContributesAndroidInjector
+  TimelineFragment contributeTimelineFragment();
 
-public interface ItemSelectable {
-  boolean isItemSelected();
+  @ContributesAndroidInjector
+  TweetInputFragment contributeTweetInputFragment();
 
-  void clearSelectedItem();
-
-  long getSelectedItemId();
+  @ContributesAndroidInjector
+  StatusDetailFragment contributeStatusDetailFragment();
 }

@@ -42,7 +42,6 @@ import com.freshdigitable.udonroad.AppViewModelProviderFactory;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentTweetInputBinding;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 
 import java.lang.annotation.Retention;
@@ -51,6 +50,7 @@ import java.util.Collection;
 
 import javax.inject.Inject;
 
+import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
@@ -79,8 +79,8 @@ public class TweetInputFragment extends Fragment {
 
   @Override
   public void onAttach(Context context) {
+    AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
     viewModel = ViewModelProviders.of(getActivity(), factory).get(TweetInputViewModel.class);
     getLifecycle().addObserver(viewModel);
   }

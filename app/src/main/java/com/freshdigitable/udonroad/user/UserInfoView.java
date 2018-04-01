@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.user;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -32,6 +32,10 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.SpannableStringUtil;
+import com.freshdigitable.udonroad.Utils;
 
 import twitter4j.Relationship;
 import twitter4j.URLEntity;

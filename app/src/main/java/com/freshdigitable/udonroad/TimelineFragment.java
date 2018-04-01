@@ -47,14 +47,15 @@ import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.timeline.TimelineViewModel;
+import com.freshdigitable.udonroad.user.UserInfoPagerFragment;
 
 import java.util.EnumSet;
 
 import javax.inject.Inject;
 
+import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
@@ -71,7 +72,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   private static final String SS_ADAPTER = "ss_adapter";
   private static final String SS_AUTO_SCROLL_STATE = "ss_auto_scroll_state";
   private FragmentTimelineBinding binding;
-  TimelineAdapter tlAdapter;
+  protected TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
   private Disposable updateEventSubscription;
   private TimelineDecoration timelineDecoration;
@@ -87,8 +88,8 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void onAttach(Context context) {
+    AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
     timelineViewModel = ViewModelProviders.of(this, viewModelFactory).get(TimelineViewModel.class);
     timelineViewModel.init(getStoreType(), getEntityId(), getQuery());
     updateEventSubscription = timelineViewModel.observeUpdateEvent()
@@ -307,7 +308,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     fabViewModel.getMenuItem().observe(this, getMenuItemObserver());
   }
 
-  Observer<MenuItem> getMenuItemObserver() {
+  protected Observer<MenuItem> getMenuItemObserver() {
     return item -> {
       if (item == null) {
         return;
@@ -518,7 +519,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     timelineViewModel.drop();
   }
 
-  interface OnItemClickedListener {
+  public interface OnItemClickedListener {
     void onItemClicked(ContentType type, long id, String query);
   }
 
@@ -526,7 +527,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   private static final String ARGS_ENTITY_ID = "entity_id";
   private static final String ARGS_QUERY = "query";
 
-  static Bundle createArgs(StoreType storeType, long entityId, String query) {
+  public static Bundle createArgs(StoreType storeType, long entityId, String query) {
     final Bundle args = new Bundle();
     args.putSerializable(ARGS_STORE_NAME, storeType);
     if (entityId > 0) {
@@ -561,7 +562,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     return timelineFragment;
   }
 
-  String getStoreName() {
+  public String getStoreName() {
     return getStoreType().nameWithSuffix(getEntityId(), getQuery());
   }
 
@@ -577,7 +578,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     return getArguments().getString(ARGS_QUERY, "");
   }
 
-  OnItemViewClickListener createOnItemViewClickListener() {
+  protected OnItemViewClickListener createOnItemViewClickListener() {
     final StoreType storeType = getStoreType();
     if (storeType.isForUser()) {
       final OnUserIconClickedListener userIconClickedListener = createUserIconClickedListener();
