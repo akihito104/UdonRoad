@@ -28,16 +28,9 @@ import dagger.Provides;
  */
 @Module
 public class RepositoryModule {
-
-  private final Context context;
-
-  public RepositoryModule(Context context) {
-    this.context = context.getApplicationContext();
-  }
-
   @Provides
   @Singleton
-  ImageRepository provideImageRepository() {
+  ImageRepository provideImageRepository(Context context) {
     return new ImageRepositoryImpl(context);
   }
 }

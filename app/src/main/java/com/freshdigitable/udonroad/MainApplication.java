@@ -29,14 +29,10 @@ import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
-import com.freshdigitable.udonroad.module.DataStoreModule;
-import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
-import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
-import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 import com.squareup.leakcanary.LeakCanary;
 
 import java.util.ArrayList;
@@ -102,10 +98,7 @@ public class MainApplication extends Application implements HasActivityInjector 
   @VisibleForTesting
   protected AppComponent createAppComponent() {
     return DaggerAppComponent.builder()
-        .twitterApiModule(new TwitterApiModule(getApplicationContext()))
-        .dataStoreModule(new DataStoreModule(getApplicationContext()))
-        .repositoryModule(new RepositoryModule(getApplicationContext()))
-        .demoListFetcherModule(new DemoListFetcherModule(getApplicationContext()))
+        .application(getApplicationContext())
         .build();
   }
 

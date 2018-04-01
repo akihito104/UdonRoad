@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.module;
 
+import android.content.Context;
+
 import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.OAuthActivity;
 import com.freshdigitable.udonroad.StoreType;
@@ -40,8 +42,9 @@ import java.util.Map;
 
 import javax.inject.Singleton;
 
+import dagger.BindsInstance;
 import dagger.Component;
-import dagger.android.AndroidInjectionModule;
+import dagger.android.support.AndroidSupportInjectionModule;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserList;
@@ -56,9 +59,20 @@ import twitter4j.UserList;
     TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
     ViewModelModule.class, StatusListFetcherModule.class, UserListFetcherModule.class,
     ListsListFetcherModule.class, DemoListFetcherModule.class, ListItemRepositoryModule.class,
-    AndroidInjectionModule.class, ActivityModule.class
+    AndroidSupportInjectionModule.class, ActivityModule.class
 })
 public interface AppComponent {
+
+  @Component.Builder
+  interface Builder {
+    @BindsInstance
+    Builder application(Context context);
+
+    AppComponent build();
+  }
+
+  void inject(MainApplication mainApplication);
+
   void inject(UserInfoFragment userInfoFragment);
 
   void inject(StatusDetailFragment statusDetailFragment);
@@ -66,8 +80,6 @@ public interface AppComponent {
   void inject(TweetInputFragment tweetInputFragment);
 
   void inject(UserInfoPagerFragment userInfoPagerFragment);
-
-  void inject(MainApplication mainApplication);
 
   void inject(UserSettingsActivity.SettingsFragment settingsFragment);
 

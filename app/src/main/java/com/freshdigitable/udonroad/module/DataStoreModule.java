@@ -54,26 +54,20 @@ import twitter4j.UserList;
  */
 @Module
 public class DataStoreModule {
-  protected final Context context;
-
-  public DataStoreModule(Context context) {
-    this.context = context;
-  }
-
   @Singleton
   @Provides
-  public StoreManager provideStoreManager() {
+  StoreManager provideStoreManager() {
     return new RealmStoreManager();
   }
 
   @Singleton
   @Provides
-  public SharedPreferences provideSharedPreferences() {
+  SharedPreferences provideSharedPreferences(Context context) {
     return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
   }
 
   @Provides
-  AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences) {
+  AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences, Context context) {
     return new AppSettingStoreRealm(sharedPreferences, context.getFilesDir());
   }
 

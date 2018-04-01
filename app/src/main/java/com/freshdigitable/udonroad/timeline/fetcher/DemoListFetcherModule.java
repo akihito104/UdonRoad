@@ -42,16 +42,11 @@ import twitter4j.User;
  */
 @Module
 public class DemoListFetcherModule {
-  private final List<ListItem> items;
-
-  public DemoListFetcherModule(Context context) {
-    items = createItems(context);
-  }
-
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.DEMO)
-  ListFetcher<ListItem> providesDemoListFetcher() {
+  ListFetcher<ListItem> providesDemoListFetcher(Context context) {
+    final List<ListItem> items = createItems(context);
     return new ListFetcher<ListItem>() {
       @Override
       public Single<? extends List<ListItem>> fetchInit(FetchQuery query) {
