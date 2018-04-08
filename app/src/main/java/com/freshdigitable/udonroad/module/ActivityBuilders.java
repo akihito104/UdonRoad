@@ -21,7 +21,7 @@ import com.freshdigitable.udonroad.MainFragmentModule;
 import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.UserSettingsActivity;
 import com.freshdigitable.udonroad.media.MediaFragmentModule;
-import com.freshdigitable.udonroad.oauth.OAuthFragmentModule;
+import com.freshdigitable.udonroad.oauth.OAuthActivityModule;
 import com.freshdigitable.udonroad.user.UserFragmentModel;
 import com.freshdigitable.udonroad.user.UserInfoActivity;
 import com.freshdigitable.udonroad.input.TweetInputActivity;
@@ -34,8 +34,8 @@ import dagger.android.ContributesAndroidInjector;
  * Created by akihit on 2018/03/25.
  */
 @Module
-public abstract class ActivityModule {
-  @ContributesAndroidInjector(modules = {OAuthFragmentModule.class})
+public abstract class ActivityBuilders {
+  @ContributesAndroidInjector(modules = {OAuthActivityModule.class})
   abstract OAuthActivity contributeOAuthActivity();
 
   @ContributesAndroidInjector(modules = {MainFragmentModule.class})

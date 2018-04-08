@@ -20,9 +20,7 @@ import android.content.Context;
 
 import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
-import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
 import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
@@ -49,8 +47,8 @@ import twitter4j.UserList;
 @Component(modules = {
     TwitterApiModule.class, DataStoreModule.class, SharedPreferenceModule.class, RepositoryModule.class,
     ViewModelModule.class, StatusListFetcherModule.class, UserListFetcherModule.class,
-    ListsListFetcherModule.class, DemoListFetcherModule.class, ListItemRepositoryModule.class,
-    AndroidSupportInjectionModule.class, ActivityModule.class
+    ListsListFetcherModule.class, ListItemRepositoryModule.class,
+    AndroidSupportInjectionModule.class, ActivityBuilders.class
 })
 public interface AppComponent {
 
@@ -69,6 +67,4 @@ public interface AppComponent {
   Map<StoreType, ListFetcher<User>> storeTypeListFetcherUserMap();
 
   Map<StoreType, ListFetcher<UserList>> storeTypeListFetcherUserListMap();
-
-  Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
 }

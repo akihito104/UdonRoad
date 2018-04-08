@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.timeline.fetcher;
+package com.freshdigitable.udonroad.oauth;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -23,12 +23,21 @@ import android.support.annotation.Nullable;
 import com.freshdigitable.udonroad.CombinedScreenNameTextView;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
+import com.freshdigitable.udonroad.timeline.fetcher.FetchQuery;
+import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
+import com.freshdigitable.udonroad.timeline.fetcher.ListFetcherModuleKey;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryModuleKey;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import javax.inject.Provider;
 
 import dagger.Module;
 import dagger.Provides;
@@ -42,6 +51,16 @@ import twitter4j.User;
  */
 @Module
 public class DemoListFetcherModule {
+
+  @Provides
+  @IntoMap
+  @ListItemRepositoryModuleKey(StoreType.DEMO)
+  static ListItemRepository provideDemoListItemRepository(
+      Map<StoreType, Provider<ListFetcher<ListItem>>> listFetchers,
+      UpdateSubjectFactory updateSubjectFactory) {
+    return new DemoListItemRepository(listFetchers.get(StoreType.DEMO).get(), updateSubjectFactory);
+  }
+
   @Provides
   @IntoMap
   @ListFetcherModuleKey(StoreType.DEMO)

@@ -20,12 +20,12 @@ import android.content.Context;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
 import com.freshdigitable.udonroad.datastore.StatusTypedCacheTest;
-import com.freshdigitable.udonroad.module.ActivityModule;
+import com.freshdigitable.udonroad.module.ActivityBuilders;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.ViewModelModule;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
-import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
+import com.freshdigitable.udonroad.oauth.DemoListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.UserListFetcherModule;
@@ -49,7 +49,7 @@ import dagger.android.support.AndroidSupportInjectionModule;
     ViewModelModule.class,
     StatusListFetcherModule.class, UserListFetcherModule.class, ListsListFetcherModule.class,
     DemoListFetcherModule.class, ListItemRepositoryModule.class,
-    AndroidSupportInjectionModule.class, ActivityModule.class
+    AndroidSupportInjectionModule.class, ActivityBuilders.class
 })
 public interface MockAppComponent extends AppComponent {
 

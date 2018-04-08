@@ -16,6 +16,12 @@
 
 package com.freshdigitable.udonroad.oauth;
 
+import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.listitem.ListItem;
+import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
+
+import java.util.Map;
+
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
 
@@ -23,7 +29,11 @@ import dagger.android.ContributesAndroidInjector;
  * Created by akihit on 2018/04/01.
  */
 @Module
-public interface OAuthFragmentModule {
-  @ContributesAndroidInjector
+public interface OAuthActivityModule {
+  @ContributesAndroidInjector(modules = {
+      DemoListFetcherModule.class
+  })
   DemoTimelineFragment contributeDemoTimelineFragment();
+
+  Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
 }
