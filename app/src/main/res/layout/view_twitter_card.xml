@@ -25,6 +25,10 @@
             name="item"
             type="com.freshdigitable.udonroad.TwitterCard"
             />
+        <variable
+            name="onClickListener"
+            type="android.view.View.OnClickListener"
+            />
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -32,6 +36,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/selector_rounded_frame"
         android:padding="@dimen/frame_border_width"
+        android:onClick="@{onClickListener}"
         >
         <com.freshdigitable.udonroad.RoundedCornerImageView
             android:id="@+id/card_image"

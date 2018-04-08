@@ -22,6 +22,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.content.res.AppCompatResources;
@@ -84,8 +85,8 @@ public class CombinedScreenNameTextView extends AppCompatTextView {
 
   private CombinedName currentName;
 
-  public void setNames(@NonNull CombinedName combinedName) {
-    if (combinedName.equals(currentName)) {
+  public void setNames(@Nullable CombinedName combinedName) {
+    if (combinedName == null || combinedName.equals(currentName)) {
       return;
     }
     final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(combinedName.getName());

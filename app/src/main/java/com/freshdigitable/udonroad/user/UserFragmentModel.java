@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.user;
 
 import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
 
 import dagger.Module;
@@ -38,4 +39,7 @@ public interface UserFragmentModel {
 
   @ContributesAndroidInjector
   TweetInputFragment contributeTweetInputFragment();
+
+  @ContributesAndroidInjector
+  StatusDetailFragment contributeStatusDetailFragment();
 }

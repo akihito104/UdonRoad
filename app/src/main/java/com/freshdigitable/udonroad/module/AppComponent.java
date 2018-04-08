@@ -20,7 +20,6 @@ import android.content.Context;
 
 import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
@@ -72,6 +71,4 @@ public interface AppComponent {
   Map<StoreType, ListFetcher<UserList>> storeTypeListFetcherUserListMap();
 
   Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
-
-  void inject(StatusDetailViewModel statusDetailViewModel);
 }
