@@ -45,10 +45,17 @@ import twitter4j.UserList;
  */
 @Singleton
 @Component(modules = {
-    TwitterApiModule.class, DataStoreModule.class, SharedPreferenceModule.class, RepositoryModule.class,
-    ViewModelModule.class, StatusListFetcherModule.class, UserListFetcherModule.class,
-    ListsListFetcherModule.class, ListItemRepositoryModule.class,
-    AndroidSupportInjectionModule.class, ActivityBuilders.class
+    TwitterApiModule.class,
+    DataStoreModule.class,
+    SharedPreferenceModule.class,
+    RepositoryModule.class,
+    ViewModelModule.class,
+    StatusListFetcherModule.class,
+    UserListFetcherModule.class,
+    ListsListFetcherModule.class,
+    ListItemRepositoryModule.class,
+    AndroidSupportInjectionModule.class,
+    ActivityBuilders.class
 })
 public interface AppComponent {
 

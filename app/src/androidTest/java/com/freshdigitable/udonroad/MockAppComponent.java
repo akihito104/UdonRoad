@@ -25,7 +25,6 @@ import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.ViewModelModule;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
-import com.freshdigitable.udonroad.oauth.DemoListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.UserListFetcherModule;
@@ -45,11 +44,16 @@ import dagger.android.support.AndroidSupportInjectionModule;
 @Singleton
 @Component(modules = {
     MockTwitterApiModule.class,
-    DataStoreModule.class, MockSharedPreferenceModule.class, RepositoryModule.class,
+    DataStoreModule.class,
+    MockSharedPreferenceModule.class,
+    RepositoryModule.class,
     ViewModelModule.class,
-    StatusListFetcherModule.class, UserListFetcherModule.class, ListsListFetcherModule.class,
-    DemoListFetcherModule.class, ListItemRepositoryModule.class,
-    AndroidSupportInjectionModule.class, ActivityBuilders.class
+    StatusListFetcherModule.class,
+    UserListFetcherModule.class,
+    ListsListFetcherModule.class,
+    ListItemRepositoryModule.class,
+    AndroidSupportInjectionModule.class,
+    ActivityBuilders.class
 })
 public interface MockAppComponent extends AppComponent {
 
