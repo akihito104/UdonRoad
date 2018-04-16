@@ -16,34 +16,14 @@
 
 package com.freshdigitable.udonroad.oauth;
 
-import android.app.Activity;
-
-import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
-
-import java.util.Map;
-
-import dagger.Binds;
 import dagger.Module;
-import dagger.android.ActivityKey;
-import dagger.android.AndroidInjector;
 import dagger.android.ContributesAndroidInjector;
-import dagger.multibindings.IntoMap;
 
 /**
  * Created by akihit on 2018/04/01.
  */
-@Module(subcomponents = {OAuthComponent.class},
-    includes = {DemoListFetcherModule.class})
+@Module
 public interface OAuthActivityModule {
-  @Binds
-  @IntoMap
-  @ActivityKey(OAuthActivity.class)
-  AndroidInjector.Factory<? extends Activity> bindOAuthActivityInjectorFactory(OAuthComponent.Builder builder);
-
   @ContributesAndroidInjector
   DemoTimelineFragment contributeDemoTimelineFragment();
-
-  Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
 }
