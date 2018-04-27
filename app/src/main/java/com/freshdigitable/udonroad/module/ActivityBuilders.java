@@ -17,14 +17,14 @@
 package com.freshdigitable.udonroad.module;
 
 import com.freshdigitable.udonroad.MainActivity;
-import com.freshdigitable.udonroad.MainFragmentModule;
+import com.freshdigitable.udonroad.MainActivityModule;
 import com.freshdigitable.udonroad.UserSettingsActivity;
 import com.freshdigitable.udonroad.input.TweetInputActivity;
-import com.freshdigitable.udonroad.media.MediaFragmentModule;
+import com.freshdigitable.udonroad.media.MediaViewActivityModule;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.oauth.OAuthActivityModule;
-import com.freshdigitable.udonroad.user.UserFragmentModel;
+import com.freshdigitable.udonroad.user.UserInfoActivityModule;
 import com.freshdigitable.udonroad.user.UserInfoActivity;
 
 import dagger.Module;
@@ -38,18 +38,18 @@ public abstract class ActivityBuilders {
   @ContributesAndroidInjector(modules = {OAuthActivityModule.class})
   abstract OAuthActivity contributeOAuthActivity();
 
-  @ContributesAndroidInjector(modules = {MainFragmentModule.class})
+  @ContributesAndroidInjector(modules = {MainActivityModule.class})
   abstract MainActivity contributeMainActivity();
 
-  @ContributesAndroidInjector(modules = {MediaFragmentModule.class})
+  @ContributesAndroidInjector(modules = {MediaViewActivityModule.class})
   abstract MediaViewActivity contributeMediaViewActivity();
 
-  @ContributesAndroidInjector(modules = {UserFragmentModel.class})
+  @ContributesAndroidInjector(modules = {UserInfoActivityModule.class})
   abstract UserInfoActivity contributeUserInfoActivity();
 
   @ContributesAndroidInjector
   abstract TweetInputActivity contributeTweetInputActivity();
 
-  @ContributesAndroidInjector(modules = {UserSettingsActivity.UserSettingFragmentModel.class})
+  @ContributesAndroidInjector(modules = {UserSettingsActivity.UserSettingsActivityModule.class})
   abstract UserSettingsActivity contributeUserSettingsActivity();
 }

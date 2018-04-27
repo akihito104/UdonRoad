@@ -140,7 +140,7 @@ public class UserSettingsActivity extends AppCompatActivity implements HasSuppor
   }
 
   @Module
-  public interface UserSettingFragmentModel {
+  public interface UserSettingsActivityModule {
     @ContributesAndroidInjector
     SettingsFragment contributeSettingsFragment();
   }

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.user;
+package com.freshdigitable.udonroad;
 
-import com.freshdigitable.udonroad.TimelineFragment;
 import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
 
@@ -27,13 +26,7 @@ import dagger.android.ContributesAndroidInjector;
  * Created by akihit on 2018/04/01.
  */
 @Module
-public interface UserFragmentModel {
-  @ContributesAndroidInjector
-  UserInfoFragment contributeUserInfoFragment();
-
-  @ContributesAndroidInjector
-  UserInfoPagerFragment contributeUserInfoPagerFragment();
-
+public interface MainActivityModule {
   @ContributesAndroidInjector
   TimelineFragment contributeTimelineFragment();
 

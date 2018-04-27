@@ -23,7 +23,7 @@ import dagger.android.ContributesAndroidInjector;
  * Created by akihit on 2018/04/01.
  */
 @Module
-public interface MediaFragmentModule {
+public interface MediaViewActivityModule {
   @ContributesAndroidInjector
   PhotoMediaFragment contributePhotoMediaFragment();
 }
