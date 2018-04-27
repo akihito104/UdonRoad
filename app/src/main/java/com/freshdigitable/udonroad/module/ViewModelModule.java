@@ -20,6 +20,7 @@ import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 
 import com.freshdigitable.udonroad.AppViewModelProviderFactory;
+import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.input.TweetInputViewModel;
 import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
@@ -41,6 +42,11 @@ public abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(TimelineViewModel.class)
   abstract ViewModel bindTimelineViewModel(TimelineViewModel viewModel);
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(StatusDetailViewModel.class)
+  abstract ViewModel bindStatusDetailViewModel(StatusDetailViewModel viewModel);
 
   @Binds
   abstract ViewModelProvider.Factory bindsViewModelProviderFactory(AppViewModelProviderFactory providerFactory);

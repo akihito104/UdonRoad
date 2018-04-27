@@ -33,6 +33,6 @@ import dagger.MapKey;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @MapKey
-@interface ListFetcherModuleKey {
+public @interface ListFetcherModuleKey {
   StoreType value();
 }

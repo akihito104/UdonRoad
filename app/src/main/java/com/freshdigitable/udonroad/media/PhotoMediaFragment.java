@@ -29,12 +29,12 @@ import android.widget.Toast;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 
 import javax.inject.Inject;
 
+import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.disposables.Disposable;
 import twitter4j.MediaEntity;
 
@@ -54,8 +54,8 @@ public class PhotoMediaFragment extends MediaViewActivity.MediaFragment {
 
   @Override
   public void onAttach(Context context) {
+    AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
   }
 
   @Nullable

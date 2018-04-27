@@ -44,6 +44,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil.ActivityWaiter;

@@ -20,7 +20,7 @@ package com.freshdigitable.udonroad;
  * Created by akihit on 2017/07/07.
  */
 
-interface ItemSelectable {
+public interface ItemSelectable {
   boolean isItemSelected();
 
   void clearSelectedItem();

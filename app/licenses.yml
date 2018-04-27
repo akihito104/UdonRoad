@@ -16,6 +16,18 @@
   name: Dagger
   copyrightHolder: Google, Inc.
   license: The Apache Software License, Version 2.0
+- artifact: com.google.dagger:dagger-android-support:+
+  name: Dagger Android Support
+  copyrightHolder: Google, Inc.
+  license: Apache 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://github.com/google/dagger
+- artifact: com.google.dagger:dagger-android:+
+  name: Dagger Android
+  copyrightHolder: Google, Inc.
+  license: Apache 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://github.com/google/dagger
 - artifact: com.android.databinding:baseLibrary:+
   name: Data Binding Base Library
   copyrightHolder: The Android Open Source Project

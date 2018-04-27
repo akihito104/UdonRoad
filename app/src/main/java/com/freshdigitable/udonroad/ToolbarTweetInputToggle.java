@@ -35,7 +35,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
  * Created by akihit on 2017/09/24.
  */
 
-class ToolbarTweetInputToggle {
+public class ToolbarTweetInputToggle {
   private final TweetInputFragment fragment;
   private final Toolbar toolbar;
   private final Drawable navigationIcon;
@@ -43,7 +43,7 @@ class ToolbarTweetInputToggle {
   private CharSequence navContentDescriptionDefault;
   private Drawable navIconDefault;
 
-  ToolbarTweetInputToggle(@NonNull Toolbar toolbar) {
+  public ToolbarTweetInputToggle(@NonNull Toolbar toolbar) {
     this(toolbar, TweetInputFragment.create());
   }
 
@@ -53,7 +53,7 @@ class ToolbarTweetInputToggle {
     this.navigationIcon = AppCompatResources.getDrawable(toolbar.getContext(), R.drawable.ic_clear_white);
   }
 
-  void expandTweetInputView(@TweetType int type, long statusId) {
+  public void expandTweetInputView(@TweetType int type, long statusId) {
     if (!fragment.isNewTweetCreatable()) {
       return;
     }
@@ -103,7 +103,7 @@ class ToolbarTweetInputToggle {
     toggleToDefault();
   }
 
-  boolean onOptionMenuSelected(MenuItem item) {
+  public boolean onOptionMenuSelected(MenuItem item) {
     final int itemId = item.getItemId();
     if (itemId == R.id.action_writeTweet) {
       expandTweetInputView(TweetInputFragment.TYPE_DEFAULT, -1);
@@ -122,12 +122,12 @@ class ToolbarTweetInputToggle {
     return false;
   }
 
-  void cancelInput() {
+  public void cancelInput() {
     fragment.cancelInput();
     toggleToDefault();
   }
 
-  boolean isOpened() {
+  public boolean isOpened() {
     return fragment.isTweetInputViewVisible();
   }
 
@@ -135,7 +135,7 @@ class ToolbarTweetInputToggle {
     fragment.changeCurrentUser();
   }
 
-  TweetInputFragment getFragment() {
+  public TweetInputFragment getFragment() {
     return fragment;
   }
 

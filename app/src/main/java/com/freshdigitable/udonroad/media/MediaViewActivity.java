@@ -45,7 +45,6 @@ import com.freshdigitable.udonroad.databinding.ActivityMediaViewBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 
 import java.util.ArrayList;
@@ -53,6 +52,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjection;
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import timber.log.Timber;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
@@ -64,7 +67,7 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  *
  * Created by akihit on 2016/07/12.
  */
-public class MediaViewActivity extends AppCompatActivity implements View.OnClickListener {
+public class MediaViewActivity extends AppCompatActivity implements View.OnClickListener, HasSupportFragmentInjector {
   @SuppressWarnings("unused")
   private static final String TAG = MediaViewActivity.class.getSimpleName();
   private static final String CREATE_STATUS = "status";
@@ -105,10 +108,10 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     binding = DataBindingUtil.setContentView(this, R.layout.activity_media_view);
-    InjectionUtil.getComponent(this).inject(this);
 
     ViewCompat.setElevation(binding.mediaToolbar,
         getResources().getDimensionPixelOffset(R.dimen.action_bar_elevation));
@@ -243,6 +246,14 @@ public class MediaViewActivity extends AppCompatActivity implements View.OnClick
     } else {
       showSystemUI();
     }
+  }
+
+  @Inject
+  DispatchingAndroidInjector<Fragment> androidInjector;
+
+  @Override
+  public AndroidInjector<Fragment> supportFragmentInjector() {
+    return androidInjector;
   }
 
   private static class MediaPagerAdapter extends FragmentPagerAdapter {

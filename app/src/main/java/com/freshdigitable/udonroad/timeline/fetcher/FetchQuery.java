@@ -22,9 +22,9 @@ import twitter4j.Paging;
  * Created by akihit on 2018/01/11.
  */
 public class FetchQuery {
-  final long id;
-  final long lastPageCursor;
-  final String searchQuery;
+  public final long id;
+  public final long lastPageCursor;
+  public final String searchQuery;
 
   public FetchQuery() {
     this.id = -1;
@@ -32,7 +32,7 @@ public class FetchQuery {
     this.searchQuery = "";
   }
 
-  Paging getPaging() {
+  public Paging getPaging() {
     return new Paging(1, 20, 1, lastPageCursor);
   }
 

@@ -41,13 +41,10 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 @Module
 public class TwitterApiModule {
-
-  private final Context context;
-  private final Configuration config;
-
-  public TwitterApiModule(Context context) {
-    this.context = context;
-    config = new ConfigurationBuilder()
+  @Singleton
+  @Provides
+  Configuration provideConfiguration(Context context) {
+    return new ConfigurationBuilder()
         .setTweetModeExtended(true)
         .setOAuthConsumerKey(context.getString(R.string.consumer_key))
         .setOAuthConsumerSecret(context.getString(R.string.consumer_secret))
@@ -56,25 +53,25 @@ public class TwitterApiModule {
 
   @Singleton
   @Provides
-  public Twitter provideTwitter() {
+  Twitter provideTwitter(Configuration config) {
     return new TwitterFactory(config).getInstance();
   }
 
   @Singleton
   @Provides
-  public TwitterStream provideTwitterStream() {
+  TwitterStream provideTwitterStream(Configuration config) {
     return new TwitterStreamFactory(config).getInstance();
   }
 
   @Singleton
   @Provides
-  public UserFeedbackSubscriber provideUserFeedbackSubscriber(PublishProcessor<UserFeedbackEvent> pub) {
+  UserFeedbackSubscriber provideUserFeedbackSubscriber(Context context, PublishProcessor<UserFeedbackEvent> pub) {
     return new UserFeedbackSubscriber(context, pub);
   }
 
   @Provides
   @Singleton
-  public PublishProcessor<UserFeedbackEvent> providePublishSubjectUserFeedbackEvent() {
+  PublishProcessor<UserFeedbackEvent> providePublishSubjectUserFeedbackEvent() {
     return PublishProcessor.create();
   }
 }

@@ -29,14 +29,11 @@ import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DaggerAppComponent;
-import com.freshdigitable.udonroad.module.DataStoreModule;
-import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
-import com.freshdigitable.udonroad.repository.RepositoryModule;
+import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.subscriber.AppSettingRequestWorker;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
-import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 import com.squareup.leakcanary.LeakCanary;
 
 import java.util.ArrayList;
@@ -44,6 +41,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasActivityInjector;
 import timber.log.Timber;
 import twitter4j.auth.AccessToken;
 
@@ -54,7 +54,7 @@ import static android.support.v7.preference.PreferenceManager.getDefaultSharedPr
  *
  * Created by akihit on 2016/06/16.
  */
-public class MainApplication extends Application {
+public class MainApplication extends Application implements HasActivityInjector {
   private AppComponent appComponent;
   @Inject
   TwitterApi twitterApi;
@@ -99,10 +99,7 @@ public class MainApplication extends Application {
   @VisibleForTesting
   protected AppComponent createAppComponent() {
     return DaggerAppComponent.builder()
-        .twitterApiModule(new TwitterApiModule(getApplicationContext()))
-        .dataStoreModule(new DataStoreModule(getApplicationContext()))
-        .repositoryModule(new RepositoryModule(getApplicationContext()))
-        .demoListFetcherModule(new DemoListFetcherModule(getApplicationContext()))
+        .application(getApplicationContext())
         .build();
   }
 
@@ -135,7 +132,7 @@ public class MainApplication extends Application {
     }
   }
 
-  void login(long userId) {
+  public void login(long userId) {
     login(this, userId);
   }
 
@@ -154,7 +151,7 @@ public class MainApplication extends Application {
     app.appSettingWorker.verifyCredentials();
   }
 
-  void logout() {
+  public void logout() {
     logout(this);
   }
 
@@ -240,5 +237,12 @@ public class MainApplication extends Application {
     private static MainApplication getApplication(Activity activity) {
       return (MainApplication) activity.getApplication();
     }
+  }
+
+  @Inject
+  DispatchingAndroidInjector<Activity> activityInjector;
+  @Override
+  public AndroidInjector<Activity> activityInjector() {
+    return activityInjector;
   }
 }

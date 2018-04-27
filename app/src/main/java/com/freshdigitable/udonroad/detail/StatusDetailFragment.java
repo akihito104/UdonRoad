@@ -16,8 +16,8 @@
 
 package com.freshdigitable.udonroad.detail;
 
+import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -28,7 +28,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.text.TextUtils;
 import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,15 +40,15 @@ import com.freshdigitable.udonroad.FabViewModel;
 import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.OnSpanClickListener.SpanItem;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.UserInfoActivity;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentStatusDetailBinding;
 import com.freshdigitable.udonroad.databinding.ViewStatusDetailBinding;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.user.UserInfoActivity;
 
 import javax.inject.Inject;
 
+import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.disposables.Disposable;
 import twitter4j.User;
 
@@ -68,6 +67,8 @@ public class StatusDetailFragment extends Fragment {
   private Disposable imagesSubs;
   @Inject
   StatusDetailBindingComponent bindingComponent;
+  @Inject
+  ViewModelProvider.Factory factory;
   private StatusDetailViewModel statusDetailViewModel;
 
   public static StatusDetailFragment newInstance(final long statusId) {
@@ -80,8 +81,8 @@ public class StatusDetailFragment extends Fragment {
 
   @Override
   public void onAttach(Context context) {
+    AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
   }
 
   @Nullable
@@ -96,6 +97,8 @@ public class StatusDetailFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     binding = DataBindingUtil.bind(view, bindingComponent);
+    statusDetailViewModel = StatusDetailViewModel.getInstance(this, factory);
+    binding.setViewModel(statusDetailViewModel);
   }
 
   @Override
@@ -105,13 +108,11 @@ public class StatusDetailFragment extends Fragment {
     fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
     setupActionToolbar(statusId);
 
-    statusDetailViewModel = ViewModelProviders.of(this).get(StatusDetailViewModel.class);
     final ViewStatusDetailBinding statusView = binding.statusView;
     statusDetailViewModel.observeById(statusId).observe(this, item -> {
       if (item == null) {
         return;
       }
-      binding.setDetailItem(item);
       imagesSubs = imageLoader.loadImages(statusView, item.statusListItem);
 
       final User user = item.user;
@@ -144,26 +145,6 @@ public class StatusDetailFragment extends Fragment {
       } else if (event.item.getType() == SpanItem.TYPE_HASHTAG) {
         spanClickListener.onSpanClicked(event.view, event.item);
       }
-    });
-
-    statusDetailViewModel.getTwitterCard().observe(this, twitterCard -> {
-      if (twitterCard == null || !twitterCard.isValid()) {
-        return;
-      }
-      binding.setCardItem(twitterCard);
-
-      final Intent intent = new Intent(Intent.ACTION_VIEW);
-      final String appUrl = twitterCard.getAppUrl();
-      if (!TextUtils.isEmpty(appUrl)) {
-        intent.setData(Uri.parse(appUrl));
-        final ComponentName componentName = intent.resolveActivity(getContext().getPackageManager());
-        if (componentName == null) {
-          intent.setData(Uri.parse(twitterCard.getUrl()));
-        }
-      } else {
-        intent.setData(Uri.parse(twitterCard.getUrl()));
-      }
-      binding.sdTwitterCard.getRoot().setOnClickListener(view -> view.getContext().startActivity(intent));
     });
   }
 

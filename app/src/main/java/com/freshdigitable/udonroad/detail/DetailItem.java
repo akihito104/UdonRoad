@@ -16,7 +16,6 @@
 
 package com.freshdigitable.udonroad.detail;
 
-import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -41,7 +40,6 @@ import twitter4j.User;
 public class DetailItem {
 
   public final CombinedScreenNameTextView.CombinedName combinedName;
-  public final String createdTime;
   public final String source;
   public final TwitterListItem quotedItem;
   public final Spannable tweet;
@@ -52,14 +50,13 @@ public class DetailItem {
   public final User user;
   public final StatusListItem statusListItem;
 
-  DetailItem(Status status, Context context, OnSpanClickListener listener) {
+  DetailItem(Status status, OnSpanClickListener listener) {
     statusListItem = new StatusListItem(status, StatusListItem.TextType.DETAIL, StatusListItem.TimeTextType.ABSOLUTE);
     id = statusListItem.getId();
     user = statusListItem.getUser();
     retweetUser = statusListItem.getRetweetUser();
     retweet = statusListItem.isRetweet();
     combinedName = statusListItem.getCombinedName();
-    createdTime = statusListItem.getCreatedTime(context);
     source = statusListItem.getSource();
     stats = statusListItem.getStats();
     quotedItem = statusListItem.getQuotedItem();

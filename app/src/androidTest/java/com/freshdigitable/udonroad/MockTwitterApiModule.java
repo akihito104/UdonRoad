@@ -18,13 +18,15 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 
-import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
+import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import io.reactivex.processors.PublishProcessor;
 import twitter4j.Twitter;
 import twitter4j.TwitterStream;
 import twitter4j.UserStreamListener;
@@ -36,36 +38,52 @@ import static org.mockito.Mockito.mock;
  *
  * Created by akihit on 2016/06/16.
  */
-public class MockTwitterApiModule extends TwitterApiModule {
-  public MockTwitterApiModule(Context context) {
-    super(context);
-  }
-
-  @Override
-  public Twitter provideTwitter() {
+@Module
+public class MockTwitterApiModule {
+  @Singleton
+  @Provides
+  Twitter provideTwitter() {
     return mock(Twitter.class);
   }
 
-  @Override
-  public TwitterStream provideTwitterStream() {
+  @Singleton
+  @Provides
+  TwitterStream provideTwitterStream() {
     return mock(TwitterStream.class);
   }
 
-  @Module
-  static class MockTwitterStreamApiModule {
-    public UserStreamListener userStreamListener;
+  @Singleton
+  @Provides
+  UserFeedbackSubscriber provideUserFeedbackSubscriber(Context context, PublishProcessor<UserFeedbackEvent> pub) {
+    return new UserFeedbackSubscriber(context, pub);
+  }
 
-    @Singleton
-    @Provides
-    public TwitterStreamApi provideTwitterStreamApi(TwitterStream twitterStream) {
-      return new TwitterStreamApi(twitterStream) {
-        @Override
-        public void connectUserStream(UserStreamListener listener) {
-          userStreamListener = listener;
-          twitterStream.addListener(listener);
-          twitterStream.user();
-        }
-      };
-    }
+  @Provides
+  @Singleton
+  PublishProcessor<UserFeedbackEvent> providePublishSubjectUserFeedbackEvent() {
+    return PublishProcessor.create();
+  }
+
+  @Singleton
+  @Provides
+  TwitterStreamApi provideTwitterStreamApi(TwitterStream twitterStream, UserStreamListenerHolder holder) {
+    return new TwitterStreamApi(twitterStream) {
+      @Override
+      public void connectUserStream(UserStreamListener listener) {
+        holder.userStreamListener = listener;
+        twitterStream.addListener(listener);
+        twitterStream.user();
+      }
+    };
+  }
+
+  @Singleton
+  @Provides
+  UserStreamListenerHolder provideUserStreamListenerHolder() {
+    return new UserStreamListenerHolder();
+  }
+
+  static class UserStreamListenerHolder {
+    UserStreamListener userStreamListener;
   }
 }

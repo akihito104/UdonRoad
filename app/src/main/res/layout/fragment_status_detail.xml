@@ -22,12 +22,8 @@
     <data>
         <import type="android.view.View"/>
         <variable
-            name="detailItem"
-            type="com.freshdigitable.udonroad.detail.DetailItem"
-            />
-        <variable
-            name="cardItem"
-            type="com.freshdigitable.udonroad.TwitterCard"
+            name="viewModel"
+            type="com.freshdigitable.udonroad.detail.StatusDetailViewModel"
             />
     </data>
 
@@ -46,7 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 layout="@layout/view_status_detail"
-                app:item="@{detailItem}"
+                app:item="@{viewModel.detailItem}"
                 />
             <include
                 android:id="@+id/sd_twitter_card"
@@ -54,8 +50,9 @@
                 android:layout_height="wrap_content"
                 layout="@layout/view_twitter_card"
                 android:layout_margin="@dimen/detail_grid_margin"
-                android:visibility="@{cardItem != null ? View.VISIBLE : View.GONE}"
-                app:item="@{cardItem}"
+                android:visibility="@{viewModel.cardItem != null ? View.VISIBLE : View.GONE}"
+                app:item="@{viewModel.cardItem}"
+                app:onClickListener="@{viewModel::onTwitterCardClicked}"
                 tools:visibility="visible"
                 />
         </LinearLayout>

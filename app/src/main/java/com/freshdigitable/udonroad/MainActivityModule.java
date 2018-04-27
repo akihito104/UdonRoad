@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.repository;
+package com.freshdigitable.udonroad;
 
-import android.content.Context;
-
-import javax.inject.Singleton;
+import com.freshdigitable.udonroad.detail.StatusDetailFragment;
+import com.freshdigitable.udonroad.input.TweetInputFragment;
 
 import dagger.Module;
-import dagger.Provides;
+import dagger.android.ContributesAndroidInjector;
 
 /**
- * Created by akihit on 2017/11/09.
+ * Created by akihit on 2018/04/01.
  */
 @Module
-public class RepositoryModule {
-  @Provides
-  @Singleton
-  ImageRepository provideImageRepository(Context context) {
-    return new ImageRepositoryImpl(context);
-  }
+public interface MainActivityModule {
+  @ContributesAndroidInjector
+  TimelineFragment contributeTimelineFragment();
+
+  @ContributesAndroidInjector
+  TweetInputFragment contributeTweetInputFragment();
+
+  @ContributesAndroidInjector
+  StatusDetailFragment contributeStatusDetailFragment();
 }

@@ -43,12 +43,17 @@ import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.module.InjectionUtil;
+import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.user.UserInfoActivity;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjection;
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import timber.log.Timber;
 import twitter4j.User;
 
@@ -63,7 +68,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
  */
 public class MainActivity extends AppCompatActivity
     implements OnUserIconClickedListener, SnackbarCapable,
-    TimelineFragment.OnItemClickedListener, OnSpanClickListener {
+    TimelineFragment.OnItemClickedListener, OnSpanClickListener, HasSupportFragmentInjector {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -82,8 +87,8 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
-    InjectionUtil.getComponent(this).inject(this);
     if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       supportRequestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
     }
@@ -397,5 +402,13 @@ public class MainActivity extends AppCompatActivity
     if (item.getType() == SpanItem.TYPE_HASHTAG) {
       timelineContainerSwitcher.showSearchResult(item.getQuery());
     }
+  }
+
+  @Inject
+  DispatchingAndroidInjector<Fragment> androidInjector;
+
+  @Override
+  public AndroidInjector<Fragment> supportFragmentInjector() {
+    return androidInjector;
   }
 }

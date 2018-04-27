@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.timeline.repository;
+package com.freshdigitable.udonroad.oauth;
 
 import android.support.annotation.NonNull;
 
@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.datastore.UpdateSubject;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
+import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 
 import java.util.ArrayList;
 import java.util.List;

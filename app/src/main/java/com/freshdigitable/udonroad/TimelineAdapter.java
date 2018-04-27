@@ -50,8 +50,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
 
-  final StatusViewImageLoader imageLoader;
-  final ListItemRepository repository;
+  protected final StatusViewImageLoader imageLoader;
+  protected final ListItemRepository repository;
 
   public TimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
     this.repository = repository;

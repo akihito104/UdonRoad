@@ -20,9 +20,7 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.datastore.SortedCache;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
-import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.UserListItem;
@@ -189,13 +187,4 @@ public abstract class ListItemRepositoryModule {
   @IntoMap
   @ListItemRepositoryModuleKey(StoreType.CONVERSATION)
   abstract ListItemRepository bindsConversationListItemRepository(ConversationListItemRepository repository);
-
-  @Provides
-  @IntoMap
-  @ListItemRepositoryModuleKey(StoreType.DEMO)
-  static ListItemRepository provideDemoListItemRepository(
-      Map<StoreType,Provider<ListFetcher<ListItem>>> listFetchers,
-      UpdateSubjectFactory updateSubjectFactory) {
-    return new DemoListItemRepository(listFetchers.get(StoreType.DEMO).get(), updateSubjectFactory);
-  }
 }

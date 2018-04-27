@@ -47,7 +47,7 @@ public class FabViewModel extends ViewModel {
     menuSelectedEvent = new MutableLiveData<>();
   }
 
-  LiveData<Type> getFabState() {
+  public LiveData<Type> getFabState() {
     return fabState;
   }
 
@@ -55,7 +55,7 @@ public class FabViewModel extends ViewModel {
     fabState.setValue(type);
   }
 
-  void hideFab() {
+  public void hideFab() {
     fabState.setValue(Type.HIDE);
   }
 
@@ -63,7 +63,7 @@ public class FabViewModel extends ViewModel {
     FAB, TOOLBAR, HIDE
   }
 
-  LiveData<List<MenuState>> getMenuState() {
+  public LiveData<List<MenuState>> getMenuState() {
     return menuState;
   }
 
@@ -102,7 +102,7 @@ public class FabViewModel extends ViewModel {
     }
   }
 
-  static Observer<List<MenuState>> createMenuStateObserver(IndicatableFFAB ffab) {
+  public static Observer<List<MenuState>> createMenuStateObserver(IndicatableFFAB ffab) {
     return states -> {
       if (states == null || states.isEmpty()) {
         return;
@@ -113,7 +113,7 @@ public class FabViewModel extends ViewModel {
     };
   }
 
-  void onMenuItemSelected(MenuItem item) {
+  public void onMenuItemSelected(MenuItem item) {
     menuSelectedEvent.setValue(item);
     menuSelectedEvent.setValue(null); // XXX
   }

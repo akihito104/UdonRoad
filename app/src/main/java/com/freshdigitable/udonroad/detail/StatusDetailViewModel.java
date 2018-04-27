@@ -16,18 +16,24 @@
 
 package com.freshdigitable.udonroad.detail;
 
-import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.databinding.ObservableField;
+import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.TwitterCard;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.subscriber.StatusRepository;
 
 import javax.inject.Inject;
@@ -44,25 +50,25 @@ import static com.freshdigitable.udonroad.Utils.getBindingStatus;
  * Created by akihit on 2018/01/27.
  */
 
-public class StatusDetailViewModel extends AndroidViewModel {
+public class StatusDetailViewModel extends ViewModel {
   private static final String TAG = StatusDetailViewModel.class.getSimpleName();
-  @Inject
-  StatusRepository statusRepository;
-  @Inject
-  AppSettingStore appSetting;
+  private final StatusRepository statusRepository;
+  private final AppSettingStore appSetting;
 
   private final MutableLiveData<SpanClickEvent> spanClickEventSource;
   private final MutableLiveData<DetailItem> detailItemSource;
   private final MutableLiveData<TwitterCard> twitterCardSource;
+  public final ObservableField<DetailItem> detailItem = new ObservableField<>();
+  public final ObservableField<TwitterCard> cardItem = new ObservableField<>();
   private Disposable itemSubs;
   private Disposable cardSubs;
 
-  public StatusDetailViewModel(Application application) {
-    super(application);
-    InjectionUtil.getComponent(application).inject(this);
-
-    statusRepository.open();
-    appSetting.open();
+  @Inject
+  StatusDetailViewModel(StatusRepository statusRepository, AppSettingStore appSetting) {
+    this.statusRepository = statusRepository;
+    this.appSetting = appSetting;
+    this.statusRepository.open();
+    this.appSetting.open();
     spanClickEventSource = new MutableLiveData<>();
     detailItemSource = new MutableLiveData<>();
     twitterCardSource = new MutableLiveData<>();
@@ -75,7 +81,8 @@ public class StatusDetailViewModel extends AndroidViewModel {
     Utils.maybeDispose(itemSubs);
     itemSubs = statusRepository.observeById(id)
         .subscribe(s -> {
-          detailItemSource.setValue(getDetailItem(s));
+          detailItemSource.postValue(getDetailItem(s));
+          detailItem.set(getDetailItem(s));
           fetchTwitterCard(s);
         });
     return detailItemSource;
@@ -85,13 +92,9 @@ public class StatusDetailViewModel extends AndroidViewModel {
     return spanClickEventSource;
   }
 
-  LiveData<TwitterCard> getTwitterCard() {
-    return twitterCardSource;
-  }
-
   @NonNull
   private DetailItem getDetailItem(Status s) {
-    return new DetailItem(s, getApplication(), (v, i) -> {
+    return new DetailItem(s, (v, i) -> {
       spanClickEventSource.setValue(new SpanClickEvent(v, i));
       spanClickEventSource.setValue(null);
     });
@@ -111,8 +114,27 @@ public class StatusDetailViewModel extends AndroidViewModel {
     Utils.maybeDispose(cardSubs);
     cardSubs = TwitterCard.observeFetch(expandedURL)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(twitterCardSource::setValue,
+        .subscribe(cardItem::set,
             throwable -> Timber.tag(TAG).e(throwable, "card fetch: "));
+  }
+
+  public void onTwitterCardClicked(View view) {
+    final TwitterCard card = this.cardItem.get();
+    if (card == null || !card.isValid()) {
+      return;
+    }
+    final Intent intent = new Intent(Intent.ACTION_VIEW);
+    final String appUrl = card.getAppUrl();
+    if (!TextUtils.isEmpty(appUrl)) {
+      intent.setData(Uri.parse(appUrl));
+      final ComponentName componentName = intent.resolveActivity(view.getContext().getPackageManager());
+      if (componentName == null) {
+        intent.setData(Uri.parse(card.getUrl()));
+      }
+    } else {
+      intent.setData(Uri.parse(card.getUrl()));
+    }
+    view.getContext().startActivity(intent);
   }
 
   @Override
@@ -167,5 +189,9 @@ public class StatusDetailViewModel extends AndroidViewModel {
       this.view = view;
       this.item = item;
     }
+  }
+
+  static StatusDetailViewModel getInstance(Fragment fragment, ViewModelProvider.Factory factory) {
+    return ViewModelProviders.of(fragment, factory).get(StatusDetailViewModel.class);
   }
 }

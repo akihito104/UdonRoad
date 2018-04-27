@@ -16,14 +16,15 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.Context;
+
 import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
 import com.freshdigitable.udonroad.datastore.StatusTypedCacheTest;
+import com.freshdigitable.udonroad.module.ActivityBuilders;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
-import com.freshdigitable.udonroad.module.TwitterApiModule;
 import com.freshdigitable.udonroad.module.ViewModelModule;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
-import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.UserListFetcherModule;
@@ -31,21 +32,41 @@ import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryModule;
 
 import javax.inject.Singleton;
 
+import dagger.BindsInstance;
 import dagger.Component;
+import dagger.android.support.AndroidSupportInjectionModule;
 
 /**
  * MockAppComponent is application component for test.
- *
+ * <p>
  * Created by akihit on 2016/06/16.
  */
 @Singleton
 @Component(modules = {
-    TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
-    MockTwitterApiModule.MockTwitterStreamApiModule.class, ViewModelModule.class,
-    StatusListFetcherModule.class, UserListFetcherModule.class, ListsListFetcherModule.class,
-    DemoListFetcherModule.class, ListItemRepositoryModule.class
+    MockTwitterApiModule.class,
+    DataStoreModule.class,
+    MockSharedPreferenceModule.class,
+    RepositoryModule.class,
+    ViewModelModule.class,
+    StatusListFetcherModule.class,
+    UserListFetcherModule.class,
+    ListsListFetcherModule.class,
+    ListItemRepositoryModule.class,
+    AndroidSupportInjectionModule.class,
+    ActivityBuilders.class
 })
 public interface MockAppComponent extends AppComponent {
+
+  @Component.Builder
+  interface Builder {
+    @BindsInstance
+    Builder application(Context context);
+
+    MockAppComponent build();
+  }
+
+  void inject(MockMainApplication application);
+
   void inject(TimelineInstTestBase mainActivityInstTest);
 
   void inject(UserInfoActivityInstTest.Base userInfoActivityInstTest);

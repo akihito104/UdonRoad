@@ -23,7 +23,7 @@
     <data>
         <import type="android.view.View"/>
         <import type="android.graphics.Color"/>
-        <import type="com.freshdigitable.udonroad.UserInfoActivity"/>
+        <import type="com.freshdigitable.udonroad.user.UserInfoActivity"/>
         <import type="com.freshdigitable.udonroad.media.MediaViewActivity"/>
         <variable
             name="item"
@@ -155,7 +155,7 @@
             android:textSize="@dimen/detail_tweet_small_size"
             android:lines="1"
             android:textColor="@{item.retweet ? @color/twitter_action_retweeted : Color.GRAY}"
-            android:text="@{item.createdTime}"
+            android:text="@{item.statusListItem.getCreatedTime(context)}"
             tools:text="CreatedTime"
             />
 

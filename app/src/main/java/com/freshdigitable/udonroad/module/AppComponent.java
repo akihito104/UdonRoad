@@ -16,36 +16,26 @@
 
 package com.freshdigitable.udonroad.module;
 
-import com.freshdigitable.udonroad.MainActivity;
+import android.content.Context;
+
 import com.freshdigitable.udonroad.MainApplication;
-import com.freshdigitable.udonroad.OAuthActivity;
-import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.TimelineFragment;
-import com.freshdigitable.udonroad.UserInfoActivity;
-import com.freshdigitable.udonroad.UserInfoFragment;
-import com.freshdigitable.udonroad.UserInfoPagerFragment;
-import com.freshdigitable.udonroad.UserSettingsActivity;
-import com.freshdigitable.udonroad.UserStreamUtil;
-import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.timeline.fetcher.DemoListFetcherModule;
+import com.freshdigitable.udonroad.oauth.DemoListFetcherModule;
+import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListFetcher;
 import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.UserListFetcherModule;
-import com.freshdigitable.udonroad.input.TweetInputActivity;
-import com.freshdigitable.udonroad.input.TweetInputFragment;
-import com.freshdigitable.udonroad.media.MediaViewActivity;
-import com.freshdigitable.udonroad.media.PhotoMediaFragment;
-import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryModule;
 
 import java.util.Map;
 
 import javax.inject.Singleton;
 
+import dagger.BindsInstance;
 import dagger.Component;
+import dagger.android.support.AndroidSupportInjectionModule;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserList;
@@ -57,36 +47,30 @@ import twitter4j.UserList;
  */
 @Singleton
 @Component(modules = {
-    TwitterApiModule.class, DataStoreModule.class, RepositoryModule.class,
-    ViewModelModule.class, StatusListFetcherModule.class, UserListFetcherModule.class,
-    ListsListFetcherModule.class, DemoListFetcherModule.class, ListItemRepositoryModule.class
+    TwitterApiModule.class,
+    DataStoreModule.class,
+    SharedPreferenceModule.class,
+    RepositoryModule.class,
+    ViewModelModule.class,
+    StatusListFetcherModule.class,
+    UserListFetcherModule.class,
+    ListsListFetcherModule.class,
+    DemoListFetcherModule.class,
+    ListItemRepositoryModule.class,
+    AndroidSupportInjectionModule.class,
+    ActivityBuilders.class
 })
 public interface AppComponent {
-  void inject(OAuthActivity oAuthActivity);
 
-  void inject(MainActivity activity);
+  @Component.Builder
+  interface Builder {
+    @BindsInstance
+    Builder application(Context context);
 
-  void inject(MediaViewActivity mediaViewActivity);
-
-  void inject(UserInfoActivity userInfoActivity);
-
-  void inject(UserStreamUtil userStreamUtil);
-
-  void inject(UserInfoFragment userInfoFragment);
-
-  void inject(StatusDetailFragment statusDetailFragment);
-
-  void inject(TweetInputFragment tweetInputFragment);
-
-  void inject(UserInfoPagerFragment userInfoPagerFragment);
+    AppComponent build();
+  }
 
   void inject(MainApplication mainApplication);
-
-  void inject(UserSettingsActivity.SettingsFragment settingsFragment);
-
-  void inject(PhotoMediaFragment photoMediaFragment);
-
-  void inject(TweetInputActivity tweetInputActivity);
 
   Map<StoreType, ListFetcher<Status>> storeTypeListFetcherStatusMap();
 
@@ -95,10 +79,4 @@ public interface AppComponent {
   Map<StoreType, ListFetcher<UserList>> storeTypeListFetcherUserListMap();
 
   Map<StoreType, ListFetcher<ListItem>> storeTypeListFetcherListItemMap();
-
-  void inject(TimelineFragment timelineFragment);
-
-  void inject(OAuthActivity.DemoTimelineFragment fragment);
-
-  void inject(StatusDetailViewModel statusDetailViewModel);
 }

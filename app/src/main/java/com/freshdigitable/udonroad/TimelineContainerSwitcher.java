@@ -31,6 +31,7 @@ import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
+import com.freshdigitable.udonroad.user.UserInfoPagerFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,13 +40,13 @@ import java.util.List;
  * Created by akihit on 2017/07/07.
  */
 
-class TimelineContainerSwitcher {
-  static final String MAIN_FRAGMENT_TAG = ContentType.MAIN.createTag(-1, null);
+public class TimelineContainerSwitcher {
+  public static final String MAIN_FRAGMENT_TAG = ContentType.MAIN.createTag(-1, null);
   private final Fragment mainFragment;
   private final IndicatableFFAB ffab;
   private final @IdRes int containerId;
 
-  TimelineContainerSwitcher(@NonNull View container, @NonNull Fragment mainFragment, @NonNull IndicatableFFAB iffab) {
+  public TimelineContainerSwitcher(@NonNull View container, @NonNull Fragment mainFragment, @NonNull IndicatableFFAB iffab) {
     if (!(mainFragment instanceof ItemSelectable)) {
       throw new IllegalArgumentException("mainFragment should implement ItemSelectable.");
     }
@@ -71,18 +72,18 @@ class TimelineContainerSwitcher {
     ContentType.MAIN.onShow(this, "", false);
   }
 
-  void showStatusDetail(long statusId) {
+  public void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.newInstance(statusId);
     replaceTimelineContainer(ContentType.DETAIL, statusId, null, statusDetail);
   }
 
-  void showConversation(long statusId) {
+  public void showConversation(long statusId) {
     final TimelineFragment conversationFragment
         = TimelineFragment.getInstance(StoreType.CONVERSATION, statusId);
     replaceTimelineContainer(ContentType.CONV, statusId, null, conversationFragment);
   }
 
-  void showSearchResult(String query) {
+  public void showSearchResult(String query) {
     final TimelineFragment fragment = TimelineFragment.getInstance(StoreType.SEARCH, query);
     replaceTimelineContainer(ContentType.SEARCH, -1, query, fragment);
   }
@@ -92,7 +93,7 @@ class TimelineContainerSwitcher {
     replaceTimelineContainer(ContentType.LISTS, -1, null, fragment);
   }
 
-  void showListTimeline(long listId, String query) {
+  public void showListTimeline(long listId, String query) {
     final TimelineFragment fragment = TimelineFragment.getInstance(StoreType.LIST_TL, listId);
     replaceTimelineContainer(ContentType.LIST_TL, listId, query, fragment);
   }
@@ -112,7 +113,7 @@ class TimelineContainerSwitcher {
     type.onShow(this, name, true);
   }
 
-  boolean popBackStackTimelineContainer() {
+  public boolean popBackStackTimelineContainer() {
     final FragmentManager fm = getSupportFragmentManager();
     if (fm == null) {
       return false;
@@ -177,7 +178,7 @@ class TimelineContainerSwitcher {
     return dropList;
   }
 
-  void syncState() {
+  public void syncState() {
     final Fragment currentFragment = getCurrentFragment();
     if (currentFragment == null) {
       return;
@@ -191,7 +192,7 @@ class TimelineContainerSwitcher {
     menu.findItem(R.id.iffabMenu_main_detail).setEnabled(enabled);
   }
 
-  boolean clearSelectedCursorIfNeeded() {
+  public boolean clearSelectedCursorIfNeeded() {
     final Fragment fragment = getCurrentFragment();
     return fragment instanceof ItemSelectable
         && clearSelectedCursorIfNeeded((ItemSelectable) fragment);
@@ -205,7 +206,7 @@ class TimelineContainerSwitcher {
     return false;
   }
 
-  long getSelectedTweetId() {
+  public long getSelectedTweetId() {
     final Fragment current = getCurrentFragment();
     if (current instanceof ItemSelectable) {
       return ((ItemSelectable) current).getSelectedItemId();
@@ -232,7 +233,7 @@ class TimelineContainerSwitcher {
     return fm != null ? fm.findFragmentById(containerId) : null;
   }
 
-  boolean isItemSelected() {
+  public boolean isItemSelected() {
     final Fragment current = getCurrentFragment();
     if (current instanceof ItemSelectable) {
       return ((ItemSelectable) current).isItemSelected();
@@ -250,18 +251,18 @@ class TimelineContainerSwitcher {
         .commitNow();
   }
 
-  interface OnContentChangedListener {
+  public interface OnContentChangedListener {
     void onContentChanged(ContentType type, String title);
   }
 
   private static final OnContentChangedListener EMPTY_LISTENER = (type, title) -> {};
   private OnContentChangedListener listener = EMPTY_LISTENER;
 
-  void setOnContentChangedListener(OnContentChangedListener listener) {
+  public void setOnContentChangedListener(OnContentChangedListener listener) {
     this.listener = listener != null ? listener : EMPTY_LISTENER;
   }
 
-  static Animation makeSwitchingAnimation(Context context, int transit, boolean enter) {
+  public static Animation makeSwitchingAnimation(Context context, int transit, boolean enter) {
     if (transit == FragmentTransaction.TRANSIT_FRAGMENT_OPEN) {
       if (!enter) {
         return AnimationUtils.makeOutAnimation(context, true);
@@ -279,7 +280,7 @@ class TimelineContainerSwitcher {
     return null;
   }
 
-  enum ContentType {
+  public enum ContentType {
     MAIN(R.string.title_home, "main") {
       @Override
       String createTag(long id, String query) {

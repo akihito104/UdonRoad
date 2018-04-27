@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.user;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
@@ -32,16 +32,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.TypedCache;
-import com.freshdigitable.udonroad.module.InjectionUtil;
 import com.freshdigitable.udonroad.repository.ImageQuery;
 import com.freshdigitable.udonroad.repository.ImageRepository;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
 
 import javax.inject.Inject;
 
+import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -62,8 +64,8 @@ public class UserInfoFragment extends Fragment {
 
   @Override
   public void onAttach(Context context) {
+    AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    InjectionUtil.getComponent(this).inject(this);
   }
 
   @Override

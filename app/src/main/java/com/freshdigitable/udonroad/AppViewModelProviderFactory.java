@@ -46,15 +46,14 @@ public class AppViewModelProviderFactory implements ViewModelProvider.Factory {
   }
 
   @NonNull
-  @SuppressWarnings("unchecked")
   private <T extends ViewModel> T findByClass(Class<T> modelClass) {
     final Provider<ViewModel> p = providers.get(modelClass);
     if (p != null) {
-      return (T) p.get();
+      return modelClass.cast(p.get());
     }
     for (Map.Entry<Class<? extends ViewModel>, Provider<ViewModel>> entry : providers.entrySet()) {
       if (entry.getKey().isAssignableFrom(modelClass)) {
-        return (T) entry.getValue();
+        return modelClass.cast(entry.getValue());
       }
     }
     throw new IllegalStateException("unknown ViewModel class: " + modelClass);

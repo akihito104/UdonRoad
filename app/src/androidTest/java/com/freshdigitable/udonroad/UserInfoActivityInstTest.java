@@ -28,6 +28,7 @@ import android.support.test.runner.lifecycle.Stage;
 
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.subscriber.ConfigRequestWorker;
+import com.freshdigitable.udonroad.user.UserInfoActivity;
 import com.freshdigitable.udonroad.util.AssertionUtil;
 import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.UserUtil;

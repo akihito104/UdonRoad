@@ -19,19 +19,19 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.freshdigitable.udonroad.module.DataStoreModule;
+import javax.inject.Singleton;
+
+import dagger.Module;
+import dagger.Provides;
 
 /**
  * Created by akihit on 2016/11/07.
  */
-
-public class MockDataStoreModule extends DataStoreModule {
-  public MockDataStoreModule(Context context) {
-    super(context);
-  }
-
-  @Override
-  public SharedPreferences provideSharedPreferences() {
+@Module
+class MockSharedPreferenceModule {
+  @Singleton
+  @Provides
+  SharedPreferences provideSharedPreferences(Context context) {
     return context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE);
   }
 }
