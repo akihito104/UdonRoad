@@ -24,6 +24,7 @@ import com.freshdigitable.udonroad.module.ActivityBuilders;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
 import com.freshdigitable.udonroad.module.ViewModelModule;
+import com.freshdigitable.udonroad.oauth.DemoListFetcherModule;
 import com.freshdigitable.udonroad.repository.RepositoryModule;
 import com.freshdigitable.udonroad.timeline.fetcher.ListsListFetcherModule;
 import com.freshdigitable.udonroad.timeline.fetcher.StatusListFetcherModule;
@@ -52,6 +53,7 @@ import dagger.android.support.AndroidSupportInjectionModule;
     UserListFetcherModule.class,
     ListsListFetcherModule.class,
     ListItemRepositoryModule.class,
+    DemoListFetcherModule.class,
     AndroidSupportInjectionModule.class,
     ActivityBuilders.class
 })
