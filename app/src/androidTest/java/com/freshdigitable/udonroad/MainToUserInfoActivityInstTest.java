@@ -196,7 +196,7 @@ public class MainToUserInfoActivityInstTest extends TimelineInstTestBase {
   }
 
   @Test
-  public void scrollToTopWhenStatusIsReceivedAfterBackToMain() throws Exception {
+  public void scrollToTopWhenStatusIsReceivedAfterBackToMain() {
     PerformUtil.clickUserIconAt(0);
     onView(withId(R.id.user_screen_name)).check(matches(screenNameMatcher));
     Espresso.pressBack();

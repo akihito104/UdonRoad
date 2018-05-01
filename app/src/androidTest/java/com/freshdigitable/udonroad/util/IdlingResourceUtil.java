@@ -48,7 +48,7 @@ public class IdlingResourceUtil {
         = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(stage);
     for (Activity activity : resumeActivities) {
       if (activity.getClass().isAssignableFrom(clz)) {
-        return (T) activity;
+        return clz.cast(activity);
       }
     }
     return null;
