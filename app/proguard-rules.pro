@@ -24,10 +24,16 @@
 -dontwarn com.squareup.okhttp.**
 
 # okhttp
+-dontwarn okhttp3.**
 -dontwarn okio.**
--dontwarn javax.annotation.Nullable
--dontwarn javax.annotation.ParametersAreNonnullByDefault
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
 
 # twitter4j
 -dontwarn twitter4j.**
 -keep class twitter4j.** { *; }
+
+# dagger
+-dontwarn com.google.errorprone.annotations.*
