@@ -88,7 +88,7 @@ public class IdlingResourceUtil {
           }
           return isIdleNow;
         } catch (Exception e) {
-          Log.e("OAuthActivityInstTest", "isIdleNow: ", e);
+          Log.e("IdlingResourceUtil", "isIdleNow: ", e);
           return false;
         }
       }
