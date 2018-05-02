@@ -31,6 +31,7 @@ import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.user.UserInfoPagerFragment;
 
 import java.util.ArrayList;

@@ -44,7 +44,7 @@ import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.SnackbarCapable;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
-import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.ToolbarTweetInputToggle;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;

@@ -124,7 +124,7 @@
 
         <com.freshdigitable.udonroad.media.ThumbnailContainer
             android:id="@+id/d_image_group"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="@dimen/detail_thumb_height"
             android:layout_marginTop="@dimen/detail_grid_margin"
             app:layout_goneMarginTop="0dp"
@@ -194,7 +194,7 @@
 
         <com.freshdigitable.udonroad.listitem.QuotedStatusView
             android:id="@+id/d_quoted"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/detail_grid_margin"
             app:layout_constraintTop_toBottomOf="@id/d_via"

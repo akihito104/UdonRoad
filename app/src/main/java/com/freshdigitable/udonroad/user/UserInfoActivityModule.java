@@ -16,7 +16,7 @@
 
 package com.freshdigitable.udonroad.user;
 
-import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
 

@@ -22,7 +22,6 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.support.v4.app.Fragment;
 
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.TimelineAdapter;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;

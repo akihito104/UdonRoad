@@ -25,7 +25,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.TimelineAdapter;
+import com.freshdigitable.udonroad.timeline.TimelineAdapter;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;

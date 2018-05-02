@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.timeline;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
@@ -38,7 +38,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 
-import com.freshdigitable.udonroad.TimelineAdapter.OnSelectedItemChangeListener;
+import com.freshdigitable.udonroad.AppViewModelProviderFactory;
+import com.freshdigitable.udonroad.FabViewModel;
+import com.freshdigitable.udonroad.ItemSelectable;
+import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.TimelineContainerSwitcher;
+import com.freshdigitable.udonroad.Utils;
+import com.freshdigitable.udonroad.timeline.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
@@ -48,7 +55,6 @@ import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
-import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 import com.freshdigitable.udonroad.user.UserInfoPagerFragment;
 
 import java.util.EnumSet;

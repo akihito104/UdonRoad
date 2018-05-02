@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import com.freshdigitable.udonroad.detail.StatusDetailFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;

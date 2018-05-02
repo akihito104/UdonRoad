@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Matsuda, Akihit (akihito104)
+ * Copyright (c) 2018. Matsuda, Akihit (akihito104)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad;
+package com.freshdigitable.udonroad.timeline;
 
 import android.content.Context;
 import android.os.Parcel;
@@ -23,6 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 
+import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
@@ -288,7 +289,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   }
 
   public static class StatusTimelineAdapter extends TimelineAdapter {
-    public StatusTimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
+    StatusTimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
       super(repository, imageLoader);
     }
 
