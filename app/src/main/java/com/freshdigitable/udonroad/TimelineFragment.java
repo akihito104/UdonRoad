@@ -90,7 +90,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   public void onAttach(Context context) {
     AndroidSupportInjection.inject(this);
     super.onAttach(context);
-    timelineViewModel = ViewModelProviders.of(this, viewModelFactory).get(TimelineViewModel.class);
+    timelineViewModel = TimelineViewModel.getInstance(this, viewModelFactory);
     timelineViewModel.init(getStoreType(), getEntityId(), getQuery());
     updateEventSubscription = timelineViewModel.observeUpdateEvent()
         .retry()
@@ -161,7 +161,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     binding.timeline.setAdapter(tlAdapter);
 
     tlLayoutManager = new LinearLayoutManager(getContext());
-    tlLayoutManager.setAutoMeasureEnabled(true);
     binding.timeline.setLayoutManager(tlLayoutManager);
 
     if (timelineDecoration == null) {
@@ -362,8 +361,10 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     if (binding != null) {
       binding.timeline.setItemAnimator(null);
       timelineAnimator = null;
-      binding.timeline.removeItemDecoration(timelineDecoration);
-      timelineDecoration = null;
+      if (!binding.timeline.isComputingLayout()) {
+        binding.timeline.removeItemDecoration(timelineDecoration);
+        timelineDecoration = null;
+      }
       tlLayoutManager.removeAllViews();
       binding.timeline.setLayoutManager(null);
       tlLayoutManager = null;

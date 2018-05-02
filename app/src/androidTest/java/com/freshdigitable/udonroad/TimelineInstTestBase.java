@@ -250,7 +250,7 @@ public abstract class TimelineInstTestBase {
   }
 
 
-  protected void receiveStatuses(final Status... statuses) throws Exception {
+  protected void receiveStatuses(final Status... statuses) {
     receiveStatuses(true, statuses);
   }
 

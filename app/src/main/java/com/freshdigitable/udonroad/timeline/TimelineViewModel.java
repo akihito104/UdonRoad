@@ -17,13 +17,16 @@
 package com.freshdigitable.udonroad.timeline;
 
 import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
+import android.support.v4.app.Fragment;
 
-import com.freshdigitable.udonroad.oauth.DemoTimelineAdapter;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.TimelineAdapter;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
+import com.freshdigitable.udonroad.oauth.DemoTimelineAdapter;
 import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryFactory;
 
@@ -109,5 +112,9 @@ public class TimelineViewModel extends ViewModel {
 
   public void drop() {
     listItemRepository.drop();
+  }
+
+  public static TimelineViewModel getInstance(Fragment fragment, ViewModelProvider.Factory factory) {
+    return ViewModelProviders.of(fragment, factory).get(TimelineViewModel.class);
   }
 }

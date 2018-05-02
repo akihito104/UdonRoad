@@ -48,7 +48,7 @@ public class IdlingResourceUtil {
         = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(stage);
     for (Activity activity : resumeActivities) {
       if (activity.getClass().isAssignableFrom(clz)) {
-        return (T) activity;
+        return clz.cast(activity);
       }
     }
     return null;
@@ -88,7 +88,7 @@ public class IdlingResourceUtil {
           }
           return isIdleNow;
         } catch (Exception e) {
-          Log.e("OAuthActivityInstTest", "isIdleNow: ", e);
+          Log.e("IdlingResourceUtil", "isIdleNow: ", e);
           return false;
         }
       }

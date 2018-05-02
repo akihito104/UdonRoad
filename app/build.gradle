@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.ben-manes.versions' version '0.15.0'
+    id 'com.github.ben-manes.versions' version '0.17.0'
 }
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
@@ -75,13 +75,13 @@ def supportLibVer = '27.0.2'
 def androidArchVer = '1.0.0'
 def t4jVer = '4.0.6'
 def rxVer = '2.1.5'
-def rxAndroidVer = '2.0.1'
-def daggerVer = "2.13"
+def rxAndroidVer = '2.0.2'
+def daggerVer = "2.15"
 def supportTestVer = "1.0.1"
 def espressoVer = "3.0.1"
-def dexmakerVer = '2.2.0'
-def leakcanaryVer= '1.5.1'
-def okhttpVer = '3.9.0'
+def dexmakerVer = '2.16.0'
+def leakcanaryVer= '1.5.4'
+def okhttpVer = '3.10.0'
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -90,7 +90,7 @@ dependencies {
     implementation "com.android.support:design:$supportLibVer"
     implementation "com.android.support:preference-v7:$supportLibVer"
     implementation "com.android.support:preference-v14:$supportLibVer"
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0-beta6'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     // ViewModel and LiveData
     implementation "android.arch.lifecycle:extensions:$androidArchVer"
     annotationProcessor "android.arch.lifecycle:compiler:$androidArchVer"
@@ -113,7 +113,7 @@ dependencies {
     implementation "com.google.dagger:dagger-android-support:$daggerVer"
     annotationProcessor "com.google.dagger:dagger-android-processor:$daggerVer"
 
-    implementation 'com.jakewharton.timber:timber:4.6.0'
+    implementation 'com.jakewharton.timber:timber:4.7.0'
 
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakcanaryVer"
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakcanaryVer"
@@ -121,18 +121,29 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-all:2.0.2-beta'
-    androidTestImplementation "com.android.support:support-annotations:$supportLibVer"
     androidTestImplementation "com.android.support.test:runner:$supportTestVer"
     androidTestImplementation "com.android.support.test:rules:$supportTestVer"
     androidTestImplementation "android.arch.core:core-testing:$androidArchVer"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoVer"
-    androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$espressoVer"
+    androidTestImplementation("com.android.support.test.espresso:espresso-contrib:$espressoVer") {
+        transitive = false
+    }
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$espressoVer"
     androidTestAnnotationProcessor "com.google.dagger:dagger-compiler:$daggerVer"
 
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVer"
     androidTestImplementation 'junit:junit:4.12'
     androidTestImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVer"
+}
+
+configurations.all { config ->
+    if (config.name.contains('UnitTest') || config.name.contains('AndroidTest')) {
+        config.resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'com.squareup.leakcanary' && details.requested.name == 'leakcanary-android') {
+                details.useTarget(group: details.requested.group, name: 'leakcanary-android-no-op', version: details.requested.version)
+            }
+        }
+    }
 }
 
 check.dependsOn(checkLicenses)
