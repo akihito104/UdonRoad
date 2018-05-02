@@ -32,6 +32,7 @@ import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryFactory
 import javax.inject.Inject;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import timber.log.Timber;
 
 /**
@@ -58,13 +59,41 @@ public class TimelineViewModel extends ViewModel {
   public TimelineAdapter createAdapter() {
     final StoreType storeType = listItemRepository.getStoreType();
     if (storeType.isForStatus()) {
-      return new TimelineAdapter.StatusTimelineAdapter(listItemRepository, imageLoader);
+      return new TimelineAdapter.StatusTimelineAdapter(this);
     } else if (storeType.isForUser() || storeType.isForLists()) {
-      return new TimelineAdapter(listItemRepository, imageLoader);
+      return new TimelineAdapter(this);
     } else if (storeType == StoreType.DEMO) {
-      return new DemoTimelineAdapter(listItemRepository, imageLoader);
+      return new DemoTimelineAdapter(this);
     }
     throw new IllegalStateException("not capable of StoreType: " + storeType);
+  }
+
+  StoreType getStoreType() {
+    return listItemRepository.getStoreType();
+  }
+
+  public long getId(int position) {
+    return listItemRepository.getId(position);
+  }
+
+  public ListItem get(int pos) {
+    return listItemRepository.get(pos);
+  }
+
+  public Observable<? extends ListItem> observe(ListItem elem) {
+    return listItemRepository.observe(elem);
+  }
+
+  public Observable<? extends ListItem> observeById(long itemId) {
+    return listItemRepository.observeById(itemId);
+  }
+
+  public int getItemCount() {
+    return listItemRepository.getItemCount();
+  }
+
+  public StatusViewImageLoader getImageLoader() {
+    return imageLoader;
   }
 
   @Override

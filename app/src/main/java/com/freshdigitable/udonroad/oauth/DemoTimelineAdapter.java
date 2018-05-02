@@ -25,15 +25,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.timeline.TimelineAdapter;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
-import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
-import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
+import com.freshdigitable.udonroad.timeline.TimelineAdapter;
+import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
 /**
  * Created by akihit on 2018/04/01.
@@ -42,13 +41,13 @@ public class DemoTimelineAdapter extends TimelineAdapter {
   private static final int TYPE_AUTH = 0;
   private static final int TYPE_TWEET = 1;
 
-  public DemoTimelineAdapter(ListItemRepository timelineStore, StatusViewImageLoader imageLoader) {
-    super(timelineStore, imageLoader);
+  public DemoTimelineAdapter(TimelineViewModel viewModel) {
+    super(viewModel);
   }
 
   @Override
   public int getItemViewType(int position) {
-    return repository.get(position) instanceof TwitterListItem ? TYPE_TWEET : TYPE_AUTH;
+    return viewModel.get(position) instanceof TwitterListItem ? TYPE_TWEET : TYPE_AUTH;
   }
 
   @Override
@@ -60,7 +59,7 @@ public class DemoTimelineAdapter extends TimelineAdapter {
   @Override
   public void onBindViewHolder(ItemViewHolder holder, int position) {
     if (holder instanceof StatusViewHolder) {
-      holder.bind(super.repository.get(position), imageLoader);
+      holder.bind(viewModel.get(position), viewModel.getImageLoader());
       final ImageView userIcon = holder.getUserIcon();
       final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
       userIcon.setImageDrawable(icon);

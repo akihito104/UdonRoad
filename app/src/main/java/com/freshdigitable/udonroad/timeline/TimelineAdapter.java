@@ -21,9 +21,11 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.databinding.ViewUserListBinding;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
@@ -31,10 +33,8 @@ import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
 import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
-import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.UserItemViewHolder;
 import com.freshdigitable.udonroad.media.ThumbnailView;
-import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -50,37 +50,37 @@ import io.reactivex.Observable;
 public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   @SuppressWarnings("unused")
   private static final String TAG = TimelineAdapter.class.getSimpleName();
+  protected final TimelineViewModel viewModel;
+  private final StoreType type;
 
-  protected final StatusViewImageLoader imageLoader;
-  protected final ListItemRepository repository;
-
-  public TimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
-    this.repository = repository;
-    this.imageLoader = imageLoader;
+  public TimelineAdapter(TimelineViewModel viewModel) {
+    this.viewModel = viewModel;
+    type = viewModel.getStoreType();
     setHasStableIds(true);
   }
 
   @Override
   public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    final StoreType type = repository.getStoreType();
     if (type.isForStatus()) {
       return new StatusViewHolder(parent);
     } else if (type.isForUser() || type.isForLists()) {
-      return new UserItemViewHolder(parent);
+      final LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
+      final ViewUserListBinding binding = ViewUserListBinding.inflate(layoutInflater, parent, false);
+      return new UserItemViewHolder(binding, viewModel);
     }
     throw new IllegalStateException("unsupported StoreType of repository: " + type);
   }
 
   @Override
   public long getItemId(int position) {
-    return repository.getId(position);
+    return viewModel.getId(position);
   }
 
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
-    final ListItem elem = repository.get(position);
-    holder.bind(elem, imageLoader);
-    final Observable<? extends ListItem> observable = repository.observe(elem);
+    final ListItem elem = viewModel.get(position);
+    holder.bind(elem, viewModel.getImageLoader());
+    final Observable<? extends ListItem> observable = viewModel.observe(elem);
     holder.subscribe(observable);
 
     if (position == getItemCount() - 1) {
@@ -116,7 +116,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   private void subscribe(ItemViewHolder holder) {
     if (!holder.isSubscribed()) {
       final Observable<? extends ListItem> observable
-          = repository.observeById(holder.getItemId());
+          = viewModel.observeById(holder.getItemId());
       holder.subscribe(observable);
     }
   }
@@ -188,7 +188,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   }
 
   public int getSelectedItemViewPosition() {
-    return repository.getPositionById(selectedItemHolder.containerId);
+    return viewModel.getPositionById(selectedItemHolder.containerId);
   }
 
   public interface LastItemBoundListener {
@@ -218,7 +218,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
   @Override
   public int getItemCount() {
-    return repository.getItemCount();
+    return viewModel.getItemCount();
   }
 
   private static class SelectedItem {
@@ -289,19 +289,19 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   }
 
   public static class StatusTimelineAdapter extends TimelineAdapter {
-    StatusTimelineAdapter(ListItemRepository repository, StatusViewImageLoader imageLoader) {
-      super(repository, imageLoader);
+    StatusTimelineAdapter(TimelineViewModel viewModel) {
+      super(viewModel);
     }
 
     @Override
     public void onBindViewHolder(final ItemViewHolder holder, int position) {
-      final StatusListItem item = ((StatusListItem) repository.get(position));
+      final StatusListItem item = ((StatusListItem) viewModel.get(position));
       final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
       if (item.getQuotedItem() != null && !statusViewHolder.hasQuotedView()) {
         statusViewHolder.attachQuotedView(getQuotedView(holder.itemView.getContext()));
       }
-      holder.bind(item, imageLoader);
-      final Observable<? extends ListItem> observable = repository.observe(item);
+      holder.bind(item, viewModel.getImageLoader());
+      final Observable<? extends ListItem> observable = viewModel.observe(item);
       holder.subscribe(observable);
 
       if (position == getItemCount() - 1) {
