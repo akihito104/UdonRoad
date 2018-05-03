@@ -15,33 +15,57 @@
   ~ limitations under the License.
   -->
 
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-       xmlns:tools="http://schemas.android.com/tools"
-       xmlns:app="http://schemas.android.com/apk/res-auto"
-       tools:parentTag="android.widget.RelativeLayout"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     >
-    <com.freshdigitable.udonroad.RoundedCornerImageView
-        android:id="@+id/q_icon"
-        android:layout_width="@dimen/small_user_icon"
-        android:layout_height="@dimen/small_user_icon"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:contentDescription="@string/desc_icon"
-        android:layout_marginRight="@dimen/grid_margin"
-        android:layout_marginEnd="@dimen/grid_margin"
-        app:maskerShape="@drawable/s_rounded_mask_small"
-        />
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="item"
+            type="com.freshdigitable.udonroad.listitem.TwitterListItem"
+            />
+        <variable
+            name="containerItemId"
+            type="long"
+            />
+        <variable
+            name="viewModel"
+            type="com.freshdigitable.udonroad.timeline.TimelineViewModel"
+            />
+    </data>
 
-    <TextView
-        android:id="@+id/q_tweet"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/q_icon"
-        android:textSize="@dimen/tweet_main_size"
-        tools:text="Tweet"
-        />
+        android:padding="@dimen/grid_margin"
+        android:background="@drawable/s_rounded_frame_default"
+        android:visibility="@{item != null ? View.VISIBLE : View.GONE}"
+        android:onClick="@{v -> viewModel.setSelectedItem(containerItemId, item.id)}"
+        >
+
+        <com.freshdigitable.udonroad.RoundedCornerImageView
+            android:id="@+id/q_icon"
+            android:layout_width="@dimen/small_user_icon"
+            android:layout_height="@dimen/small_user_icon"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:contentDescription="@string/desc_icon"
+            android:layout_marginRight="@dimen/grid_margin"
+            android:layout_marginEnd="@dimen/grid_margin"
+            app:maskerShape="@drawable/s_rounded_mask_small"
+            />
+
+        <TextView
+            android:id="@+id/q_tweet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/q_icon"
+            android:text="@{item.text}"
+            android:textSize="@dimen/tweet_main_size"
+            tools:text="Tweet"
+            />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -62,6 +86,7 @@
                 android:textSize="@dimen/tweet_small_fontsize"
                 android:lines="1"
                 android:ellipsize="end"
+                app:names="@{item.combinedName}"
                 tools:text="ScreenName @name"
                 />
 
@@ -72,55 +97,57 @@
                 android:layout_weight="0"
                 android:gravity="end"
                 android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@{item.getCreatedTime(context)}"
                 android:textSize="@dimen/tweet_small_fontsize"
                 android:lines="1"
                 tools:text="CreatedTime"
                 />
         </LinearLayout>
 
-    <com.freshdigitable.udonroad.listitem.TwitterReactionContainer
-        android:id="@+id/q_reaction_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_below="@id/q_image_group"
-        android:layout_alignTop="@id/q_via"
-        android:layout_alignBottom="@id/q_via"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_toStartOf="@id/q_via"
-        android:layout_toLeftOf="@id/q_via"
-        android:layout_marginRight="@dimen/detail_grid_margin"
-        android:layout_marginEnd="@dimen/detail_grid_margin"
-        />
+        <com.freshdigitable.udonroad.listitem.TwitterReactionContainer
+            android:id="@+id/q_reaction_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/q_image_group"
+            android:layout_alignTop="@id/q_via"
+            android:layout_alignBottom="@id/q_via"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_toStartOf="@id/q_via"
+            android:layout_toLeftOf="@id/q_via"
+            android:layout_marginRight="@dimen/detail_grid_margin"
+            android:layout_marginEnd="@dimen/detail_grid_margin"
+            app:stats="@{item.stats}"
+            />
 
-    <TextView
-        android:id="@+id/q_via"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/q_image_group"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/q_has_reply"
-        android:layout_toEndOf="@+id/q_has_reply"
-        android:gravity="end"
-        android:textSize="@dimen/tweet_small_fontsize"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:lines="1"
-        android:ellipsize="end"
-        tools:text="via clientName"
-        />
+        <TextView
+            android:id="@+id/q_via"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/q_image_group"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:gravity="end"
+            android:text="@{@string/tweet_via(item.source)}"
+            android:textSize="@dimen/tweet_small_fontsize"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:lines="1"
+            android:ellipsize="end"
+            tools:text="via clientName"
+            />
 
-    <com.freshdigitable.udonroad.media.ThumbnailContainer
-        android:id="@+id/q_image_group"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/tweet_user_icon"
-        android:layout_marginTop="@dimen/grid_margin"
-        android:layout_marginBottom="@dimen/grid_margin"
-        android:layout_below="@id/q_tweet"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        tools:visibility="visible"
-        app:thumbCount="4"
-        />
-</merge>
+        <com.freshdigitable.udonroad.media.ThumbnailContainer
+            android:id="@+id/q_image_group"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tweet_user_icon"
+            android:layout_marginTop="@dimen/grid_margin"
+            android:layout_marginBottom="@dimen/grid_margin"
+            android:layout_below="@id/q_tweet"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:thumbCount="4"
+            />
+    </RelativeLayout>
+</layout>

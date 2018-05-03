@@ -192,7 +192,8 @@
             tools:text="via clientname"
             />
 
-        <com.freshdigitable.udonroad.listitem.QuotedStatusView
+        <include
+            layout="@layout/view_quoted_status"
             android:id="@+id/d_quoted"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -202,7 +203,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:background="@drawable/s_rounded_frame_default"
-            android:visibility="@{item.quotedItem != null ? View.VISIBLE : View.GONE}"
             app:item="@{item.quotedItem}"
             tools:visibility="visible"
             />

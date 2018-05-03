@@ -44,16 +44,15 @@ import com.freshdigitable.udonroad.ItemSelectable;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher;
-import com.freshdigitable.udonroad.Utils;
-import com.freshdigitable.udonroad.timeline.TimelineAdapter.OnSelectedItemChangeListener;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
+import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.FragmentTimelineBinding;
 import com.freshdigitable.udonroad.datastore.UpdateEvent;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.ListsListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.StatusView;
+import com.freshdigitable.udonroad.listitem.StatusViewHolder;
 import com.freshdigitable.udonroad.subscriber.StatusRequestWorker;
 import com.freshdigitable.udonroad.user.UserInfoPagerFragment;
 
@@ -75,7 +74,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   private static final String TAG = TimelineFragment.class.getSimpleName();
   private static final String SS_TOP_ITEM_ID = "ss_topItemId";
   private static final String SS_TOP_ITEM_TOP = "ss_topItemTop";
-  private static final String SS_ADAPTER = "ss_adapter";
   private static final String SS_AUTO_SCROLL_STATE = "ss_auto_scroll_state";
   private FragmentTimelineBinding binding;
   protected TimelineAdapter tlAdapter;
@@ -116,8 +114,9 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
           final int childCount = binding.timeline.getChildCount();
           for (int i = 0; i < childCount; i++) {
             final View v = binding.timeline.getChildAt(i);
-            if (v instanceof StatusView) {
-              ((StatusView) v).updateTime();
+            final StatusViewHolder viewHolder = (StatusViewHolder) binding.timeline.getChildViewHolder(v);
+            if (viewHolder != null) {
+              viewHolder.updateTime();
             }
           }
         });
@@ -154,7 +153,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     Timber.tag(TAG).d("onCreateView: %s", getStoreName());
     if (savedInstanceState != null) {
       autoScrollState = savedInstanceState.getParcelable(SS_AUTO_SCROLL_STATE);
-      tlAdapter.onRestoreInstanceState(savedInstanceState.getParcelable(SS_ADAPTER));
     }
     binding = FragmentTimelineBinding.inflate(inflater, container, false);
     return binding.getRoot();
@@ -190,7 +188,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     outState.putParcelable(SS_AUTO_SCROLL_STATE, autoScrollState);
     outState.putLong(SS_TOP_ITEM_ID, topItemId);
     outState.putInt(SS_TOP_ITEM_TOP, firstVisibleItemTopOnStop);
-    outState.putParcelable(SS_ADAPTER, tlAdapter.onSaveInstanceState());
   }
 
   @Override
@@ -275,17 +272,13 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
 
     fabViewModel = ViewModelProviders.of(getActivity()).get(FabViewModel.class);
 
-    tlAdapter.setOnSelectedItemChangeListener(new OnSelectedItemChangeListener() {
-      @Override
-      public void onItemSelected(long entityId) {
-        showFab();
-        addAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
-      }
-
-      @Override
-      public void onItemUnselected() {
+    timelineViewModel.getSelectedItem().observe(this, item -> {
+      if (item == SelectedItem.NONE || item == null) {
         hideFab();
         removeAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
+      } else {
+        showFab();
+        addAutoScrollStopper(AutoScrollStopper.ITEM_SELECTED);
       }
     });
     tlAdapter.setLastItemBoundListener(() -> timelineViewModel.getListOnEnd());
@@ -299,7 +292,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   public void onResume() {
     super.onResume();
     if (!isChildOfViewPager() || isVisibleOnViewPager()) {
-      if (tlAdapter.isItemSelected()) {
+      if (timelineViewModel.isItemSelected()) {
         showFab();
       } else {
         hideFab();
@@ -484,7 +477,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
 
   public void scrollToSelectedItem() {
     binding.timeline.setLayoutFrozen(false);
-    tlLayoutManager.scrollToPositionWithOffset(tlAdapter.getSelectedItemViewPosition(), 0);
+    tlLayoutManager.scrollToPositionWithOffset(timelineViewModel.getSelectedItemViewPosition(), 0);
   }
 
   private void scrollTo(int position) {
@@ -500,17 +493,17 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
 
   @Override
   public void clearSelectedItem() {
-    tlAdapter.clearSelectedItem();
+    timelineViewModel.clearSelectedItem();
   }
 
   @Override
   public boolean isItemSelected() {
-    return tlAdapter != null && tlAdapter.isItemSelected();
+    return timelineViewModel != null && timelineViewModel.isItemSelected();
   }
 
   @Override
   public long getSelectedItemId() {
-    return tlAdapter.getSelectedItemId();
+    return timelineViewModel.getSelectedItemId();
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {

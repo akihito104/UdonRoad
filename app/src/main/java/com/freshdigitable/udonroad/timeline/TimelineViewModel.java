@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.timeline;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -43,12 +45,14 @@ public class TimelineViewModel extends ViewModel {
   private final ListItemRepositoryFactory repositoryFactory;
   private final StatusViewImageLoader imageLoader;
   private ListItemRepository listItemRepository;
+  public final MutableLiveData<SelectedItem> selectedItem = new MutableLiveData<>();
 
   @Inject
   TimelineViewModel(ListItemRepositoryFactory repositoryFactory,
                     StatusViewImageLoader imageLoader) {
     this.repositoryFactory = repositoryFactory;
     this.imageLoader = imageLoader;
+    selectedItem.setValue(SelectedItem.NONE);
   }
 
   public void init(StoreType storeType, long id, String query) {
@@ -94,6 +98,35 @@ public class TimelineViewModel extends ViewModel {
 
   public StatusViewImageLoader getImageLoader() {
     return imageLoader;
+  }
+
+  public void setSelectedItem(long containerItemId, long selectedItemId) {
+    final SelectedItem selectedItem = new SelectedItem(containerItemId, selectedItemId);
+    if (selectedItem.equals(this.selectedItem.getValue())) {
+      clearSelectedItem();
+    } else {
+      this.selectedItem.setValue(selectedItem);
+    }
+  }
+
+  public void clearSelectedItem() {
+    selectedItem.setValue(SelectedItem.NONE);
+  }
+
+  public long getSelectedItemId() {
+    return selectedItem.getValue().getId();
+  }
+
+  public boolean isItemSelected() {
+    return SelectedItem.NONE != selectedItem.getValue();
+  }
+
+  public int getSelectedItemViewPosition() {
+    return getPositionById(selectedItem.getValue().getId());
+  }
+
+  public LiveData<SelectedItem> getSelectedItem() {
+    return selectedItem;
   }
 
   @Override

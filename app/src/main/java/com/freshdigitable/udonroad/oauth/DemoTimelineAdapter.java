@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.oauth;
 
 import android.graphics.drawable.Drawable;
 import android.support.v7.content.res.AppCompatResources;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,10 +26,9 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
+import com.freshdigitable.udonroad.databinding.ViewStatusBinding;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.listitem.QuotedStatusView;
-import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
 import com.freshdigitable.udonroad.timeline.TimelineAdapter;
@@ -52,7 +52,8 @@ public class DemoTimelineAdapter extends TimelineAdapter {
 
   @Override
   public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    return viewType == TYPE_TWEET ? new StatusViewHolder(parent)
+    return viewType == TYPE_TWEET ?
+        new StatusViewHolder(ViewStatusBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), viewModel)
         : new DemoViewHolder(View.inflate(parent.getContext(), R.layout.view_pin_auth, null));
   }
 
@@ -63,9 +64,9 @@ public class DemoTimelineAdapter extends TimelineAdapter {
       final ImageView userIcon = holder.getUserIcon();
       final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
       userIcon.setImageDrawable(icon);
-      final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
-      if (quotedStatusView != null) {
-        quotedStatusView.getIcon().setImageDrawable(icon);
+      final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
+      if (statusViewHolder.hasQuotedView()) {
+        statusViewHolder.getQuotedStatusView().qIcon.setImageDrawable(icon);
       }
     }
   }

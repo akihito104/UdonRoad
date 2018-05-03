@@ -16,27 +16,22 @@
 
 package com.freshdigitable.udonroad.timeline;
 
-import android.content.Context;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import com.freshdigitable.udonroad.StoreType;
+import com.freshdigitable.udonroad.databinding.ViewQuotedStatusBinding;
+import com.freshdigitable.udonroad.databinding.ViewStatusBinding;
 import com.freshdigitable.udonroad.databinding.ViewUserListBinding;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
-import com.freshdigitable.udonroad.listitem.QuotedStatusView;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
 import com.freshdigitable.udonroad.listitem.UserItemViewHolder;
-import com.freshdigitable.udonroad.media.ThumbnailView;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,10 +56,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
   @Override
   public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    final LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
     if (type.isForStatus()) {
-      return new StatusViewHolder(parent);
+      final ViewStatusBinding binding = ViewStatusBinding.inflate(layoutInflater, parent, false);
+      return new StatusViewHolder(binding, viewModel);
     } else if (type.isForUser() || type.isForLists()) {
-      final LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
       final ViewUserListBinding binding = ViewUserListBinding.inflate(layoutInflater, parent, false);
       return new UserItemViewHolder(binding, viewModel);
     }
@@ -85,23 +81,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
     if (position == getItemCount() - 1) {
       lastItemBoundListener.onLastItemBound();
-    }
-
-    bindSelectedItemView(holder);
-  }
-
-  private void bindSelectedItemView(ItemViewHolder holder) {
-    if (!isItemSelected()) {
-      return;
-    }
-    final long selectedItemId = getSelectedItemId();
-    if (holder.getItemId() == selectedItemId) {
-      selectedItemHolder = new SelectedItem(holder);
-    } else if (holder.hasQuotedItem()) {
-      final long quotedItemId = holder.getQuotedItemId();
-      if (quotedItemId == selectedItemId) {
-        selectedItemHolder = new SelectedItem(holder, quotedItemId);
-      }
     }
   }
 
@@ -132,64 +111,16 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   @Override
   public void onViewRecycled(ItemViewHolder holder) {
     super.onViewRecycled(holder);
-    if (holder.hasSameItemId(selectedItemHolder.id)) {
-      selectedItemHolder.onViewRecycled();
-    }
     holder.recycle();
   }
-
-  private static final SelectedItem EMPTY = new SelectedItem();
-  private SelectedItem selectedItemHolder = EMPTY;
 
   private OnItemViewClickListener itemClickListener;
 
   private final OnItemViewClickListener itemViewClickListener = (vh, itemId, clickedItem) -> {
     if (itemClickListener != null) {
       itemClickListener.onItemViewClicked(vh, itemId, clickedItem);
-      return;
-    }
-    if (isItemSelected()
-        && itemId == selectedItemHolder.id) {
-      if (clickedItem instanceof ThumbnailView) {
-        return;
-      }
-      clearSelectedItem();
-    } else {
-      fixSelectedItem(itemId, vh);
     }
   };
-
-  public void clearSelectedItem() {
-    if (isItemSelected()) {
-      selectedItemHolder.setUnselectedBackground();
-    }
-    selectedItemHolder = EMPTY;
-    if (selectedItemChangeListener != null) {
-      selectedItemChangeListener.onItemUnselected();
-    }
-  }
-
-  private void fixSelectedItem(long selectedItemId, ItemViewHolder selectedView) {
-    if (isItemSelected()) {
-      selectedItemHolder.setUnselectedBackground();
-    }
-    selectedItemHolder = new SelectedItem(selectedView, selectedItemId);
-    if (selectedItemChangeListener != null) {
-      selectedItemChangeListener.onItemSelected(selectedItemId);
-    }
-  }
-
-  public long getSelectedItemId() {
-    return selectedItemHolder.id;
-  }
-
-  public boolean isItemSelected() {
-    return selectedItemHolder != EMPTY;
-  }
-
-  public int getSelectedItemViewPosition() {
-    return viewModel.getPositionById(selectedItemHolder.containerId);
-  }
 
   public interface LastItemBoundListener {
     void onLastItemBound();
@@ -221,67 +152,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     return viewModel.getItemCount();
   }
 
-  private static class SelectedItem {
-    private final long id;
-    private final long containerId;
-    private final WeakReference<ItemViewHolder> viewHolder;
-
-    private SelectedItem() {
-      this(null, -1);
-    }
-
-    private SelectedItem(ItemViewHolder vh) {
-      this(vh, vh.getItemId());
-    }
-
-    private SelectedItem(ItemViewHolder vh, long id) {
-      this.id = id;
-      this.containerId = vh != null ? vh.getItemId() : -1;
-      this.viewHolder = vh != null
-          ? new WeakReference<>(vh)
-          : null;
-      setSelectedBackground();
-    }
-
-    /**
-     * for restore saved state
-     *
-     * @param selectedContainerId container ID that has selected item
-     * @param selectedItemId ID of actually selected item
-     */
-    private SelectedItem(long selectedContainerId, long selectedItemId) {
-      this.id = selectedItemId;
-      this.containerId = selectedContainerId;
-      this.viewHolder = null;
-    }
-
-    private void setSelectedBackground() {
-      final ItemViewHolder vh = getViewHolder();
-      if (vh != null) {
-        vh.onSelected(id);
-      }
-    }
-
-    private void setUnselectedBackground() {
-      final ItemViewHolder vh = getViewHolder();
-      if (vh != null) {
-        vh.onUnselected(id);
-      }
-    }
-
-    private void onViewRecycled() {
-      final ItemViewHolder viewHolder = getViewHolder();
-      if (viewHolder != null) {
-        this.viewHolder.clear();
-      }
-    }
-
-    @Nullable
-    private ItemViewHolder getViewHolder() {
-      return this.viewHolder != null ? this.viewHolder.get() : null;
-    }
-  }
-
   private OnUserIconClickedListener userIconClickedListener;
 
   public void setOnUserIconClickedListener(OnUserIconClickedListener listener) {
@@ -298,7 +168,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
       final StatusListItem item = ((StatusListItem) viewModel.get(position));
       final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
       if (item.getQuotedItem() != null && !statusViewHolder.hasQuotedView()) {
-        statusViewHolder.attachQuotedView(getQuotedView(holder.itemView.getContext()));
+        statusViewHolder.attachQuotedView(getQuotedView((ViewGroup) holder.itemView));
       }
       holder.bind(item, viewModel.getImageLoader());
       final Observable<? extends ListItem> observable = viewModel.observe(item);
@@ -307,15 +177,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
       if (position == getItemCount() - 1) {
         super.lastItemBoundListener.onLastItemBound();
       }
-
-      super.bindSelectedItemView(holder);
     }
 
-    private final List<QuotedStatusView> quotedViewCache = new ArrayList<>();
+    private final List<ViewQuotedStatusBinding> quotedViewCache = new ArrayList<>();
 
-    private QuotedStatusView getQuotedView(Context context) {
+    private ViewQuotedStatusBinding getQuotedView(ViewGroup parent) {
       if (quotedViewCache.isEmpty()) {
-        return new QuotedStatusView(context);
+        return ViewQuotedStatusBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
       }
       return quotedViewCache.remove(quotedViewCache.size() - 1);
     }
@@ -323,7 +191,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     @Override
     public void onViewRecycled(ItemViewHolder holder) {
       super.onViewRecycled(holder);
-      final QuotedStatusView v = ((StatusViewHolder) holder).detachQuotedView();
+      final ViewQuotedStatusBinding v = ((StatusViewHolder) holder).detachQuotedView();
       if (v != null) {
         quotedViewCache.add(v);
       }
@@ -332,62 +200,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
       quotedViewCache.clear();
-    }
-  }
-
-  Parcelable onSaveInstanceState() {
-    final SavedState savedState = new SavedState();
-    if (selectedItemHolder != null) {
-      savedState.selectedContainerId = selectedItemHolder.containerId;
-      savedState.selectedItemId = selectedItemHolder.id;
-    }
-    return savedState;
-  }
-
-  void onRestoreInstanceState(Parcelable parcelable) {
-    if (!(parcelable instanceof SavedState)) {
-      return;
-    }
-    final SavedState ss = (SavedState) parcelable;
-    if (ss.selectedItemId == EMPTY.id && ss.selectedContainerId == EMPTY.containerId) {
-      selectedItemHolder = EMPTY;
-    } else {
-      selectedItemHolder = new SelectedItem(ss.selectedContainerId, ss.selectedItemId);
-    }
-  }
-
-  private static class SavedState implements Parcelable {
-    long selectedContainerId = EMPTY.containerId;
-    long selectedItemId = EMPTY.id;
-
-    private SavedState() {}
-
-    SavedState(Parcel in) {
-      selectedContainerId = in.readLong();
-      selectedItemId = in.readLong();
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-      parcel.writeLong(selectedContainerId);
-      parcel.writeLong(selectedItemId);
-    }
-
-    public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
-      @Override
-      public SavedState createFromParcel(Parcel in) {
-        return new SavedState(in);
-      }
-
-      @Override
-      public SavedState[] newArray(int size) {
-        return new SavedState[size];
-      }
-    };
-
-    @Override
-    public int describeContents() {
-      return 0;
     }
   }
 }
