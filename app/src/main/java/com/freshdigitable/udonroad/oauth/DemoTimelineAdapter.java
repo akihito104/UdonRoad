@@ -118,11 +118,5 @@ public class DemoTimelineAdapter extends TimelineAdapter {
 
     @Override
     public void onUpdate(ListItem item) {}
-
-    @Override
-    public void onSelected(long itemId) {}
-
-    @Override
-    public void onUnselected(long itemId) {}
   }
 }

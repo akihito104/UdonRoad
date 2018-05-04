@@ -44,6 +44,8 @@ public class UserItemViewHolder extends ItemViewHolder {
   @Override
   public void bind(ListItem item, StatusViewImageLoader imageLoader) {
     super.bind(item, imageLoader);
+    itemView.setOnClickListener(v ->
+        itemViewClickListener.onItemViewClicked(this, getItemId(), v));
     binding.setItem(item);
     binding.executePendingBindings();
     Utils.maybeDispose(iconSubscription);
@@ -65,10 +67,4 @@ public class UserItemViewHolder extends ItemViewHolder {
   public ImageView getUserIcon() {
     return binding.tlIcon;
   }
-
-  @Override
-  public void onSelected(long itemId) {}
-
-  @Override
-  public void onUnselected(long itemId) {}
 }

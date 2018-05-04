@@ -18,9 +18,11 @@ package com.freshdigitable.udonroad.timeline;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
+import android.databinding.ObservableField;
 import android.support.v4.app.Fragment;
 
 import com.freshdigitable.udonroad.StoreType;
@@ -45,14 +47,17 @@ public class TimelineViewModel extends ViewModel {
   private final ListItemRepositoryFactory repositoryFactory;
   private final StatusViewImageLoader imageLoader;
   private ListItemRepository listItemRepository;
-  public final MutableLiveData<SelectedItem> selectedItem = new MutableLiveData<>();
+  private final MutableLiveData<SelectedItem> selectedItemSource = new MutableLiveData<>();
+  public final ObservableField<SelectedItem> selectedItem = new ObservableField<>(SelectedItem.NONE);
+  private final Observer<SelectedItem> selectedItemObserver = selectedItem::set;
 
   @Inject
   TimelineViewModel(ListItemRepositoryFactory repositoryFactory,
                     StatusViewImageLoader imageLoader) {
     this.repositoryFactory = repositoryFactory;
     this.imageLoader = imageLoader;
-    selectedItem.setValue(SelectedItem.NONE);
+    selectedItemSource.setValue(SelectedItem.NONE);
+    selectedItemSource.observeForever(selectedItemObserver);
   }
 
   public void init(StoreType storeType, long id, String query) {
@@ -102,31 +107,35 @@ public class TimelineViewModel extends ViewModel {
 
   public void setSelectedItem(long containerItemId, long selectedItemId) {
     final SelectedItem selectedItem = new SelectedItem(containerItemId, selectedItemId);
-    if (selectedItem.equals(this.selectedItem.getValue())) {
+    setSelectedItem(selectedItem);
+  }
+
+  public void setSelectedItem(SelectedItem selectedItem) {
+    if (selectedItem.equals(this.selectedItemSource.getValue())) {
       clearSelectedItem();
     } else {
-      this.selectedItem.setValue(selectedItem);
+      this.selectedItemSource.setValue(selectedItem);
     }
   }
 
   public void clearSelectedItem() {
-    selectedItem.setValue(SelectedItem.NONE);
+    selectedItemSource.setValue(SelectedItem.NONE);
   }
 
   public long getSelectedItemId() {
-    return selectedItem.getValue().getId();
+    return selectedItemSource.getValue().getId();
   }
 
   public boolean isItemSelected() {
-    return SelectedItem.NONE != selectedItem.getValue();
+    return SelectedItem.NONE != selectedItemSource.getValue();
   }
 
   public int getSelectedItemViewPosition() {
-    return getPositionById(selectedItem.getValue().getId());
+    return getPositionById(selectedItemSource.getValue().getId());
   }
 
-  public LiveData<SelectedItem> getSelectedItem() {
-    return selectedItem;
+  LiveData<SelectedItem> getSelectedItem() {
+    return selectedItemSource;
   }
 
   @Override
@@ -134,6 +143,7 @@ public class TimelineViewModel extends ViewModel {
     Timber.tag(TimelineViewModel.class.getSimpleName()).d("onCleared: ");
     super.onCleared();
     listItemRepository.close();
+    selectedItemSource.removeObserver(selectedItemObserver);
   }
 
   public Flowable<UpdateEvent> observeUpdateEvent() {

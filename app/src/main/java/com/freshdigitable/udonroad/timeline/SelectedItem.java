@@ -16,18 +16,29 @@
 
 package com.freshdigitable.udonroad.timeline;
 
-public class SelectedItem {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class SelectedItem implements Parcelable {
   static final SelectedItem NONE = new SelectedItem(-1, -1);
-  private final long id;
   private final long containerId;
+  private final long id;
 
   SelectedItem(long selectedContainerId, long selectedItemId) {
-    this.id = selectedItemId;
     this.containerId = selectedContainerId;
+    this.id = selectedItemId;
   }
 
   public long getId() {
     return id;
+  }
+
+  public boolean isSame(long itemId) {
+    return isSame(itemId, itemId);
+  }
+
+  public boolean isSame(long containerItemId, long itemId) {
+    return this.containerId == containerItemId && this.id == itemId;
   }
 
   @Override
@@ -46,5 +57,32 @@ public class SelectedItem {
     int result = (int) (id ^ (id >>> 32));
     result = 31 * result + (int) (containerId ^ (containerId >>> 32));
     return result;
+  }
+
+  protected SelectedItem(Parcel in) {
+    this(in.readLong(), in.readLong());
+  }
+
+  public static final Creator<SelectedItem> CREATOR = new Creator<SelectedItem>() {
+    @Override
+    public SelectedItem createFromParcel(Parcel in) {
+      return new SelectedItem(in);
+    }
+
+    @Override
+    public SelectedItem[] newArray(int size) {
+      return new SelectedItem[size];
+    }
+  };
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeLong(containerId);
+    dest.writeLong(id);
+  }
+
+  @Override
+  public int describeContents() {
+    return 0;
   }
 }

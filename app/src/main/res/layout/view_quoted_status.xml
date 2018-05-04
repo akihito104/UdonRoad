@@ -40,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/grid_margin"
-        android:background="@drawable/s_rounded_frame_default"
+        android:background="@{viewModel.selectedItem.isSame(containerItemId, item.id) ? @drawable/s_rounded_frame_pressed : @drawable/s_rounded_frame_default}"
         android:visibility="@{item != null ? View.VISIBLE : View.GONE}"
         android:onClick="@{v -> viewModel.setSelectedItem(containerItemId, item.id)}"
         >

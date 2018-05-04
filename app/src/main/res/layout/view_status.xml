@@ -37,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/grid_margin"
-        android:background="@{viewModel.selectedItem.id == item.id ? @color/twitter_action_normal_transparent : @android:color/transparent}"
+        android:background="@{viewModel.selectedItem.isSame(item.id) ? @color/twitter_action_normal_transparent : @android:color/transparent}"
         android:onClick="@{v -> viewModel.setSelectedItem(item.id, item.id)}"
         >
 

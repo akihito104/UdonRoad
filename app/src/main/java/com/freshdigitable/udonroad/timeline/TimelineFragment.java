@@ -75,6 +75,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   private static final String SS_TOP_ITEM_ID = "ss_topItemId";
   private static final String SS_TOP_ITEM_TOP = "ss_topItemTop";
   private static final String SS_AUTO_SCROLL_STATE = "ss_auto_scroll_state";
+  private static final String SS_SELECTED_ITEM = "ss_selectedItem";
   private FragmentTimelineBinding binding;
   protected TimelineAdapter tlAdapter;
   private LinearLayoutManager tlLayoutManager;
@@ -153,6 +154,8 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     Timber.tag(TAG).d("onCreateView: %s", getStoreName());
     if (savedInstanceState != null) {
       autoScrollState = savedInstanceState.getParcelable(SS_AUTO_SCROLL_STATE);
+      final SelectedItem selectedItem = savedInstanceState.getParcelable(SS_SELECTED_ITEM);
+      timelineViewModel.setSelectedItem(selectedItem);
     }
     binding = FragmentTimelineBinding.inflate(inflater, container, false);
     return binding.getRoot();
@@ -188,6 +191,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     outState.putParcelable(SS_AUTO_SCROLL_STATE, autoScrollState);
     outState.putLong(SS_TOP_ITEM_ID, topItemId);
     outState.putInt(SS_TOP_ITEM_TOP, firstVisibleItemTopOnStop);
+    outState.putParcelable(SS_SELECTED_ITEM, timelineViewModel.getSelectedItem().getValue());
   }
 
   @Override

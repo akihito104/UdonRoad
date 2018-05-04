@@ -115,8 +115,13 @@ public class StatusViewHolder extends ItemViewHolder {
     binding.tlReactionContainer.update(item.getStats());
     binding.tlNames.setNames(item.getCombinedName());
     if (quotedBinding != null) {
-      quotedBinding.qReactionContainer.update(item.getStats());
-      quotedBinding.qNames.setNames(item.getCombinedName());
+      final TwitterListItem quotedItem = ((TwitterListItem) item).getQuotedItem();
+      if (quotedItem == null) {
+        quotedBinding.setItem(null);
+        return;
+      }
+      quotedBinding.qReactionContainer.update(quotedItem.getStats());
+      quotedBinding.qNames.setNames(quotedItem.getCombinedName());
     }
   }
 
@@ -129,28 +134,6 @@ public class StatusViewHolder extends ItemViewHolder {
       unloadMediaView(quotedBinding.qImageGroup);
     }
     Utils.maybeDispose(imageSubs);
-  }
-
-  @Override
-  public void onSelected(long itemId) {
-//    if (getItemId() == itemId) {
-//      getView().setSelectedColor();
-//    } else if (quotedStatusId == itemId) {
-//      if (quotedStatus != null) {
-//        quotedStatus.setSelectedColor();
-//      }
-//    }
-  }
-
-  @Override
-  public void onUnselected(long itemId) {
-//    if (getItemId() == itemId) {
-//        getView().setUnselectedColor();
-//    } else if (quotedStatusId == itemId) {
-//      if (quotedStatus != null) {
-//        quotedStatus.setUnselectedColor();
-//      }
-//    }
   }
 
   private void setupMediaView(TwitterListItem item, ThumbnailContainer thumbnailContainer) {
@@ -166,9 +149,6 @@ public class StatusViewHolder extends ItemViewHolder {
     if (quotedStatus == null) {
       return;
     }
-    quotedStatusId = quotedStatus.getId();
-    quotedBinding.getRoot().setOnClickListener(
-        view -> itemViewClickListener.onItemViewClicked(this, quotedStatusId, view));
     setupMediaView(quotedStatus, quotedBinding.qImageGroup);
   }
 
