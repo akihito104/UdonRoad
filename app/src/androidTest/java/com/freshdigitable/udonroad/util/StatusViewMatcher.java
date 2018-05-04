@@ -30,8 +30,6 @@ import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.IconAttachedTextView;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.listitem.ItemView;
-import com.freshdigitable.udonroad.listitem.StatusView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -48,27 +46,26 @@ import static android.support.test.espresso.util.TreeIterables.breadthFirstViewT
 public class StatusViewMatcher {
   @NonNull
   public static Matcher<View> ofStatusView(@NonNull final Status target) {
-    return ofStatusViewInternal(withText(target.getText()), StatusView.class);
+    return ofStatusViewInternal(withText(target.getText()));
   }
 
   @NonNull
   public static Matcher<View> ofStatusView(@NonNull final Matcher<View> viewMatcher) {
-    return ofStatusViewInternal(viewMatcher, StatusView.class);
+    return ofStatusViewInternal(viewMatcher);
   }
 
   @NonNull
   public static Matcher<View> ofRTStatusView(@NonNull final Status target) {
-    return ofStatusViewInternal(withText(target.getText()), StatusView.class, true);
+    return ofStatusViewInternal(withText(target.getText()), true);
   }
 
   @NonNull
   public static Matcher<View> ofRTStatusView(@NonNull final Matcher<View> viewMatcher) {
-    return ofStatusViewInternal(viewMatcher, StatusView.class, true);
+    return ofStatusViewInternal(viewMatcher, true);
   }
 
-  private static <T extends View & ItemView> Matcher<View> ofStatusViewInternal(
-      final Matcher<View> viewMatcher, Class<T> clz) {
-    return ofStatusViewInternal(viewMatcher, clz, false);
+  private static Matcher<View> ofStatusViewInternal(final Matcher<View> viewMatcher) {
+    return ofStatusViewInternal(viewMatcher, false);
   }
 
   private final static SparseIntArray STATUS_VIEW_CHILDREN = new SparseIntArray() {{
@@ -114,8 +111,7 @@ public class StatusViewMatcher {
     return false;
   }
 
-  private static <T extends View> Matcher<View> ofStatusViewInternal(
-      final Matcher<View> viewMatcher, Class<T> clz, boolean isRetweet) {
+  private static Matcher<View> ofStatusViewInternal(final Matcher<View> viewMatcher, boolean isRetweet) {
     return new BoundedMatcher<View, ViewGroup>(ViewGroup.class) {
       @Override
       protected boolean matchesSafely(ViewGroup item) {
