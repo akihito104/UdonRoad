@@ -32,6 +32,7 @@ import com.freshdigitable.udonroad.databinding.ViewQuotedStatusBinding;
 import com.freshdigitable.udonroad.databinding.ViewStatusBinding;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
+import com.freshdigitable.udonroad.timeline.SelectedItem;
 import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
 import io.reactivex.disposables.Disposable;
@@ -66,7 +67,7 @@ public class StatusViewHolder extends ItemViewHolder {
     if (imageLoader != null) {
       imageSubs = imageLoader.load(twitterListItem, binding, quotedBinding);
     }
-    setupMediaView(twitterListItem, binding.tlImageGroup);
+    setupMediaView(item.getId(), twitterListItem, binding.tlImageGroup);
     setupQuotedStatusView(twitterListItem, quotedBinding);
   }
 
@@ -136,10 +137,13 @@ public class StatusViewHolder extends ItemViewHolder {
     Utils.maybeDispose(imageSubs);
   }
 
-  private void setupMediaView(TwitterListItem item, ThumbnailContainer thumbnailContainer) {
+  private void setupMediaView(long containerItemId, TwitterListItem item, ThumbnailContainer thumbnailContainer) {
     final long statusId = item.getId();
     thumbnailContainer.setOnMediaClickListener((view, index) -> {
-      itemViewClickListener.onItemViewClicked(this, statusId, view);
+      final SelectedItem selectedItem = viewModel.selectedItem.get();
+      if (selectedItem == null || SelectedItem.NONE.equals(selectedItem) || !selectedItem.isSame(containerItemId, statusId)) {
+        viewModel.setSelectedItem(containerItemId, statusId);
+      }
       MediaViewActivity.start(view.getContext(), item, index);
     });
   }
@@ -149,7 +153,7 @@ public class StatusViewHolder extends ItemViewHolder {
     if (quotedStatus == null) {
       return;
     }
-    setupMediaView(quotedStatus, quotedBinding.qImageGroup);
+    setupMediaView(status.getId(), quotedStatus, quotedBinding.qImageGroup);
   }
 
   private void unloadMediaView(ThumbnailContainer thumbnailContainer) {
@@ -168,7 +172,7 @@ public class StatusViewHolder extends ItemViewHolder {
 
   public void attachQuotedView(ViewQuotedStatusBinding quotedBinding) {
     final RelativeLayout.LayoutParams lp = createQuotedItemLayoutParams();
-    ((RelativeLayout) binding.getRoot()).addView(quotedBinding.getRoot(), lp);
+    ((ViewGroup) binding.getRoot()).addView(quotedBinding.getRoot(), lp);
     this.quotedBinding = quotedBinding;
   }
 
@@ -189,7 +193,7 @@ public class StatusViewHolder extends ItemViewHolder {
     if (quotedBinding == null) {
       return null;
     }
-    ((RelativeLayout) binding.getRoot()).removeView(quotedBinding.getRoot());
+    ((ViewGroup) binding.getRoot()).removeView(quotedBinding.getRoot());
     final ViewQuotedStatusBinding res = this.quotedBinding;
     this.quotedBinding = null;
     return res;

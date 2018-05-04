@@ -20,7 +20,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SelectedItem implements Parcelable {
-  static final SelectedItem NONE = new SelectedItem(-1, -1);
+  public static final SelectedItem NONE = new SelectedItem(-1, -1);
   private final long containerId;
   private final long id;
 
