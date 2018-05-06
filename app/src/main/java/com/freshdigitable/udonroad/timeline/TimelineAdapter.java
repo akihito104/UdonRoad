@@ -132,17 +132,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     this.lastItemBoundListener = listener;
   }
 
-  private OnSelectedItemChangeListener selectedItemChangeListener;
-
-  public void setOnSelectedItemChangeListener(OnSelectedItemChangeListener listener) {
-    this.selectedItemChangeListener = listener;
-  }
-
-  interface OnSelectedItemChangeListener {
-    void onItemSelected(long itemId);
-    void onItemUnselected();
-  }
-
   void setOnItemViewClickListener(OnItemViewClickListener listener) {
     this.itemClickListener = listener;
   }

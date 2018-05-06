@@ -349,7 +349,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   public void onStop() {
     super.onStop();
     tlAdapter.setLastItemBoundListener(null);
-    tlAdapter.setOnSelectedItemChangeListener(null);
     tlAdapter.setOnUserIconClickedListener(null);
     binding.timeline.setOnTouchListener(null);
     binding.timeline.removeOnScrollListener(onScrollListener);
