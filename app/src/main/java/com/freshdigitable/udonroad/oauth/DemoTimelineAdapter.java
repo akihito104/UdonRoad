@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad.oauth;
 
 import android.graphics.drawable.Drawable;
 import android.support.v7.content.res.AppCompatResources;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,15 +26,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.TimelineAdapter;
+import com.freshdigitable.udonroad.databinding.ViewStatusBinding;
 import com.freshdigitable.udonroad.listitem.ItemViewHolder;
 import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.listitem.QuotedStatusView;
-import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.listitem.StatusViewHolder;
-import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.listitem.TwitterListItem;
-import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
+import com.freshdigitable.udonroad.timeline.TimelineAdapter;
+import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
 /**
  * Created by akihit on 2018/04/01.
@@ -42,31 +41,32 @@ public class DemoTimelineAdapter extends TimelineAdapter {
   private static final int TYPE_AUTH = 0;
   private static final int TYPE_TWEET = 1;
 
-  public DemoTimelineAdapter(ListItemRepository timelineStore, StatusViewImageLoader imageLoader) {
-    super(timelineStore, imageLoader);
+  public DemoTimelineAdapter(TimelineViewModel viewModel) {
+    super(viewModel);
   }
 
   @Override
   public int getItemViewType(int position) {
-    return repository.get(position) instanceof TwitterListItem ? TYPE_TWEET : TYPE_AUTH;
+    return viewModel.get(position) instanceof TwitterListItem ? TYPE_TWEET : TYPE_AUTH;
   }
 
   @Override
   public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    return viewType == TYPE_TWEET ? new StatusViewHolder(parent)
+    return viewType == TYPE_TWEET ?
+        new StatusViewHolder(ViewStatusBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), viewModel)
         : new DemoViewHolder(View.inflate(parent.getContext(), R.layout.view_pin_auth, null));
   }
 
   @Override
   public void onBindViewHolder(ItemViewHolder holder, int position) {
     if (holder instanceof StatusViewHolder) {
-      holder.bind(super.repository.get(position), imageLoader);
+      holder.bind(viewModel.get(position), viewModel.getImageLoader());
       final ImageView userIcon = holder.getUserIcon();
       final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
       userIcon.setImageDrawable(icon);
-      final QuotedStatusView quotedStatusView = ((StatusView) holder.itemView).getQuotedStatusView();
-      if (quotedStatusView != null) {
-        quotedStatusView.getIcon().setImageDrawable(icon);
+      final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
+      if (statusViewHolder.hasQuotedView()) {
+        statusViewHolder.getQuotedStatusView().qIcon.setImageDrawable(icon);
       }
     }
   }
@@ -118,11 +118,5 @@ public class DemoTimelineAdapter extends TimelineAdapter {
 
     @Override
     public void onUpdate(ListItem item) {}
-
-    @Override
-    public void onSelected(long itemId) {}
-
-    @Override
-    public void onUnselected(long itemId) {}
   }
 }

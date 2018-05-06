@@ -16,14 +16,12 @@
 
 package com.freshdigitable.udonroad.listitem;
 
-import android.databinding.DataBindingUtil;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
+import android.support.annotation.NonNull;
 import android.widget.ImageView;
 
-import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.ViewUserListBinding;
+import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
 import io.reactivex.disposables.Disposable;
 
@@ -32,27 +30,26 @@ import io.reactivex.disposables.Disposable;
  */
 
 public class UserItemViewHolder extends ItemViewHolder {
-
+  private final ViewUserListBinding binding;
+  private final TimelineViewModel viewModel;
   private Disposable iconSubscription;
-  private ViewUserListBinding binding;
 
-  public UserItemViewHolder(ViewGroup parent) {
-    this(DataBindingUtil.inflate(
-        LayoutInflater.from(parent.getContext()), R.layout.view_user_list, parent, false));
-  }
-
-  private UserItemViewHolder(ViewUserListBinding binding) {
+  public UserItemViewHolder(@NonNull ViewUserListBinding binding,
+                            @NonNull TimelineViewModel viewModel) {
     super(binding.getRoot());
     this.binding = binding;
+    this.viewModel = viewModel;
   }
 
   @Override
   public void bind(ListItem item, StatusViewImageLoader imageLoader) {
     super.bind(item, imageLoader);
+    itemView.setOnClickListener(v ->
+        itemViewClickListener.onItemViewClicked(this, getItemId(), v));
     binding.setItem(item);
     binding.executePendingBindings();
     Utils.maybeDispose(iconSubscription);
-    iconSubscription = imageLoader.loadUserIcon(item.getUser(), binding.tlIcon);
+    iconSubscription = viewModel.getImageLoader().loadUserIcon(item.getUser(), binding.tlIcon);
   }
 
   @Override
@@ -70,10 +67,4 @@ public class UserItemViewHolder extends ItemViewHolder {
   public ImageView getUserIcon() {
     return binding.tlIcon;
   }
-
-  @Override
-  public void onSelected(long itemId) {}
-
-  @Override
-  public void onUnselected(long itemId) {}
 }

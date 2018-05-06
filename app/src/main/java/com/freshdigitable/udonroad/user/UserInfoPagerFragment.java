@@ -35,7 +35,7 @@ import com.freshdigitable.udonroad.FabViewModel;
 import com.freshdigitable.udonroad.ItemSelectable;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 

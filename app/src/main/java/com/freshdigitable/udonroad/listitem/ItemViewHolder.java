@@ -43,8 +43,6 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
 
   @CallSuper
   public void bind(final ListItem item, StatusViewImageLoader imageLoader) {
-    itemView.setOnClickListener(v ->
-        itemViewClickListener.onItemViewClicked(this, getItemId(), v));
     final User user = item.getUser();
     getUserIcon().setOnClickListener(
         v -> userIconClickedListener.onUserIconClicked(v, user));
@@ -75,18 +73,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   @CallSuper
-  public boolean hasSameItemId(long other) {
-    return this.getItemId() == other || this.quotedStatusId == other;
-  }
-
-  @CallSuper
-  public boolean hasQuotedItem() {
-    return this.quotedStatusId > 0;
-  }
-
-  @CallSuper
   public void recycle() {
-    quotedStatusId = -1;
     unsubscribe();
     subscription = null;
   }
@@ -97,15 +84,5 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
 
   public void setUserIconClickedListener(OnUserIconClickedListener userIconClickedListener) {
     this.userIconClickedListener = userIconClickedListener;
-  }
-
-  public abstract void onSelected(long itemId);
-
-  public abstract void onUnselected(long itemId);
-
-  long quotedStatusId;
-
-  public long getQuotedItemId() {
-    return quotedStatusId;
   }
 }

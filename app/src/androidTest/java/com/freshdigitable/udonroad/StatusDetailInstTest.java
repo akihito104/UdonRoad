@@ -47,7 +47,6 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.freshdigitable.udonroad.util.AssertionUtil.anywayNotVisible;
@@ -282,7 +281,7 @@ public class StatusDetailInstTest extends TimelineInstTestBase {
   @Test
   public void deleteQuotedStatus() {
     receiveDeletionNotice(quoted);
-    onView(ofQuotedStatusView(quoted)).check(matches(not(isDisplayed())));
+    onView(ofQuotedStatusView(quoted)).check(anywayNotVisible());
   }
 
   @Test

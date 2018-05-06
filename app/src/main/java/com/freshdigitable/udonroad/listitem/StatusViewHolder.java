@@ -16,13 +16,23 @@
 
 package com.freshdigitable.udonroad.listitem;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.Utils;
+import com.freshdigitable.udonroad.databinding.ViewQuotedStatusBinding;
+import com.freshdigitable.udonroad.databinding.ViewStatusBinding;
 import com.freshdigitable.udonroad.media.MediaViewActivity;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
+import com.freshdigitable.udonroad.timeline.SelectedItem;
+import com.freshdigitable.udonroad.timeline.TimelineViewModel;
 
 import io.reactivex.disposables.Disposable;
 
@@ -32,114 +42,158 @@ import io.reactivex.disposables.Disposable;
 
 public class StatusViewHolder extends ItemViewHolder {
 
+  private final ViewStatusBinding binding;
+  private final TimelineViewModel viewModel;
   private Disposable imageSubs;
+  private ViewQuotedStatusBinding quotedBinding;
 
-  public StatusViewHolder(ViewGroup parent) {
-    super(new StatusView(parent.getContext()));
+  public StatusViewHolder(@NonNull ViewStatusBinding binding,
+                          @NonNull TimelineViewModel viewModel) {
+    super(binding.getRoot());
+    this.binding = binding;
+    this.viewModel = viewModel;
   }
 
   @Override
   public void bind(ListItem item, StatusViewImageLoader imageLoader) {
     super.bind(item, imageLoader);
     final TwitterListItem twitterListItem = (TwitterListItem) item;
-    getView().bind(twitterListItem);
+    binding.setViewModel(viewModel);
+    binding.setItem(twitterListItem);
+    binding.executePendingBindings();
+    bindQuotedStatus(twitterListItem.getId(), twitterListItem.getQuotedItem());
     Utils.maybeDispose(imageSubs);
     if (imageLoader != null) {
-      imageSubs = imageLoader.load(twitterListItem, getView());
+      imageSubs = imageLoader.load(twitterListItem, binding, quotedBinding);
     }
-    setupMediaView(twitterListItem, getView());
-    setupQuotedStatusView(twitterListItem, getView().getQuotedStatusView());
+    setupMediaView(item.getId(), twitterListItem, binding.tlImageGroup);
+    setupQuotedStatusView(twitterListItem, quotedBinding);
+  }
+
+  private void bindQuotedStatus(long containerItemId, TwitterListItem quotedItem) {
+    if (quotedItem == null && quotedBinding == null) {
+      return;
+    } else if (quotedItem != null && quotedBinding == null) {
+      final LayoutInflater layoutInflater = LayoutInflater.from(itemView.getContext());
+      quotedBinding = ViewQuotedStatusBinding.inflate(layoutInflater, (ViewGroup) binding.getRoot(), false);
+      attachQuotedView(quotedBinding);
+    }
+    quotedBinding.setViewModel(viewModel);
+    quotedBinding.setContainerItemId(containerItemId);
+    quotedBinding.setItem(quotedItem);
+    quotedBinding.executePendingBindings();
+  }
+
+  public void updateTime() {
+    updateTime(binding.tlCreateAt, binding.getItem());
+    if (quotedBinding != null && quotedBinding.getRoot().getVisibility() == View.VISIBLE) {
+      updateTime(quotedBinding.qCreateAt, quotedBinding.getItem());
+    }
+  }
+
+  private void updateTime(@NonNull TextView createdAt, @Nullable TwitterListItem item) {
+    if (item == null) {
+      return;
+    }
+    final TwitterListItem.TimeTextStrategy timeStrategy = item.getTimeStrategy();
+    if (timeStrategy == null) {
+      return;
+    }
+    createdAt.setText(timeStrategy.getCreatedTime(createdAt.getContext()));
   }
 
   @Override
   public ImageView getUserIcon() {
-    return getView().getIcon();
+    return binding.tlIcon;
   }
 
   @Override
   public void onUpdate(ListItem item) {
-    getView().update((TwitterListItem) item);
+    if (item == null) {
+      return;
+    }
+    binding.tlReactionContainer.update(item.getStats());
+    binding.tlNames.setNames(item.getCombinedName());
+    if (quotedBinding != null) {
+      final TwitterListItem quotedItem = ((TwitterListItem) item).getQuotedItem();
+      if (quotedItem == null) {
+        quotedBinding.setItem(null);
+        return;
+      }
+      quotedBinding.qReactionContainer.update(quotedItem.getStats());
+      quotedBinding.qNames.setNames(quotedItem.getCombinedName());
+    }
   }
 
   @Override
   public void recycle() {
     super.recycle();
-    getView().reset();
-    unloadMediaView(getView());
-    final QuotedStatusView quotedStatusView = getView().getQuotedStatusView();
-    if (quotedStatusView != null && quotedStatusView.getVisibility() == View.VISIBLE) {
-      unloadMediaView(quotedStatusView);
+    binding.tlImageGroup.reset();
+    unloadMediaView(binding.tlImageGroup);
+    if (quotedBinding != null && quotedBinding.getRoot().getVisibility() == View.VISIBLE) {
+      unloadMediaView(quotedBinding.qImageGroup);
     }
     Utils.maybeDispose(imageSubs);
   }
 
-  @Override
-  public void onSelected(long itemId) {
-    if (getItemId() == itemId) {
-      getView().setSelectedColor();
-    } else if (quotedStatusId == itemId) {
-      final QuotedStatusView quotedStatusView = getView().getQuotedStatusView();
-      if (quotedStatusView != null) {
-        quotedStatusView.setSelectedColor();
-      }
-    }
-  }
-
-  @Override
-  public void onUnselected(long itemId) {
-    if (getItemId() == itemId) {
-      getView().setUnselectedColor();
-    } else if (quotedStatusId == itemId) {
-      final QuotedStatusView quotedStatusView = getView().getQuotedStatusView();
-      if (quotedStatusView != null) {
-        quotedStatusView.setUnselectedColor();
-      }
-    }
-  }
-
-  private StatusView getView() {
-    return (StatusView) itemView;
-  }
-
-  private void setupMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {
-    if (item.getMediaCount() < 1) {
-      return;
-    }
-    final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
+  private void setupMediaView(long containerItemId, TwitterListItem item, ThumbnailContainer thumbnailContainer) {
     final long statusId = item.getId();
     thumbnailContainer.setOnMediaClickListener((view, index) -> {
-      itemViewClickListener.onItemViewClicked(this, statusId, view);
+      final SelectedItem selectedItem = viewModel.selectedItem.get();
+      if (selectedItem == null || SelectedItem.NONE.equals(selectedItem) || !selectedItem.isSame(containerItemId, statusId)) {
+        viewModel.setSelectedItem(containerItemId, statusId);
+      }
       MediaViewActivity.start(view.getContext(), item, index);
     });
   }
 
-  private void setupQuotedStatusView(TwitterListItem status, final QuotedStatusView quotedStatusView) {
+  private void setupQuotedStatusView(TwitterListItem status, final ViewQuotedStatusBinding quotedBinding) {
     final TwitterListItem quotedStatus = status.getQuotedItem();
     if (quotedStatus == null) {
       return;
     }
-    quotedStatusId = quotedStatus.getId();
-    quotedStatusView.setOnClickListener(
-        view -> itemViewClickListener.onItemViewClicked(this, quotedStatusId, view));
-    setupMediaView(quotedStatus, quotedStatusView);
+    setupMediaView(status.getId(), quotedStatus, quotedBinding.qImageGroup);
   }
 
-  private void unloadMediaView(ThumbnailCapable v) {
-    final ThumbnailContainer thumbnailContainer = v.getThumbnailContainer();
+  private void unloadMediaView(ThumbnailContainer thumbnailContainer) {
     for (int i = 0; i < thumbnailContainer.getThumbCount(); i++) {
       thumbnailContainer.getChildAt(i).setOnClickListener(null);
     }
   }
 
   public boolean hasQuotedView() {
-    return getView().getQuotedStatusView() != null;
+    return quotedBinding != null;
   }
 
-  public void attachQuotedView(QuotedStatusView quotedView) {
-    getView().attachQuotedView(quotedView);
+  public ViewQuotedStatusBinding getQuotedStatusView() {
+    return quotedBinding;
   }
 
-  public QuotedStatusView detachQuotedView() {
-    return getView().detachQuotedView();
+  public void attachQuotedView(ViewQuotedStatusBinding quotedBinding) {
+    final ViewGroup.LayoutParams lp = createQuotedItemLayoutParams();
+    ((ViewGroup) binding.getRoot()).addView(quotedBinding.getRoot(), lp);
+    this.quotedBinding = quotedBinding;
+  }
+
+  @NonNull
+  private ViewGroup.LayoutParams createQuotedItemLayoutParams() {
+    final ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(
+        ConstraintLayout.LayoutParams.MATCH_CONSTRAINT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+    lp.topMargin = itemView.getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    lp.topToBottom = R.id.tl_via;
+    lp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
+    lp.startToStart = R.id.tl_names;
+    lp.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
+    return lp;
+  }
+
+  public ViewQuotedStatusBinding detachQuotedView() {
+    if (quotedBinding == null) {
+      return null;
+    }
+    ((ViewGroup) binding.getRoot()).removeView(quotedBinding.getRoot());
+    final ViewQuotedStatusBinding res = this.quotedBinding;
+    this.quotedBinding = null;
+    return res;
   }
 }

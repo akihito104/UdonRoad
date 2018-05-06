@@ -21,8 +21,6 @@ import android.support.test.espresso.ViewAssertion;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.freshdigitable.udonroad.listitem.StatusView;
-
 /**
  * Created by akihit on 2016/07/01.
  */
@@ -30,7 +28,7 @@ public class StatusViewAssertion {
   public static ViewAssertion recyclerViewDescendantsMatches(
       @IdRes final int recyclerViewId, final int position) {
     return (view, noViewFoundException) -> {
-      if (!(view instanceof StatusView)) {
+      if (!StatusViewMatcher.isStatusView(view)) {
         throw noViewFoundException;
       }
       final RecyclerView recyclerView = (RecyclerView) view.getParent();

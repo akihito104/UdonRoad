@@ -33,7 +33,7 @@ import com.freshdigitable.udonroad.MainApplication;
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.SnackbarCapable;
 import com.freshdigitable.udonroad.StoreType;
-import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;

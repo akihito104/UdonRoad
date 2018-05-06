@@ -19,12 +19,14 @@ package com.freshdigitable.udonroad;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.text.Html;
+import android.view.LayoutInflater;
 import android.widget.TextView;
 
+import com.freshdigitable.udonroad.databinding.ViewStatusBinding;
 import com.freshdigitable.udonroad.listitem.StatusListItem;
-import com.freshdigitable.udonroad.listitem.StatusView;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.Before;
@@ -38,8 +40,8 @@ import twitter4j.Status;
 import twitter4j.User;
 
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,19 +49,22 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(AndroidJUnit4.class)
 public class StatusViewInstTest {
-  private StatusView sut;
+  private ViewStatusBinding sut;
 
   @Before
+  @UiThreadTest
   public void setup() {
-    InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
-        sut = new StatusView(InstrumentationRegistry.getTargetContext()));
+    final LayoutInflater layoutInflater = LayoutInflater.from(InstrumentationRegistry.getTargetContext());
+    sut = ViewStatusBinding.inflate(layoutInflater, null, false);
   }
 
   @Test
-  public void bindStatus_normal_0RT_0fav() throws Exception {
+  public void bindStatus_normal_0RT_0fav() {
     Status status = createStatus(10);
-    sut.bind(new StatusListItem(status));
-    final TextView account = sut.findViewById(R.id.tl_names);
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
+    final TextView account = sut.tlNames;
     final User user = status.getUser();
     final String format = String.format(account.getResources().getString(
         R.string.tweet_name_screenName),
@@ -70,49 +75,63 @@ public class StatusViewInstTest {
   @Test
   public void createAtNow() {
     final Status status = createStatusWithPast(0);
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_now)));
   }
 
   @Test
   public void createAt_59secondsAgo() {
     final Status status = createStatusWithPast(TimeUnit.SECONDS.toMillis(59));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedString(R.string.created_seconds_ago, 59)));
   }
 
   @Test
   public void createAt_1minuteAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(1));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_minutes_ago, 1)));
   }
 
   @Test
   public void createAt_44minutesAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(44));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_minutes_ago, 44)));
   }
 
   @Test
   public void createAt_1hourAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(45));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 1)));
   }
 
   @Test
   public void createAt_1hourAgo_with104minutes() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(104));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 1)));
   }
 
   @Test
   public void createAt_2hourAgo() {
     final Status status = createStatusWithPast(TimeUnit.MINUTES.toMillis(105));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 2)));
   }
 
@@ -120,7 +139,9 @@ public class StatusViewInstTest {
   public void createAt_23hourAgo() {
     final Status status = createStatusWithPast(
         TimeUnit.HOURS.toMillis(23) + TimeUnit.MINUTES.toMillis(44));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 23)));
   }
 
@@ -128,7 +149,9 @@ public class StatusViewInstTest {
   public void createAt_24hourAgo() {
     final Status status = createStatusWithPast(
         TimeUnit.HOURS.toMillis(23) + TimeUnit.MINUTES.toMillis(59));
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualCreatedAt(), is(formattedPlurals(R.plurals.created_hours_ago, 24)));
   }
 
@@ -136,7 +159,9 @@ public class StatusViewInstTest {
   public void showVerifiedIconForVerifiedUsersTweet() {
     final User verifiedUser = UserUtil.createVerifiedUser();
     final Status status = createStatus(10000L, verifiedUser);
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualNames(), is(verifiedUser.getName() + " @" + verifiedUser.getScreenName() + " "));
   }
 
@@ -144,7 +169,9 @@ public class StatusViewInstTest {
   public void showProtectedIconForProtectedUsersTweet() {
     final User protectedUser = UserUtil.createProtectedUser();
     final Status status = createStatus(10001L, protectedUser);
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualNames(), is(protectedUser.getName() + " @" + protectedUser.getScreenName() + " "));
   }
 
@@ -152,13 +179,15 @@ public class StatusViewInstTest {
   public void showBothIconForVerifiedAndProtectedUsersTweet() {
     final User bothUser = UserUtil.createVerifiedAndProtectedUser();
     final Status status = createStatus(10002L, bothUser);
-    sut.bind(new StatusListItem(status));
+    sut.setItem(new StatusListItem(status));
+    sut.executePendingBindings();
+
     assertThat(actualNames(), is(bothUser.getName() + " @" + bothUser.getScreenName() + "  "));
   }
 
   @NonNull
   private String actualNames() {
-    return ((TextView) sut.findViewById(R.id.tl_names)).getText().toString();
+    return sut.tlNames.getText().toString();
   }
 
   @NonNull
@@ -178,20 +207,20 @@ public class StatusViewInstTest {
 
   @NonNull
   private String actualCreatedAt() {
-    return ((TextView) sut.findViewById(R.id.tl_create_at)).getText().toString();
+    return sut.tlCreateAt.getText().toString();
   }
 
   @NonNull
   private String formattedString(@StringRes int res) {
-    return sut.getContext().getString(res);
+    return sut.getRoot().getContext().getString(res);
   }
 
   @NonNull
   private String formattedString(@StringRes int res, Object... args) {
-    return sut.getContext().getString(res, args);
+    return sut.getRoot().getContext().getString(res, args);
   }
 
   private String formattedPlurals(int resId, int quantity) {
-    return sut.getContext().getResources().getQuantityString(resId, quantity, quantity);
+    return sut.getRoot().getContext().getResources().getQuantityString(resId, quantity, quantity);
   }
 }

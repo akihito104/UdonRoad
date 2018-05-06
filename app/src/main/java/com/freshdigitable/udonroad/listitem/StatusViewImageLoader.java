@@ -29,6 +29,8 @@ import android.widget.ImageView;
 
 import com.freshdigitable.udonroad.R;
 import com.freshdigitable.udonroad.RetweetUserView;
+import com.freshdigitable.udonroad.databinding.ViewQuotedStatusBinding;
+import com.freshdigitable.udonroad.databinding.ViewStatusBinding;
 import com.freshdigitable.udonroad.media.ThumbnailContainer;
 import com.freshdigitable.udonroad.media.ThumbnailView;
 import com.freshdigitable.udonroad.repository.ImageQuery;
@@ -61,12 +63,12 @@ public class StatusViewImageLoader {
     this.imageRepository = imageRepository;
   }
 
-  <T extends View & StatusItemView> Disposable load(TwitterListItem item, T statusView) {
+  Disposable load(TwitterListItem item, ViewStatusBinding binding, ViewQuotedStatusBinding quotedBinding) {
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    compositeDisposable.add(loadUserIcon(item.getUser(), statusView.getIcon()));
-    compositeDisposable.add(loadRTUserIcon(item, statusView));
-    compositeDisposable.add(loadMediaView(item, statusView));
-    compositeDisposable.add(loadQuotedStatusImages(item, statusView.getQuotedStatusView()));
+    compositeDisposable.add(loadUserIcon(item.getUser(), binding.tlIcon));
+    compositeDisposable.add(loadRTUserIcon(item, binding.tlRtUser));
+    compositeDisposable.add(loadMediaView(item, binding.tlImageGroup));
+    compositeDisposable.add(loadQuotedStatusImages(item, quotedBinding));
     return compositeDisposable;
   }
 
@@ -85,11 +87,10 @@ public class StatusViewImageLoader {
         .subscribe(icon::setImageDrawable, emptyError);
   }
 
-  private <T extends View & StatusItemView> Disposable loadRTUserIcon(TwitterListItem item, T itemView) {
+  private Disposable loadRTUserIcon(TwitterListItem item, RetweetUserView rtUser) {
     if (!item.isRetweet()) {
       return EmptyDisposable.INSTANCE;
     }
-    final RetweetUserView rtUser = itemView.getRtUser();
     final User retweetUser = item.getRetweetUser();
     final String screenName = retweetUser.getScreenName();
 
@@ -99,9 +100,8 @@ public class StatusViewImageLoader {
         .subscribe(d -> rtUser.bindUser(d, screenName), emptyError);
   }
 
-  private Disposable loadMediaView(final TwitterListItem item, final ThumbnailCapable statusView) {
-    final ThumbnailContainer thumbnailContainer = statusView.getThumbnailContainer();
-    MediaEntity[] mediaEntities = item.getMediaEntities();
+  private Disposable loadMediaView(TwitterListItem item, ThumbnailContainer thumbnailContainer) {
+    final MediaEntity[] mediaEntities = item.getMediaEntities();
     thumbnailContainer.bindMediaEntities(mediaEntities);
     final int mediaCount = thumbnailContainer.getThumbCount();
     if (mediaCount < 1) {
@@ -146,8 +146,8 @@ public class StatusViewImageLoader {
     return compositeDisposable;
   }
 
-  public Disposable loadQuotedStatusImages(TwitterListItem item, @Nullable QuotedStatusView quotedStatusView) {
-    if (quotedStatusView == null) {
+  public Disposable loadQuotedStatusImages(TwitterListItem item, @Nullable ViewQuotedStatusBinding quotedBinding) {
+    if (quotedBinding == null) {
       return EmptyDisposable.INSTANCE;
     }
     final ListItem quotedStatus = item.getQuotedItem();
@@ -157,12 +157,12 @@ public class StatusViewImageLoader {
     final User user = quotedStatus.getUser();
     final CompositeDisposable compositeDisposable = new CompositeDisposable();
     if (user != null) {
-      final ImageQuery query = getQueryForSmallIcon(quotedStatusView.getContext(), user);
+      final ImageQuery query = getQueryForSmallIcon(quotedBinding.getRoot().getContext(), user);
       final Disposable subs = imageRepository.queryImage(query)
-          .subscribe(d -> quotedStatusView.getIcon().setImageDrawable(d), emptyError);
+          .subscribe(quotedBinding.qIcon::setImageDrawable, emptyError);
       compositeDisposable.add(subs);
     }
-    compositeDisposable.add(loadMediaView((TwitterListItem) quotedStatus, quotedStatusView));
+    compositeDisposable.add(loadMediaView((TwitterListItem) quotedStatus, quotedBinding.qImageGroup));
     return compositeDisposable;
   }
 

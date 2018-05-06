@@ -21,7 +21,7 @@ import android.content.Context;
 import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.TimelineFragment;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.listitem.OnItemViewClickListener;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 
