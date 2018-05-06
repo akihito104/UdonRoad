@@ -73,7 +73,6 @@ public class StatusViewMatcher {
     put(R.id.tl_icon, 0);
     put(R.id.tl_image_group, 0);
     put(R.id.tl_names, 0);
-    put(R.id.tl_names_and_time, 0);
     put(R.id.tl_reaction_container, 0);
     put(R.id.tl_rt_user, 0);
     put(R.id.tl_tweet, 0);
