@@ -16,14 +16,13 @@
 
 package com.freshdigitable.udonroad.listitem;
 
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.freshdigitable.udonroad.R;
@@ -171,21 +170,20 @@ public class StatusViewHolder extends ItemViewHolder {
   }
 
   public void attachQuotedView(ViewQuotedStatusBinding quotedBinding) {
-    final RelativeLayout.LayoutParams lp = createQuotedItemLayoutParams();
+    final ViewGroup.LayoutParams lp = createQuotedItemLayoutParams();
     ((ViewGroup) binding.getRoot()).addView(quotedBinding.getRoot(), lp);
     this.quotedBinding = quotedBinding;
   }
 
   @NonNull
-  private RelativeLayout.LayoutParams createQuotedItemLayoutParams() {
-    final RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-        RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+  private ViewGroup.LayoutParams createQuotedItemLayoutParams() {
+    final ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(
+        ConstraintLayout.LayoutParams.MATCH_CONSTRAINT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
     lp.topMargin = itemView.getResources().getDimensionPixelSize(R.dimen.grid_margin);
-    lp.addRule(RelativeLayout.BELOW, R.id.tl_via);
-    lp.addRule(RelativeLayout.RIGHT_OF, R.id.tl_icon);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-      lp.addRule(RelativeLayout.END_OF, R.id.tl_icon);
-    }
+    lp.topToBottom = R.id.tl_via;
+    lp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
+    lp.startToStart = R.id.tl_names;
+    lp.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
     return lp;
   }
 

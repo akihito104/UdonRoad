@@ -48,7 +48,6 @@
             android:id="@+id/q_icon"
             android:layout_width="@dimen/small_user_icon"
             android:layout_height="@dimen/small_user_icon"
-            android:layout_marginBottom="@dimen/grid_margin"
             android:layout_marginEnd="@dimen/grid_margin"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/q_tweet"
