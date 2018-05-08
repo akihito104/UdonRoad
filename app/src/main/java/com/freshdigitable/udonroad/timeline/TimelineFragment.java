@@ -115,10 +115,12 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
           final int childCount = binding.timeline.getChildCount();
           for (int i = 0; i < childCount; i++) {
             final View v = binding.timeline.getChildAt(i);
-            final StatusViewHolder viewHolder = (StatusViewHolder) binding.timeline.getChildViewHolder(v);
-            if (viewHolder != null) {
-              viewHolder.updateTime();
+            final RecyclerView.ViewHolder vh = binding.timeline.getChildViewHolder(v);
+            if (!(vh instanceof StatusViewHolder)) {
+              continue;
             }
+            final StatusViewHolder viewHolder = (StatusViewHolder) vh;
+            viewHolder.updateTime();
           }
         });
     tlAdapter = timelineViewModel.createAdapter();
