@@ -36,6 +36,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.Module;
+import dagger.android.AndroidInjection;
 import dagger.android.AndroidInjector;
 import dagger.android.ContributesAndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
@@ -51,6 +52,7 @@ import twitter4j.User;
 public class UserSettingsActivity extends AppCompatActivity implements HasSupportFragmentInjector {
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
     getSupportFragmentManager().beginTransaction()
         .replace(android.R.id.content, new SettingsFragment())
