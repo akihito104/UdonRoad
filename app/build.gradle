@@ -7,14 +7,6 @@ apply plugin: 'com.cookpad.android.licensetools'
 apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
-    signingConfigs {
-        release {
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASS")
-            storeFile file("${System.getenv("STORE_FILE")}")
-            storePassword System.getenv("STORE_PASS")
-        }
-    }
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
     defaultConfig {
@@ -27,23 +19,42 @@ android {
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "com.freshdigitable.udonroad.MockTestRunner"
     }
+    signingConfigs {
+        prod {
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASS")
+            storeFile file("${System.getenv("STORE_FILE")}")
+            storePassword System.getenv("STORE_PASS")
+        }
+    }
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-            manifestPlaceholders = [appName: "@string/app_name_debug", appIcon: "@mipmap/ic_launcher_debug"]
             debuggable true
 // https://code.google.com/p/android/issues/detail?id=206259
 //            shrinkResources true
             zipAlignEnabled true
         }
         release {
-            manifestPlaceholders = [appName: "@string/app_name", appIcon: "@mipmap/ic_launcher"]
             debuggable false
-            shrinkResources false
+            shrinkResources true
             zipAlignEnabled true
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+        }
+    }
+    flavorDimensions 'tier'
+    productFlavors {
+        dev {
+            dimension 'tier'
+            applicationIdSuffix ".dev"
+            manifestPlaceholders = [appName: "@string/app_name_debug", appIcon: "@mipmap/ic_launcher_debug"]
+            signingConfig signingConfigs.debug
+        }
+        prod {
+            dimension 'tier'
+            manifestPlaceholders = [appName: "@string/app_name", appIcon: "@mipmap/ic_launcher"]
+            signingConfig signingConfigs.prod
         }
     }
 
@@ -149,6 +160,8 @@ configurations.all { config ->
 check.dependsOn(checkLicenses)
 
 project.afterEvaluate {
-    generateDebugAssets.dependsOn (generateLicensePage)
-    generateReleaseAssets.dependsOn (generateLicensePage)
+    generateDevDebugAssets.dependsOn (generateLicensePage)
+    generateDevReleaseAssets.dependsOn (generateLicensePage)
+    generateProdDebugAssets.dependsOn (generateLicensePage)
+    generateProdReleaseAssets.dependsOn (generateLicensePage)
 }

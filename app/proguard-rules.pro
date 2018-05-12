@@ -15,8 +15,8 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
--keep class com.freshdigitable.udonroad.** { *; }
--keepnames class ** { *; }
+-keepattributes Signature
+-keep class com.freshdigitable.udonroad.module.realm.** { *; }
 
 -dontwarn java.lang.invoke.*
 
@@ -33,7 +33,13 @@
 
 # twitter4j
 -dontwarn twitter4j.**
--keep class twitter4j.** { *; }
+-keep class twitter4j.conf.PropertyConfigurationFactory { *; }
+-keep class twitter4j.TwitterImpl { *; }
+-keep class twitter4j.AlternativeHttpClientImpl { *; }
+-keep class twitter4j.DispatcherImpl { *; }
+-keep class twitter4j.LoggerFactory { *; }
+-keep class twitter4j.conf.ConfigurationFactory { *; }
+-keep class twitter4j.conf.Configuration { *; }
 
 # dagger
 -dontwarn com.google.errorprone.annotations.*
