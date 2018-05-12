@@ -89,7 +89,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   @Inject
   AppViewModelProviderFactory viewModelFactory;
   private TimelineViewModel timelineViewModel;
-  private Disposable timestampSubscription;
 
   @Override
   public void onAttach(Context context) {
@@ -377,7 +376,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
       tlAdapter = null;
     }
     Utils.maybeDispose(updateEventSubscription);
-    Utils.maybeDispose(timestampSubscription);
   }
 
   private void showFab() {
@@ -509,7 +507,8 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
 
   @Override
   public long getSelectedItemId() {
-    return timelineViewModel.getSelectedItemId();
+    return timelineViewModel != null ? timelineViewModel.getSelectedItemId()
+        : SelectedItem.NONE.getId();
   }
 
   private OnUserIconClickedListener createUserIconClickedListener() {
