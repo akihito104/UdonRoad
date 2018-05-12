@@ -108,22 +108,23 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
               } else if (event.type == UpdateEvent.EventType.DELETE) {
                 tlAdapter.notifyItemRangeRemoved(event.index, event.length);
               }
+              updateCreatedAt();
             },
             e -> Timber.tag(TAG).e(e, "updateEvent: "));
-    timestampSubscription = timelineViewModel.observeUpdateEvent()
-        .subscribe(e -> {
-          final int childCount = binding.timeline.getChildCount();
-          for (int i = 0; i < childCount; i++) {
-            final View v = binding.timeline.getChildAt(i);
-            final RecyclerView.ViewHolder vh = binding.timeline.getChildViewHolder(v);
-            if (!(vh instanceof StatusViewHolder)) {
-              continue;
-            }
-            final StatusViewHolder viewHolder = (StatusViewHolder) vh;
-            viewHolder.updateTime();
-          }
-        });
     tlAdapter = timelineViewModel.createAdapter();
+  }
+
+  private void updateCreatedAt() {
+    final int childCount = binding.timeline.getChildCount();
+    for (int i = 0; i < childCount; i++) {
+      final View v = binding.timeline.getChildAt(i);
+      final RecyclerView.ViewHolder vh = binding.timeline.getChildViewHolder(v);
+      if (!(vh instanceof StatusViewHolder)) {
+        continue;
+      }
+      final StatusViewHolder viewHolder = (StatusViewHolder) vh;
+      viewHolder.updateTime();
+    }
   }
 
   @Override
