@@ -242,10 +242,12 @@ public class MainActivity extends AppCompatActivity
   @NonNull
   private OnContentChangedListener getOnContentChangedListener() {
     return (type, title) -> {
-      if (type == ContentType.MAIN) {
-        tlFragment.startScroll();
-      } else {
-        tlFragment.stopScroll();
+      if (tlFragment.isAdded()) {
+        if (type == ContentType.MAIN) {
+          tlFragment.startScroll();
+        } else {
+          tlFragment.stopScroll();
+        }
       }
       binding.mainToolbar.setTitle(title);
     };
