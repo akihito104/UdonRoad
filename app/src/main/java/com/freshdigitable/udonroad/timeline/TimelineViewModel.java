@@ -23,6 +23,9 @@ import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.ObservableField;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
 import com.freshdigitable.udonroad.StoreType;
@@ -32,6 +35,8 @@ import com.freshdigitable.udonroad.listitem.StatusViewImageLoader;
 import com.freshdigitable.udonroad.oauth.DemoTimelineAdapter;
 import com.freshdigitable.udonroad.timeline.repository.ListItemRepository;
 import com.freshdigitable.udonroad.timeline.repository.ListItemRepositoryFactory;
+
+import java.util.EnumSet;
 
 import javax.inject.Inject;
 
@@ -58,6 +63,7 @@ public class TimelineViewModel extends ViewModel {
     this.imageLoader = imageLoader;
     selectedItemSource.setValue(SelectedItem.NONE);
     selectedItemSource.observeForever(selectedItemObserver);
+    autoScrollSource.setValue(EnumSet.noneOf(AutoScrollStopper.class));
   }
 
   public void init(StoreType storeType, long id, String query) {
@@ -183,6 +189,53 @@ public class TimelineViewModel extends ViewModel {
 
   public void drop() {
     listItemRepository.drop();
+  }
+
+  private final MutableLiveData<EnumSet<AutoScrollStopper>> autoScrollSource = new MutableLiveData<>();
+
+  LiveData<EnumSet<AutoScrollStopper>> getAutoScrollStopper() {
+    return autoScrollSource;
+  }
+
+  void addAutoScrollStopper(AutoScrollStopper stopper) {
+    final EnumSet<AutoScrollStopper> value = autoScrollSource.getValue();
+    value.add(stopper);
+    autoScrollSource.setValue(value);
+  }
+
+  void removeAutoScrollStopper(AutoScrollStopper stopper) {
+    final EnumSet<AutoScrollStopper> value = autoScrollSource.getValue();
+    value.remove(stopper);
+    autoScrollSource.setValue(value);
+  }
+
+  void enableAutoScroll() {
+    final EnumSet<AutoScrollStopper> value = autoScrollSource.getValue();
+    value.clear();
+    autoScrollSource.setValue(value);
+  }
+
+  private static final String SS_AUTO_SCROLL_STATE = "ss_auto_scroll_state";
+  private static final String SS_SELECTED_ITEM = "ss_selectedItem";
+
+  void onSaveInstanceState(@NonNull Bundle outState) {
+    outState.putSerializable(SS_AUTO_SCROLL_STATE, autoScrollSource.getValue());
+    outState.putParcelable(SS_SELECTED_ITEM, selectedItemSource.getValue());
+  }
+
+  void onViewRestored(@Nullable Bundle savedInstanceState) {
+    if (savedInstanceState == null) {
+      return;
+    }
+    final EnumSet<AutoScrollStopper> autoScrollState =
+        (EnumSet<AutoScrollStopper>) savedInstanceState.getSerializable(SS_AUTO_SCROLL_STATE);
+    if (autoScrollState != null) {
+      final EnumSet<AutoScrollStopper> value = this.autoScrollSource.getValue();
+      value.addAll(autoScrollState);
+      this.autoScrollSource.setValue(value);
+    }
+    final SelectedItem selectedItem = savedInstanceState.getParcelable(SS_SELECTED_ITEM);
+    setSelectedItem(selectedItem);
   }
 
   public static TimelineViewModel getInstance(Fragment fragment, ViewModelProvider.Factory factory) {
