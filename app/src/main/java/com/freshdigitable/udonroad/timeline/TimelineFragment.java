@@ -302,6 +302,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
       swipeLayout.setRefreshing(false);
     });
     fabViewModel.getMenuItem().observe(this, getMenuItemObserver());
+    timelineViewModel.removeAutoScrollStopper(AutoScrollStopper.STOP_SCROLL);
   }
 
   protected Observer<MenuItem> getMenuItemObserver() {
@@ -337,6 +338,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
     }
     binding.timelineSwipeLayout.setOnRefreshListener(null);
     fabViewModel.getMenuItem().removeObservers(this);
+    timelineViewModel.addAutoScrollStopper(AutoScrollStopper.STOP_SCROLL);
   }
 
   @Override
@@ -402,7 +404,7 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
   public void scrollToTop() {
     clearSelectedItem();
     binding.timeline.setLayoutFrozen(false);
-    enableAutoScroll();
+    timelineViewModel.enableAutoScroll();
     scrollTo(0);
   }
 
@@ -412,10 +414,6 @@ public class TimelineFragment extends Fragment implements ItemSelectable {
 
   private void removeAutoScrollStopper(AutoScrollStopper flag) {
     timelineViewModel.removeAutoScrollStopper(flag);
-  }
-
-  private void enableAutoScroll() {
-    timelineViewModel.enableAutoScroll();
   }
 
   private void switchHeadingEnabled(EnumSet<AutoScrollStopper> flags) {
