@@ -60,7 +60,7 @@ public class DemoTimelineAdapter extends TimelineAdapter {
   @Override
   public void onBindViewHolder(ItemViewHolder holder, int position) {
     if (holder instanceof StatusViewHolder) {
-      holder.bind(viewModel.get(position), viewModel.getImageLoader());
+      holder.bind(viewModel.get(position));
       final ImageView userIcon = holder.getUserIcon();
       final Drawable icon = AppCompatResources.getDrawable(userIcon.getContext(), R.mipmap.ic_launcher);
       userIcon.setImageDrawable(icon);

@@ -42,7 +42,7 @@ public abstract class ItemViewHolder extends RecyclerView.ViewHolder {
   }
 
   @CallSuper
-  public void bind(final ListItem item, StatusViewImageLoader imageLoader) {
+  public void bind(final ListItem item) {
     final User user = item.getUser();
     getUserIcon().setOnClickListener(
         v -> userIconClickedListener.onUserIconClicked(v, user));
