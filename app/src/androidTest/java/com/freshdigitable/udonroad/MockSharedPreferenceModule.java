@@ -28,10 +28,14 @@ import dagger.Provides;
  * Created by akihit on 2016/11/07.
  */
 @Module
-class MockSharedPreferenceModule {
+public class MockSharedPreferenceModule {
   @Singleton
   @Provides
   SharedPreferences provideSharedPreferences(Context context) {
+    return getTestSharedPreferences(context);
+  }
+
+  public static SharedPreferences getTestSharedPreferences(Context context) {
     return context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE);
   }
 }

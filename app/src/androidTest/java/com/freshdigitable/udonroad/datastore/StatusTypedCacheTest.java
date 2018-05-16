@@ -16,18 +16,21 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.content.SharedPreferences;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.freshdigitable.udonroad.MockSharedPreferenceModule;
+import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
+import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
+import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.util.StorageUtil;
-import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
 
 import twitter4j.Status;
 
@@ -42,13 +45,17 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(AndroidJUnit4.class)
 public class StatusTypedCacheTest {
-  @Inject
-  TypedCache<Status> sut;
+  private TypedCache<Status> sut;
 
   @Before
   public void setup() {
-    TestInjectionUtil.getComponent().inject(this);
     StorageUtil.initStorage();
+
+    // XXX
+    final SharedPreferences sp = MockSharedPreferenceModule.getTestSharedPreferences(InstrumentationRegistry.getTargetContext());
+    final AppSettingStore appSettingStore = new AppSettingStoreRealm(sp, InstrumentationRegistry.getTargetContext().getFilesDir());
+    final ConfigStore configStore = new ConfigStoreRealm(appSettingStore);
+    sut = new StatusCacheRealm(configStore, appSettingStore);
     sut.open();
   }
 
@@ -85,7 +92,9 @@ public class StatusTypedCacheTest {
   public void insertStatusForDeleteFaved_andThen_favIsFalse() {
     final Status target = TwitterResponseMock.createStatus(200);
     when(target.isFavorited()).thenReturn(true);
+
     sut.insert(target);
+
     final Status a = sut.find(200);
     assertThat(a.isFavorited(), is(true));
     final Status deleted = TwitterResponseMock.createStatus(200);
