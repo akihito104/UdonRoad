@@ -16,16 +16,17 @@
 
 package com.freshdigitable.udonroad.datastore;
 
+import android.content.SharedPreferences;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.freshdigitable.udonroad.util.TestInjectionUtil;
+import com.freshdigitable.udonroad.MockSharedPreferenceModule;
+import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-
-import javax.inject.Inject;
 
 import twitter4j.auth.AccessToken;
 
@@ -38,12 +39,12 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(AndroidJUnit4.class)
 public class AppSettingStoreTest {
-  @Inject
-  AppSettingStore sut;
+  private AppSettingStore sut;
 
   @Before
   public void setup() {
-    TestInjectionUtil.getComponent().inject(this);
+    final SharedPreferences sp = MockSharedPreferenceModule.getTestSharedPreferences(InstrumentationRegistry.getTargetContext());
+    sut = new AppSettingStoreRealm(sp, InstrumentationRegistry.getTargetContext().getFilesDir());
     sut.open();
     sut.clear();
     sut.close();

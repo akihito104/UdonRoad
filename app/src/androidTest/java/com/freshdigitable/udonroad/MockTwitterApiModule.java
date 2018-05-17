@@ -40,16 +40,27 @@ import static org.mockito.Mockito.mock;
  */
 @Module
 public class MockTwitterApiModule {
+
+  Twitter twitter;
+  TwitterStream twitterStream;
+  UserStreamListenerHolder userStreamListenerHolder;
+
+  MockTwitterApiModule() {
+    twitter = mock(Twitter.class);
+    twitterStream = mock(TwitterStream.class);
+    userStreamListenerHolder = new UserStreamListenerHolder();
+  }
+
   @Singleton
   @Provides
   Twitter provideTwitter() {
-    return mock(Twitter.class);
+    return twitter;
   }
 
   @Singleton
   @Provides
   TwitterStream provideTwitterStream() {
-    return mock(TwitterStream.class);
+    return twitterStream;
   }
 
   @Singleton
@@ -80,7 +91,7 @@ public class MockTwitterApiModule {
   @Singleton
   @Provides
   UserStreamListenerHolder provideUserStreamListenerHolder() {
-    return new UserStreamListenerHolder();
+    return userStreamListenerHolder;
   }
 
   static class UserStreamListenerHolder {
