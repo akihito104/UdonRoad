@@ -64,16 +64,14 @@ public interface MockAppComponent extends AppComponent {
 
     Builder twitterApi(MockTwitterApiModule module);
 
+    Builder sharedPreferences(MockSharedPreferenceModule sharedPreferenceModule);
+
     MockAppComponent build();
   }
 
   void inject(MockMainApplication application);
 
-  void inject(TimelineInstTestBase mainActivityInstTest);
-
   void inject(UserInfoActivityInstTest.Base userInfoActivityInstTest);
-
-  void inject(OAuthActivityInstTest.Base oAuthActivityInstTest);
 
   void inject(TweetInputActivityInstTest tweetInputActivityInstTest);
 }

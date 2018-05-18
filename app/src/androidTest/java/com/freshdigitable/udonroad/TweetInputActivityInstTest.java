@@ -24,7 +24,6 @@ import android.support.test.espresso.matcher.BoundedMatcher;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.input.TweetInputActivity;
 import com.freshdigitable.udonroad.util.StorageUtil;
-import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -34,8 +33,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.inject.Inject;
 
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -56,7 +53,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,17 +65,17 @@ public class TweetInputActivityInstTest {
   public IntentsTestRule<TweetInputActivity> rule
       = new IntentsTestRule<>(TweetInputActivity.class, false, false);
 
-  @Inject
   Twitter twitter;
-  @Inject
   AppSettingStore appSettings;
   private User userA;
   private User userAsub;
 
   @Before
   public void setup() throws Throwable {
-    TestInjectionUtil.getComponent().inject(this);
     StorageUtil.initStorage();
+    twitter = MockMainApplication.getApp().twitterApiModule.twitter;
+    appSettings = MockMainApplication.getApp().sharedPreferenceModule.appSettingStore;
+
     userA = UserUtil.createUserA();
     final long userId = userA.getId();
     appSettings.open();
@@ -99,7 +95,7 @@ public class TweetInputActivityInstTest {
 
   @After
   public void tearDown() {
-    reset(twitter);
+    MockMainApplication.getApp().twitterApiModule.reset();
   }
 
   @Test

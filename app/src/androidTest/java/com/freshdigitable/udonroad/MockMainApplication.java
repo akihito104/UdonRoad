@@ -30,16 +30,23 @@ import twitter4j.UserStreamListener;
 public class MockMainApplication extends MainApplication {
 
   public final MockTwitterApiModule twitterApiModule = new MockTwitterApiModule();;
+  public MockSharedPreferenceModule sharedPreferenceModule;
 
   @Override
   protected AppComponent createAppComponent() {
+    sharedPreferenceModule = new MockSharedPreferenceModule(getApplicationContext());
     return DaggerMockAppComponent.builder()
         .application(InstrumentationRegistry.getTargetContext())
         .twitterApi(twitterApiModule)
+        .sharedPreferences(sharedPreferenceModule)
         .build();
   }
 
   public UserStreamListener getUserStreamListener() {
     return twitterApiModule.userStreamListenerHolder.userStreamListener;
+  }
+
+  public static MockMainApplication getApp() {
+    return (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
   }
 }

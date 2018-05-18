@@ -19,6 +19,9 @@ package com.freshdigitable.udonroad;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -29,13 +32,27 @@ import dagger.Provides;
  */
 @Module
 public class MockSharedPreferenceModule {
+
+  public final SharedPreferences sharedPreferences;
+  public final AppSettingStoreRealm appSettingStore;
+
+  public MockSharedPreferenceModule(Context context) {
+    sharedPreferences = getTestSharedPreferences(context);
+    appSettingStore = new AppSettingStoreRealm(sharedPreferences, context.getFilesDir());
+  }
+
   @Singleton
   @Provides
-  SharedPreferences provideSharedPreferences(Context context) {
-    return getTestSharedPreferences(context);
+  SharedPreferences provideSharedPreferences() {
+    return sharedPreferences;
   }
 
   public static SharedPreferences getTestSharedPreferences(Context context) {
     return context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE);
+  }
+
+  @Provides
+  AppSettingStore provideAppSettingStore() {
+    return appSettingStore;
   }
 }

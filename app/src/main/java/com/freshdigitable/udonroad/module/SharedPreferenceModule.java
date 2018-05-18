@@ -19,6 +19,9 @@ package com.freshdigitable.udonroad.module;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -33,5 +36,10 @@ public class SharedPreferenceModule {
   @Provides
   SharedPreferences provideSharedPreferences(Context context) {
     return context.getSharedPreferences("udonroad_prefs", Context.MODE_PRIVATE);
+  }
+
+  @Provides
+  AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences, Context context) {
+    return new AppSettingStoreRealm(sharedPreferences, context.getFilesDir());
   }
 }

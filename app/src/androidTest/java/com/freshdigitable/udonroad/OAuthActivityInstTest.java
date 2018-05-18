@@ -14,7 +14,6 @@ import com.freshdigitable.udonroad.oauth.OAuthActivity;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.PerformUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;
-import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.After;
@@ -24,8 +23,6 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
-
-import javax.inject.Inject;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterStream;
@@ -53,7 +50,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,7 +71,7 @@ public class OAuthActivityInstTest {
     }
 
     @Override
-    void tearDownActivity() throws Exception {
+    void tearDownActivity() {
       IdlingResourceUtil.ActivityWaiter.create(OAuthActivity.class).waitForDestroyed();
     }
   }
@@ -88,7 +84,7 @@ public class OAuthActivityInstTest {
     private String authorizationUrl;
 
     @Test
-    public void resumeWithValidToken() throws Exception {
+    public void resumeWithValidToken() {
       verify(twitter, times(0)).setOAuthAccessToken(any(AccessToken.class));
       intending(hasData(Uri.parse(authorizationUrl)))
           .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, new Intent()));
@@ -156,24 +152,25 @@ public class OAuthActivityInstTest {
     }
 
     @Override
-    void tearDownActivity() throws Exception {
+    void tearDownActivity() {
       IdlingResourceUtil.ActivityWaiter.create(MainActivity.class).waitForDestroyed();
     }
   }
 
   static abstract class Base {
-    @Inject
     AppSettingStore appSetting;
-    @Inject
     Twitter twitter;
-    @Inject
     TwitterStream twitterStream;
 
     @Before
     @CallSuper
     public void setup() throws Exception {
       StorageUtil.initStorage();
-      TestInjectionUtil.getComponent().inject(this);
+      final MockMainApplication app = MockMainApplication.getApp();
+      twitter = app.twitterApiModule.twitter;
+      twitterStream = app.twitterApiModule.twitterStream;
+      appSetting = app.sharedPreferenceModule.appSettingStore;
+
       appSetting.open();
       appSetting.clear();
       appSetting.close();
@@ -192,8 +189,7 @@ public class OAuthActivityInstTest {
     @After
     @CallSuper
     public void tearDown() throws Exception {
-      reset(twitter);
-      reset(twitterStream);
+      MockMainApplication.getApp().twitterApiModule.reset();
       tearDownActivity();
       StorageUtil.checkAllRealmInstanceClosed();
     }
