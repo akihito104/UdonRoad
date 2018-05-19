@@ -16,12 +16,9 @@
 
 package com.freshdigitable.udonroad.datastore;
 
-import android.content.SharedPreferences;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.freshdigitable.udonroad.MockSharedPreferenceModule;
-import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
+import com.freshdigitable.udonroad.MockMainApplication;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.StatusCacheRealm;
 import com.freshdigitable.udonroad.util.StorageUtil;
@@ -51,9 +48,7 @@ public class StatusTypedCacheTest {
   public void setup() {
     StorageUtil.initStorage();
 
-    // XXX
-    final SharedPreferences sp = MockSharedPreferenceModule.getTestSharedPreferences(InstrumentationRegistry.getTargetContext());
-    final AppSettingStore appSettingStore = new AppSettingStoreRealm(sp, InstrumentationRegistry.getTargetContext().getFilesDir());
+    final AppSettingStore appSettingStore = MockMainApplication.getApp().sharedPreferenceModule.appSettingStore;
     final ConfigStore configStore = new ConfigStoreRealm(appSettingStore);
     sut = new StatusCacheRealm(configStore, appSettingStore);
     sut.open();
