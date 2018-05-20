@@ -111,8 +111,8 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
     final Realm.Transaction statusTransaction = upsertTransaction(updates);
     final Realm.Transaction userTransaction = getUserUpsertTransaction(updates);
     final Collection<StatusReaction> splitReaction = splitUpsertingStatusReaction(updates);
-    return Completable.concatArray(configStore.observeUpsert(splitReaction),
-        pool.observeUpsertImpl(r -> {
+    return configStore.observeUpsert(splitReaction)
+        .andThen(pool.observeUpsertImpl(r -> {
           userTransaction.execute(r);
           statusTransaction.execute(r);
         }));
