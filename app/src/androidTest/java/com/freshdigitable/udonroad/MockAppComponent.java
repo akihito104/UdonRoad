@@ -72,6 +72,4 @@ public interface MockAppComponent extends AppComponent {
   void inject(MockMainApplication application);
 
   void inject(UserInfoActivityInstTest.Base userInfoActivityInstTest);
-
-  void inject(TweetInputActivityInstTest tweetInputActivityInstTest);
 }
