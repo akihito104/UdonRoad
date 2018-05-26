@@ -27,21 +27,24 @@ import com.freshdigitable.udonroad.util.StorageUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestWatcher;
+import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.Statement;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Observer;
+import io.reactivex.CompletableObserver;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.observers.TestObserver;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.User;
@@ -58,31 +61,31 @@ public class TimelineStoreRealmTest {
   private WritableTimelineRealm writableSut;
 
   @Rule
-  public RealmTestRule rule = new RealmTestRule();
+  public RealmTestRule rule = new RealmTestRule() {
+    @Override
+    void before() {
+      StorageUtil.initStorage();
 
-  @Before
-  public void setup() {
-    StorageUtil.initStorage();
+      final AppSettingStore appSettingStore = MockMainApplication.getApp().sharedPreferenceModule.appSettingStore;
+      final ConfigStore configStore = new ConfigStoreRealm(appSettingStore);
+      updateSubjectFactory = new UpdateSubjectFactory();
 
-    final AppSettingStore appSettingStore = MockMainApplication.getApp().sharedPreferenceModule.appSettingStore;
-    final ConfigStore configStore = new ConfigStoreRealm(appSettingStore);
-    updateSubjectFactory = new UpdateSubjectFactory();
+      sut = new TimelineStoreRealm(updateSubjectFactory,
+          new StatusCacheRealm(configStore, appSettingStore), appSettingStore);
+      sut.open("home");
 
-    sut = new TimelineStoreRealm(updateSubjectFactory,
-        new StatusCacheRealm(configStore, appSettingStore), appSettingStore);
-    sut.open("home");
+      writableSut = new WritableTimelineRealm(
+          new StatusCacheRealm(configStore, appSettingStore), configStore, appSettingStore);
+      writableSut.open("home");
+    }
 
-    writableSut = new WritableTimelineRealm(
-        new StatusCacheRealm(configStore, appSettingStore), configStore, appSettingStore);
-    writableSut.open("home");
-  }
-
-  @After
-  public void tearDown() {
-    writableSut.close();
-    sut.close();
-    updateSubjectFactory.clear();
-  }
+    @Override
+    void after() {
+      writableSut.close();
+      sut.close();
+      updateSubjectFactory.clear();
+    }
+  };
 
   @Test
   public void upsert20ItemsAreSortedByIdDesc() {
@@ -90,63 +93,157 @@ public class TimelineStoreRealmTest {
     final ResponseList<Status> responseList = createResponseList(expectedSize);
 
     writableSut.observeUpsert(responseList)
-        .subscribe(TestObserver.create(rule.getObserver()));
-    rule.loop();
+        .subscribe(new CompletableObserver() {
+          @Override
+          public void onSubscribe(Disposable d) { }
 
-    assertThat(sut.getItemCount(), is(expectedSize));
-    Collections.sort(responseList, (o1, o2) -> (int) (o2.getId() - o1.getId()));
-    for (int i = 0; i < expectedSize; i++) {
-      final Status actual = sut.get(i);
-      final Status expected = responseList.get(i);
-      assertThat(actual.getId(), is(expected.getId()));
-    }
+          @Override
+          public void onComplete() {
+            assertThat(sut.getItemCount(), is(expectedSize));
+            Collections.sort(responseList, (o1, o2) -> (int) (o2.getId() - o1.getId()));
+            for (int i = 0; i < expectedSize; i++) {
+              final Status actual = sut.get(i);
+              final Status expected = responseList.get(i);
+              assertThat(actual.getId(), is(expected.getId()));
+            }
+            rule.testComplete();
+          }
+
+          @Override
+          public void onError(Throwable e) {
+            rule.testComplete();
+          }
+        });
+  }
+
+  @Test
+  public void upsert1ItemForAlreadyInserted20ItemAreSortedByIdDesc() {
+    final int expectedSize = 20;
+    final ResponseList<Status> responseList = createResponseList(expectedSize);
+    final ResponseList<Status> afterUpserted = createResponseList(1, 50);
+
+    writableSut.observeUpsert(responseList)
+        .andThen(writableSut.observeUpsert(afterUpserted))
+        .subscribe(new CompletableObserver() {
+          @Override
+          public void onSubscribe(Disposable d) { }
+
+          @Override
+          public void onComplete() {
+            final ArrayList<Status> expected = new ArrayList<>();
+            expected.addAll(responseList);
+            expected.addAll(afterUpserted);
+            Collections.sort(expected, (o1, o2) -> (int) (o2.getId() - o1.getId()));
+            assertThat(sut.getItemCount(), is(expectedSize + 1));
+            for (int i = 0; i < expectedSize; i++) {
+              final Status a = sut.get(i);
+              final Status e = expected.get(i);
+              assertThat(a.getId(), is(e.getId()));
+            }
+            rule.testComplete();
+          }
+
+          @Override
+          public void onError(Throwable e) {
+            rule.testComplete();
+          }
+        });
   }
 
   private ResponseList<Status> createResponseList(int size) {
+    return createResponseList(size, 0);
+  }
+
+  private ResponseList<Status> createResponseList(int size, int offset) {
     final User userA = UserUtil.createUserA();
     final List<Status> responseList = new ArrayList<>();
     for (int i = 1; i <= size; i++) {
-      final Status status = createStatus(i * 1000L, userA);
+      final Status status = createStatus(i * 1000L + offset, userA);
       responseList.add(status);
     }
     return TwitterResponseMock.createResponseList(responseList);
   }
 
-  static class RealmTestRule extends TestWatcher {
+  static abstract class RealmTestRule implements TestRule {
+    CountDownLatch countDownLatch = new CountDownLatch(1);
     @Override
-    protected void starting(Description description) {
-      super.starting(description);
-      Looper.prepare();
-    }
-
-    @Override
-    protected void finished(Description description) {
-      super.finished(description);
-      quit();
-    }
-
-    void loop() {
-      Looper.loop();
-    }
-
-    void quit() {
-      Looper.myLooper().quit();
-    }
-
-    <T> Observer<T> getObserver() {
-      return new Observer<T>() {
+    public Statement apply(Statement base, Description description) {
+      return new RealmTestStatement(base, countDownLatch) {
         @Override
-        public void onSubscribe(Disposable d) { }
-        @Override
-        public void onNext(T t) { }
-        @Override
-        public void onError(Throwable e) { }
+        void before() throws Throwable {
+          RealmTestRule.this.before();
+        }
 
         @Override
-        public void onComplete() {
-          quit();
+        void after() throws Throwable {
+          RealmTestRule.this.after();
         }
       };
+    }
+
+    void testComplete() {
+      countDownLatch.countDown();
+    }
+
+    abstract void before() throws Throwable;
+
+    abstract void after() throws Throwable;
+  }
+
+  static abstract class RealmTestStatement extends Statement {
+    private Statement base;
+    private final CountDownLatch countDownLatch;
+    private Looper looper;
+    final CountDownLatch tearDownDone = new CountDownLatch(1);
+
+    RealmTestStatement(Statement base, CountDownLatch countDownLatch) {
+      this.base = base;
+      this.countDownLatch = countDownLatch;
+    }
+
+    abstract void before() throws Throwable;
+
+    abstract void after() throws Throwable;
+
+    @Override
+    public void evaluate() throws Throwable {
+      final ExecutorService executorService = Executors.newSingleThreadExecutor();
+      final Future<Throwable> testTask = executorService.submit(() -> {
+        Throwable t = null;
+        Looper.prepare();
+        looper = Looper.myLooper();
+        try {
+          before();
+          base.evaluate();
+          Looper.loop();
+        } catch (Throwable throwable) {
+          t = throwable;
+          countDownLatch.countDown();
+        } finally {
+          try {
+            after();
+          } catch (Throwable throwable) {
+            if (t == null) {
+              t = throwable;
+            }
+          } finally {
+            tearDownDone.countDown();
+          }
+        }
+        return t;
+      });
+
+      try {
+        countDownLatch.await(3, TimeUnit.SECONDS);
+      } finally {
+        looper.quit();
+        tearDownDone.await(3, TimeUnit.SECONDS);
+        final Throwable throwable = testTask.get();
+        executorService.shutdownNow();
+        if (throwable != null) {
+          throw throwable;
+        }
+      }
     }
   }
 }
