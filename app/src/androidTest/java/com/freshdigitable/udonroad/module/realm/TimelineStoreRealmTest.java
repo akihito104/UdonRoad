@@ -44,6 +44,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.CompletableObserver;
+import io.reactivex.CompletableSource;
 import io.reactivex.disposables.Disposable;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -51,6 +52,7 @@ import twitter4j.User;
 
 import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(AndroidJUnit4.class)
@@ -59,6 +61,7 @@ public class TimelineStoreRealmTest {
   private TimelineStoreRealm sut;
   private UpdateSubjectFactory updateSubjectFactory;
   private WritableTimelineRealm writableSut;
+  private StatusCacheRealm poolSut;
 
   @Rule
   public RealmTestRule rule = new RealmTestRule() {
@@ -70,8 +73,8 @@ public class TimelineStoreRealmTest {
       final ConfigStore configStore = new ConfigStoreRealm(appSettingStore);
       updateSubjectFactory = new UpdateSubjectFactory();
 
-      sut = new TimelineStoreRealm(updateSubjectFactory,
-          new StatusCacheRealm(configStore, appSettingStore), appSettingStore);
+      poolSut = new StatusCacheRealm(configStore, appSettingStore);
+      sut = new TimelineStoreRealm(updateSubjectFactory, poolSut, appSettingStore);
       sut.open("home");
 
       writableSut = new WritableTimelineRealm(
@@ -92,28 +95,12 @@ public class TimelineStoreRealmTest {
     final int expectedSize = 20;
     final ResponseList<Status> responseList = createResponseList(expectedSize);
 
+    final ArrayList<Status> expected = new ArrayList<>(responseList);
+    Collections.sort(expected, (o1, o2) -> (int) (o2.getId() - o1.getId()));
+
     writableSut.observeUpsert(responseList)
-        .subscribe(new CompletableObserver() {
-          @Override
-          public void onSubscribe(Disposable d) { }
-
-          @Override
-          public void onComplete() {
-            assertThat(sut.getItemCount(), is(expectedSize));
-            Collections.sort(responseList, (o1, o2) -> (int) (o2.getId() - o1.getId()));
-            for (int i = 0; i < expectedSize; i++) {
-              final Status actual = sut.get(i);
-              final Status expected = responseList.get(i);
-              assertThat(actual.getId(), is(expected.getId()));
-            }
-            rule.testComplete();
-          }
-
-          @Override
-          public void onError(Throwable e) {
-            rule.testComplete();
-          }
-        });
+        .subscribe(getObserver(() ->
+            checkListItems(expectedSize, expected)));
   }
 
   @Test
@@ -122,32 +109,56 @@ public class TimelineStoreRealmTest {
     final ResponseList<Status> responseList = createResponseList(expectedSize);
     final ResponseList<Status> afterUpserted = createResponseList(1, 50);
 
+    final ArrayList<Status> expected = new ArrayList<>(responseList);
+    expected.addAll(afterUpserted);
+    Collections.sort(expected, (o1, o2) -> (int) (o2.getId() - o1.getId()));
+
     writableSut.observeUpsert(responseList)
         .andThen(writableSut.observeUpsert(afterUpserted))
-        .subscribe(new CompletableObserver() {
-          @Override
-          public void onSubscribe(Disposable d) { }
+        .subscribe(getObserver(() ->
+            checkListItems(expectedSize + 1, expected)));
+  }
 
-          @Override
-          public void onComplete() {
-            final ArrayList<Status> expected = new ArrayList<>();
-            expected.addAll(responseList);
-            expected.addAll(afterUpserted);
-            Collections.sort(expected, (o1, o2) -> (int) (o2.getId() - o1.getId()));
-            assertThat(sut.getItemCount(), is(expectedSize + 1));
-            for (int i = 0; i < expectedSize; i++) {
-              final Status a = sut.get(i);
-              final Status e = expected.get(i);
-              assertThat(a.getId(), is(e.getId()));
-            }
-            rule.testComplete();
-          }
+  @Test
+  public void delete1ItemForAlreadyInserted20ItemAreSortedByIdDesc() {
+    final int expectedSize = 19;
+    final ResponseList<Status> responseList = createResponseList(20);
+    final long deletedId = responseList.get(0).getId();
 
-          @Override
-          public void onError(Throwable e) {
-            rule.testComplete();
-          }
-        });
+    final List<Status> expected = new ArrayList<>(responseList);
+    expected.remove(responseList.get(0));
+    Collections.sort(expected, (o1, o2) -> (int) (o2.getId() - o1.getId()));
+
+    writableSut.observeUpsert(responseList)
+        .andThen((CompletableSource) cs -> {
+          writableSut.delete(deletedId);
+          cs.onComplete();
+        })
+        .subscribe(getObserver(() ->
+            checkListItems(expectedSize, expected)));
+  }
+
+  @Test
+  public void delete1ItemFromPool() {
+    final int expectedSize = 19;
+    final ResponseList<Status> responseList = createResponseList(20);
+    final long deletedId = responseList.get(0).getId();
+
+    final List<Status> expected = new ArrayList<>(responseList);
+    expected.remove(responseList.get(0));
+    Collections.sort(expected, (o1, o2) -> (int) (o2.getId() - o1.getId()));
+
+    writableSut.observeUpsert(responseList)
+        .andThen((CompletableSource) cs -> {
+          poolSut.observeById(deletedId)
+              .subscribe(s -> { }, t -> { }, cs::onComplete);
+          poolSut.delete(deletedId);
+        })
+        .subscribe(getObserver(() -> {
+          final StatusRealm statusRealm = poolSut.find(deletedId);
+          assertThat(statusRealm, is(nullValue()));
+          checkListItems(expectedSize, expected);
+        }));
   }
 
   private ResponseList<Status> createResponseList(int size) {
@@ -164,8 +175,34 @@ public class TimelineStoreRealmTest {
     return TwitterResponseMock.createResponseList(responseList);
   }
 
+  private CompletableObserver getObserver(Runnable runnable) {
+    return new CompletableObserver() {
+      @Override
+      public void onComplete() {
+        runnable.run();
+        rule.testComplete();
+      }
+
+      @Override
+      public void onError(Throwable e) {
+        rule.testComplete();
+      }
+      @Override
+      public void onSubscribe(Disposable d) { }
+    };
+  }
+
+  private void checkListItems(int expectedSize, List<Status> expectedList) {
+    assertThat(sut.getItemCount(), is(expectedSize));
+    for (int i = 0; i < expectedSize; i++) {
+      final Status actual = sut.get(i);
+      final Status expected = expectedList.get(i);
+      assertThat(actual.getId(), is(expected.getId()));
+    }
+  }
+
   static abstract class RealmTestRule implements TestRule {
-    CountDownLatch countDownLatch = new CountDownLatch(1);
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
     @Override
     public Statement apply(Statement base, Description description) {
       return new RealmTestStatement(base, countDownLatch) {
@@ -191,10 +228,10 @@ public class TimelineStoreRealmTest {
   }
 
   static abstract class RealmTestStatement extends Statement {
-    private Statement base;
+    private final Statement base;
     private final CountDownLatch countDownLatch;
     private Looper looper;
-    final CountDownLatch tearDownDone = new CountDownLatch(1);
+    private final CountDownLatch tearDownDone = new CountDownLatch(1);
 
     RealmTestStatement(Statement base, CountDownLatch countDownLatch) {
       this.base = base;
@@ -233,17 +270,33 @@ public class TimelineStoreRealmTest {
         return t;
       });
 
+      Throwable throwable = null;
       try {
-        countDownLatch.await(3, TimeUnit.SECONDS);
+        throwable = awaitQuietly(countDownLatch);
       } finally {
         looper.quit();
-        tearDownDone.await(3, TimeUnit.SECONDS);
-        final Throwable throwable = testTask.get();
-        executorService.shutdownNow();
-        if (throwable != null) {
-          throw throwable;
+        Throwable t = awaitQuietly(tearDownDone);
+        if (throwable == null) {
+          throwable = t;
         }
+        t = testTask.get();
+        if (t != null) {
+          throwable = t;
+        }
+        executorService.shutdownNow();
       }
+      if (throwable != null) {
+        throw throwable;
+      }
+    }
+
+    private static Throwable awaitQuietly(CountDownLatch countDownLatch) {
+      try {
+        countDownLatch.await(3,TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        return e;
+      }
+      return null;
     }
   }
 }
