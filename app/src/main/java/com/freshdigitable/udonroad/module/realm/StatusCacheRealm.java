@@ -25,6 +25,7 @@ import com.freshdigitable.udonroad.datastore.MediaCache;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatus;
 import com.freshdigitable.udonroad.datastore.StatusReaction;
 import com.freshdigitable.udonroad.datastore.StatusReactionImpl;
+import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 
 import java.util.ArrayList;
@@ -58,12 +59,14 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
   @SuppressWarnings("unused")
   private static final String TAG = StatusCacheRealm.class.getSimpleName();
   private final PoolRealm pool;
+  private StoreManager storeManager;
   private final ConfigStore configStore;
   private final UserCacheRealm userTypedCache;
 
-  public StatusCacheRealm(ConfigStore configStore, AppSettingStore appSetting) {
+  public StatusCacheRealm(ConfigStore configStore, AppSettingStore appSetting, StoreManager storeManager) {
     this.configStore = configStore;
     this.pool = new PoolRealm(appSetting);
+    this.storeManager = storeManager;
     this.userTypedCache = new UserCacheRealm(pool);
   }
 
@@ -216,6 +219,7 @@ public class StatusCacheRealm implements TypedCache<Status>, MediaCache {
 
   @Override
   public void delete(final long statusId) {
+    ((RealmStoreManager) storeManager).delete(statusId);
     pool.executeTransactionAsync(r -> r.where(StatusRealm.class)
         .equalTo(KEY_ID, statusId)
         .findAll()

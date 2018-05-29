@@ -124,4 +124,24 @@ public class RealmStoreManager implements StoreManager {
     return realmDirectory.listFiles(file ->
         file.isDirectory() && file.getName().startsWith(AppSettingStoreRealm.USER_DIR_PREFIX));
   }
+
+  public void delete(long statusId) {
+    final File[] files = listDir();
+    for (File f : files) {
+      final String[] storage = listStorage(f);
+      for (String s : storage) {
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+            .directory(f)
+            .name(s)
+            .deleteRealmIfMigrationNeeded()
+            .build();
+        final Realm realm = Realm.getInstance(config);
+        realm.executeTransaction(r -> r.where(StatusIDs.class)
+            .equalTo("id", statusId)
+            .findAll()
+            .deleteAllFromRealm());
+        realm.close();
+      }
+    }
+  }
 }

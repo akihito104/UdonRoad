@@ -69,16 +69,17 @@ public class TimelineStoreRealmTest {
     void before() {
       StorageUtil.initStorage();
 
-      final AppSettingStore appSettingStore = MockMainApplication.getApp().sharedPreferenceModule.appSettingStore;
+      final MockMainApplication app = MockMainApplication.getApp();
+      final AppSettingStore appSettingStore = app.sharedPreferenceModule.appSettingStore;
       final ConfigStore configStore = new ConfigStoreRealm(appSettingStore);
       updateSubjectFactory = new UpdateSubjectFactory();
 
-      poolSut = new StatusCacheRealm(configStore, appSettingStore);
+      poolSut = new StatusCacheRealm(configStore, appSettingStore, app.getStoreManager());
       sut = new TimelineStoreRealm(updateSubjectFactory, poolSut, appSettingStore);
       sut.open("home");
 
       writableSut = new WritableTimelineRealm(
-          new StatusCacheRealm(configStore, appSettingStore), configStore, appSettingStore);
+          new StatusCacheRealm(configStore, appSettingStore, app.getStoreManager()), configStore, appSettingStore);
       writableSut.open("home");
     }
 

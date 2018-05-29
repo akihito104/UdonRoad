@@ -18,6 +18,7 @@ package com.freshdigitable.udonroad;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.module.AppComponent;
 
 import twitter4j.UserStreamListener;
@@ -48,5 +49,9 @@ public class MockMainApplication extends MainApplication {
 
   public static MockMainApplication getApp() {
     return (MockMainApplication) InstrumentationRegistry.getTargetContext().getApplicationContext();
+  }
+
+  public StoreManager getStoreManager() {
+    return storeManager;
   }
 }

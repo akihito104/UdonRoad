@@ -48,9 +48,10 @@ public class StatusTypedCacheTest {
   public void setup() {
     StorageUtil.initStorage();
 
-    final AppSettingStore appSettingStore = MockMainApplication.getApp().sharedPreferenceModule.appSettingStore;
+    final MockMainApplication app = MockMainApplication.getApp();
+    final AppSettingStore appSettingStore = app.sharedPreferenceModule.appSettingStore;
     final ConfigStore configStore = new ConfigStoreRealm(appSettingStore);
-    sut = new StatusCacheRealm(configStore, appSettingStore);
+    sut = new StatusCacheRealm(configStore, appSettingStore, app.getStoreManager());
     sut.open();
   }
 

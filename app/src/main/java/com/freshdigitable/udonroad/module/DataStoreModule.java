@@ -69,8 +69,8 @@ public class DataStoreModule {
   }
 
   @Provides
-  TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore, AppSettingStore appSetting) {
-    return new StatusCacheRealm(configStore, appSetting);
+  TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore, AppSettingStore appSetting, StoreManager storeManager) {
+    return new StatusCacheRealm(configStore, appSetting, storeManager);
   }
 
   @Provides
