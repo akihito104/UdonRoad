@@ -55,17 +55,15 @@ public class StatusViewHolder extends ItemViewHolder {
   }
 
   @Override
-  public void bind(ListItem item, StatusViewImageLoader imageLoader) {
-    super.bind(item, imageLoader);
+  public void bind(ListItem item) {
+    super.bind(item);
     final TwitterListItem twitterListItem = (TwitterListItem) item;
     binding.setViewModel(viewModel);
     binding.setItem(twitterListItem);
     binding.executePendingBindings();
     bindQuotedStatus(twitterListItem.getId(), twitterListItem.getQuotedItem());
     Utils.maybeDispose(imageSubs);
-    if (imageLoader != null) {
-      imageSubs = imageLoader.load(twitterListItem, binding, quotedBinding);
-    }
+    imageSubs = viewModel.getImageLoader().load(twitterListItem, binding, quotedBinding);
     setupMediaView(item.getId(), twitterListItem, binding.tlImageGroup);
     setupQuotedStatusView(twitterListItem, quotedBinding);
   }

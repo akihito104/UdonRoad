@@ -87,7 +87,7 @@ class ListItemRepositoryCreator {
       @Override
       public ListItem get(int position) {
         final T status = cache.get(position);
-        return cache.typeMapper.apply(status);
+        return status != null ? cache.typeMapper.apply(status) : null;
       }
 
       @Override

@@ -42,8 +42,8 @@ public class UserItemViewHolder extends ItemViewHolder {
   }
 
   @Override
-  public void bind(ListItem item, StatusViewImageLoader imageLoader) {
-    super.bind(item, imageLoader);
+  public void bind(ListItem item) {
+    super.bind(item);
     itemView.setOnClickListener(v ->
         itemViewClickListener.onItemViewClicked(this, getItemId(), v));
     binding.setItem(item);

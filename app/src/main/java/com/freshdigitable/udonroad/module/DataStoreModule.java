@@ -16,9 +16,6 @@
 
 package com.freshdigitable.udonroad.module;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.ConfigStore;
 import com.freshdigitable.udonroad.datastore.MediaCache;
@@ -27,7 +24,6 @@ import com.freshdigitable.udonroad.datastore.StoreManager;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.UpdateSubjectFactory;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
-import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ConfigStoreRealm;
 import com.freshdigitable.udonroad.module.realm.ListsSortedCacheRealm;
 import com.freshdigitable.udonroad.module.realm.RealmStoreManager;
@@ -61,11 +57,6 @@ public class DataStoreModule {
   }
 
   @Provides
-  AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences, Context context) {
-    return new AppSettingStoreRealm(sharedPreferences, context.getFilesDir());
-  }
-
-  @Provides
   ConfigStore provideConfigStore(AppSettingStore appSetting) {
     return new ConfigStoreRealm(appSetting);
   }
@@ -78,8 +69,8 @@ public class DataStoreModule {
   }
 
   @Provides
-  TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore, AppSettingStore appSetting) {
-    return new StatusCacheRealm(configStore, appSetting);
+  TypedCache<Status> provideTypedCacheStatus(ConfigStore configStore, AppSettingStore appSetting, StoreManager storeManager) {
+    return new StatusCacheRealm(configStore, appSetting, storeManager);
   }
 
   @Provides

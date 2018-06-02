@@ -22,6 +22,8 @@ import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
 
+import org.mockito.Mockito;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -40,16 +42,27 @@ import static org.mockito.Mockito.mock;
  */
 @Module
 public class MockTwitterApiModule {
+
+  final Twitter twitter;
+  final TwitterStream twitterStream;
+  final UserStreamListenerHolder userStreamListenerHolder;
+
+  MockTwitterApiModule() {
+    twitter = mock(Twitter.class);
+    twitterStream = mock(TwitterStream.class);
+    userStreamListenerHolder = new UserStreamListenerHolder();
+  }
+
   @Singleton
   @Provides
   Twitter provideTwitter() {
-    return mock(Twitter.class);
+    return twitter;
   }
 
   @Singleton
   @Provides
   TwitterStream provideTwitterStream() {
-    return mock(TwitterStream.class);
+    return twitterStream;
   }
 
   @Singleton
@@ -66,21 +79,19 @@ public class MockTwitterApiModule {
 
   @Singleton
   @Provides
-  TwitterStreamApi provideTwitterStreamApi(TwitterStream twitterStream, UserStreamListenerHolder holder) {
+  TwitterStreamApi provideTwitterStreamApi(TwitterStream twitterStream) {
     return new TwitterStreamApi(twitterStream) {
       @Override
       public void connectUserStream(UserStreamListener listener) {
-        holder.userStreamListener = listener;
+        userStreamListenerHolder.userStreamListener = listener;
         twitterStream.addListener(listener);
         twitterStream.user();
       }
     };
   }
 
-  @Singleton
-  @Provides
-  UserStreamListenerHolder provideUserStreamListenerHolder() {
-    return new UserStreamListenerHolder();
+  public void reset() {
+    Mockito.reset(twitter, twitterStream);
   }
 
   static class UserStreamListenerHolder {

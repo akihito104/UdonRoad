@@ -75,7 +75,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final ListItem elem = viewModel.get(position);
-    holder.bind(elem, viewModel.getImageLoader());
+    if (elem == null) {
+      return;
+    }
+    holder.bind(elem);
     final Observable<? extends ListItem> observable = viewModel.observe(elem);
     holder.subscribe(observable);
 
@@ -154,12 +157,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
     @Override
     public void onBindViewHolder(final ItemViewHolder holder, int position) {
-      final StatusListItem item = ((StatusListItem) viewModel.get(position));
+      final StatusListItem item = (StatusListItem) viewModel.get(position);
+      if (item == null) {
+        return;
+      }
       final StatusViewHolder statusViewHolder = (StatusViewHolder) holder;
       if (item.getQuotedItem() != null && !statusViewHolder.hasQuotedView()) {
         statusViewHolder.attachQuotedView(getQuotedView((ViewGroup) holder.itemView));
       }
-      holder.bind(item, viewModel.getImageLoader());
+      holder.bind(item);
       final Observable<? extends ListItem> observable = viewModel.observe(item);
       holder.subscribe(observable);
 

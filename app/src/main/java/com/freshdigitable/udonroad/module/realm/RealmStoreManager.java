@@ -30,6 +30,9 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import timber.log.Timber;
 
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_RETWEETED_STATUS_ID;
+
 /**
  * Created by akihit on 2017/07/04.
  */
@@ -123,5 +126,29 @@ public class RealmStoreManager implements StoreManager {
     final File realmDirectory = new RealmConfiguration.Builder().build().getRealmDirectory();
     return realmDirectory.listFiles(file ->
         file.isDirectory() && file.getName().startsWith(AppSettingStoreRealm.USER_DIR_PREFIX));
+  }
+
+  public void delete(long statusId) {
+    final File[] files = listDir();
+    for (File f : files) {
+      final String[] storage = listStorage(f);
+      for (String s : storage) {
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+            .directory(f)
+            .name(s)
+            .deleteRealmIfMigrationNeeded()
+            .build();
+        final Realm realm = Realm.getInstance(config);
+        realm.executeTransaction(r -> r.where(StatusIDs.class)
+            .beginGroup()
+            .equalTo(KEY_ID, statusId)
+            .or()
+            .equalTo(KEY_RETWEETED_STATUS_ID, statusId)
+            .endGroup()
+            .findAll()
+            .deleteAllFromRealm());
+        realm.close();
+      }
+    }
   }
 }

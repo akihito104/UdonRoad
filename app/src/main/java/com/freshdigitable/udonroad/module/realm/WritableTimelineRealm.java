@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import io.reactivex.Completable;
+import io.reactivex.CompletableSource;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.realm.RealmResults;
@@ -128,13 +129,12 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
       return Completable.complete();
     }
 
-    return Completable.concatArray(
-        pool.observeUpsert(targets),
-        Completable.create(e -> {
+    return pool.observeUpsert(targets)
+        .andThen((CompletableSource) cs -> {
           sortedCache.executeTransaction(r -> r.insertOrUpdate(statusIDs));
           updatePageCursor(statuses);
-          e.onComplete();
-        }))
+          cs.onComplete();
+        })
         .doOnError(throwable -> Timber.tag(TAG).e(throwable, "upsert: "));
   }
 

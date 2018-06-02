@@ -32,7 +32,6 @@ import android.view.View;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.util.IdlingResourceUtil;
 import com.freshdigitable.udonroad.util.StorageUtil;
-import com.freshdigitable.udonroad.util.TestInjectionUtil;
 import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
@@ -46,8 +45,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-
-import javax.inject.Inject;
 
 import twitter4j.IDs;
 import twitter4j.PagableResponseList;
@@ -85,7 +82,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -106,7 +102,9 @@ public abstract class TimelineInstTestBase {
 
   @Before
   public void setup() throws Exception {
-    TestInjectionUtil.getComponent().inject(this);
+    this.twitter = getApp().twitterApiModule.twitter;
+    this.twitterStream = getApp().twitterApiModule.twitterStream;
+    this.appSettings = getApp().sharedPreferenceModule.appSettingStore;
 
     StorageUtil.initStorage();
     loginUser = UserUtil.createUserA();
@@ -134,11 +132,8 @@ public abstract class TimelineInstTestBase {
   }
 
 
-  @Inject
   Twitter twitter;
-  @Inject
   TwitterStream twitterStream;
-  @Inject
   AppSettingStore appSettings;
 
   protected void setupConfig(User loginUser) throws Exception {
@@ -191,8 +186,7 @@ public abstract class TimelineInstTestBase {
 
   @After
   public void tearDown() throws Exception {
-    reset(twitter);
-    reset(twitterStream);
+    getApp().twitterApiModule.reset();
     final Activity activity = getActivity();
     if (activity != null) {
       IdlingResourceUtil.ActivityWaiter.create(activity).waitForDestroyed();

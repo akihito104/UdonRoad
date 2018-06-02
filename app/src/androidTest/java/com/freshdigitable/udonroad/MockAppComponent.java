@@ -18,8 +18,6 @@ package com.freshdigitable.udonroad;
 
 import android.content.Context;
 
-import com.freshdigitable.udonroad.datastore.AppSettingStoreTest;
-import com.freshdigitable.udonroad.datastore.StatusTypedCacheTest;
 import com.freshdigitable.udonroad.module.ActivityBuilders;
 import com.freshdigitable.udonroad.module.AppComponent;
 import com.freshdigitable.udonroad.module.DataStoreModule;
@@ -64,20 +62,14 @@ public interface MockAppComponent extends AppComponent {
     @BindsInstance
     Builder application(Context context);
 
+    Builder twitterApi(MockTwitterApiModule module);
+
+    Builder sharedPreferences(MockSharedPreferenceModule sharedPreferenceModule);
+
     MockAppComponent build();
   }
 
   void inject(MockMainApplication application);
 
-  void inject(TimelineInstTestBase mainActivityInstTest);
-
   void inject(UserInfoActivityInstTest.Base userInfoActivityInstTest);
-
-  void inject(OAuthActivityInstTest.Base oAuthActivityInstTest);
-
-  void inject(AppSettingStoreTest appSettingStoreTest);
-
-  void inject(TweetInputActivityInstTest tweetInputActivityInstTest);
-
-  void inject(StatusTypedCacheTest statusTypedCacheTest);
 }
