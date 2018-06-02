@@ -91,6 +91,7 @@ public class TimelineViewModel extends ViewModel {
     return listItemRepository.getId(position);
   }
 
+  @Nullable
   public ListItem get(int pos) {
     return listItemRepository.get(pos);
   }
