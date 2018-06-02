@@ -30,6 +30,9 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import timber.log.Timber;
 
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_ID;
+import static com.freshdigitable.udonroad.module.realm.StatusRealm.KEY_RETWEETED_STATUS_ID;
+
 /**
  * Created by akihit on 2017/07/04.
  */
@@ -137,7 +140,11 @@ public class RealmStoreManager implements StoreManager {
             .build();
         final Realm realm = Realm.getInstance(config);
         realm.executeTransaction(r -> r.where(StatusIDs.class)
-            .equalTo("id", statusId)
+            .beginGroup()
+            .equalTo(KEY_ID, statusId)
+            .or()
+            .equalTo(KEY_RETWEETED_STATUS_ID, statusId)
+            .endGroup()
             .findAll()
             .deleteAllFromRealm());
         realm.close();
