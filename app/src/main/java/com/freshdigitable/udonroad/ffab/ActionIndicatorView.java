@@ -51,7 +51,7 @@ class ActionIndicatorView extends FrameLayout {
 
   public ActionIndicatorView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    final int padding = getResources().getDimensionPixelSize(R.dimen.grid_margin);
+    final int padding = context.getResources().getDimensionPixelSize(R.dimen.grid_margin);
     setPadding(padding, padding, padding, padding);
     setVisibility(INVISIBLE);
 

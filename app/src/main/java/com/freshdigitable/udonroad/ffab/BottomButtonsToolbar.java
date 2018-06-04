@@ -17,6 +17,7 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
@@ -52,7 +53,8 @@ class BottomButtonsToolbar extends Toolbar {
 
   public BottomButtonsToolbar(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    final int color = ResourcesCompat.getColor(getResources(), R.color.accent, context.getTheme());
+    final Resources resources = context.getResources();
+    final int color = ResourcesCompat.getColor(resources, R.color.accent, context.getTheme());
     setBackgroundColor(color);
 
     menuContainer = new LinearLayout(context, attrs, defStyleAttr);
@@ -61,7 +63,7 @@ class BottomButtonsToolbar extends Toolbar {
         MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.MATCH_PARENT);
     addView(menuContainer, layoutParams);
 
-    iconPadding = getResources().getDimensionPixelSize(R.dimen.iffab_toolbar_icon_padding);
+    iconPadding = resources.getDimensionPixelSize(R.dimen.iffab_toolbar_icon_padding);
   }
 
   private final int iconPadding;
