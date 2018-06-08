@@ -20,7 +20,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -54,6 +53,7 @@ class IffabMenuPresenter {
   private IndicatableFFAB ffab;
   private final int indicatorMargin;
   private final IffabMenu menu;
+  private final TransformAnimator transformAnimator = TransformAnimator.create();
 
   IffabMenuPresenter(Context context, AttributeSet attrs, int defStyleAttr) {
     indicator = new ActionIndicatorView(context);
@@ -290,27 +290,9 @@ class IffabMenuPresenter {
     }
     updateMenuItemCheckable(true);
     if (bbt.getVisibility() != View.VISIBLE) {
-      animateToShowToolbar();
+      transformAnimator.transToToolbar(ffab, bbt);
     }
     mode = MODE_TOOLBAR;
-  }
-
-  private void animateToShowToolbar() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      TransformAnimator.transToToolbar(ffab, bbt);
-    } else {
-      ffab.hide();
-      bbt.setVisibility(View.VISIBLE);
-    }
-  }
-
-  private void animateToHideToolbar(int afterVisibility) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      TransformAnimator.transToFab(ffab, bbt, afterVisibility);
-    } else {
-      bbt.setVisibility(View.INVISIBLE);
-      ffab.show();
-    }
   }
 
   private void updateMenuItemCheckable(boolean checkable) {
@@ -331,7 +313,7 @@ class IffabMenuPresenter {
       }
     } else {
       mode = MODE_FAB;
-      animateToHideToolbar(afterVisibility);
+      transformAnimator.transToFab(ffab, bbt, afterVisibility);
       updateMenuItemCheckable(false);
       updateMenu();
     }
