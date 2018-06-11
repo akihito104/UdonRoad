@@ -39,7 +39,7 @@ import java.util.List;
  *
  * Created by akihit on 2017/02/19.
  */
-class BottomButtonsToolbar extends LinearLayout {
+public class BottomButtonsToolbar extends LinearLayout {
 
   public BottomButtonsToolbar(Context context) {
     this(context, null);
