@@ -20,8 +20,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
+import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Xml;
 import android.view.MenuInflater;
 
@@ -37,7 +37,8 @@ import java.io.IOException;
  */
 
 class IffabMenuItemInflater {
-  private static final String TAG = IffabMenuItemInflater.class.getSimpleName();
+  //  private static final String TAG = IffabMenuItemInflater.class.getSimpleName();
+  private final static int NO_ID = 0;
   private final Context context;
   private final MenuInflater inflater;
 
@@ -84,7 +85,7 @@ class IffabMenuItemInflater {
         continue;
       }
       final int resourceId = findId(parser);
-      if (resourceId > -1) {
+      if (resourceId != NO_ID) {
         final TypedArray ta = context.obtainStyledAttributes(attributeSet, R.styleable.IndicatableFFAB);
         final ColorStateList colorStateList = ta.getColorStateList(
             R.styleable.IndicatableFFAB_toolbarIconColorState);
@@ -101,11 +102,11 @@ class IffabMenuItemInflater {
       final String attributeName = parser.getAttributeName(i);
       if ("id".equals(attributeName)) {
         final String attributeValue = parser.getAttributeValue(i);
-        Log.d(TAG, "findId: " + attributeValue);
-        return Integer.parseInt(attributeValue.substring(1));
+        final String id = attributeValue.substring(1);
+        return TextUtils.isDigitsOnly(id) ? Integer.parseInt(id) : NO_ID;
       }
     }
-    return -1;
+    return NO_ID;
   }
 
 }

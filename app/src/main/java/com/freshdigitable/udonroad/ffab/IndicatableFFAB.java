@@ -46,9 +46,6 @@ public class IndicatableFFAB extends FlickableFAB {
     super(context, attrs, defStyleAttr);
     presenter = new IffabMenuPresenter(context, attrs, defStyleAttr);
     presenter.initView(this);
-    if (isInEditMode()) {
-      presenter.setIndicatorVisibility(VISIBLE);
-    }
   }
 
   @Override
