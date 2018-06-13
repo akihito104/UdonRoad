@@ -53,7 +53,6 @@ import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
-import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.User;
@@ -137,12 +136,6 @@ public abstract class TimelineInstTestBase {
   AppSettingStore appSettings;
 
   protected void setupConfig(User loginUser) throws Exception {
-    final TwitterAPIConfiguration twitterAPIConfigMock
-        = TwitterResponseMock.createTwitterAPIConfigMock();
-    when(twitterAPIConfigMock.getShortURLLength()).thenReturn(23);
-    when(twitterAPIConfigMock.getShortURLLengthHttps()).thenReturn(23);
-    when(twitter.getAPIConfiguration()).thenReturn(twitterAPIConfigMock);
-
     final long userId = loginUser.getId();
     when(twitter.getId()).thenReturn(userId);
     when(twitter.showUser(userId)).thenReturn(loginUser);
