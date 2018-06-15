@@ -16,18 +16,30 @@
 
 package com.freshdigitable.udonroad;
 
+import com.freshdigitable.udonroad.util.TwitterResponseMock;
 import com.freshdigitable.udonroad.util.UserUtil;
 
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import twitter4j.IDs;
+import twitter4j.Paging;
+import twitter4j.ResponseList;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.User;
+import twitter4j.UserStreamListener;
 
 import static com.freshdigitable.udonroad.MockMainApplication.getApp;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createResponseList;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createRtStatus;
+import static com.freshdigitable.udonroad.util.TwitterResponseMock.createStatus;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,6 +47,8 @@ import static org.mockito.Mockito.when;
 public class TwitterRule extends TestWatcher {
   final Twitter twitter = getApp().twitterApiModule.twitter;
   private final TwitterStream twitterStream = getApp().twitterApiModule.twitterStream;
+  private final UserStreamListener streamListener = getApp().getUserStreamListener();
+  private List<Status> statuses;
 
   @Override
   protected void starting(Description description) {
@@ -55,10 +69,21 @@ public class TwitterRule extends TestWatcher {
   private void setupTwitter() throws TwitterException {
     setupLoginUser();
     setupIgnoringUsers();
+    setupDefaultTimeline();
   }
 
   protected User getLoginUser() {
     return UserUtil.createUserA();
+  }
+
+  protected List<Status> getResponse() {
+    final List<Status> resLi = new ArrayList<>();
+    final User user3000 = UserUtil.builder(3000, "user3000").build();
+    for (int i = 1; i <= 20; i++) {
+      final Status status = createStatus(i * 1000L, user3000);
+      resLi.add(status);
+    }
+    return resLi;
   }
 
   private void setupLoginUser() throws TwitterException {
@@ -79,5 +104,65 @@ public class TwitterRule extends TestWatcher {
     when(twitter.getBlocksIDs()).thenReturn(ignoringUserIDsMock);
     when(twitter.getBlocksIDs(anyLong())).thenReturn(ignoringUserIDsMock);
     when(twitter.getMutesIDs(anyLong())).thenReturn(ignoringUserIDsMock);
+  }
+
+  public void receiveStatuses(final Status... statuses) {
+    TwitterResponseMock.receiveStatuses(streamListener, statuses);
+  }
+
+  public void receiveDeletionNotice(final Status... target) {
+    TwitterResponseMock.receiveDeletionNotice(streamListener, target);
+  }
+
+  protected void setupCreateFavorite(final int rtCount, final int favCount) throws TwitterException {
+    when(twitter.createFavorite(anyLong())).thenAnswer(invocation -> {
+      final Long id = invocation.getArgument(0);
+      final Status status = findByStatusId(id);
+      when(status.getFavoriteCount()).thenReturn(favCount);
+      when(status.getRetweetCount()).thenReturn(rtCount);
+      when(status.isFavorited()).thenReturn(true);
+      return status;
+    });
+  }
+
+  protected void setupDestroyFavorite(final int rtCount, final int favCount) throws TwitterException {
+    when(twitter.destroyFavorite(anyLong())).thenAnswer(invocation -> {
+      final Long id = invocation.getArgument(0);
+      final Status status = findByStatusId(id);
+      when(status.getFavoriteCount()).thenReturn(favCount);
+      when(status.getRetweetCount()).thenReturn(rtCount);
+      when(status.isFavorited()).thenReturn(false);
+      return status;
+    });
+  }
+
+  protected void setupRetweetStatus(final long rtStatusId, final int rtCount, final int favCount)
+      throws TwitterException {
+    when(twitter.retweetStatus(anyLong())).thenAnswer(invocation -> {
+      final Long id = invocation.getArgument(0);
+      final Status rtedStatus = findByStatusId(id);
+      TwitterResponseMock.receiveStatuses(streamListener,
+          createRtStatus(rtedStatus, rtStatusId, false));
+      return createRtStatus(rtedStatus, rtStatusId, rtCount, favCount, true);
+    });
+  }
+
+  private void setupDefaultTimeline() throws TwitterException {
+    statuses = getResponse();
+    final ResponseList<Status> responseList = TwitterResponseMock.createResponseList(statuses);
+    when(twitter.getHomeTimeline()).thenReturn(responseList);
+    when(twitter.getHomeTimeline(any(Paging.class))).thenReturn(createResponseList());
+  }
+
+  private Status findByStatusId(long statusId) throws Exception {
+    for (Status s : statuses) {
+      if (s.getId() == statusId) {
+        return s;
+      }
+      if (s.getQuotedStatusId() == statusId) {
+        return s.getQuotedStatus();
+      }
+    }
+    throw new TwitterException("status is not found. ID: " + statusId);
   }
 }
