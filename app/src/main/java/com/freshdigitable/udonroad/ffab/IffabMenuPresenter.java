@@ -25,12 +25,15 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.MotionEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
@@ -38,7 +41,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.ffab.OnFlickListener.Direction;
 
 import java.util.List;
 
@@ -68,13 +70,7 @@ class IffabMenuPresenter {
       indicator.setIndicatorIconTint(indicatorIconTint);
       this.indicatorMargin = a.getDimensionPixelSize(R.styleable.IndicatableFFAB_marginFabToIndicator, 0);
 
-      final boolean toolbarEnabled = a.getBoolean(R.styleable.IndicatableFFAB_enableToolbar, true);
-      if (toolbarEnabled) {
-        bbt = new BottomButtonsToolbar(context);
-        bbt.setVisibility(View.INVISIBLE);
-      } else {
-        bbt = null;
-      }
+      toolbarEnabled = a.getBoolean(R.styleable.IndicatableFFAB_enableToolbar, true);
 
       if (a.hasValue(R.styleable.IndicatableFFAB_menu)) {
         final int menuRes = a.getResourceId(R.styleable.IndicatableFFAB_menu, 0);
@@ -90,51 +86,23 @@ class IffabMenuPresenter {
     final IffabMenuItemInflater menuInflater = new IffabMenuItemInflater(context);
     menuInflater.inflate(menuRes, menu);
     pendingUpdate = false;
-    if (bbt != null) {
-      bbt.setMenu(menu);
-    }
     updateMenu();
   }
 
   void initView(IndicatableFFAB iffab) {
     this.ffab = iffab;
-    ffab.setOnFlickListener(new OnFlickAdapter() {
-      @Override
-      public void onFlick(Direction direction) {
-        menu.dispatchSelectedMenuItem(direction);
-      }
-    });
-
-    ffab.setOnTouchListener(new View.OnTouchListener() {
-      private MotionEvent old;
-
-      @Override
-      public boolean onTouch(View view, MotionEvent motionEvent) {
-        final int action = motionEvent.getAction();
-        if (action == MotionEvent.ACTION_DOWN) {
-          old = MotionEvent.obtain(motionEvent);
-          onStart();
-          return false;
-        }
-        final Direction direction = Direction.getDirection(old, motionEvent);
-        if (action == MotionEvent.ACTION_MOVE) {
-          onMoving(direction);
-        } else if (action == MotionEvent.ACTION_UP) {
-          old.recycle();
-          onFlick();
-        }
-        return false;
-      }
-
+    ffab.setOnFlickListener(new OnFlickListener() {
       private Direction prevSelected = Direction.UNDEFINED;
 
-      void onStart() {
+      @Override
+      public void onStart() {
         indicator.onActionLeave(prevSelected);
         prevSelected = Direction.UNDEFINED;
         indicator.setVisibility(View.VISIBLE);
       }
 
-      void onMoving(Direction direction) {
+      @Override
+      public void onMoving(Direction direction) {
         if (prevSelected == direction) {
           return;
         }
@@ -145,26 +113,28 @@ class IffabMenuPresenter {
         prevSelected = direction;
       }
 
-      void onFlick() {
+      @Override
+      public void onFlick(Direction direction) {
+        menu.dispatchSelectedMenuItem(direction);
         final Message msg = handler.obtainMessage(
             MSG_DISMISS_ACTION_ITEM_VIEW, View.INVISIBLE, 0, indicator);
         handler.sendMessageDelayed(msg, 200);
+      }
+
+      @Override
+      public void onCancel() {
+        indicator.onActionLeave(prevSelected);
+        prevSelected = Direction.UNDEFINED;
+        indicator.setVisibility(View.INVISIBLE);
       }
     });
 
     ViewCompat.setElevation(indicator, ffab.getCompatElevation());
 
-    if (bbt != null) {
-      ViewCompat.setElevation(bbt, ffab.getCompatElevation());
-      if (bbt.getParent() == null) {
-        final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
-        handler.sendMessage(message);
-      }
+    if (toolbarEnabled) {
+      final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
+      handler.sendMessage(message);
     }
-  }
-
-  void setIndicatorVisibility(int visibility) {
-    indicator.setVisibility(visibility);
   }
 
   void clear() {
@@ -265,17 +235,38 @@ class IffabMenuPresenter {
       final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT, height);
       mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
-      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
+      ((ViewGroup) ffab.getParent()).addView(bottomSheet, mlp);
     } else if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
       final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT, height);
+          ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
       mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
       mlp.dodgeInsetEdges = Gravity.BOTTOM;
-      ((ViewGroup) ffab.getParent()).addView(bbt, mlp);
+      ensureBottomSheet((CoordinatorLayout) ffab.getParent());
+      ((ViewGroup) ffab.getParent()).addView(bottomSheet, mlp);
     }
   }
 
-  private final BottomButtonsToolbar bbt;
+  private final boolean toolbarEnabled;
+  private View bottomSheet;
+  private BottomSheetBehavior<View> bottomSheetBehavior;
+  private BottomButtonsToolbar bbt;
+
+  private void ensureBottomSheet(@NonNull CoordinatorLayout parent) {
+    ensureBottomSheet(parent.getContext(), parent);
+  }
+
+  private void ensureBottomSheet(@NonNull Context context, @Nullable CoordinatorLayout parent) {
+    if (!toolbarEnabled || bottomSheet != null) {
+      return;
+    }
+    bottomSheet = LayoutInflater.from(context).inflate(R.layout.view_bottom_sheet, parent, false);
+    bottomSheet.setVisibility(View.INVISIBLE);
+    bbt = bottomSheet.findViewById(R.id.iffabSheet_button);
+    bbt.setMenu(menu);
+    bottomSheetBehavior = new BottomSheetBehavior<>();
+    bottomSheetBehavior.setPeekHeight(BottomButtonsToolbar.getHeight(ffab.getContext()));
+  }
+
   private static final int MODE_FAB = 0;
   private static final int MODE_TOOLBAR = 1;
   private int mode = MODE_FAB;
@@ -289,10 +280,19 @@ class IffabMenuPresenter {
       return;
     }
     updateMenuItemCheckable(true);
-    if (bbt.getVisibility() != View.VISIBLE) {
+    if (bottomSheet.getVisibility() != View.VISIBLE) {
+      setBottomSheetBehavior(bottomSheetBehavior);
+      bottomSheet.setVisibility(View.VISIBLE);
+      bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       transformAnimator.transToToolbar(ffab, bbt);
     }
     mode = MODE_TOOLBAR;
+  }
+
+  private void setBottomSheetBehavior(BottomSheetBehavior<View> bottomSheetBehavior) {
+    if (ffab.getLayoutParams() instanceof CoordinatorLayout.LayoutParams) {
+      ((CoordinatorLayout.LayoutParams) ffab.getLayoutParams()).setBehavior(bottomSheetBehavior);
+    }
   }
 
   private void updateMenuItemCheckable(boolean checkable) {
@@ -314,13 +314,15 @@ class IffabMenuPresenter {
     } else {
       mode = MODE_FAB;
       transformAnimator.transToFab(ffab, bbt, afterVisibility);
+      bottomSheet.setVisibility(View.INVISIBLE);
       updateMenuItemCheckable(false);
       updateMenu();
     }
+    setBottomSheetBehavior(null);
   }
 
   void hideToolbar() {
-    if (bbt.getVisibility() != View.VISIBLE) {
+    if (bottomSheet.getVisibility() != View.VISIBLE) {
       return;
     }
     bbt.animate()
@@ -338,7 +340,7 @@ class IffabMenuPresenter {
   }
 
   void showToolbar() {
-    if (bbt.getVisibility() == View.VISIBLE) {
+    if (bottomSheet.getVisibility() == View.VISIBLE) {
       return;
     }
     bbt.setTranslationY(bbt.getHeight());
@@ -366,16 +368,17 @@ class IffabMenuPresenter {
 
   void onRestoreInstanceState(SavedState state) {
     mode = state.mode;
+    ensureBottomSheet(ffab.getContext(), null);
     syncState();
   }
 
   private void syncState() {
     if (mode == MODE_FAB) {
       ffab.setVisibility(View.VISIBLE);
-      bbt.setVisibility(View.INVISIBLE);
+      bottomSheet.setVisibility(View.INVISIBLE);
     } else {
       ffab.setVisibility(View.INVISIBLE);
-      bbt.setVisibility(View.VISIBLE);
+      bottomSheet.setVisibility(View.VISIBLE);
     }
     updateMenuItemCheckable(mode == MODE_TOOLBAR);
     updateMenu();

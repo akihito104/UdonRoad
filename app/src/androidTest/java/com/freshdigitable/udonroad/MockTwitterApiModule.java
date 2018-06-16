@@ -50,19 +50,10 @@ public class MockTwitterApiModule {
   final Twitter twitter;
   final TwitterStream twitterStream;
   final UserStreamListenerHolder userStreamListenerHolder;
+  private final TwitterAPIConfiguration twitterAPIConfig = TwitterResponseMock.createTwitterAPIConfigMock();
 
   MockTwitterApiModule() {
     twitter = mock(Twitter.class);
-    final TwitterAPIConfiguration twitterAPIConfigMock
-        = TwitterResponseMock.createTwitterAPIConfigMock();
-    when(twitterAPIConfigMock.getShortURLLength()).thenReturn(23);
-    when(twitterAPIConfigMock.getShortURLLengthHttps()).thenReturn(23);
-    try {
-      when(twitter.getAPIConfiguration()).thenReturn(twitterAPIConfigMock);
-    } catch (TwitterException e) {
-      throw new RuntimeException(e);
-    }
-
     twitterStream = mock(TwitterStream.class);
     userStreamListenerHolder = new UserStreamListenerHolder();
   }
@@ -102,6 +93,14 @@ public class MockTwitterApiModule {
         twitterStream.user();
       }
     };
+  }
+
+  public void setup() {
+    try {
+      when(twitter.getAPIConfiguration()).thenReturn(twitterAPIConfig);
+    } catch (TwitterException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void reset() {

@@ -104,6 +104,7 @@ public abstract class TimelineInstTestBase {
     this.twitter = getApp().twitterApiModule.twitter;
     this.twitterStream = getApp().twitterApiModule.twitterStream;
     this.appSettings = getApp().sharedPreferenceModule.appSettingStore;
+    getApp().twitterApiModule.setup();
 
     StorageUtil.initStorage();
     loginUser = UserUtil.createUserA();
