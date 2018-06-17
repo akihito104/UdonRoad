@@ -27,6 +27,8 @@ import android.view.ViewPropertyAnimator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
+import com.freshdigitable.udonroad.R;
+
 /**
  * TransformAnimator is for custom reveal animation of IndicatableFFAB and BottomButtonsToolbar.
  *
@@ -35,21 +37,29 @@ import android.view.animation.DecelerateInterpolator;
 
 class TransformAnimator {
 
-  static TransformAnimator create() {
+  protected final IndicatableFFAB ffab;
+  protected final View bottomSheet;
+
+  static TransformAnimator create(IndicatableFFAB ffab, View bottomSheet) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      return new TransformAnimatorImplV21();
+      return new TransformAnimatorImplV21(ffab, bottomSheet);
     } else {
-      return new TransformAnimator();
+      return new TransformAnimator(ffab, bottomSheet);
     }
   }
 
-  void transToToolbar(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt) {
-    ffab.hide();
-    bbt.setVisibility(View.VISIBLE);
+  private TransformAnimator(IndicatableFFAB ffab, View bottomSheet) {
+    this.ffab = ffab;
+    this.bottomSheet = bottomSheet;
   }
 
-  void transToFab(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt, final int afterVisibility) {
-    bbt.setVisibility(View.INVISIBLE);
+  void transToToolbar() {
+    ffab.hide();
+    bottomSheet.setVisibility(View.VISIBLE);
+  }
+
+  void transToFab(final int afterVisibility) {
+    bottomSheet.setVisibility(View.INVISIBLE);
     ffab.show();
   }
 
@@ -60,65 +70,72 @@ class TransformAnimator {
     private static final int TOOLBAR_MOVE_DURATION = 120;
     private static final AccelerateInterpolator ACCELERATE_INTERPOLATOR = new AccelerateInterpolator();
 
+    private final BottomButtonsToolbar bbt;
+
+    private TransformAnimatorImplV21(IndicatableFFAB ffab, View bottomSheet) {
+      super(ffab, bottomSheet);
+      this.bbt = bottomSheet.findViewById(R.id.iffabSheet_button);
+    }
+
     @Override
-    void transToToolbar(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt) {
+    void transToToolbar() {
       ffab.animate()
           .scaleX(FAB_SCALE)
           .scaleY(FAB_SCALE)
-          .translationX(getCenterX(bbt) - getCenterX(ffab))
-          .translationY(getCenterY(bbt) - getCenterY(ffab))
+          .translationX(getToolbarCenterX() - getCenterX(ffab))
+          .translationY(getToolbarCenterY() - getCenterY(ffab))
           .setDuration(FAB_MOVE_DURATION)
           .setInterpolator(ACCELERATE_INTERPOLATOR)
           .setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
               ffab.setVisibility(View.INVISIBLE);
-              showToolbar(ffab, bbt);
+              showToolbar();
             }
 
             @Override
             public void onAnimationCancel(Animator animation) {
               ffab.setVisibility(View.INVISIBLE);
-              bbt.setVisibility(View.VISIBLE);
+              bottomSheet.setVisibility(View.VISIBLE);
               animation.removeListener(this);
             }
           })
           .start();
     }
 
-    private static void showToolbar(IndicatableFFAB ffab, BottomButtonsToolbar bbt) {
-      final int centerX = (int) (getCenterX(ffab) - bbt.getLeft());
-      final int centerY = (int) (getCenterY(ffab) - bbt.getTop());
+    private void showToolbar() { // XXX
+      final int centerX = (int) (getCenterX(ffab) - getToolbarX());
+      final int centerY = (int) (getCenterY(ffab) - getToolbarY());
       final Animator revealAnimator = ViewAnimationUtils.createCircularReveal(bbt,
           centerX, centerY,
-          calcMinRevealRadius(ffab), calcMaxRevealRadius(ffab, bbt));
+          calcMinRevealRadius(ffab), calcMaxRevealRadius(centerX, centerY));
       revealAnimator.setDuration(TOOLBAR_MOVE_DURATION);
       revealAnimator.addListener(new AnimatorListenerAdapter() {
         @Override
         public void onAnimationStart(Animator animation) {
-          bbt.setVisibility(View.VISIBLE);
+          bottomSheet.setVisibility(View.VISIBLE);
         }
       });
       revealAnimator.start();
     }
 
     @Override
-    void transToFab(@NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt, final int afterVisibility) {
-      final int centerX = (int) (getCenterX(ffab) - bbt.getLeft());
-      final int centerY = (int) (getCenterY(ffab) - bbt.getTop());
+    void transToFab(final int afterVisibility) {
+      final int centerX = (int) (getCenterX(ffab) - bottomSheet.getLeft());
+      final int centerY = (int) (getCenterY(ffab) - bottomSheet.getTop());
       final Animator revealAnimator = ViewAnimationUtils.createCircularReveal(bbt,
           centerX, centerY,
-          calcMaxRevealRadius(ffab, bbt), calcMinRevealRadius(ffab));
+          calcMaxRevealRadius(centerX, centerY), calcMinRevealRadius(ffab));
       revealAnimator.addListener(new AnimatorListenerAdapter() {
         @Override
         public void onAnimationEnd(Animator animation) {
-          bbt.setVisibility(View.INVISIBLE);
+          bottomSheet.setVisibility(View.INVISIBLE);
           showFFAB(ffab, afterVisibility);
         }
 
         @Override
         public void onAnimationCancel(Animator animation) {
-          bbt.setVisibility(View.INVISIBLE);
+          bottomSheet.setVisibility(View.INVISIBLE);
           ffab.setVisibility(View.VISIBLE);
           animation.removeListener(this);
         }
@@ -154,14 +171,27 @@ class TransformAnimator {
       return v.getY() + v.getPivotY();
     }
 
+    private float getToolbarCenterX() {
+      return bottomSheet.getX() + getCenterX(bbt);
+    }
+
+    private float getToolbarCenterY() {
+      return bottomSheet.getY() + getCenterY(bbt);
+    }
+
+    private float getToolbarX() {
+      return bottomSheet.getX() + bbt.getX();
+    }
+
+    private float getToolbarY() {
+      return bottomSheet.getY() + bbt.getY();
+    }
+
     private static float calcMinRevealRadius(IndicatableFFAB ffab) {
       return ffab.getScaleX() * ffab.getHeight() / 2;
     }
 
-    private static float calcMaxRevealRadius(
-        @NonNull IndicatableFFAB ffab, @NonNull BottomButtonsToolbar bbt) {
-      final int centerX = (int) (getCenterX(ffab) - bbt.getLeft());
-      final int centerY = (int) (getCenterY(ffab) - bbt.getTop());
+    private float calcMaxRevealRadius(int centerX, int centerY) {
       final int radiusX = Math.max(Math.abs(centerX), Math.abs(bbt.getWidth() - centerX));
       final int radiusY = Math.max(Math.abs(centerY), Math.abs(bbt.getHeight() - centerY));
       return (float) Math.hypot(radiusX, radiusY);

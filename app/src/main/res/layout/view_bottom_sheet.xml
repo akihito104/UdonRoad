@@ -32,6 +32,7 @@
         android:background="@color/accent"
         />
     <android.support.v7.widget.RecyclerView
+        android:id="@+id/iffabSheet_list"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/iffabSheet_button"

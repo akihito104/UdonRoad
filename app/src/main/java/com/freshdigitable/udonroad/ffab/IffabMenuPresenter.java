@@ -25,20 +25,22 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.freshdigitable.udonroad.R;
 
@@ -52,17 +54,25 @@ import java.util.List;
 
 class IffabMenuPresenter {
   private final ActionIndicatorView indicator;
-  private IndicatableFFAB ffab;
+  private final IndicatableFFAB ffab;
   private final int indicatorMargin;
   private final IffabMenu menu;
-  private final TransformAnimator transformAnimator = TransformAnimator.create();
 
-  IffabMenuPresenter(Context context, AttributeSet attrs, int defStyleAttr) {
+  private final View bottomSheet;
+  private final BottomSheetBehavior<View> bottomSheetBehavior;
+  private final BottomButtonsToolbar bbt;
+
+  private final TransformAnimator transformAnimator;
+
+  IffabMenuPresenter(IndicatableFFAB ffab, AttributeSet attrs, int defStyleAttr) {
+    this.ffab = ffab;
+    final Context context = ffab.getContext();
     indicator = new ActionIndicatorView(context);
     menu = new IffabMenu(context, this);
 
     final TypedArray a = context.obtainStyledAttributes(attrs,
         R.styleable.IndicatableFFAB, defStyleAttr, R.style.Widget_FFAB_IndicatableFFAB);
+    final boolean toolbarEnabled;
     try {
       final int indicatorTint = a.getColor(R.styleable.IndicatableFFAB_indicatorTint, 0);
       indicator.setBackgroundColor(indicatorTint);
@@ -79,6 +89,26 @@ class IffabMenuPresenter {
     } finally {
       a.recycle();
     }
+    initView();
+
+    if (toolbarEnabled) {
+      final ViewGroup parent = (ViewGroup) ffab.getParent();
+      bottomSheet = LayoutInflater.from(context).inflate(R.layout.view_bottom_sheet, parent, false);
+      bottomSheet.setVisibility(View.INVISIBLE);
+      bbt = bottomSheet.findViewById(R.id.iffabSheet_button);
+      bbt.setMenu(menu);
+      bottomSheetBehavior = new BottomSheetBehavior<>();
+      bottomSheetBehavior.setPeekHeight(BottomButtonsToolbar.getHeight(context));
+      transformAnimator = TransformAnimator.create(ffab, bottomSheet);
+
+      final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
+      handler.sendMessage(message);
+    } else {
+      bottomSheet = null;
+      bbt = null;
+      bottomSheetBehavior = null;
+      transformAnimator = null;
+    }
   }
 
   private void inflateMenu(Context context, int menuRes) {
@@ -89,8 +119,7 @@ class IffabMenuPresenter {
     updateMenu();
   }
 
-  void initView(IndicatableFFAB iffab) {
-    this.ffab = iffab;
+  private void initView() {
     ffab.setOnFlickListener(new OnFlickListener() {
       private Direction prevSelected = Direction.UNDEFINED;
 
@@ -130,11 +159,6 @@ class IffabMenuPresenter {
     });
 
     ViewCompat.setElevation(indicator, ffab.getCompatElevation());
-
-    if (toolbarEnabled) {
-      final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
-      handler.sendMessage(message);
-    }
   }
 
   void clear() {
@@ -230,41 +254,53 @@ class IffabMenuPresenter {
 
   private void layoutToolbar() {
     final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
-    final int height = BottomButtonsToolbar.getHeight(ffab.getContext());
-    if (layoutParams instanceof FrameLayout.LayoutParams) {
-      final FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT, height);
-      mlp.gravity = ((FrameLayout.LayoutParams) layoutParams).gravity;
-      ((ViewGroup) ffab.getParent()).addView(bottomSheet, mlp);
-    } else if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
+    if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
       final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
       mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
       mlp.dodgeInsetEdges = Gravity.BOTTOM;
-      ensureBottomSheet((CoordinatorLayout) ffab.getParent());
+      ensureBottomSheet();
       ((ViewGroup) ffab.getParent()).addView(bottomSheet, mlp);
     }
   }
 
-  private final boolean toolbarEnabled;
-  private View bottomSheet;
-  private BottomSheetBehavior<View> bottomSheetBehavior;
-  private BottomButtonsToolbar bbt;
-
-  private void ensureBottomSheet(@NonNull CoordinatorLayout parent) {
-    ensureBottomSheet(parent.getContext(), parent);
-  }
-
-  private void ensureBottomSheet(@NonNull Context context, @Nullable CoordinatorLayout parent) {
-    if (!toolbarEnabled || bottomSheet != null) {
+  private void ensureBottomSheet() {
+    if (bottomSheet == null) {
       return;
     }
-    bottomSheet = LayoutInflater.from(context).inflate(R.layout.view_bottom_sheet, parent, false);
-    bottomSheet.setVisibility(View.INVISIBLE);
-    bbt = bottomSheet.findViewById(R.id.iffabSheet_button);
-    bbt.setMenu(menu);
-    bottomSheetBehavior = new BottomSheetBehavior<>();
-    bottomSheetBehavior.setPeekHeight(BottomButtonsToolbar.getHeight(ffab.getContext()));
+    final RecyclerView menuList = bottomSheet.findViewById(R.id.iffabSheet_list);
+    menuList.setAdapter(new RecyclerView.Adapter() {
+      @Override
+      public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        final View v = LayoutInflater.from(parent.getContext())
+            .inflate(R.layout.view_menu_item, parent, false);
+        return new SheetMenuViewHolder(v);
+      }
+
+      @Override
+      public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        final SheetMenuViewHolder menuHolder = (SheetMenuViewHolder) holder;
+        final MenuItem item = menu.getItem(position);
+        menuHolder.icon.setImageDrawable(item.getIcon());
+        menuHolder.text.setText(item.getTitle());
+      }
+
+      @Override
+      public int getItemCount() {
+        return menu.size();
+      }
+    });
+  }
+
+  private static class SheetMenuViewHolder extends RecyclerView.ViewHolder {
+    private final ImageView icon;
+    private final TextView text;
+
+    SheetMenuViewHolder(View itemView) {
+      super(itemView);
+      icon = itemView.findViewById(R.id.menuItem_icon);
+      text = itemView.findViewById(R.id.menuItem_text);
+    }
   }
 
   private static final int MODE_FAB = 0;
@@ -282,16 +318,16 @@ class IffabMenuPresenter {
     updateMenuItemCheckable(true);
     if (bottomSheet.getVisibility() != View.VISIBLE) {
       setBottomSheetBehavior(bottomSheetBehavior);
-      bottomSheet.setVisibility(View.VISIBLE);
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-      transformAnimator.transToToolbar(ffab, bbt);
+      transformAnimator.transToToolbar();
     }
     mode = MODE_TOOLBAR;
   }
 
   private void setBottomSheetBehavior(BottomSheetBehavior<View> bottomSheetBehavior) {
-    if (ffab.getLayoutParams() instanceof CoordinatorLayout.LayoutParams) {
-      ((CoordinatorLayout.LayoutParams) ffab.getLayoutParams()).setBehavior(bottomSheetBehavior);
+    final ViewGroup.LayoutParams lp = bottomSheet.getLayoutParams();
+    if (lp instanceof CoordinatorLayout.LayoutParams) {
+      ((CoordinatorLayout.LayoutParams) lp).setBehavior(bottomSheetBehavior);
     }
   }
 
@@ -313,8 +349,7 @@ class IffabMenuPresenter {
       }
     } else {
       mode = MODE_FAB;
-      transformAnimator.transToFab(ffab, bbt, afterVisibility);
-      bottomSheet.setVisibility(View.INVISIBLE);
+      transformAnimator.transToFab(afterVisibility);
       updateMenuItemCheckable(false);
       updateMenu();
     }
@@ -368,7 +403,7 @@ class IffabMenuPresenter {
 
   void onRestoreInstanceState(SavedState state) {
     mode = state.mode;
-    ensureBottomSheet(ffab.getContext(), null);
+    ensureBottomSheet();
     syncState();
   }
 

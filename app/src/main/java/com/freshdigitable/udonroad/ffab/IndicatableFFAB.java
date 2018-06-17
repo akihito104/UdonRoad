@@ -44,8 +44,7 @@ public class IndicatableFFAB extends FlickableFAB {
 
   public IndicatableFFAB(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    presenter = new IffabMenuPresenter(context, attrs, defStyleAttr);
-    presenter.initView(this);
+    presenter = new IffabMenuPresenter(this, attrs, defStyleAttr);
   }
 
   @Override
