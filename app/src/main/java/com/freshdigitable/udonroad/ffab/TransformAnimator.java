@@ -79,6 +79,8 @@ class TransformAnimator {
 
     @Override
     void transToToolbar() {
+      final float toolbarX = getToolbarX();
+      final float toolbarY = getToolbarY();
       ffab.animate()
           .scaleX(FAB_SCALE)
           .scaleY(FAB_SCALE)
@@ -90,7 +92,7 @@ class TransformAnimator {
             @Override
             public void onAnimationEnd(Animator animation) {
               ffab.setVisibility(View.INVISIBLE);
-              showToolbar();
+              showToolbar(toolbarX, toolbarY);
             }
 
             @Override
@@ -103,9 +105,9 @@ class TransformAnimator {
           .start();
     }
 
-    private void showToolbar() { // XXX
-      final int centerX = (int) (getCenterX(ffab) - getToolbarX());
-      final int centerY = (int) (getCenterY(ffab) - getToolbarY());
+    private void showToolbar(float toolbarX, float toolbarY) { // XXX
+      final int centerX = (int) (getCenterX(ffab) - toolbarX);
+      final int centerY = (int) (getCenterY(ffab) - toolbarY);
       final Animator revealAnimator = ViewAnimationUtils.createCircularReveal(bbt,
           centerX, centerY,
           calcMinRevealRadius(ffab), calcMaxRevealRadius(centerX, centerY));
