@@ -29,6 +29,7 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -319,6 +320,12 @@ class IffabMenuPresenter {
     if (bottomSheet.getVisibility() != View.VISIBLE) {
       setBottomSheetBehavior(bottomSheetBehavior);
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+      final ImageView child = new ImageView(bbt.getContext());
+      child.setImageDrawable(AppCompatResources.getDrawable(bbt.getContext(), R.drawable.ic_menu));
+      bbt.addView(child);
+      child.setOnClickListener(v -> {
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+      });
       transformAnimator.transToToolbar();
     }
     mode = MODE_TOOLBAR;
