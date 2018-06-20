@@ -21,6 +21,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -40,6 +41,8 @@ import java.util.List;
  * Created by akihit on 2017/02/19.
  */
 public class BottomButtonsToolbar extends LinearLayout {
+
+  private ImageView more;
 
   public BottomButtonsToolbar(Context context) {
     this(context, null);
@@ -61,6 +64,11 @@ public class BottomButtonsToolbar extends LinearLayout {
     setLayoutParams(layoutParams);
 
     iconPadding = resources.getDimensionPixelSize(R.dimen.iffab_toolbar_icon_padding);
+
+    more = new AppCompatImageView(context);
+    more.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_menu));
+    more.setLayoutParams(ICON_LAYOUT_PARAMS);
+    more.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
   }
 
   private final int iconPadding;
@@ -74,6 +82,7 @@ public class BottomButtonsToolbar extends LinearLayout {
   }
 
   void updateItems() {
+    removeView(more);
     final List<IffabMenuItem> visibleItems = this.menu.getVisibleItems();
     Collections.sort(visibleItems, (r, l) -> r.getOrder() - l.getOrder());
     for (int i = 0; i < visibleItems.size(); i++) {
@@ -89,6 +98,7 @@ public class BottomButtonsToolbar extends LinearLayout {
     if (removedCount > 0) {
       removeViews(visibleItems.size(), removedCount);
     }
+    addView(more);
   }
 
   private void addMenuItem(IffabMenuItem item) {
@@ -110,6 +120,10 @@ public class BottomButtonsToolbar extends LinearLayout {
         menu.dispatchSelectedMenuItem(itemId);
       }
     });
+  }
+
+  void setMoreClickListener(View.OnClickListener listener) {
+    more.setOnClickListener(listener);
   }
 
   void clear() {

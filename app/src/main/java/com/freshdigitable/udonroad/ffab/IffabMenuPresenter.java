@@ -29,9 +29,10 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
-import android.support.v7.content.res.AppCompatResources;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -100,6 +101,10 @@ class IffabMenuPresenter {
       bbt.setMenu(menu);
       bottomSheetBehavior = new BottomSheetBehavior<>();
       bottomSheetBehavior.setPeekHeight(BottomButtonsToolbar.getHeight(context));
+      bbt.setMoreClickListener(v -> {
+        Log.d("IffabMP", "IffabMenuPresenter: ");
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+      });
       transformAnimator = TransformAnimator.create(ffab, bottomSheet);
 
       final Message message = handler.obtainMessage(MSG_LAYOUT_BOTTOM_TOOLBAR, this);
@@ -260,8 +265,8 @@ class IffabMenuPresenter {
           ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
       mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
       mlp.dodgeInsetEdges = Gravity.BOTTOM;
-      ensureBottomSheet();
       ((ViewGroup) ffab.getParent()).addView(bottomSheet, mlp);
+//      ensureBottomSheet();
     }
   }
 
@@ -270,6 +275,7 @@ class IffabMenuPresenter {
       return;
     }
     final RecyclerView menuList = bottomSheet.findViewById(R.id.iffabSheet_list);
+    menuList.setLayoutManager(new LinearLayoutManager(bottomSheet.getContext()));
     menuList.setAdapter(new RecyclerView.Adapter() {
       @Override
       public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -280,6 +286,7 @@ class IffabMenuPresenter {
 
       @Override
       public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        Log.d("IffabMP", "onBindViewHolder: " + position);
         final SheetMenuViewHolder menuHolder = (SheetMenuViewHolder) holder;
         final MenuItem item = menu.getItem(position);
         menuHolder.icon.setImageDrawable(item.getIcon());
@@ -320,12 +327,6 @@ class IffabMenuPresenter {
     if (bottomSheet.getVisibility() != View.VISIBLE) {
       setBottomSheetBehavior(bottomSheetBehavior);
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-      final ImageView child = new ImageView(bbt.getContext());
-      child.setImageDrawable(AppCompatResources.getDrawable(bbt.getContext(), R.drawable.ic_menu));
-      bbt.addView(child);
-      child.setOnClickListener(v -> {
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-      });
       transformAnimator.transToToolbar();
     }
     mode = MODE_TOOLBAR;
@@ -410,7 +411,6 @@ class IffabMenuPresenter {
 
   void onRestoreInstanceState(SavedState state) {
     mode = state.mode;
-    ensureBottomSheet();
     syncState();
   }
 
