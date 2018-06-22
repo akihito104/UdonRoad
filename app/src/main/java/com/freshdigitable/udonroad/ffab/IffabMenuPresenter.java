@@ -32,7 +32,6 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -47,6 +46,8 @@ import android.widget.TextView;
 import com.freshdigitable.udonroad.R;
 
 import java.util.List;
+
+import timber.log.Timber;
 
 /**
  * IffabMenuPresenter manages iffab view object, FlingableFAB and IndicatorView.
@@ -65,6 +66,7 @@ class IffabMenuPresenter {
   private final BottomButtonsToolbar bbt;
 
   private final TransformAnimator transformAnimator;
+  private final int bottomBarHeight;
 
   IffabMenuPresenter(IndicatableFFAB ffab, AttributeSet attrs, int defStyleAttr) {
     this.ffab = ffab;
@@ -96,13 +98,13 @@ class IffabMenuPresenter {
     if (toolbarEnabled) {
       final ViewGroup parent = (ViewGroup) ffab.getParent();
       bottomSheet = LayoutInflater.from(context).inflate(R.layout.view_bottom_sheet, parent, false);
-      bottomSheet.setVisibility(View.INVISIBLE);
+      bottomSheet.setVisibility(View.GONE);
       bbt = bottomSheet.findViewById(R.id.iffabSheet_button);
       bbt.setMenu(menu);
       bottomSheetBehavior = new BottomSheetBehavior<>();
-      bottomSheetBehavior.setPeekHeight(BottomButtonsToolbar.getHeight(context));
+      bottomBarHeight = BottomButtonsToolbar.getHeight(context);
       bbt.setMoreClickListener(v -> {
-        Log.d("IffabMP", "IffabMenuPresenter: ");
+        Timber.tag("IffabMP").d("IffabMenuPresenter: ");
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
       });
       transformAnimator = TransformAnimator.create(ffab, bottomSheet);
@@ -111,6 +113,7 @@ class IffabMenuPresenter {
       handler.sendMessage(message);
     } else {
       bottomSheet = null;
+      bottomBarHeight = 0;
       bbt = null;
       bottomSheetBehavior = null;
       transformAnimator = null;
@@ -262,11 +265,14 @@ class IffabMenuPresenter {
     final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
     if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
       final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+          ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
       mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
       mlp.dodgeInsetEdges = Gravity.BOTTOM;
+      bottomSheetBehavior.setPeekHeight(bottomBarHeight);
+      bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+      mlp.setBehavior(bottomSheetBehavior);
+      ensureBottomSheet();
       ((ViewGroup) ffab.getParent()).addView(bottomSheet, mlp);
-//      ensureBottomSheet();
     }
   }
 
@@ -286,7 +292,7 @@ class IffabMenuPresenter {
 
       @Override
       public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        Log.d("IffabMP", "onBindViewHolder: " + position);
+        Timber.tag("IffabMP").d("onBindViewHolder: %s", position);
         final SheetMenuViewHolder menuHolder = (SheetMenuViewHolder) holder;
         final MenuItem item = menu.getItem(position);
         menuHolder.icon.setImageDrawable(item.getIcon());
@@ -325,18 +331,10 @@ class IffabMenuPresenter {
     }
     updateMenuItemCheckable(true);
     if (bottomSheet.getVisibility() != View.VISIBLE) {
-      setBottomSheetBehavior(bottomSheetBehavior);
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       transformAnimator.transToToolbar();
     }
     mode = MODE_TOOLBAR;
-  }
-
-  private void setBottomSheetBehavior(BottomSheetBehavior<View> bottomSheetBehavior) {
-    final ViewGroup.LayoutParams lp = bottomSheet.getLayoutParams();
-    if (lp instanceof CoordinatorLayout.LayoutParams) {
-      ((CoordinatorLayout.LayoutParams) lp).setBehavior(bottomSheetBehavior);
-    }
   }
 
   private void updateMenuItemCheckable(boolean checkable) {
@@ -361,7 +359,6 @@ class IffabMenuPresenter {
       updateMenuItemCheckable(false);
       updateMenu();
     }
-    setBottomSheetBehavior(null);
   }
 
   void hideToolbar() {
