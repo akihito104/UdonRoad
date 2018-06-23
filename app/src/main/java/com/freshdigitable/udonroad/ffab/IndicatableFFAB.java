@@ -32,6 +32,9 @@ import com.freshdigitable.udonroad.R;
  * Created by akihit on 2016/09/05.
  */
 public class IndicatableFFAB extends FlickableFAB {
+  public static final int MODE_FAB = 0;
+  public static final int MODE_TOOLBAR = 1;
+  public static final int MODE_SHEET = 2;
   private final IffabMenuPresenter presenter;
 
   public IndicatableFFAB(Context context) {
@@ -98,6 +101,10 @@ public class IndicatableFFAB extends FlickableFAB {
     } else {
       presenter.hideToolbar();
     }
+  }
+
+  public int getFabMode() {
+    return presenter.getMode();
   }
 
   @Nullable

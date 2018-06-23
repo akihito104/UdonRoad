@@ -60,7 +60,7 @@ public class FabViewModel extends ViewModel {
   }
 
   public enum Type {
-    FAB, TOOLBAR, HIDE
+    FAB, TOOLBAR, HIDE, SHEET
   }
 
   public LiveData<List<MenuState>> getMenuState() {

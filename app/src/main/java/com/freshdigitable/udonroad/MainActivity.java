@@ -40,6 +40,7 @@ import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedLis
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
@@ -295,6 +296,10 @@ public class MainActivity extends AppCompatActivity
       return;
     }
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
+      return;
+    }
+    if (binding.ffab.getFabMode() == IndicatableFFAB.MODE_SHEET) {
+      binding.ffab.transToFAB();
       return;
     }
     if (timelineContainerSwitcher.popBackStackTimelineContainer()) {

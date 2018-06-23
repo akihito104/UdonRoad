@@ -25,6 +25,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.MarginLayoutParamsCompat;
@@ -48,6 +49,10 @@ import com.freshdigitable.udonroad.R;
 import java.util.List;
 
 import timber.log.Timber;
+
+import static com.freshdigitable.udonroad.ffab.IndicatableFFAB.MODE_FAB;
+import static com.freshdigitable.udonroad.ffab.IndicatableFFAB.MODE_SHEET;
+import static com.freshdigitable.udonroad.ffab.IndicatableFFAB.MODE_TOOLBAR;
 
 /**
  * IffabMenuPresenter manages iffab view object, FlingableFAB and IndicatorView.
@@ -102,6 +107,17 @@ class IffabMenuPresenter {
       bbt = bottomSheet.findViewById(R.id.iffabSheet_button);
       bbt.setMenu(menu);
       bottomSheetBehavior = new BottomSheetBehavior<>();
+      bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+        @Override
+        public void onStateChanged(@NonNull View bottomSheet, int newState) {
+          if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+            mode = MODE_SHEET;
+          }
+        }
+
+        @Override
+        public void onSlide(@NonNull View bottomSheet, float slideOffset) { }
+      });
       bottomBarHeight = BottomButtonsToolbar.getHeight(context);
       bbt.setMoreClickListener(v -> {
         Timber.tag("IffabMP").d("IffabMenuPresenter: ");
@@ -316,16 +332,18 @@ class IffabMenuPresenter {
     }
   }
 
-  private static final int MODE_FAB = 0;
-  private static final int MODE_TOOLBAR = 1;
   private int mode = MODE_FAB;
+
+  int getMode() {
+    return mode;
+  }
 
   boolean isFabMode() {
     return mode == MODE_FAB;
   }
 
   void transToToolbar() {
-    if (mode == MODE_TOOLBAR) {
+    if (mode == MODE_TOOLBAR || mode == MODE_SHEET) {
       return;
     }
     updateMenuItemCheckable(true);
@@ -352,7 +370,11 @@ class IffabMenuPresenter {
       } else {
         ffab.hide();
       }
+    } else if (mode == MODE_SHEET) {
+      bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+      mode = MODE_TOOLBAR;
     } else {
+      bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       mode = MODE_FAB;
       transformAnimator.transToFab(afterVisibility);
       updateMenuItemCheckable(false);
@@ -418,7 +440,7 @@ class IffabMenuPresenter {
       ffab.setVisibility(View.INVISIBLE);
       bottomSheet.setVisibility(View.VISIBLE);
     }
-    updateMenuItemCheckable(mode == MODE_TOOLBAR);
+    updateMenuItemCheckable(mode == MODE_TOOLBAR || mode == MODE_SHEET);
     updateMenu();
   }
 
