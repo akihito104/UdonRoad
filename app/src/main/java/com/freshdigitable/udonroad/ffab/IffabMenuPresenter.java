@@ -267,7 +267,6 @@ class IffabMenuPresenter {
       final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
       mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
-      mlp.dodgeInsetEdges = Gravity.BOTTOM;
       bottomSheetBehavior.setPeekHeight(bottomBarHeight);
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       mlp.setBehavior(bottomSheetBehavior);
