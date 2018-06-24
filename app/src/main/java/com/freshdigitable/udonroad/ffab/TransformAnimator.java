@@ -91,13 +91,13 @@ class TransformAnimator {
           .setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-              ffab.setVisibility(View.INVISIBLE);
+              ffab.setVisibility(View.GONE);
               showToolbar(toolbarX, toolbarY);
             }
 
             @Override
             public void onAnimationCancel(Animator animation) {
-              ffab.setVisibility(View.INVISIBLE);
+              ffab.setVisibility(View.GONE);
               bottomSheet.setVisibility(View.VISIBLE);
               animation.removeListener(this);
             }
@@ -131,13 +131,13 @@ class TransformAnimator {
       revealAnimator.addListener(new AnimatorListenerAdapter() {
         @Override
         public void onAnimationEnd(Animator animation) {
-          bottomSheet.setVisibility(View.INVISIBLE);
+          bottomSheet.setVisibility(View.GONE);
           showFFAB(ffab, afterVisibility);
         }
 
         @Override
         public void onAnimationCancel(Animator animation) {
-          bottomSheet.setVisibility(View.INVISIBLE);
+          bottomSheet.setVisibility(View.GONE);
           ffab.setVisibility(View.VISIBLE);
           animation.removeListener(this);
         }
