@@ -72,6 +72,7 @@ class IffabMenuPresenter {
 
   private final TransformAnimator transformAnimator;
   private final int bottomBarHeight;
+  private RecyclerView.Adapter<SheetMenuViewHolder> sheetAdapter;
 
   IffabMenuPresenter(IndicatableFFAB ffab, AttributeSet attrs, int defStyleAttr) {
     this.ffab = ffab;
@@ -103,7 +104,7 @@ class IffabMenuPresenter {
     if (toolbarEnabled) {
       final ViewGroup parent = (ViewGroup) ffab.getParent();
       bottomSheet = LayoutInflater.from(context).inflate(R.layout.view_bottom_sheet, parent, false);
-      bottomSheet.setVisibility(View.GONE);
+      bottomSheet.setVisibility(View.INVISIBLE);
       bbt = bottomSheet.findViewById(R.id.iffabSheet_button);
       bbt.setMenu(menu);
       bottomSheetBehavior = new BottomSheetBehavior<>();
@@ -112,6 +113,8 @@ class IffabMenuPresenter {
         public void onStateChanged(@NonNull View bottomSheet, int newState) {
           if (newState == BottomSheetBehavior.STATE_EXPANDED) {
             mode = MODE_SHEET;
+          } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+            mode = MODE_TOOLBAR;
           }
         }
 
@@ -206,6 +209,9 @@ class IffabMenuPresenter {
     if (bbt != null) {
       bbt.updateItems();
     }
+    if (sheetAdapter != null) {
+      sheetAdapter.notifyDataSetChanged();
+    }
   }
 
   private boolean pendingUpdate = false;
@@ -297,28 +303,42 @@ class IffabMenuPresenter {
     }
     final RecyclerView menuList = bottomSheet.findViewById(R.id.iffabSheet_list);
     menuList.setLayoutManager(new LinearLayoutManager(bottomSheet.getContext()));
-    menuList.setAdapter(new RecyclerView.Adapter() {
+    sheetAdapter = new RecyclerView.Adapter<SheetMenuViewHolder>() {
       @Override
-      public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      public SheetMenuViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View v = LayoutInflater.from(parent.getContext())
             .inflate(R.layout.view_menu_item, parent, false);
         return new SheetMenuViewHolder(v);
       }
 
       @Override
-      public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+      public void onBindViewHolder(SheetMenuViewHolder holder, int position) {
         Timber.tag("IffabMP").d("onBindViewHolder: %s", position);
-        final SheetMenuViewHolder menuHolder = (SheetMenuViewHolder) holder;
         final MenuItem item = menu.getItem(position);
-        menuHolder.icon.setImageDrawable(item.getIcon());
-        menuHolder.text.setText(item.getTitle());
+        holder.icon.setImageDrawable(item.getIcon());
+        holder.text.setText(item.getTitle());
       }
 
       @Override
       public int getItemCount() {
         return menu.size();
       }
-    });
+
+      @Override
+      public void onViewAttachedToWindow(SheetMenuViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        final int adapterPosition = holder.getAdapterPosition();
+        final int itemId = menu.getItem(adapterPosition).getItemId();
+        holder.itemView.setOnClickListener(v -> menu.dispatchSelectedMenuItem(itemId));
+      }
+
+      @Override
+      public void onViewDetachedFromWindow(SheetMenuViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        holder.itemView.setOnClickListener(null);
+      }
+    };
+    menuList.setAdapter(sheetAdapter);
   }
 
   private static class SheetMenuViewHolder extends RecyclerView.ViewHolder {
@@ -374,7 +394,6 @@ class IffabMenuPresenter {
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       mode = MODE_TOOLBAR;
     } else {
-      bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       mode = MODE_FAB;
       transformAnimator.transToFab(afterVisibility);
       updateMenuItemCheckable(false);
