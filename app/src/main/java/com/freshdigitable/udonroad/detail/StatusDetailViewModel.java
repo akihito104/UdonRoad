@@ -171,7 +171,7 @@ public class StatusDetailViewModel extends ViewModel {
     return item.retweetUser.getId() == currentUserId;
   }
 
-  boolean isTweetOfMe() {
+  private boolean isTweetOfMe() {
     final DetailItem item = detailItemSource.getValue();
     if (item == null) {
       return false;
@@ -179,6 +179,12 @@ public class StatusDetailViewModel extends ViewModel {
     final long currentUserId = appSetting.getCurrentUserId();
     return item.retweet ? item.retweetUser.getId() == currentUserId
         : item.user.getId() == currentUserId;
+  }
+
+  public void delete(long statusId) {
+    if (isTweetOfMe()) {
+      statusRepository.destroyStatus(statusId);
+    }
   }
 
   public static class SpanClickEvent {
