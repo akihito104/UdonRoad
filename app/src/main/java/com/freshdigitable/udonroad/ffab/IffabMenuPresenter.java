@@ -292,12 +292,12 @@ class IffabMenuPresenter {
       bottomSheetBehavior.setPeekHeight(bottomBarHeight);
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       mlp.setBehavior(bottomSheetBehavior);
-      ensureBottomSheet();
+      setupBottomSheet();
       ((ViewGroup) ffab.getParent()).addView(bottomSheet, mlp);
     }
   }
 
-  private void ensureBottomSheet() {
+  private void setupBottomSheet() {
     if (bottomSheet == null) {
       return;
     }
