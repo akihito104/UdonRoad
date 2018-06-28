@@ -25,7 +25,6 @@ import android.view.MenuItem;
 
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.listitem.ListItem;
-import com.freshdigitable.udonroad.listitem.StatusListItem;
 import com.freshdigitable.udonroad.listitem.TwitterReactionContainer.ReactionIcon;
 
 import java.util.ArrayList;
@@ -65,10 +64,6 @@ public class FabViewModel extends ViewModel {
 
   public LiveData<List<MenuState>> getMenuState() {
     return menuState;
-  }
-
-  void setMenuState(final StatusListItem status) {
-    setMenuState(status.getStats());
   }
 
   public void setMenuState(List<ListItem.Stat> stats) {

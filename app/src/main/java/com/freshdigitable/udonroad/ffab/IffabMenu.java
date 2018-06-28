@@ -122,15 +122,6 @@ class IffabMenu implements Menu {
     return false;
   }
 
-  boolean isEnabledByDirection(Direction direction) {
-    for (IffabMenuItem item : findItemByDirection(direction)) {
-      if (item.isEnabled()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   List<IffabMenuItem> getEnableItems() {
     final List<IffabMenuItem> res = new ArrayList<>();
     for (IffabMenuItem item : menuItems) {
