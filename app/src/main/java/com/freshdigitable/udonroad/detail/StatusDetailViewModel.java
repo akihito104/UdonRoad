@@ -26,7 +26,7 @@ import android.content.Intent;
 import android.databinding.ObservableField;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -197,7 +197,7 @@ public class StatusDetailViewModel extends ViewModel {
     }
   }
 
-  static StatusDetailViewModel getInstance(Fragment fragment, ViewModelProvider.Factory factory) {
-    return ViewModelProviders.of(fragment, factory).get(StatusDetailViewModel.class);
+  static StatusDetailViewModel getInstance(FragmentActivity activity, ViewModelProvider.Factory factory) {
+    return ViewModelProviders.of(activity, factory).get(StatusDetailViewModel.class);
   }
 }

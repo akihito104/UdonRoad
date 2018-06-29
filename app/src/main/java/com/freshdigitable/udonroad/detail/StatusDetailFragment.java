@@ -97,7 +97,7 @@ public class StatusDetailFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     binding = DataBindingUtil.bind(view, bindingComponent);
-    statusDetailViewModel = StatusDetailViewModel.getInstance(this, factory);
+    statusDetailViewModel = StatusDetailViewModel.getInstance(getActivity(), factory);
     binding.setViewModel(statusDetailViewModel);
   }
 
