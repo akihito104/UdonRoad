@@ -82,7 +82,7 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
   }
 
   @Test
-  public void showStatusDetail() throws Exception {
+  public void showStatusDetail() {
     AssertionUtil.checkUserInfoActivityTitle("");
     onView(withText("TWEET\n2")).check(matches(isDisplayed()));
     PerformUtil.selectItemView(defaultTweet);
@@ -99,7 +99,7 @@ public class UserInfoActivityTimelineTest extends UserInfoActivityInstTest.Base 
   }
 
   @Test
-  public void restoreStatusDetail() throws Exception {
+  public void restoreStatusDetail() {
     AssertionUtil.checkUserInfoActivityTitle("");
     onView(withText("TWEET\n2")).check(matches(isDisplayed()));
     PerformUtil.selectItemView(tweetHasImage);
