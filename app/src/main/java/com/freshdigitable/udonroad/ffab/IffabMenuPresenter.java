@@ -119,7 +119,12 @@ class IffabMenuPresenter {
         }
 
         @Override
-        public void onSlide(@NonNull View bottomSheet, float slideOffset) { }
+        public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+          final View moreIcon = bbt.getMoreIcon();
+          moreIcon.setPivotX(moreIcon.getWidth() / 2);
+          moreIcon.setPivotY(moreIcon.getHeight() / 2);
+          moreIcon.setRotation(180 * slideOffset);
+        }
       });
       bottomBarHeight = BottomButtonsToolbar.getHeight(context);
       bbt.setMoreClickListener(v -> {

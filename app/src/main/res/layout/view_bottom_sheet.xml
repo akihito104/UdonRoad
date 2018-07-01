@@ -21,6 +21,8 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:elevation="@dimen/design_bottom_sheet_modal_elevation"
+    tools:targetApi="lollipop"
     >
     <com.freshdigitable.udonroad.ffab.BottomButtonsToolbar
         android:id="@+id/iffabSheet_button"
@@ -39,7 +41,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/accent_light"
+        android:background="#ffffff"
         tools:listitem="@layout/view_menu_item"
         />
 </android.support.constraint.ConstraintLayout>

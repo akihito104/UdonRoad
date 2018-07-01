@@ -21,49 +21,49 @@
         android:id="@id/iffabMenu_main_fav"
         android:icon="@drawable/ic_like"
         android:orderInCategory="90"
-        android:title="fav"
+        android:title="@string/iffab_menu_title_fav"
         app:toolbarIconColorState="@color/selector_fav_icon"
         />
     <item
         android:id="@id/iffabMenu_main_rt"
         android:icon="@drawable/ic_retweet"
         android:orderInCategory="0"
-        android:title="RT"
+        android:title="@string/iffab_menu_title_rt"
         app:toolbarIconColorState="@color/selector_rt_icon"
         />
     <item
         android:id="@id/iffabMenu_main_favRt"
         android:orderInCategory="45"
-        android:title="fav/RT"
+        android:title="@string/iffab_menu_title_fav_rt"
         />
     <item
         android:id="@+id/iffabMenu_main_quote"
         android:icon="@drawable/ic_quote"
         android:orderInCategory="315"
-        android:title="Quote"
+        android:title="@string/iffab_menu_title_quote"
         />
     <item
         android:id="@+id/iffabMenu_main_reply"
         android:icon="@drawable/ic_reply"
         android:orderInCategory="270"
-        android:title="reply"
+        android:title="@string/iffab_menu_title_reply"
         />
     <item
         android:id="@+id/iffabMenu_main_detail"
         android:icon="@drawable/ic_menu"
         android:orderInCategory="180"
-        android:title="detail"
+        android:title="@string/iffab_menu_title_detail"
         />
     <item
         android:id="@+id/iffabMenu_main_conv"
         android:icon="@drawable/ic_forum"
         android:orderInCategory="225"
-        android:title="show conversation"
+        android:title="@string/iffab_menu_title_show_conversation"
         />
     <item
         android:id="@+id/iffabMenu_main_delete"
         android:icon="@drawable/ic_delete_action_color_24dp"
         android:orderInCategory="1000"
-        android:title="delete"
+        android:title="@string/iffab_menu_title_delete"
         />
 </menu>
