@@ -123,13 +123,18 @@ class IffabMenuPresenter {
           final View moreIcon = bbt.getMoreIcon();
           moreIcon.setPivotX(moreIcon.getWidth() / 2);
           moreIcon.setPivotY(moreIcon.getHeight() / 2);
-          moreIcon.setRotation(180 * slideOffset);
+          moreIcon.setRotation(-180 * slideOffset);
         }
       });
       bottomBarHeight = BottomButtonsToolbar.getHeight(context);
       bbt.setMoreClickListener(v -> {
         Timber.tag("IffabMP").d("IffabMenuPresenter: ");
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        final int state = bottomSheetBehavior.getState();
+        if (state == BottomSheetBehavior.STATE_EXPANDED) {
+          bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        } else if (state == BottomSheetBehavior.STATE_COLLAPSED) {
+          bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
       });
       transformAnimator = TransformAnimator.create(ffab, bottomSheet);
 
