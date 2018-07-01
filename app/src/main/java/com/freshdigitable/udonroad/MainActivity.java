@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -82,6 +83,8 @@ public class MainActivity extends AppCompatActivity
   AppSettingStore appSetting;
   @Inject
   ImageRepository imageRepository;
+  @Inject
+  ViewModelProvider.Factory factory;
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private DrawerNavigator drawerNavigator;
   private ToolbarTweetInputToggle toolbarTweetInputToggle;
@@ -145,7 +148,7 @@ public class MainActivity extends AppCompatActivity
       tlFragment = timelineFragment;
     }
     timelineContainerSwitcher = new TimelineContainerSwitcher(
-        binding.mainTimelineContainer, tlFragment, binding.ffab);
+        binding.mainTimelineContainer, tlFragment, binding.ffab, factory);
   }
 
   @Nullable

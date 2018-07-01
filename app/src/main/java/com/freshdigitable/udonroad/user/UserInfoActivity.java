@@ -231,7 +231,7 @@ public class UserInfoActivity extends AppCompatActivity
       viewPager = (UserInfoPagerFragment) mainFragment;
       viewPager.setTabLayout(binding.userInfoTabs);
     }
-    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab, factory);
   }
 
   public static Intent createIntent(Context context, User user) {

@@ -40,7 +40,8 @@ import java.util.List;
  */
 
 class IffabMenu implements Menu {
-  private final List<IffabMenuItem> menuItems = new ArrayList<>();
+  private final List<IffabMenuItem> toolbarMenuItems = new ArrayList<>();
+  private final List<IffabMenuItem> sheetMenuItems = new ArrayList<>();
   private final Context context;
   private OnIffabItemSelectedListener selectedListener;
   private final WeakReference<IffabMenuPresenter> presenter;
@@ -68,7 +69,11 @@ class IffabMenu implements Menu {
   @Override
   public MenuItem add(int groupId, int itemId, int order, CharSequence title) {
     final IffabMenuItem menuItem = new IffabMenuItem(this, groupId, itemId, order, title);
-    menuItems.add(menuItem);
+    if (order < 1000) {
+      toolbarMenuItems.add(menuItem);
+    } else {
+      sheetMenuItems.add(menuItem);
+    }
     return menuItem;
   }
 
@@ -83,7 +88,8 @@ class IffabMenu implements Menu {
   public void removeItem(int id) {
     final IffabMenuItem item = findItem(id);
     if (item != null) {
-      menuItems.remove(item);
+      toolbarMenuItems.remove(item);
+      sheetMenuItems.remove(item);
     }
   }
 
@@ -104,8 +110,8 @@ class IffabMenu implements Menu {
 
   @NonNull
   private List<IffabMenuItem> findItemByDirection(Direction direction) {
-    final ArrayList<IffabMenuItem> res = new ArrayList<>(menuItems.size());
-    for (IffabMenuItem item : menuItems) {
+    final ArrayList<IffabMenuItem> res = new ArrayList<>(toolbarMenuItems.size());
+    for (IffabMenuItem item : toolbarMenuItems) {
       if (item.getDirection() == direction) {
         res.add(item);
       }
@@ -124,7 +130,7 @@ class IffabMenu implements Menu {
 
   List<IffabMenuItem> getEnableItems() {
     final List<IffabMenuItem> res = new ArrayList<>();
-    for (IffabMenuItem item : menuItems) {
+    for (IffabMenuItem item : toolbarMenuItems) {
       if (item.isEnabled()) {
         res.add(item);
       }
@@ -132,14 +138,18 @@ class IffabMenu implements Menu {
     return res;
   }
 
-  List<IffabMenuItem> getVisibleItems() {
+  private List<IffabMenuItem> getVisibleItems(List<IffabMenuItem> items) {
     final List<IffabMenuItem> res = new ArrayList<>();
-    for (IffabMenuItem item : menuItems) {
+    for (IffabMenuItem item : items) {
       if (item.isVisible() && item.getIcon() != null) {
         res.add(item);
       }
     }
     return res;
+  }
+
+  List<IffabMenuItem> getVisibleItems() {
+    return getVisibleItems(toolbarMenuItems);
   }
 
   @Override
@@ -149,7 +159,9 @@ class IffabMenu implements Menu {
 
   @Override
   public IffabMenuItem findItem(int id) {
-    for (IffabMenuItem i : menuItems) {
+    final ArrayList<IffabMenuItem> items = new ArrayList<>(toolbarMenuItems);
+    items.addAll(sheetMenuItems);
+    for (IffabMenuItem i : items) {
       if (i.getItemId() == id) {
         return i;
       }
@@ -197,17 +209,23 @@ class IffabMenu implements Menu {
 
   @Override
   public int size() {
-    return menuItems.size();
+    return toolbarMenuItems.size() + sheetMenuItems.size();
   }
 
   @Override
   public MenuItem getItem(int index) {
-    return menuItems.get(index);
+    final int toolbarSize = toolbarMenuItems.size();
+    if (index >= 0 && index < toolbarSize) {
+      return toolbarMenuItems.get(index);
+    }
+    final int sheetIndex = index - toolbarSize;
+    return sheetMenuItems.get(sheetIndex);
   }
 
   @Override
   public void clear() {
-    menuItems.clear();
+    toolbarMenuItems.clear();
+    sheetMenuItems.clear();
   }
 
   @Override
@@ -262,5 +280,13 @@ class IffabMenu implements Menu {
   @Override
   public void setGroupCheckable(int group, boolean checkable, boolean exclusive) {
     throw new RuntimeException("IffabMenu is not checkable.");
+  }
+
+  MenuItem getSheetItem(int position) {
+    return getVisibleItems(sheetMenuItems).get(position);
+  }
+
+  int sheetSize() {
+    return getVisibleItems(sheetMenuItems).size();
   }
 }

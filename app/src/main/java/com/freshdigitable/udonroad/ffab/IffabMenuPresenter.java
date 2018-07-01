@@ -314,21 +314,21 @@ class IffabMenuPresenter {
       @Override
       public void onBindViewHolder(SheetMenuViewHolder holder, int position) {
         Timber.tag("IffabMP").d("onBindViewHolder: %s", position);
-        final MenuItem item = menu.getItem(position);
+        final MenuItem item = menu.getSheetItem(position);
         holder.icon.setImageDrawable(item.getIcon());
         holder.text.setText(item.getTitle());
       }
 
       @Override
       public int getItemCount() {
-        return menu.size();
+        return menu.sheetSize();
       }
 
       @Override
       public void onViewAttachedToWindow(SheetMenuViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         final int adapterPosition = holder.getAdapterPosition();
-        final int itemId = menu.getItem(adapterPosition).getItemId();
+        final int itemId = menu.getSheetItem(adapterPosition).getItemId();
         holder.itemView.setOnClickListener(v -> menu.dispatchSelectedMenuItem(itemId));
       }
 

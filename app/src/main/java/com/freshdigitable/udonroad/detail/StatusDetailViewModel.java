@@ -88,6 +88,10 @@ public class StatusDetailViewModel extends ViewModel {
     return detailItemSource;
   }
 
+  public LiveData<DetailItem> getDetailItemSource() {
+    return detailItemSource;
+  }
+
   LiveData<SpanClickEvent> getSpanClickEvent() {
     return spanClickEventSource;
   }
@@ -104,6 +108,7 @@ public class StatusDetailViewModel extends ViewModel {
     final Status bindingStatus = getBindingStatus(status);
     final URLEntity[] urlEntities = bindingStatus.getURLEntities();
     if (urlEntities.length < 1) {
+      cardItem.set(null);
       return;
     }
 
@@ -171,7 +176,7 @@ public class StatusDetailViewModel extends ViewModel {
     return item.retweetUser.getId() == currentUserId;
   }
 
-  private boolean isTweetOfMe() {
+  public boolean isTweetOfMe() {
     final DetailItem item = detailItemSource.getValue();
     if (item == null) {
       return false;
@@ -197,7 +202,7 @@ public class StatusDetailViewModel extends ViewModel {
     }
   }
 
-  static StatusDetailViewModel getInstance(FragmentActivity activity, ViewModelProvider.Factory factory) {
+  public static StatusDetailViewModel getInstance(FragmentActivity activity, ViewModelProvider.Factory factory) {
     return ViewModelProviders.of(activity, factory).get(StatusDetailViewModel.class);
   }
 }
