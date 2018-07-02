@@ -70,7 +70,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements OnUserIconClickedListener, SnackbarCapable,
+    implements OnUserIconClickedListener,
     TimelineFragment.OnItemClickedListener, OnSpanClickListener, HasSupportFragmentInjector {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
@@ -385,11 +385,6 @@ public class MainActivity extends AppCompatActivity
       return;
     }
     UserInfoActivity.start(this, user, view);
-  }
-
-  @Override
-  public View getRootView() {
-    return binding.mainTimelineContainer;
   }
 
   @Override
