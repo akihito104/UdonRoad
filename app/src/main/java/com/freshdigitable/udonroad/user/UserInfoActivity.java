@@ -41,7 +41,6 @@ import com.freshdigitable.udonroad.AppViewModelProviderFactory;
 import com.freshdigitable.udonroad.FabViewModel;
 import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.SnackbarCapable;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
 import com.freshdigitable.udonroad.ToolbarTweetInputToggle;
@@ -77,7 +76,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements SnackbarCapable, OnUserIconClickedListener,
+    implements OnUserIconClickedListener,
     OnSpanClickListener, TimelineFragment.OnItemClickedListener, HasSupportFragmentInjector {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
@@ -379,11 +378,6 @@ public class UserInfoActivity extends AppCompatActivity
       }
       fabViewModel.onMenuItemSelected(item);
     });
-  }
-
-  @Override
-  public View getRootView() {
-    return binding.userInfoTimelineContainer;
   }
 
   @Override
