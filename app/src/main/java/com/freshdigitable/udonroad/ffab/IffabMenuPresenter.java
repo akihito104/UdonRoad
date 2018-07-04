@@ -221,6 +221,10 @@ class IffabMenuPresenter {
     }
     if (sheetAdapter != null) {
       sheetAdapter.notifyDataSetChanged();
+      if (bbt != null) {
+        final int itemCount = sheetAdapter.getItemCount();
+        bbt.getMoreIcon().setEnabled(itemCount > 0);
+      }
     }
   }
 
