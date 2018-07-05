@@ -66,7 +66,7 @@ public class BottomButtonsToolbar extends LinearLayout {
     iconPadding = resources.getDimensionPixelSize(R.dimen.iffab_toolbar_icon_padding);
 
     more = new AppCompatImageView(context);
-    more.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_expand_white_24dp));
+    more.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.selector_expand_24dp));
     more.setLayoutParams(ICON_LAYOUT_PARAMS);
     more.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
   }
