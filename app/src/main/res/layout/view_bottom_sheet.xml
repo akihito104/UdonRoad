@@ -18,11 +18,12 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:elevation="@dimen/design_bottom_sheet_modal_elevation"
     tools:targetApi="lollipop"
+    android:layout_gravity="top"
     >
     <com.freshdigitable.udonroad.ffab.BottomButtonsToolbar
         android:id="@+id/iffabSheet_button"
@@ -37,6 +38,7 @@
         android:id="@+id/iffabSheet_list"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:layout_constraintHeight_default="wrap"
         app:layout_constraintTop_toBottomOf="@id/iffabSheet_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

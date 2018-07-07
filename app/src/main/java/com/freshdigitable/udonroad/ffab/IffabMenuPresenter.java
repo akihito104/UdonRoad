@@ -50,6 +50,7 @@ import java.util.List;
 
 import timber.log.Timber;
 
+import static android.view.View.VISIBLE;
 import static com.freshdigitable.udonroad.ffab.IndicatableFFAB.MODE_FAB;
 import static com.freshdigitable.udonroad.ffab.IndicatableFFAB.MODE_SHEET;
 import static com.freshdigitable.udonroad.ffab.IndicatableFFAB.MODE_TOOLBAR;
@@ -111,6 +112,9 @@ class IffabMenuPresenter {
       bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
         @Override
         public void onStateChanged(@NonNull View bottomSheet, int newState) {
+          if (bottomSheet.getVisibility() != VISIBLE) {
+            return;
+          }
           if (newState == BottomSheetBehavior.STATE_EXPANDED) {
             mode = MODE_SHEET;
           } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
@@ -301,8 +305,7 @@ class IffabMenuPresenter {
     final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) ffab.getLayoutParams();
     if (layoutParams instanceof CoordinatorLayout.LayoutParams) {
       final CoordinatorLayout.LayoutParams mlp = new CoordinatorLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-      mlp.gravity = ((CoordinatorLayout.LayoutParams) layoutParams).gravity;
+          ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
       bottomSheetBehavior.setPeekHeight(bottomBarHeight);
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       mlp.setBehavior(bottomSheetBehavior);
