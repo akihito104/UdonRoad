@@ -73,8 +73,10 @@ public class TweetInputActivityInstTest {
   @Before
   public void setup() throws Throwable {
     StorageUtil.initStorage();
-    twitter = MockMainApplication.getApp().twitterApiModule.twitter;
-    appSettings = MockMainApplication.getApp().sharedPreferenceModule.appSettingStore;
+    final MockMainApplication app = MockMainApplication.getApp();
+    twitter = app.twitterApiModule.twitter;
+    appSettings = app.sharedPreferenceModule.appSettingStore;
+    app.twitterApiModule.setup();
 
     userA = UserUtil.createUserA();
     final long userId = userA.getId();

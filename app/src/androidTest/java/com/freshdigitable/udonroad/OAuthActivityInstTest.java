@@ -170,6 +170,7 @@ public class OAuthActivityInstTest {
       twitter = app.twitterApiModule.twitter;
       twitterStream = app.twitterApiModule.twitterStream;
       appSetting = app.sharedPreferenceModule.appSettingStore;
+      app.twitterApiModule.setup();
 
       appSetting.open();
       appSetting.clear();

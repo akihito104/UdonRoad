@@ -52,10 +52,15 @@ class FlickableFAB extends FloatingActionButton {
     if (flickListener == null) {
       return super.onTouchEvent(motionEvent);
     }
-    final int action = motionEvent.getAction();
+    final int action = motionEvent.getActionMasked();
     if (action == MotionEvent.ACTION_DOWN) {
       old = MotionEvent.obtain(motionEvent);
       flickListener.onStart();
+      return true;
+    }
+    if (action == MotionEvent.ACTION_CANCEL) {
+      flickListener.onCancel();
+      old.recycle();
       return true;
     }
     final Direction direction = Direction.getDirection(old, motionEvent);

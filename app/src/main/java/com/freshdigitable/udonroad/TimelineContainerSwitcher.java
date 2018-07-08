@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.ViewModelProvider;
 import android.content.Context;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -30,6 +31,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import com.freshdigitable.udonroad.detail.StatusDetailFragment;
+import com.freshdigitable.udonroad.detail.StatusDetailViewModel;
 import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.user.UserInfoPagerFragment;
@@ -46,14 +48,17 @@ public class TimelineContainerSwitcher {
   private final Fragment mainFragment;
   private final IndicatableFFAB ffab;
   private final @IdRes int containerId;
+  private final ViewModelProvider.Factory factory;
+  private StatusDetailViewModel statusViewModel;
 
-  public TimelineContainerSwitcher(@NonNull View container, @NonNull Fragment mainFragment, @NonNull IndicatableFFAB iffab) {
+  public TimelineContainerSwitcher(@NonNull View container, @NonNull Fragment mainFragment, @NonNull IndicatableFFAB iffab, ViewModelProvider.Factory factory) {
     if (!(mainFragment instanceof ItemSelectable)) {
       throw new IllegalArgumentException("mainFragment should implement ItemSelectable.");
     }
     this.mainFragment = mainFragment;
     this.ffab = iffab;
     this.containerId = container.getId();
+    this.factory = factory;
   }
 
   void showMain() {
@@ -75,6 +80,16 @@ public class TimelineContainerSwitcher {
 
   public void showStatusDetail(long statusId) {
     final StatusDetailFragment statusDetail = StatusDetailFragment.newInstance(statusId);
+    if (statusViewModel == null) {
+      statusViewModel = StatusDetailViewModel.getInstance(getActivity(), factory);
+      statusViewModel.getDetailItemSource().observe(getActivity(), item -> {
+        if (item == null) {
+          return;
+        }
+        final Menu menu = ffab.getMenu();
+        menu.findItem(R.id.iffabMenu_main_delete).setVisible(statusViewModel.isTweetOfMe());
+      });
+    }
     replaceTimelineContainer(ContentType.DETAIL, statusId, null, statusDetail);
   }
 
@@ -218,9 +233,13 @@ public class TimelineContainerSwitcher {
   }
 
   private FragmentManager getSupportFragmentManager() {
-    final FragmentActivity activity = mainFragment.getActivity();
+    final FragmentActivity activity = getActivity();
     return activity != null ? activity.getSupportFragmentManager()
         : mainFragment.getFragmentManager();
+  }
+
+  private FragmentActivity getActivity() {
+    return mainFragment.getActivity();
   }
 
   private Context getContext() {

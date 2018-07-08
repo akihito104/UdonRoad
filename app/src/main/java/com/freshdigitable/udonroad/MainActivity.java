@@ -16,6 +16,7 @@
 
 package com.freshdigitable.udonroad;
 
+import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -40,6 +41,7 @@ import com.freshdigitable.udonroad.TimelineContainerSwitcher.OnContentChangedLis
 import com.freshdigitable.udonroad.databinding.ActivityMainBinding;
 import com.freshdigitable.udonroad.databinding.NavHeaderBinding;
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.input.TweetInputFragment;
 import com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
@@ -68,7 +70,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TYPE_REPLY;
  * Created by akihit
  */
 public class MainActivity extends AppCompatActivity
-    implements OnUserIconClickedListener, SnackbarCapable,
+    implements OnUserIconClickedListener,
     TimelineFragment.OnItemClickedListener, OnSpanClickListener, HasSupportFragmentInjector {
   private static final String TAG = MainActivity.class.getSimpleName();
   private ActivityMainBinding binding;
@@ -81,6 +83,8 @@ public class MainActivity extends AppCompatActivity
   AppSettingStore appSetting;
   @Inject
   ImageRepository imageRepository;
+  @Inject
+  ViewModelProvider.Factory factory;
   private TimelineContainerSwitcher timelineContainerSwitcher;
   private DrawerNavigator drawerNavigator;
   private ToolbarTweetInputToggle toolbarTweetInputToggle;
@@ -144,7 +148,7 @@ public class MainActivity extends AppCompatActivity
       tlFragment = timelineFragment;
     }
     timelineContainerSwitcher = new TimelineContainerSwitcher(
-        binding.mainTimelineContainer, tlFragment, binding.ffab);
+        binding.mainTimelineContainer, tlFragment, binding.ffab, factory);
   }
 
   @Nullable
@@ -297,6 +301,10 @@ public class MainActivity extends AppCompatActivity
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
       return;
     }
+    if (binding.ffab.getFabMode() == IndicatableFFAB.MODE_SHEET) {
+      binding.ffab.transToFAB();
+      return;
+    }
     if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
       return;
     }
@@ -377,11 +385,6 @@ public class MainActivity extends AppCompatActivity
       return;
     }
     UserInfoActivity.start(this, user, view);
-  }
-
-  @Override
-  public View getRootView() {
-    return binding.mainTimelineContainer;
   }
 
   @Override

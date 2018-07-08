@@ -60,7 +60,7 @@ public class UserFeedbackSubscriber {
   }
 
   private Runnable createFeedbackAction(final UserFeedbackEvent msg) {
-    final View view = rootView.get();
+    final View view = rootView != null ? rootView.get() : null;
     final CharSequence message = msg.createMessage(context);
     if (view != null) {
       return SnackBarUtil.action(view, message);

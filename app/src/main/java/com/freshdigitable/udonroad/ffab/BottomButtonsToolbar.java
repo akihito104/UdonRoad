@@ -17,11 +17,12 @@
 package com.freshdigitable.udonroad.ffab;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.AppCompatImageView;
-import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -39,8 +40,9 @@ import java.util.List;
  *
  * Created by akihit on 2017/02/19.
  */
-class BottomButtonsToolbar extends Toolbar {
-  private final LinearLayout menuContainer;
+public class BottomButtonsToolbar extends LinearLayout {
+
+  private ImageView more;
 
   public BottomButtonsToolbar(Context context) {
     this(context, null);
@@ -52,16 +54,21 @@ class BottomButtonsToolbar extends Toolbar {
 
   public BottomButtonsToolbar(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    final int color = ResourcesCompat.getColor(getResources(), R.color.accent, context.getTheme());
+    final Resources resources = context.getResources();
+    final int color = ResourcesCompat.getColor(resources, R.color.accent, context.getTheme());
     setBackgroundColor(color);
 
-    menuContainer = new LinearLayout(context, attrs, defStyleAttr);
-    menuContainer.setOrientation(LinearLayout.HORIZONTAL);
+    setOrientation(LinearLayout.HORIZONTAL);
     final LayoutParams layoutParams = new LayoutParams(
         MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.MATCH_PARENT);
-    addView(menuContainer, layoutParams);
+    setLayoutParams(layoutParams);
 
-    iconPadding = getResources().getDimensionPixelSize(R.dimen.iffab_toolbar_icon_padding);
+    iconPadding = resources.getDimensionPixelSize(R.dimen.iffab_toolbar_icon_padding);
+
+    more = new AppCompatImageView(context);
+    more.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.selector_expand_24dp));
+    more.setLayoutParams(ICON_LAYOUT_PARAMS);
+    more.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
   }
 
   private final int iconPadding;
@@ -75,21 +82,27 @@ class BottomButtonsToolbar extends Toolbar {
   }
 
   void updateItems() {
+    removeView(more);
     final List<IffabMenuItem> visibleItems = this.menu.getVisibleItems();
     Collections.sort(visibleItems, (r, l) -> r.getOrder() - l.getOrder());
     for (int i = 0; i < visibleItems.size(); i++) {
-      final int maxIconIndex = menuContainer.getChildCount() - 1;
+      final int maxIconIndex = getChildCount() - 1;
       final IffabMenuItem item = visibleItems.get(i);
       if (i > maxIconIndex) {
         addMenuItem(item);
       } else {
-        setMenuItem((ImageView) menuContainer.getChildAt(i), item);
+        setMenuItem((ImageView) getChildAt(i), item);
       }
     }
-    final int removedCount = menuContainer.getChildCount() - visibleItems.size();
+    final int removedCount = getChildCount() - visibleItems.size();
     if (removedCount > 0) {
-      menuContainer.removeViews(visibleItems.size(), removedCount);
+      removeViews(visibleItems.size(), removedCount);
     }
+    addView(more);
+  }
+
+  View getMoreIcon() {
+    return more;
   }
 
   private void addMenuItem(IffabMenuItem item) {
@@ -97,7 +110,7 @@ class BottomButtonsToolbar extends Toolbar {
     iv.setLayoutParams(ICON_LAYOUT_PARAMS);
     iv.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
     setMenuItem(iv, item);
-    menuContainer.addView(iv);
+    addView(iv);
   }
 
   private void setMenuItem(ImageView iv, IffabMenuItem item) {
@@ -113,20 +126,24 @@ class BottomButtonsToolbar extends Toolbar {
     });
   }
 
+  void setMoreClickListener(View.OnClickListener listener) {
+    more.setOnClickListener(listener);
+  }
+
   void clear() {
-    final int childCount = menuContainer.getChildCount();
+    final int childCount = getChildCount();
     for (int i = 0; i < childCount; i++) {
-      final View child = menuContainer.getChildAt(i);
+      final View child = getChildAt(i);
       child.setOnClickListener(null);
     }
-    menuContainer.removeAllViews();
+    removeAllViews();
   }
 
   static int getHeight(Context context) {
     final TypedValue tv = new TypedValue();
     return context.getTheme().resolveAttribute(
-        android.support.v7.appcompat.R.attr.actionBarSize, tv, true)
-        ? TypedValue.complexToDimensionPixelSize(tv.data, context.getResources().getDisplayMetrics())
+        android.support.v7.appcompat.R.attr.actionBarSize, tv, true) ?
+        TypedValue.complexToDimensionPixelSize(tv.data, context.getResources().getDisplayMetrics())
         : MarginLayoutParams.WRAP_CONTENT;
   }
 

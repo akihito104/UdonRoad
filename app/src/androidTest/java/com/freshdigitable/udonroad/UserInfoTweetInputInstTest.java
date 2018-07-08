@@ -46,8 +46,7 @@ import static org.mockito.Mockito.when;
 
 public class UserInfoTweetInputInstTest extends UserInfoActivityInstTest.Base {
   @Test
-  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared()
-      throws Exception {
+  public void showTweetInputView_then_followMenuIconIsHiddenAndCancelMenuIconIsAppeared() {
     AssertionUtil.checkUserInfoActivityTitle("");
     PerformUtil.selectItemViewAt(0);
     PerformUtil.reply();
@@ -69,8 +68,7 @@ public class UserInfoTweetInputInstTest extends UserInfoActivityInstTest.Base {
   }
 
   @Test
-  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden()
-      throws Exception {
+  public void closeTweetInputView_then_followMenuIconIsAppearAndCancelMenuIconIsHidden() {
     AssertionUtil.checkUserInfoActivityTitle("");
     PerformUtil.selectItemViewAt(0);
     PerformUtil.reply();

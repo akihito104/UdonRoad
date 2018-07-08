@@ -21,6 +21,7 @@ import android.content.Context;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackSubscriber;
+import com.freshdigitable.udonroad.util.TwitterResponseMock;
 
 import org.mockito.Mockito;
 
@@ -30,10 +31,13 @@ import dagger.Module;
 import dagger.Provides;
 import io.reactivex.processors.PublishProcessor;
 import twitter4j.Twitter;
+import twitter4j.TwitterAPIConfiguration;
+import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.UserStreamListener;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * MockTwitterModule is to inject Twitter module for test.
@@ -46,6 +50,7 @@ public class MockTwitterApiModule {
   final Twitter twitter;
   final TwitterStream twitterStream;
   final UserStreamListenerHolder userStreamListenerHolder;
+  private final TwitterAPIConfiguration twitterAPIConfig = TwitterResponseMock.createTwitterAPIConfigMock();
 
   MockTwitterApiModule() {
     twitter = mock(Twitter.class);
@@ -88,6 +93,14 @@ public class MockTwitterApiModule {
         twitterStream.user();
       }
     };
+  }
+
+  public void setup() {
+    try {
+      when(twitter.getAPIConfiguration()).thenReturn(twitterAPIConfig);
+    } catch (TwitterException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void reset() {

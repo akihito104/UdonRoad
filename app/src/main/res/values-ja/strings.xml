@@ -142,4 +142,12 @@
     <string name="title_share">共有</string>
     <string name="msg_tweet_delete_success">ツイートを消しました</string>
     <string name="msg_tweet_delete_failed">ツイートを消せませんでした…</string>
+    <string name="iffab_menu_title_fav">ふぁぼ</string>
+    <string name="iffab_menu_title_rt">RT</string>
+    <string name="iffab_menu_title_fav_rt">ふぁぼ/RT</string>
+    <string name="iffab_menu_title_quote">引用する</string>
+    <string name="iffab_menu_title_reply">返信する</string>
+    <string name="iffab_menu_title_detail">ツイート詳細</string>
+    <string name="iffab_menu_title_show_conversation">会話を見る</string>
+    <string name="iffab_menu_title_delete">ツイートを消す</string>
 </resources>

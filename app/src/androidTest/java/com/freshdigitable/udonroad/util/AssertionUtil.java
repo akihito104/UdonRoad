@@ -134,7 +134,7 @@ public class AssertionUtil {
   private static void checkUserInfoActivityTitle(Matcher<View> matcher) {
     final Matcher<View> toolbarTitle = withId(R.id.userInfo_toolbar_title);
     final Matcher<View> toolbarMarcher = withId(R.id.userInfo_toolbar);
-    onView(matcher).check(matches(new BaseMatcher<View>() {
+    onView(new BaseMatcher<View>() {
       @Override
       public void describeTo(Description description) {
         toolbarTitle.describeTo(description);
@@ -143,9 +143,10 @@ public class AssertionUtil {
 
       @Override
       public boolean matches(Object item) {
-        return toolbarTitle.matches(item) || withParent(toolbarMarcher).matches(item);
+        return matcher.matches(item)
+            && (toolbarTitle.matches(item) || withParent(toolbarMarcher).matches(item));
       }
-    }));
+    }).check(matches(matcher));
   }
 
   public static void checkUserInfoActivityTitle(@StringRes int titleRes) {

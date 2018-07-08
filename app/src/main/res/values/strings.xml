@@ -145,4 +145,13 @@
     <string-array name="settings_loginUser_values">
         <item>@string/settings_loginUser_default</item>
     </string-array>
+
+    <string name="iffab_menu_title_fav">fav</string>
+    <string name="iffab_menu_title_rt">RT</string>
+    <string name="iffab_menu_title_fav_rt">fav/RT</string>
+    <string name="iffab_menu_title_quote">Quote</string>
+    <string name="iffab_menu_title_reply">reply</string>
+    <string name="iffab_menu_title_detail">detail</string>
+    <string name="iffab_menu_title_show_conversation">show conversation</string>
+    <string name="iffab_menu_title_delete">delete</string>
 </resources>

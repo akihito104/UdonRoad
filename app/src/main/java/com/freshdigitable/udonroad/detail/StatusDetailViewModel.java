@@ -26,7 +26,7 @@ import android.content.Intent;
 import android.databinding.ObservableField;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -88,6 +88,10 @@ public class StatusDetailViewModel extends ViewModel {
     return detailItemSource;
   }
 
+  public LiveData<DetailItem> getDetailItemSource() {
+    return detailItemSource;
+  }
+
   LiveData<SpanClickEvent> getSpanClickEvent() {
     return spanClickEventSource;
   }
@@ -103,6 +107,7 @@ public class StatusDetailViewModel extends ViewModel {
   private void fetchTwitterCard(Status status) {
     final Status bindingStatus = getBindingStatus(status);
     final URLEntity[] urlEntities = bindingStatus.getURLEntities();
+    cardItem.set(null);
     if (urlEntities.length < 1) {
       return;
     }
@@ -171,7 +176,7 @@ public class StatusDetailViewModel extends ViewModel {
     return item.retweetUser.getId() == currentUserId;
   }
 
-  boolean isTweetOfMe() {
+  public boolean isTweetOfMe() {
     final DetailItem item = detailItemSource.getValue();
     if (item == null) {
       return false;
@@ -179,6 +184,12 @@ public class StatusDetailViewModel extends ViewModel {
     final long currentUserId = appSetting.getCurrentUserId();
     return item.retweet ? item.retweetUser.getId() == currentUserId
         : item.user.getId() == currentUserId;
+  }
+
+  public void delete(long statusId) {
+    if (isTweetOfMe()) {
+      statusRepository.destroyStatus(statusId);
+    }
   }
 
   public static class SpanClickEvent {
@@ -191,7 +202,7 @@ public class StatusDetailViewModel extends ViewModel {
     }
   }
 
-  static StatusDetailViewModel getInstance(Fragment fragment, ViewModelProvider.Factory factory) {
-    return ViewModelProviders.of(fragment, factory).get(StatusDetailViewModel.class);
+  public static StatusDetailViewModel getInstance(FragmentActivity activity, ViewModelProvider.Factory factory) {
+    return ViewModelProviders.of(activity, factory).get(StatusDetailViewModel.class);
   }
 }

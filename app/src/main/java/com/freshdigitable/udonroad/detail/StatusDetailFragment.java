@@ -97,7 +97,7 @@ public class StatusDetailFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     binding = DataBindingUtil.bind(view, bindingComponent);
-    statusDetailViewModel = StatusDetailViewModel.getInstance(this, factory);
+    statusDetailViewModel = StatusDetailViewModel.getInstance(getActivity(), factory);
     binding.setViewModel(statusDetailViewModel);
   }
 
@@ -201,6 +201,8 @@ public class StatusDetailFragment extends Fragment {
         } else {
           statusDetailViewModel.unretweet(statusId);
         }
+      } else if (item.getItemId() == R.id.iffabMenu_main_delete) {
+        statusDetailViewModel.delete(statusId);
       }
     });
   }

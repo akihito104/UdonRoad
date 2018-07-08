@@ -41,17 +41,17 @@ import com.freshdigitable.udonroad.AppViewModelProviderFactory;
 import com.freshdigitable.udonroad.FabViewModel;
 import com.freshdigitable.udonroad.OnSpanClickListener;
 import com.freshdigitable.udonroad.R;
-import com.freshdigitable.udonroad.SnackbarCapable;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher;
 import com.freshdigitable.udonroad.TimelineContainerSwitcher.ContentType;
-import com.freshdigitable.udonroad.timeline.TimelineFragment;
 import com.freshdigitable.udonroad.ToolbarTweetInputToggle;
 import com.freshdigitable.udonroad.Utils;
 import com.freshdigitable.udonroad.databinding.ActivityUserInfoBinding;
 import com.freshdigitable.udonroad.datastore.TypedCache;
+import com.freshdigitable.udonroad.ffab.IndicatableFFAB;
 import com.freshdigitable.udonroad.input.TweetInputModel;
 import com.freshdigitable.udonroad.input.TweetInputViewModel;
 import com.freshdigitable.udonroad.listitem.OnUserIconClickedListener;
+import com.freshdigitable.udonroad.timeline.TimelineFragment;
 
 import javax.inject.Inject;
 
@@ -76,7 +76,7 @@ import static com.freshdigitable.udonroad.input.TweetInputFragment.TweetType;
  * Created by akihit on 2016/01/30.
  */
 public class UserInfoActivity extends AppCompatActivity
-    implements SnackbarCapable, OnUserIconClickedListener,
+    implements OnUserIconClickedListener,
     OnSpanClickListener, TimelineFragment.OnItemClickedListener, HasSupportFragmentInjector {
   public static final String TAG = UserInfoActivity.class.getSimpleName();
   private UserInfoPagerFragment viewPager;
@@ -230,7 +230,7 @@ public class UserInfoActivity extends AppCompatActivity
       viewPager = (UserInfoPagerFragment) mainFragment;
       viewPager.setTabLayout(binding.userInfoTabs);
     }
-    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab);
+    timelineContainerSwitcher = new TimelineContainerSwitcher(binding.userInfoTimelineContainer, viewPager, binding.ffab, factory);
   }
 
   public static Intent createIntent(Context context, User user) {
@@ -280,6 +280,10 @@ public class UserInfoActivity extends AppCompatActivity
       return;
     }
     if (timelineContainerSwitcher.clearSelectedCursorIfNeeded()) {
+      return;
+    }
+    if (binding.ffab.getFabMode() == IndicatableFFAB.MODE_SHEET) {
+      binding.ffab.transToFAB();
       return;
     }
     if (timelineContainerSwitcher.popBackStackTimelineContainer()) {
@@ -374,11 +378,6 @@ public class UserInfoActivity extends AppCompatActivity
       }
       fabViewModel.onMenuItemSelected(item);
     });
-  }
-
-  @Override
-  public View getRootView() {
-    return binding.userInfoTimelineContainer;
   }
 
   @Override

@@ -115,7 +115,9 @@ class IffabMenuItem implements MenuItem {
   public MenuItem setIcon(Drawable icon) {
     this.icon = icon;
     this.iconRes = NO_ID;
-    menu.dispatchUpdatePresenter();
+    if (order < 1000) {
+      menu.dispatchUpdatePresenter();
+    }
     return this;
   }
 
