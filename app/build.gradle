@@ -14,8 +14,8 @@ android {
         applicationId "com.freshdigitable.udonroad"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 14
-        versionName "0.2.8"
+        versionCode 15
+        versionName "0.3.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "com.freshdigitable.udonroad.MockTestRunner"
     }
