@@ -116,7 +116,7 @@ class IffabMenuPresenter {
             return;
           }
           if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-            mode = MODE_SHEET;
+            mode = sheetAdapter.getItemCount() > 0 ? MODE_SHEET : MODE_TOOLBAR;
           } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
             mode = MODE_TOOLBAR;
           }
@@ -127,7 +127,9 @@ class IffabMenuPresenter {
           final View moreIcon = bbt.getMoreIcon();
           moreIcon.setPivotX(moreIcon.getWidth() / 2);
           moreIcon.setPivotY(moreIcon.getHeight() / 2);
-          moreIcon.setRotation(-180 * slideOffset);
+          if (!Float.isNaN(slideOffset)) {
+            moreIcon.setRotation(-180 * slideOffset);
+          }
         }
       });
       bottomBarHeight = BottomButtonsToolbar.getHeight(context);
