@@ -107,8 +107,8 @@ public class StatusDetailViewModel extends ViewModel {
   private void fetchTwitterCard(Status status) {
     final Status bindingStatus = getBindingStatus(status);
     final URLEntity[] urlEntities = bindingStatus.getURLEntities();
+    cardItem.set(null);
     if (urlEntities.length < 1) {
-      cardItem.set(null);
       return;
     }
 
