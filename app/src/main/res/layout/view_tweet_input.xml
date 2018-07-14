@@ -121,6 +121,7 @@
         app:layout_constraintEnd_toStartOf="@id/tw_media_container"
         app:layout_constraintRight_toLeftOf="@id/tw_media_container"
         app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintHorizontal_chainStyle="packed"
         android:background="@android:color/transparent"
         app:srcCompat="@drawable/ic_add_a_photo"
         />
