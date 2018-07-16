@@ -34,7 +34,7 @@ import twitter4j.User;
  * Created by akihit on 2017/07/02.
  */
 
-public class WritableUserSortedCacheRealm implements WritableSortedCache<User> {
+public class WritableUserSortedCacheRealm extends WritableSortedCache.Adapter<User> {
   private final NamingBaseCacheRealm sortedCache;
   private final TypedCache<User> pool;
 

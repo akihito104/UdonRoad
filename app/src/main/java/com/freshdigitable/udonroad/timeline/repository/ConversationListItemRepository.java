@@ -39,7 +39,7 @@ import twitter4j.Status;
  * Created by akihit on 2018/01/14.
  */
 
-class ConversationListItemRepository implements ListItemRepository {
+class ConversationListItemRepository extends ListItemRepository.Adapter {
   private final TwitterApi twitterApi;
   private final SortedListItemCache<Status> cache;
   private final PublishProcessor<UserFeedbackEvent> userFeedback;

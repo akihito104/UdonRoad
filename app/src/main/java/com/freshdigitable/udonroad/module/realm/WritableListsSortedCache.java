@@ -35,7 +35,7 @@ import twitter4j.UserList;
  * Created by akihit on 2017/08/17.
  */
 
-public class WritableListsSortedCache implements WritableSortedCache<UserList> {
+public class WritableListsSortedCache extends WritableSortedCache.Adapter<UserList> {
   private final TypedCache<User> pool;
   private final NamingBaseCacheRealm sortedCache;
 

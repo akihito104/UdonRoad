@@ -36,7 +36,7 @@ public class ListsListFetcherModule {
   @IntoMap
   @ListFetcherModuleKey(StoreType.OWNED_LIST)
   ListFetcher<UserList> provideOwnedListListFetcher(TwitterApi twitterApi) {
-    return new ListFetcher<UserList>() {
+    return new ListFetcher.Adapter<UserList>() {
       @Override
       public Single<? extends List<UserList>> fetchInit(FetchQuery query) {
         return twitterApi.fetchUserListsOwnerships(query.id, 20, -1);
@@ -53,7 +53,7 @@ public class ListsListFetcherModule {
   @IntoMap
   @ListFetcherModuleKey(StoreType.USER_LIST)
   ListFetcher<UserList> provideUserListListFetcher(TwitterApi twitterApi) {
-    return new ListFetcher<UserList>() {
+    return new ListFetcher.Adapter<UserList>() {
       @Override
       public Single<? extends List<UserList>> fetchInit(FetchQuery query) {
         return twitterApi.getUserListMemberships(query.id, 20, -1);

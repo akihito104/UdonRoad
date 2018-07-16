@@ -16,6 +16,8 @@
 
 package com.freshdigitable.udonroad.timeline.fetcher;
 
+import android.support.annotation.NonNull;
+
 import com.freshdigitable.udonroad.StoreType;
 import com.freshdigitable.udonroad.module.twitter.TwitterApi;
 
@@ -26,6 +28,7 @@ import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import io.reactivex.Single;
 import twitter4j.Paging;
+import twitter4j.Query;
 import twitter4j.Status;
 
 /**
@@ -48,6 +51,11 @@ public class StatusListFetcherModule {
       public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.getHomeTimeline(query.getPaging());
       }
+
+      @Override
+      public Single<? extends List<Status>> fetchLatest(FetchQuery query) {
+        return twitterApi.getHomeTimeline(query.getPagingAtStart());
+      }
     };
   }
 
@@ -64,6 +72,11 @@ public class StatusListFetcherModule {
       @Override
       public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.getUserTimeline(query.id, query.getPaging());
+      }
+
+      @Override
+      public Single<? extends List<Status>> fetchLatest(FetchQuery query) {
+        return twitterApi.getUserTimeline(query.id, query.getPagingAtStart());
       }
     };
   }
@@ -82,6 +95,11 @@ public class StatusListFetcherModule {
       public Single<List<Status>> fetchNext(FetchQuery query) {
         return twitterApi.getFavorites(query.id, query.getPaging());
       }
+
+      @Override
+      public Single<? extends List<Status>> fetchLatest(FetchQuery query) {
+        return twitterApi.getFavorites(query.id, query.getPagingAtStart());
+      }
     };
   }
 
@@ -97,7 +115,12 @@ public class StatusListFetcherModule {
 
       @Override
       public Single<List<Status>> fetchNext(FetchQuery query) {
-        return twitterApi.getFavorites(query.id, query.getPaging());
+        return twitterApi.fetchUserListsStatuses(query.id, query.getPaging());
+      }
+
+      @Override
+      public Single<? extends List<Status>> fetchLatest(FetchQuery query) {
+        return twitterApi.fetchUserListsStatuses(query.id, query.getPagingAtStart());
       }
     };
   }
@@ -109,19 +132,28 @@ public class StatusListFetcherModule {
     return new ListFetcher<Status>() {
       @Override
       public Single<List<Status>> fetchInit(FetchQuery query) {
-        return twitterApi.fetchSearch(
-            new twitter4j.Query(query.searchQuery + " exclude:retweets")
-                .count(20)
-                .resultType(twitter4j.Query.RECENT));
+        return twitterApi.fetchSearch(getQuery(query)
+            .count(20));
       }
 
       @Override
       public Single<List<Status>> fetchNext(FetchQuery query) {
-        return twitterApi.fetchSearch(
-            new twitter4j.Query(query.searchQuery + " exclude:retweets")
-                .count(20)
-                .maxId(query.lastPageCursor)
-                .resultType(twitter4j.Query.RECENT));
+        return twitterApi.fetchSearch(getQuery(query)
+            .count(20)
+            .maxId(query.lastPageCursor));
+      }
+
+      @Override
+      public Single<? extends List<Status>> fetchLatest(FetchQuery query) {
+        return twitterApi.fetchSearch(getQuery(query)
+            .count(100)
+            .sinceId(query.lastPageCursor));
+      }
+
+      @NonNull
+      private Query getQuery(FetchQuery query) {
+        return new Query(query.searchQuery + " exclude:retweets")
+            .resultType(Query.RECENT);
       }
     };
   }
@@ -133,19 +165,28 @@ public class StatusListFetcherModule {
     return new ListFetcher<Status>() {
       @Override
       public Single<List<Status>> fetchInit(FetchQuery query) {
-        return twitterApi.fetchSearch(
-            new twitter4j.Query("from:" + query.searchQuery + " filter:media exclude:retweets")
-                .count(20)
-                .resultType(twitter4j.Query.RECENT));
+        return twitterApi.fetchSearch(getQuery(query)
+            .count(20));
       }
 
       @Override
       public Single<List<Status>> fetchNext(FetchQuery query) {
-        return twitterApi.fetchSearch(
-            new twitter4j.Query("from:" + query.searchQuery + " filter:media exclude:retweets")
-                .count(20)
-                .maxId(query.lastPageCursor)
-                .resultType(twitter4j.Query.RECENT));
+        return twitterApi.fetchSearch(getQuery(query)
+            .count(20)
+            .maxId(query.lastPageCursor));
+      }
+
+      @Override
+      public Single<? extends List<Status>> fetchLatest(FetchQuery query) {
+        return twitterApi.fetchSearch(getQuery(query)
+            .count(100)
+            .sinceId(query.lastPageCursor));
+      }
+
+      @NonNull
+      private Query getQuery(FetchQuery query) {
+        return new Query("from:" + query.searchQuery + " filter:media exclude:retweets")
+            .resultType(Query.RECENT);
       }
     };
   }

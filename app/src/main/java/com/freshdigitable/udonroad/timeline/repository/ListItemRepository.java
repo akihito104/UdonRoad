@@ -54,8 +54,17 @@ public interface ListItemRepository {
 
   void getListOnEnd();
 
+  void getListOnStart();
+
   void drop();
 
   @NonNull
   StoreType getStoreType();
+
+  abstract class Adapter implements ListItemRepository {
+    @Override
+    public void getListOnStart() {
+      getInitList();
+    }
+  }
 }

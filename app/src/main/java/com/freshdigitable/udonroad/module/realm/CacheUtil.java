@@ -33,9 +33,10 @@ import io.realm.RealmResults;
 class CacheUtil {
   static Completable observeUpsertImpl(@NonNull final Realm cache,
                                        @NonNull final Realm.Transaction upsertTransaction) {
-    return Completable.create(subscriber ->
-        cache.executeTransactionAsync(
-            upsertTransaction, subscriber::onComplete, subscriber::onError));
+    return !cache.isClosed() ?
+        Completable.create(subscriber -> cache.executeTransactionAsync(
+            upsertTransaction, subscriber::onComplete, subscriber::onError))
+        : Completable.complete();
   }
 
   static <T extends RealmModel> T findById(Realm realm, long id, Class<T> clz) {

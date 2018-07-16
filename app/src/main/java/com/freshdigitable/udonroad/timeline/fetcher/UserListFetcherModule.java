@@ -36,7 +36,7 @@ public class UserListFetcherModule {
   @IntoMap
   @ListFetcherModuleKey(StoreType.USER_FOLLOWER)
   ListFetcher<User> provideUserFollowerListFetcher(TwitterApi twitterApi) {
-    return new ListFetcher<User>() {
+    return new ListFetcher.Adapter<User>() {
       @Override
       public Single<? extends List<User>> fetchInit(FetchQuery query) {
         return twitterApi.getFollowersList(query.id, -1L);
@@ -53,7 +53,7 @@ public class UserListFetcherModule {
   @IntoMap
   @ListFetcherModuleKey(StoreType.USER_FRIEND)
   ListFetcher<User> provideUserFriendListFetcher(TwitterApi twitterApi) {
-    return new ListFetcher<User>() {
+    return new ListFetcher.Adapter<User>() {
       @Override
       public Single<? extends List<User>> fetchInit(FetchQuery query) {
         return twitterApi.getFriendsList(query.id, -1L);

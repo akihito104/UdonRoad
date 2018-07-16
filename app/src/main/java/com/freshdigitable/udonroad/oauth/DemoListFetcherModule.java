@@ -66,7 +66,7 @@ public class DemoListFetcherModule {
   @ListFetcherModuleKey(StoreType.DEMO)
   ListFetcher<ListItem> providesDemoListFetcher(Context context) {
     final List<ListItem> items = createItems(context);
-    return new ListFetcher<ListItem>() {
+    return new ListFetcher.Adapter<ListItem>() {
       @Override
       public Single<? extends List<ListItem>> fetchInit(FetchQuery query) {
         return Single.just(items);

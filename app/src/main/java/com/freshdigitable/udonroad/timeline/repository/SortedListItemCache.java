@@ -56,6 +56,11 @@ class SortedListItemCache<T> implements SortedCache<T>, WritableSortedCache<T> {
   }
 
   @Override
+  public long getStartPageCursor() {
+    return writableCache.getStartPageCursor();
+  }
+
+  @Override
   public boolean hasNextPage() {
     return writableCache.hasNextPage();
   }

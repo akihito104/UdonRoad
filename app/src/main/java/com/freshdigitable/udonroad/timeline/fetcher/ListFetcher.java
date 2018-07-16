@@ -27,4 +27,13 @@ public interface ListFetcher<T> {
   Single<? extends List<T>> fetchInit(FetchQuery query);
 
   Single<? extends List<T>> fetchNext(FetchQuery query);
+
+  Single<? extends List<T>> fetchLatest(FetchQuery query);
+
+  abstract class Adapter<T> implements ListFetcher<T> {
+    @Override
+    public Single<? extends List<T>> fetchLatest(FetchQuery query) {
+      return fetchInit(query);
+    }
+  }
 }

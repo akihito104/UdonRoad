@@ -130,6 +130,21 @@ class ListItemRepositoryCreator {
       }
 
       @Override
+      public void getListOnStart() {
+        final long cursor = cache.getStartPageCursor();
+        if (cursor < 0) {
+          getInitList();
+          return;
+        }
+        final FetchQuery query = new FetchQuery.Builder()
+            .id(id)
+            .lastPageCursor(cursor)
+            .searchQuery(q)
+            .build();
+        fetchToStore(fetcher.fetchLatest(query));
+      }
+
+      @Override
       public void drop() {
         cache.drop();
       }

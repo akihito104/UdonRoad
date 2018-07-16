@@ -36,6 +36,10 @@ public class FetchQuery {
     return new Paging(1, 20, 1, lastPageCursor);
   }
 
+  public Paging getPagingAtStart() {
+    return new Paging(1, 100, lastPageCursor);
+  }
+
   private FetchQuery(Builder builder) {
     this.id = builder.id;
     this.lastPageCursor = builder.lastPageCursor;
