@@ -14,26 +14,8 @@
  * limitations under the License.
  */
 
-package com.freshdigitable.udonroad.timeline.fetcher;
+package com.freshdigitable.udonroad.module;
 
-import java.util.List;
-
-import io.reactivex.Single;
-
-/**
- * Created by akihit on 2018/01/10.
- */
-public interface ListFetcher<T> {
-  Single<? extends List<T>> fetchInit(FetchQuery query);
-
-  Single<? extends List<T>> fetchNext(FetchQuery query);
-
-  Single<? extends List<T>> fetchLatest(FetchQuery query);
-
-  abstract class Adapter<T> implements ListFetcher<T> {
-    @Override
-    public Single<? extends List<T>> fetchLatest(FetchQuery query) {
-      return fetchInit(query);
-    }
-  }
+public interface CurrentTimeProvider {
+  long getCurrentTime();
 }

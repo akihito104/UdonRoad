@@ -16,12 +16,17 @@
 
 package com.freshdigitable.udonroad;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
 import com.freshdigitable.udonroad.datastore.PerspectivalStatusImpl;
 import com.freshdigitable.udonroad.datastore.TypedCache;
 import com.freshdigitable.udonroad.datastore.WritableSortedCache;
+import com.freshdigitable.udonroad.module.CurrentTimeProvider;
 import com.freshdigitable.udonroad.module.twitter.TwitterStreamApi;
 import com.freshdigitable.udonroad.subscriber.UserFeedbackEvent;
 
@@ -57,18 +62,21 @@ public class UserStreamUtil {
   private final AppSettingStore appSettings;
   private final WritableSortedCache<Status> sortedStatusCache;
   private final TypedCache<Status> pool;
+  private CurrentTimeProvider currentTimeProvider;
 
   @Inject
   public UserStreamUtil(@NonNull TwitterStreamApi streamApi,
                         @NonNull WritableSortedCache<Status> sortedStatusCache,
                         @NonNull TypedCache<Status> pool,
                         @NonNull AppSettingStore appSettings,
-                        @NonNull PublishProcessor<UserFeedbackEvent> feedback) {
+                        @NonNull PublishProcessor<UserFeedbackEvent> feedback,
+                        @NonNull CurrentTimeProvider currentTimeProvider) {
     this.streamApi = streamApi;
     this.feedback = feedback;
     this.appSettings = appSettings;
     this.sortedStatusCache = sortedStatusCache;
     this.pool = pool;
+    this.currentTimeProvider = currentTimeProvider;
   }
 
   private boolean isConnectedUserStream = false;
@@ -79,7 +87,10 @@ public class UserStreamUtil {
   private PublishProcessor<Status> reactionPublishSubject;
   private Disposable onReactionSubscription;
 
-  public void connect(String storeName) {
+  public void connect(String storeName, Context context) {
+    if (currentTimeProvider.getCurrentTime() >= BuildConfig.STREAM_RETIREMENT_DATE) {
+      return;
+    }
     if (onStatusSubscription == null || onStatusSubscription.isDisposed()) {
       statusPublishSubject = PublishProcessor.create();
       onStatusSubscription = statusPublishSubject
@@ -110,14 +121,18 @@ public class UserStreamUtil {
       sortedStatusCache.open(storeName);
       appSettings.open();
       userId = appSettings.getCurrentUserId();
+      final IntentFilter intentFilter = new IntentFilter();
+      intentFilter.addAction(Intent.ACTION_TIME_TICK);
+      context.registerReceiver(tickReceiver, intentFilter);
       streamApi.connectUserStream(statusListener);
       isConnectedUserStream = true;
     }
   }
 
-  public void disconnect() {
+  public void disconnect(Context context) {
     if (isConnectedUserStream) {
       streamApi.disconnectStreamListener();
+      context.unregisterReceiver(tickReceiver);
     }
 
     if (statusPublishSubject != null) {
@@ -220,4 +235,13 @@ public class UserStreamUtil {
   };
 
   private final Consumer<Throwable> onErrorAction = throwable -> Timber.tag(TAG).d(throwable, "error: ");
+
+  private final BroadcastReceiver tickReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      if (currentTimeProvider.getCurrentTime() >= BuildConfig.STREAM_RETIREMENT_DATE) {
+        disconnect(context);
+      }
+    }
+  };
 }

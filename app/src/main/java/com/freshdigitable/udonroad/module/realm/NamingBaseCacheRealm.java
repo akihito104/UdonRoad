@@ -87,7 +87,7 @@ class NamingBaseCacheRealm implements NamingBaseCache {
 
   @Override
   public void clear() {
-    realm.executeTransaction(_realm -> _realm.deleteAll());
+    executeTransaction(_realm -> _realm.deleteAll());
   }
 
   boolean isOpened() {
@@ -95,6 +95,9 @@ class NamingBaseCacheRealm implements NamingBaseCache {
   }
 
   void executeTransaction(Realm.Transaction transaction) {
+    if (realm == null || realm.isClosed()) {
+      return;
+    }
     realm.executeTransaction(transaction);
   }
 

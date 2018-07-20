@@ -20,8 +20,18 @@ package com.freshdigitable.udonroad.datastore;
  * Created by akihit on 2017/07/02.
  */
 
-public interface WritableSortedCache<T> extends WritableCache<T>, ObservableWriteOperation<T>, NamingBaseCache {
+public interface WritableSortedCache<T>
+    extends WritableCache<T>, ObservableWriteOperation<T>, NamingBaseCache {
   long getLastPageCursor();
 
+  long getStartPageCursor();
+
   boolean hasNextPage();
+
+  abstract class Adapter<T> implements WritableSortedCache<T> {
+    @Override
+    public long getStartPageCursor() {
+      return -1;
+    }
+  }
 }

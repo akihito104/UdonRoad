@@ -37,7 +37,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
  * Created by akihit on 2018/01/14.
  */
 
-class DemoListItemRepository implements ListItemRepository {
+class DemoListItemRepository extends ListItemRepository.Adapter {
   private final ListFetcher<ListItem> fetcher;
   private final UpdateSubject updateSubject;
   private final List<ListItem> listItems;

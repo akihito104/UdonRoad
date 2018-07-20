@@ -42,4 +42,10 @@ public class SharedPreferenceModule {
   AppSettingStore provideAppSettingStore(SharedPreferences sharedPreferences, Context context) {
     return new AppSettingStoreRealm(sharedPreferences, context.getFilesDir());
   }
+
+  @Provides
+  @Singleton
+  CurrentTimeProvider provideCurrentTimeProvider() {
+    return System::currentTimeMillis;
+  }
 }

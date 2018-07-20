@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.freshdigitable.udonroad.datastore.AppSettingStore;
+import com.freshdigitable.udonroad.module.CurrentTimeProvider;
 import com.freshdigitable.udonroad.module.realm.AppSettingStoreRealm;
 
 import javax.inject.Singleton;
@@ -54,5 +55,11 @@ public class MockSharedPreferenceModule {
   @Provides
   AppSettingStore provideAppSettingStore() {
     return appSettingStore;
+  }
+
+  @Provides
+  @Singleton
+  CurrentTimeProvider provideCurrentTimeProvider() {
+    return () -> BuildConfig.STREAM_RETIREMENT_DATE - 1;
   }
 }

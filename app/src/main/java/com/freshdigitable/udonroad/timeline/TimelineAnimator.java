@@ -550,7 +550,7 @@ public class TimelineAnimator extends SimpleItemAnimator {
     for (int i = pendingAdd.size() - 1; i >= 0; i--) {
       final ViewHolder add = pendingAdd.get(i);
       dispatchAddFinished(add);
-      pendingRemoves.remove(i);
+      pendingAdd.remove(i);
     }
     for (int i = pendingChange.size() - 1; i >= 0; i--) {
       final Change change = pendingChange.get(i);

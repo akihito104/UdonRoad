@@ -18,6 +18,8 @@ android {
         versionName "0.3.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "com.freshdigitable.udonroad.MockTestRunner"
+
+        buildConfigField "long", "STREAM_RETIREMENT_DATE", "1_534_345_200_000L" // 2018/8/16 00:00:00
     }
     signingConfigs {
         prod {

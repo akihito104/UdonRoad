@@ -157,14 +157,14 @@ public class MainApplication extends Application implements HasActivityInjector 
 
   private static void logout(MainApplication app) {
     Timber.tag("MainApplication").d("logout: ");
-    app.userStreamUtil.disconnect();
+    app.userStreamUtil.disconnect(app);
     app.twitterApi.setOAuthAccessToken(null);
     app.twitterStreamApi.setOAuthAccessToken(null);
     app.loggedIn = false;
   }
 
   void connectStream() {
-    userStreamUtil.connect(StoreType.HOME.storeName);
+    userStreamUtil.connect(StoreType.HOME.storeName, this);
   }
 
   private static class ActivityLifecycleCallbacksImpl implements ActivityLifecycleCallbacks {

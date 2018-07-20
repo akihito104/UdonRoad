@@ -168,7 +168,7 @@ public class TimelineViewModel extends ViewModel {
   }
 
   public void getListOnStart() {
-    listItemRepository.getInitList();
+    listItemRepository.getListOnStart();
   }
 
   public void getListOnEnd() {

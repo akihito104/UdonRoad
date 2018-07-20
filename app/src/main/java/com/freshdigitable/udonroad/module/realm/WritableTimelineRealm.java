@@ -31,7 +31,6 @@ import io.reactivex.CompletableSource;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.realm.RealmResults;
-import io.realm.Sort;
 import timber.log.Timber;
 import twitter4j.Status;
 
@@ -196,11 +195,14 @@ public class WritableTimelineRealm implements WritableSortedCache<Status> {
     if (nextPage != null) {
       return nextPage.cursor;
     }
-    final RealmResults<StatusIDs> timeline = sortedCache.where(StatusIDs.class)
-        .sort(KEY_ID, Sort.DESCENDING)
-        .findAll();
-    final StatusIDs last = !timeline.isEmpty() ? timeline.last() : null;
-    return last != null ? last.getId() - 1 : -1;
+    final Number min = sortedCache.where(StatusIDs.class).min(KEY_ID);
+    return min != null ? min.longValue() - 1 : -1;
+  }
+
+  @Override
+  public long getStartPageCursor() {
+    final Number max = sortedCache.where(StatusIDs.class).max(KEY_ID);
+    return max != null ? max.longValue() : -1;
   }
 
   private PageCursor getNextPageCursor() {
