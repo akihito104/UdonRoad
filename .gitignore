@@ -5,17 +5,7 @@
 /local.properties
 
 # user specific configurations
-.idea/copyright
-.idea/libraries
-.idea/.name
-.idea/compiler.xml
-.idea/encodings.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/tasks.xml
-.idea/vcs.xml
-.idea/workspace.xml
-.idea/assetWizardSettings.xml
+.idea/*
 *.iml
 
 # OS specific
@@ -32,3 +22,7 @@ token.xml
 projectFilesBackup/*
 /traces
 app/src/main/assets/licenses.html
+
+# not ignored
+!.idea/codeStyleSettings.xml
+!.idea/codeStyles/codeStyleConfig.xml
